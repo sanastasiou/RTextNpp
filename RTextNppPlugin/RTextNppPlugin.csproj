@@ -1,0 +1,363 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="12.0">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>9.0.21022</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{EB8FC3A3-93E8-457B-B281-FAFA5119611A}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>RTextNppPlugin</RootNamespace>
+    <AssemblyName>RTextNppPluginLexer</AssemblyName>
+    <StartupObject>
+    </StartupObject>
+    <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
+    <FileUpgradeFlags>
+    </FileUpgradeFlags>
+    <OldToolsVersion>3.5</OldToolsVersion>
+    <UpgradeBackupLocation />
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <PlatformTarget>x86</PlatformTarget>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>none</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release</OutputPath>
+    <DefineConstants>
+    </DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <FileAlignment>512</FileAlignment>
+    <PlatformTarget>x86</PlatformTarget>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>..\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
+    <OutputPath>bin\x86\Release\</OutputPath>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Optimize>true</Optimize>
+    <PlatformTarget>x86</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x64\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
+    <OutputPath>bin\x64\Release\</OutputPath>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Optimize>true</Optimize>
+    <PlatformTarget>x64</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup>
+    <RunPostBuildEvent>Always</RunPostBuildEvent>
+  </PropertyGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+  <ItemGroup>
+    <Compile Include="Connector.cs" />
+    <Compile Include="Constants.cs" />
+    <Compile Include="Dialogs\AboutBox.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Dialogs\AboutBox.designer.cs">
+      <DependentUpon>AboutBox.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Dialogs\BreakpointsPanel.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Dialogs\BreakpointsPanel.Designer.cs">
+      <DependentUpon>BreakpointsPanel.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Dialogs\CallStackPanel.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Dialogs\CallStackPanel.Designer.cs">
+      <DependentUpon>CallStackPanel.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Dialogs\CodeMapPanel.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Dialogs\CodeMapPanel.Designer.cs">
+      <DependentUpon>CodeMapPanel.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Dialogs\ConfigForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Dialogs\ConfigForm.Designer.cs">
+      <DependentUpon>ConfigForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Dialogs\DbgObject.cs" />
+    <Compile Include="Dialogs\DebugExternal.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Dialogs\DebugExternal.Designer.cs">
+      <DependentUpon>DebugExternal.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Dialogs\DebugObjectsPanel.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Dialogs\DebugObjectsPanel.Designer.cs">
+      <DependentUpon>DebugObjectsPanel.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Dialogs\DeploymentInput.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Dialogs\DeploymentInput.Designer.cs">
+      <DependentUpon>DeploymentInput.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Dialogs\LocalsPanel.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Dialogs\LocalsPanel.Designer.cs">
+      <DependentUpon>LocalsPanel.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Dialogs\ModulesPanel.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Dialogs\ModulesPanel.Designer.cs">
+      <DependentUpon>ModulesPanel.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Dialogs\PluginShortcuts.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Dialogs\PluginShortcuts.Designer.cs">
+      <DependentUpon>PluginShortcuts.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Dialogs\QuickWatchPanel.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Dialogs\QuickWatchPanel.Designer.cs">
+      <DependentUpon>QuickWatchPanel.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Dialogs\ScriptNameInput.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Dialogs\ScriptNameInput.Designer.cs">
+      <DependentUpon>ScriptNameInput.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Dialogs\ShortcutBuilder.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Dialogs\ShortcutBuilder.Designer.cs">
+      <DependentUpon>ShortcutBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Dialogs\TextVisualizer.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Dialogs\TextVisualizer.Designer.cs">
+      <DependentUpon>TextVisualizer.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Dialogs\ThreadsPanel.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Dialogs\ThreadsPanel.Designer.cs">
+      <DependentUpon>ThreadsPanel.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Dialogs\UpdateOptionsPanel.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Dialogs\UpdateOptionsPanel.Designer.cs">
+      <DependentUpon>UpdateOptionsPanel.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Dialogs\WatchPanel.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Dialogs\WatchPanel.Designer.cs">
+      <DependentUpon>WatchPanel.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\JepOutput.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\JepOutput.designer.cs">
+      <DependentUpon>JepOutput.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Main.cs" />
+    <Compile Include="Interop\DllExport\NppPluginNETBase.cs" />
+    <Compile Include="Interop\DllExport\NppPluginNETHelper.cs" />
+    <Compile Include="Interop\IniFile.cs" />
+    <Compile Include="Interop\LocalWindowsHook.cs" />
+    <Compile Include="Interop\Npp.cs" />
+    <Compile Include="Interop\Utils.cs" />
+    <Compile Include="Interop\WinHook.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Properties\Resources.Designer.cs">
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="Protocol\AutoCompleteAndReferenceRequest.cs" />
+    <Compile Include="Protocol\AutoCompleteRequest.cs" />
+    <Compile Include="Protocol\AutoCompleteResponse.cs" />
+    <Compile Include="Protocol\Base.cs" />
+    <Compile Include="Protocol\ContextInfoResponse.cs" />
+    <Compile Include="Protocol\ErrorResponse.cs" />
+    <Compile Include="Protocol\FindElementRequest.cs" />
+    <Compile Include="Protocol\FindRTextElementsResponse.cs" />
+    <Compile Include="Protocol\LinkTargetsResponse.cs" />
+    <Compile Include="Protocol\LoadResponse.cs" />
+    <Compile Include="Protocol\ProgressResponse.cs" />
+    <Compile Include="Protocol\SerializerFactory.cs" />
+    <Compile Include="RTextNppPlugin\Config.cs" />
+    <Compile Include="RTextNppPlugin\DebugPanel.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="RTextNppPlugin\DebugPanel.Designer.cs" />
+    <Compile Include="RTextNppPlugin\OutputPanel.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="RTextNppPlugin\OutputPanel.Designer.cs" />
+    <Compile Include="RTextNppPlugin\ProjectPanel.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="RTextNppPlugin\ProjectPanel.Designer.cs" />
+    <Compile Include="RTextNppPlugin\Shortcuts.cs" />
+    <Compile Include="RTextNppPlugin\SourceCodeFormatter.cs" />
+    <Compile Include="RTextNppPlugin\StringExtesnions.cs" />
+    <Compile Include="RTextNppPlugin\ToolStripPersistance.cs" />
+    <Compile Include="StateEngine\StateMachine.cs" />
+    <Compile Include="Interop\DllExport\UnmanagedExports.cs" />
+    <Compile Include="Utilities\FileUtilities.cs" />
+    <Compile Include="Utilities\FuzzyMatching.cs" />
+    <Compile Include="Utilities\HashUtilities.cs" />
+    <Compile Include="Utilities\ParentProcessUtilities.cs" />
+    <Compile Include="Utilities\ProcessUtilities.cs" />
+    <Compile Include="Utilities\ThreadPerTaskkScheduler.cs" />
+    <Compile Include="Utilities\Visual.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="PresentationCore" />
+    <Reference Include="RGiesecke.DllExport.Metadata">
+      <HintPath>..\packages\UnmanagedExports.1.2.6\lib\net\RGiesecke.DllExport.Metadata.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.ComponentModel.Composition" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Management" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.Windows" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.XML" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="WindowsBase" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Dialogs\AboutBox.resx">
+      <DependentUpon>AboutBox.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Dialogs\BreakpointsPanel.resx">
+      <DependentUpon>BreakpointsPanel.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Dialogs\CallStackPanel.resx">
+      <DependentUpon>CallStackPanel.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Dialogs\CodeMapPanel.resx">
+      <DependentUpon>CodeMapPanel.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Dialogs\ConfigForm.resx">
+      <DependentUpon>ConfigForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Dialogs\DebugExternal.resx">
+      <DependentUpon>DebugExternal.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Dialogs\DebugObjectsPanel.resx">
+      <DependentUpon>DebugObjectsPanel.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Dialogs\DeploymentInput.resx">
+      <DependentUpon>DeploymentInput.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Dialogs\LocalsPanel.resx">
+      <DependentUpon>LocalsPanel.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Dialogs\ModulesPanel.resx">
+      <DependentUpon>ModulesPanel.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Dialogs\PluginShortcuts.resx">
+      <DependentUpon>PluginShortcuts.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Dialogs\QuickWatchPanel.resx">
+      <DependentUpon>QuickWatchPanel.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Dialogs\ScriptNameInput.resx">
+      <DependentUpon>ScriptNameInput.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Dialogs\ShortcutBuilder.resx">
+      <DependentUpon>ShortcutBuilder.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Dialogs\TextVisualizer.resx">
+      <DependentUpon>TextVisualizer.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Dialogs\ThreadsPanel.resx">
+      <DependentUpon>ThreadsPanel.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Dialogs\UpdateOptionsPanel.resx">
+      <DependentUpon>UpdateOptionsPanel.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Dialogs\WatchPanel.resx">
+      <DependentUpon>WatchPanel.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\JepOutput.resx">
+      <DependentUpon>JepOutput.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="RTextNppPlugin\DebugPanel.resx" />
+    <EmbeddedResource Include="RTextNppPlugin\OutputPanel.resx" />
+    <EmbeddedResource Include="RTextNppPlugin\ProjectPanel.resx" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Properties\star.png" />
+    <Content Include="Properties\star_bmp.bmp" />
+    <EmbeddedResource Include="Resources\Log4Net.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config">
+      <SubType>Designer</SubType>
+    </None>
+  </ItemGroup>
+  <PropertyGroup>
+    <PostBuildEvent>copy /Y "$(OutDir)$(TargetName).dll" "C:\Program Files (x86)\Notepad++\plugins"</PostBuildEvent>
+  </PropertyGroup>
+  <Import Project="../packages/UnmanagedExports.1.2.6/tools/RGiesecke.DllExport.targets" Condition="Exists('../packages/UnmanagedExports.1.2.6/tools/RGiesecke.DllExport.targets')" />
+</Project>

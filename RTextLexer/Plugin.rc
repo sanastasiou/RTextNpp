@@ -1,0 +1,34 @@
+#include "Version.h"
+#include <VerRsrc.h>
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Version
+//
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION RTEXTLEXER_VERSION_RC
+ FILEFLAGSMASK 0x17L
+#ifdef _DEBUG
+ FILEFLAGS VS_FF_DEBUG
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS VOS_NT_WINDOWS32
+ FILETYPE VFT_DLL
+ FILESUBTYPE VFT_UNKNOWN
+{
+    BLOCK "StringFileInfo"
+    {
+        BLOCK "040904E4"
+        {
+            VALUE "FileVersion", RTEXTLEXER_VERSION_STRING
+            VALUE "LegalCopyright", "© 2013 - Birunthan Mohanathas"
+            VALUE "ProductVersion", RTEXTLEXER_VERSION_STRING
+        }
+    }
+    BLOCK "VarFileInfo"
+    {
+        VALUE "Translation", 0x409, 1252
+    }
+}
