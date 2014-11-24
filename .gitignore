@@ -9,3 +9,4 @@ Certificate.bat
 *.suo
 *.txt
 *.user
+/RTextNppPlugin/obj
