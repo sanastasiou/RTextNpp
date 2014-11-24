@@ -352,9 +352,7 @@
     <EmbeddedResource Include="Resources\Log4Net.xml" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config">
-      <SubType>Designer</SubType>
-    </None>
+    <None Include="packages.config" />
   </ItemGroup>
   <PropertyGroup>
     <PostBuildEvent>copy /Y "$(OutDir)$(TargetName).dll" "C:\Program Files (x86)\Notepad++\plugins"</PostBuildEvent>
