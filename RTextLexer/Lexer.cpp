@@ -414,29 +414,42 @@ namespace RText
 
     void SCI_METHOD RTextLexer::Fold(unsigned int startPos, int length, int initStyle, IDocument* pAccess)
     {
-        /*Accessor styler(pAccess, nullptr);
-
-        length += startPos;
-        int line = styler.GetLine(startPos);
-
-        for (unsigned int i = startPos, isize = (unsigned int)length; i < isize; ++i)
+        LexAccessor styler(pAccess);
+        unsigned int endPos = startPos + length;
+        char chNext = styler[startPos];
+        int lineCurrent = styler.GetLine(startPos);
+        int levelPrev = styler.LevelAt(lineCurrent) & SC_FOLDLEVELNUMBERMASK;
+        int levelCurrent = levelPrev;
+        char ch;
+        bool atEOL;
+        for (unsigned int i = startPos; i < endPos; i++)
         {
-        if ((styler[i] == '\n') || (i == length - 1))
-        {
-        int level = (styler.StyleAt(i - 2) == TS_SECTION)
-        ? SC_FOLDLEVELBASE | SC_FOLDLEVELHEADERFLAG
-        : SC_FOLDLEVELBASE + 1;
-
-        if (level != styler.LevelAt(line))
-        {
-        styler.SetLevel(line, level);
+            ch = chNext;
+            chNext = styler.SafeGetCharAt(i + 1);
+            atEOL = ((ch == '\r' && chNext != '\n') || (ch == '\n'));
+            if (ch == '{')
+            {
+                levelCurrent++;
+            }
+            if (ch == '}')
+            {
+                levelCurrent--;
+            }
+            if (atEOL || (i == (endPos - 1)))
+            {
+                int lev = levelPrev;
+                if (levelCurrent > levelPrev)
+                {
+                    lev |= SC_FOLDLEVELHEADERFLAG;
+                }
+                if (lev != styler.LevelAt(lineCurrent))
+                {
+                    styler.SetLevel(lineCurrent, lev);
+                }
+                lineCurrent++;
+                levelPrev = levelCurrent;
+            }
         }
-
-        ++line;
-        }
-        }
-
-        styler.Flush();*/
     }
 
     void* SCI_METHOD RTextLexer::PrivateCall(int operation, void* pointer)
