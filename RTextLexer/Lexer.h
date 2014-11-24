@@ -26,7 +26,7 @@
 #include "LexerModule.h"
 #include "StyleContext.h"
 #include "CharacterSet.h"
-#include <regex>
+#include <string>
 
 namespace RText {
 
@@ -135,15 +135,64 @@ private:
      */
     bool isWhitespace(StyleContext const & context)const;
 
+    /**
+     * Identify float.
+     *
+     * \param [in,out]  accessor    The accessor.
+     * \param   context             The context.
+     * \param [in,out]  length      The length of the identified token.
+     *
+     * \return  true if a floating point literal is identified, false if it fails.
+     */
     bool identifyFloat(Accessor & accessor, StyleContext const & context, unsigned int & length)const;
 
+    /**
+    * Skips digits from currentPos until delimiter char.
+    *
+    * \param [in,out]  accessor    The accessor.
+    * \param delimiter             The delimiter. When this is encountered skipping is stopped.
+    * \param [in,out]  currentPos  Current position of the accessor.
+    *
+    * \return  Length of digits skipped, including the delimiter. 0 if delimiter is not found.
+    */
     unsigned int skipDigitsUntil(Accessor & accessor, char const delimiter, unsigned int & currentPos)const;
 
+    /**
+    * Identify integer.
+    *
+    * \param [in,out]  accessor    The accessor.
+    * \param   context             The context.
+    * \param [in,out]  length      The length of the identified token.
+    *
+    * \return  true if an integer literal is identified, false if it fails.
+    */
     bool identifyInt(Accessor & accessor, StyleContext const & context, unsigned int & length)const;
 
+    /**
+    * Identify quoted string.
+    *
+    * \param [in,out]  accessor    The accessor.
+    * \param   context             The context.
+    * \param [in,out]  length      The length of the identified token.
+    *
+    * \return  true if a quoted string is identified, false if it fails.
+    */
     bool identifyQuotedString(Accessor & accessor, StyleContext const & context, unsigned int & length)const;
 
+    /**
+    * Identify label.
+    *
+    * \param [in,out]  accessor    The accessor.
+    * \param   context             The context.
+    * \param [in,out]  length      The length of the identified token.
+    *
+    * \return  true if a label is identified, false if it fails.
+    */
     bool identifyLabel(Accessor & accessor, StyleContext const & context, unsigned int & length)const;
+
+    bool identifyName(Accessor & accessor, StyleContext const & context, unsigned int & length)const;
+
+    bool identifyBoolean(Accessor & accessor, StyleContext const & context, unsigned int & length)const;
 
     inline bool isHex(char const c)const
     {
@@ -167,6 +216,13 @@ private:
             break;
         }
     }
+
+    bool identifyCharSequence(Accessor & accessor, unsigned int & currentPos, std::string match)const;
+
+    bool identifyLineBreak(StyleContext const & context)const;
+
+    static const std::string BOOLEAN_TRUE;
+    static const std::string BOOLEAN_FALSE;
 };
 
 }	// namespace RText
