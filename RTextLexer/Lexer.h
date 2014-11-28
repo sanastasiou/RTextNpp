@@ -99,6 +99,10 @@ public:
     virtual void* SCI_METHOD PrivateCall(int operation, void* pointer);
 
 private:  
+
+    static const std::string BOOLEAN_TRUE;
+    static const std::string BOOLEAN_FALSE;
+
     enum TokenType
     {
         TokenType_Default,
@@ -116,6 +120,9 @@ private:
         TokenType_Error,
         TokenType_Other
     };
+
+    bool _firstTokenInLine;
+    char _linebreakChar;
 
     /**
      * \brief   Query if end of line is reached.
@@ -219,10 +226,12 @@ private:
 
     bool identifyCharSequence(Accessor & accessor, unsigned int & currentPos, std::string match)const;
 
-    bool identifyLineBreak(StyleContext const & context)const;
+    bool identifyLineBreak(Accessor & accessor, StyleContext const & context)const;
 
-    static const std::string BOOLEAN_TRUE;
-    static const std::string BOOLEAN_FALSE;
+    /**
+     * Default constructor.
+     */
+    RTextLexer();
 };
 
 }	// namespace RText

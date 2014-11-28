@@ -6,12 +6,19 @@
 namespace RText
 { 
     //static initializations
-    const std::string RTextLexer::BOOLEAN_TRUE = "true";
+    const std::string RTextLexer::BOOLEAN_TRUE  = "true";
     const std::string RTextLexer::BOOLEAN_FALSE = "false";
 
     ILexer* RTextLexer::LexerFactory()
     {
         return new RTextLexer();
+    }
+
+    RTextLexer::RTextLexer() : 
+        _linebreakChar('\0'),
+        _firstTokenInLine(true)
+    {
+
     }
 
     //
@@ -206,9 +213,25 @@ namespace RText
         return (length > 0);
     }
 
-    bool RTextLexer::identifyLineBreak(StyleContext const & context)const
+    bool RTextLexer::identifyLineBreak(Accessor & accessor, StyleContext const & context)const
     {
-        return (context.Match('\\'));
+        if (context.Match('\\') || context.Match(',') || context.Match('['))
+        {
+            unsigned i = context.currentPos + 1;
+            for (; i < accessor.Length() - (context.currentPos + 1); ++i)
+            {
+                if (accessor[i] != ' ' && accessor[i] != '\t') break;
+            }
+            if (i == accessor.Length() - (context.currentPos + 1))
+            {
+                return true;
+            }
+            else
+            {
+                return (accessor[i] == '\n' || accessor[i] == '\r');
+            }
+        }
+        return false;
     }
 
     bool RTextLexer::identifyName(Accessor & accessor, StyleContext const & context, unsigned int & length)const
@@ -232,181 +255,132 @@ namespace RText
     {
         Accessor styler(pAccess, nullptr);        
         StyleContext context(startPos, length, initStyle, styler);        
-
         unsigned int aTokenLength = 0;
-        bool linebreak            = false;
-        bool firstTokenInLine     = true;        
-
-        for (; context.More(); context.Forward())
+    
+        while(context.More())
         {            
             switch (context.state)
             {
             case TokenType_Default:
+                aTokenLength = 0;
                 //ignore spaces
-                if (isWhitespace(context)) continue;
-                if (identifyLineBreak(context))
+                while (isWhitespace(context))
                 {
-                    linebreak = true;
+                    context.Forward();
                 }
                 //handle new line
                 if (context.Match('\n') || context.Match('\r', '\n'))
                 {
-                    if (linebreak)
+                    if (_linebreakChar != '\0')
                     {
-                        linebreak = false;
+                        /*if (_linebreakChar == '\\')
+                        {                            
+                            _firstTokenInLine = true;
+                        }*/
+                        _linebreakChar = '\0';
                     }
                     else
                     {
-                        firstTokenInLine = true;
+                        _firstTokenInLine = true;
                     }
+
                     if (context.Match('\r', '\n'))
                     {
                         context.Forward();
                     }
                     context.Forward();
+                    continue;
                 }                
-                if (context.Match('#'))
+                if (identifyLineBreak(styler, context))
+                {
+                    _linebreakChar = context.ch;
+                    context.Forward();                    
+                }
+                else if (context.Match('#'))
                 {
                     context.SetState(TokenType_Comment);
-                    context.Forward();
-                    firstTokenInLine = false;
                 }
                 else if (context.Match('@'))
                 {
                     context.SetState(TokenType_Notation);
-                    context.Forward();
-                    firstTokenInLine = false;
                 }
                 else if (context.Match('/'))
                 {
                     context.SetState(TokenType_Reference);
-                    context.Forward();
-                    firstTokenInLine = false;
                 }
                 else if (identifyFloat(styler, context, aTokenLength))
                 {
                     context.SetState(TokenType_Float);
-                    --aTokenLength;
-                    firstTokenInLine = false;
                 }
                 else if (identifyInt(styler, context, aTokenLength))
                 {
                     context.SetState(TokenType_Integer);
-                    --aTokenLength;
-                    firstTokenInLine = false;
                 }
                 else if (identifyQuotedString(styler, context, aTokenLength))
                 {
                     context.SetState(TokenType_Quoted_string);
-                    --aTokenLength;
-                    firstTokenInLine = false;
                 }
                 else if (identifyLabel(styler, context, aTokenLength))
                 {
                     context.SetState(TokenType_Label);
-                    --aTokenLength;
-                    firstTokenInLine = false;
                 }
                 else if (identifyBoolean(styler, context, aTokenLength))
                 {
                     context.SetState(TokenType_Boolean);
-                    --aTokenLength;
-                    firstTokenInLine = false;
                 }
                 else if (identifyName(styler, context, aTokenLength))
                 {
-                    if (firstTokenInLine)
+                    if (_firstTokenInLine)
                     {
-                        context.SetState(TokenType_Command);
+                        context.SetState(TokenType_Command);                        
                     }
                     else
                     {
                         context.SetState(TokenType_Identifier);
                     }
-                    --aTokenLength;
-                    firstTokenInLine = false;
+                    _firstTokenInLine = false;
+                }
+                else
+                {
+                    //don't care about this char/token
+                    context.Forward();
                 }
                 break;
             case TokenType_Command:
-                while (aTokenLength-- > 0)
-                {
-                    context.SetState(TokenType_Command);
-                    context.Forward();
-                }
-                context.SetState(TokenType_Default);
-                break;
             case TokenType_Identifier:
-                while (aTokenLength-- > 0)
-                {
-                    context.SetState(TokenType_Identifier);
-                    context.Forward();
-                }
-                context.SetState(TokenType_Default);
-                break;
             case TokenType_Boolean:
-                while (aTokenLength-- > 0)
-                {
-                    context.SetState(TokenType_Boolean);
-                    context.Forward();
-                }
-                context.SetState(TokenType_Default);
-                break;
             case TokenType_Label:
-                while (aTokenLength-- > 0)
-                {
-                    context.SetState(TokenType_Label);
-                    context.Forward();
-                }
-                context.SetState(TokenType_Default);
-                break;
             case TokenType_Quoted_string:
-                while (aTokenLength-- > 0)
-                {
-                    context.SetState(TokenType_Quoted_string);
-                    context.Forward();
-                }
-                context.SetState(TokenType_Default);
-                break;
             case TokenType_Integer:
-                while (aTokenLength-- > 0)
-                {
-                    context.SetState(TokenType_Integer);
-                    context.Forward();
-                }
-                context.SetState(TokenType_Default);
-                break;
             case TokenType_Float:
-                while (aTokenLength-- > 0)
+                while (aTokenLength > 0)
                 {
-                    context.SetState(TokenType_Float);
+                    --aTokenLength;
                     context.Forward();
                 }
                 context.SetState(TokenType_Default);
                 break;
             case TokenType_Reference:
-                while (::isalnum(styler[context.currentPos]) || context.Match('/') || context.Match('_'))
+                while (::isalnum(context.ch) || context.Match('/') || context.Match('_'))
                 {
-                    context.SetState(TokenType_Reference);
                     context.Forward();
                 }
                 context.SetState(TokenType_Default);
                 break;
             case TokenType_Notation:
-                if (isEndOfLineReached(context))
-                {
-                    firstTokenInLine = true;
-                    context.SetState(TokenType_Default);
-                }
-                break;
             case TokenType_Comment:
                 if (isEndOfLineReached(context))
                 {
-                    firstTokenInLine = true;
                     context.SetState(TokenType_Default);
                 }
+                else
+                {
+                    context.Forward();
+                }
                 break;
-            default:
-                context.SetState(TokenType_Default);
+            //default:
+            //    context.SetState(TokenType_Default);
+            //    context.Forward();
             }
         }
         context.Complete();
@@ -474,7 +448,7 @@ namespace RText
 
     void SCI_METHOD GetLexerStatusText(unsigned int index, WCHAR* desc, int buflength)
     {
-        wcsncpy(desc, L"RTextLexer skin file", buflength);
+        wcsncpy(desc, L"RText++ Automate file", buflength);
         desc[buflength - 1] = L'\0';
     }
 
