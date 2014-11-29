@@ -14,16 +14,9 @@ namespace RText
         return new RTextLexer();
     }
 
-    RTextLexer::RTextLexer() : 
-        _linebreakChar('\0'),
-        _firstTokenInLine(true)
+    RTextLexer::RTextLexer() : _firstTokenInLine(true)
     {
-
     }
-
-    //
-    // ILexer
-    //
 
     void SCI_METHOD RTextLexer::Release()
     {
@@ -37,14 +30,6 @@ namespace RText
 
     int SCI_METHOD RTextLexer::WordListSet(int n, const char *wl)
     {
-        //if (n < _countof(m_WordLists)) {
-        //    WordList wlNew;
-        //    wlNew.Set(wl);
-        //    if (m_WordLists[n] != wlNew) {
-        //        m_WordLists[n].Set(wl);
-        //        return 0;
-        //    }
-        //}
         return -1;
     }
 
@@ -213,50 +198,53 @@ namespace RText
         return (length > 0);
     }
 
-    bool RTextLexer::identifyLineBreak(Accessor & accessor, StyleContext const & context)const
-    {
-        if (context.Match('\\') || context.Match(',') || context.Match('['))
-        {
-            unsigned i = context.currentPos + 1;
-            for (; i < accessor.Length() - (context.currentPos + 1); ++i)
-            {
-                if (accessor[i] != ' ' && accessor[i] != '\t') break;
-            }
-            if (i == accessor.Length() - (context.currentPos + 1))
-            {
-                return true;
-            }
-            else
-            {
-                return (accessor[i] == '\n' || accessor[i] == '\r');
-            }
-        }
-        return false;
-    }
-
     bool RTextLexer::identifyName(Accessor & accessor, StyleContext const & context, unsigned int & length)const
     {
-        unsigned int aCurrentPos = context.currentPos;
+        unsigned int aCurrentPos = context.currentPos - 1;
         length                   = 0;     
         if (::isalpha(context.ch) || (context.ch == '_'))
         {
-            ++length;
-            ++aCurrentPos;
-            while (::isalnum(accessor[aCurrentPos]) || (accessor[aCurrentPos] == '_'))
+            while (::isalnum(accessor[aCurrentPos + 1]) || (accessor[aCurrentPos + 1] == '_'))
             {
                 ++length;
-                ++aCurrentPos;
+                ++aCurrentPos;                
             }
         }       
         return (length > 0);
+    }
+
+    bool RTextLexer::isLineExtended(int startPos, char const * const buffer)const
+    {
+        //go back till we find \,[
+        while (startPos-- >= 0)
+        {
+            if (::isspace(buffer[startPos]))
+            {
+                continue;
+            }
+            else
+            {
+                //not space 
+                if (isLineBreakChar(buffer[startPos]))
+                {
+                    return true;
+                }
+                else
+                {
+                    //some other char -> no line break!
+                    return false;
+                }
+            }
+        }
+        return false;
     }
 
     void SCI_METHOD RTextLexer::Lex(unsigned int startPos, int length, int initStyle, IDocument* pAccess)
     {
         Accessor styler(pAccess, nullptr);        
         StyleContext context(startPos, length, initStyle, styler);        
-        unsigned int aTokenLength = 0;
-    
+        unsigned int aTokenLength = 0;        
+
         while(context.More())
         {            
             switch (context.state)
@@ -271,18 +259,7 @@ namespace RText
                 //handle new line
                 if (context.Match('\n') || context.Match('\r', '\n'))
                 {
-                    if (_linebreakChar != '\0')
-                    {
-                        /*if (_linebreakChar == '\\')
-                        {                            
-                            _firstTokenInLine = true;
-                        }*/
-                        _linebreakChar = '\0';
-                    }
-                    else
-                    {
-                        _firstTokenInLine = true;
-                    }
+                    _firstTokenInLine = true;
 
                     if (context.Match('\r', '\n'))
                     {
@@ -291,12 +268,8 @@ namespace RText
                     context.Forward();
                     continue;
                 }                
-                if (identifyLineBreak(styler, context))
-                {
-                    _linebreakChar = context.ch;
-                    context.Forward();                    
-                }
-                else if (context.Match('#'))
+
+                if (context.Match('#'))
                 {
                     context.SetState(TokenType_Comment);
                 }
@@ -323,6 +296,7 @@ namespace RText
                 else if (identifyLabel(styler, context, aTokenLength))
                 {
                     context.SetState(TokenType_Label);
+                    _firstTokenInLine = false;
                 }
                 else if (identifyBoolean(styler, context, aTokenLength))
                 {
@@ -330,15 +304,16 @@ namespace RText
                 }
                 else if (identifyName(styler, context, aTokenLength))
                 {
-                    if (_firstTokenInLine)
+                    bool const isExtended = isLineExtended(context.currentPos, pAccess->BufferPointer());
+                    if (_firstTokenInLine && !isExtended)
                     {
                         context.SetState(TokenType_Command);                        
+                        _firstTokenInLine = false;
                     }
                     else
                     {
                         context.SetState(TokenType_Identifier);
                     }
-                    _firstTokenInLine = false;
                 }
                 else
                 {
@@ -378,9 +353,6 @@ namespace RText
                     context.Forward();
                 }
                 break;
-            //default:
-            //    context.SetState(TokenType_Default);
-            //    context.Forward();
             }
         }
         context.Complete();

@@ -7,8 +7,9 @@ AUTOSAR {
       IntegerLiteral lit1, value: 0
     }
     ClientServerInterface ICS1 {
-      OperationPrototype op1, possibleError: err1
-      ApplicationError err1
+      OperationPrototype op1,	  
+	  possibleError: err1	  
+      ApplicationError err1	  
     }    
     SenderReceiverInterface ISR1 {
       DataElementPrototype de1, type: /P1/UInt8
@@ -60,9 +61,9 @@ AUTOSAR {
       RPortPrototype modeRPort,
         requiredInterface: /P1/IMode1
     }
-    InternalBehavior InternalBehavior1, component: /P1/SWC1 {
+    InternalBehavior InternalBehavior1, component: /P1/SWC1 {	
       ExclusiveArea \
-        ea1
+		ea1		
       ExclusiveArea \
         ea2
       SwcNvBlockNeeds nvm1, defaultBlock: perInstCal1, mirrorBlock: pim1
@@ -77,7 +78,7 @@ AUTOSAR {
       RunnableEntity run1
       RunnableEntity run2,
         canEnterExclusiveArea: [ea1, ea2]
-      RunnableEntity run3, runsInsideExclusiveArea: [
+      RunnableEntity run3, runsInsideExclusiveArea: [	  
           ea1,
           ea2
         ]

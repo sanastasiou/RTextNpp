@@ -99,7 +99,6 @@ public:
     virtual void* SCI_METHOD PrivateCall(int operation, void* pointer);
 
 private:  
-
     static const std::string BOOLEAN_TRUE;
     static const std::string BOOLEAN_FALSE;
 
@@ -122,7 +121,7 @@ private:
     };
 
     bool _firstTokenInLine;
-    char _linebreakChar;
+
 
     /**
      * \brief   Query if end of line is reached.
@@ -201,8 +200,9 @@ private:
 
     bool identifyBoolean(Accessor & accessor, StyleContext const & context, unsigned int & length)const;
 
-    inline bool isHex(char const c)const
+    inline bool isHex(int c)const
     {
+        c = ::tolower(c);
         switch (c)
         {
         case 'a':
@@ -211,27 +211,25 @@ private:
         case 'd':
         case 'e':
         case 'f':
-        case 'A':
-        case 'B':
-        case 'C':
-        case 'D':
-        case 'E':
-        case 'F':
             return true;
         default:
             return false;
-            break;
         }
     }
 
     bool identifyCharSequence(Accessor & accessor, unsigned int & currentPos, std::string match)const;
 
-    bool identifyLineBreak(Accessor & accessor, StyleContext const & context)const;
-
     /**
      * Default constructor.
      */
     RTextLexer();
+
+    bool isLineExtended(int startPos, char const * const buffer)const;
+
+    bool inline isLineBreakChar(char const c)const
+    {
+        return (c == '\\' || c == ',' || c == '[');
+    }
 };
 
 }	// namespace RText
