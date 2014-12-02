@@ -118,9 +118,6 @@
     <ClInclude Include="..\headers\StaticDialog.h" />
     <ClInclude Include="..\headers\Window.h" />
     <ClInclude Include="Lexer.h" />
-    <ClInclude Include="Logger\targetver.h" />
-    <ClInclude Include="Logger\threading.h" />
-    <ClInclude Include="Logger\tstring.h" />
     <ClInclude Include="StdAfx.h" />
   </ItemGroup>
   <ItemGroup>

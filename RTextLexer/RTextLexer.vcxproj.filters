@@ -67,15 +67,6 @@
     <ClInclude Include="..\headers\Window.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Logger\targetver.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Logger\threading.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Logger\tstring.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Plugin.rc">
