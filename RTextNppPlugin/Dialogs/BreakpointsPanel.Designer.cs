@@ -1,4 +1,4 @@
-﻿namespace NppPluginNET.Dialogs
+﻿namespace RTextNppPlugin.Dialogs
 {
     partial class BreakpointsPanel
     {

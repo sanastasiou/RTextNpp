@@ -2,7 +2,7 @@ using System;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace NppPluginNET
+namespace RTextNppPlugin
 {
     public class FileReference
     {

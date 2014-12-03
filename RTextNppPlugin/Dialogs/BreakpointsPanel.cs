@@ -8,7 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 
-namespace NppPluginNET.Dialogs
+namespace RTextNppPlugin.Dialogs
 {
     public partial class BreakpointsPanel : Form
     {

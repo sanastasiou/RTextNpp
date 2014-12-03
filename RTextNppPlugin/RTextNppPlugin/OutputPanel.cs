@@ -10,7 +10,7 @@ using System.Windows.Forms;
 using System.Globalization;
 using System.Reflection;
 
-namespace NppPluginNET
+namespace RTextNppPlugin
 {
     public partial class OutputPanel : Form
     {

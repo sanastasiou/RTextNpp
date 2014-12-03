@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Windows.Forms;
 
-namespace NppPluginNET
+namespace RTextNppPlugin
 {
     public partial class ScripNameInput : Form
     {

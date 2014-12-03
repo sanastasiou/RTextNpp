@@ -5,7 +5,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace NppPluginNET.Dialogs
+namespace RTextNppPlugin.Dialogs
 {
     public partial class UpdateOptionsPanel : Form
     {

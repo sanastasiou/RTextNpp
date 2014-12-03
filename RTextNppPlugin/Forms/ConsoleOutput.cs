@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Windows.Forms;
+using System.ComponentModel;
 
-namespace NppPluginNET
+namespace RTextNppPlugin
 {
-    partial class frmGoToLine : Form
+    partial class ConsoleOutputForm : Form
     {
-        public frmGoToLine()
+        public ConsoleOutputForm()
         {
             InitializeComponent();
         }
@@ -25,11 +26,6 @@ namespace NppPluginNET
             //    Win32.SendMessage(Plugin.NppData._nppHandle, NppMsg.NPPM_SETMENUITEMCHECK,
             //                      Plugin.FuncItems.Items[Plugin..idFrmGotToLine]._cmdID, 0);
             //}
-        }
-
-        private void label1_Click(object sender, EventArgs e)
-        {
-
         }
     }
 }

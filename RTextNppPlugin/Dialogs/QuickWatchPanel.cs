@@ -3,7 +3,7 @@ using System.IO;
 using System.Threading;
 using System.Windows.Forms;
 
-namespace NppPluginNET.Dialogs
+namespace RTextNppPlugin.Dialogs
 {
     public partial class QuickWatchPanel : Form
     {

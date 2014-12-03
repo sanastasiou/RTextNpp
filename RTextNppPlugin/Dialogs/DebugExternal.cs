@@ -9,7 +9,7 @@ using System.Text;
 using System.Threading;
 using System.Windows.Forms;
 
-namespace NppPluginNET
+namespace RTextNppPlugin
 {
     public partial class DebugExternal : Form
     {

@@ -2,7 +2,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 
-namespace NppPluginNET
+namespace RTextNppPlugin
 {
     /// <summary>
     /// Of course XML based config is more natural, however ini file reading (just a few values) is faster.

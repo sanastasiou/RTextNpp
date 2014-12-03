@@ -5,13 +5,22 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using NppPluginNET.Dialogs;
+using RTextNppPlugin.Dialogs;
 using System.Runtime.InteropServices;
+using System.Drawing;
+using System.Drawing.Imaging;
 
-namespace NppPluginNET
+namespace RTextNppPlugin
 {
     public partial class Plugin
     {
+        const int ConsoleCommand = 0;
+        const int FindRTextElementCommand = 1;
+
+
+        private static ConsoleOutputForm _consoleOutput = null;
+        //private static Icon _consoleOutputIcon = null;
+        //static Bitmap tbBmp_tbTab = Properties.Resources.star_bmp;
         public const string PluginName = "&RText++";
 
         public static int projectPanelId = -1;
@@ -34,10 +43,65 @@ namespace NppPluginNET
             Win32.SendMessage(GetCurrentScintilla(), SciMsg.SCI_SETTEXT, 0, "Hello, Notepad++... from .NET!");
         }
 
+        /**
+         * \brief   Shows the console output.
+         * \todo    Find a way to fix the icon. Check if menu entry can also have associated icon.         
+         */
+        static void ShowConsoleOutput()
+        {
+            if (_consoleOutput == null)
+            {
+                _consoleOutput = new ConsoleOutputForm();
+
+                //using (Bitmap newBmp = new Bitmap(16, 16))
+                //{
+                //    Graphics g = Graphics.FromImage(newBmp);
+                //    ColorMap[] colorMap = new ColorMap[1];
+                //    colorMap[0] = new ColorMap();
+                //    colorMap[0].OldColor = Color.Fuchsia;
+                //    colorMap[0].NewColor = Color.FromKnownColor(KnownColor.ButtonFace);
+                //    ImageAttributes attr = new ImageAttributes();
+                //    attr.SetRemapTable(colorMap);
+                //    g.DrawImage(tbBmp_tbTab, new Rectangle(0, 0, 16, 16), 0, 0, 16, 16, GraphicsUnit.Pixel, attr);
+                //    _consoleOutputIcon = Icon.FromHandle(newBmp.GetHicon());
+                //}
+
+                NppTbData _nppTbData = new NppTbData();
+                _nppTbData.hClient = _consoleOutput.Handle;
+                _nppTbData.pszName = "RText++ Console Output";
+                _nppTbData.dlgID = ConsoleCommand;
+                // define the default docking behaviour
+                _nppTbData.uMask = NppTbMsg.DWS_DF_CONT_RIGHT | NppTbMsg.DWS_ICONTAB | NppTbMsg.DWS_ICONBAR;
+                //_nppTbData.hIconTab = (uint)_consoleOutputIcon.Handle;
+                _nppTbData.pszModuleName = PluginName;
+                IntPtr _ptrNppTbData = Marshal.AllocHGlobal(Marshal.SizeOf(_nppTbData));
+                Marshal.StructureToPtr(_nppTbData, _ptrNppTbData, false);
+
+                Win32.SendMessage(NppData._nppHandle, NppMsg.NPPM_DMMREGASDCKDLG, 0, _ptrNppTbData);
+                // Following message will toogle both menu item state and toolbar button
+                Win32.SendMessage(NppData._nppHandle, NppMsg.NPPM_SETMENUITEMCHECK, FuncItems.Items[ConsoleCommand]._cmdID, 1);
+            }
+            else
+            {
+                if (!_consoleOutput.Visible)
+                {
+                    Win32.SendMessage(NppData._nppHandle, NppMsg.NPPM_DMMSHOW, 0, _consoleOutput.Handle);
+                    Win32.SendMessage(NppData._nppHandle, NppMsg.NPPM_SETMENUITEMCHECK, FuncItems.Items[ConsoleCommand]._cmdID, 1);
+                }
+                else
+                {
+                    Win32.SendMessage(NppData._nppHandle, NppMsg.NPPM_DMMHIDE, 0, _consoleOutput.Handle);
+                    Win32.SendMessage(NppData._nppHandle, NppMsg.NPPM_SETMENUITEMCHECK, FuncItems.Items[ConsoleCommand]._cmdID, 0);
+                }
+            }
+            _consoleOutput.Focus();
+        }
+
         static internal void CommandMenuInit()
         {
+            //SetCommand(0, "Show RText++ Console", Hello, new ShortcutKey(false, true, false, Keys.R));
             //'_' prefix in the shortcutName means "pluging action shortcut" as opposite to "plugin key interceptor action"
-            SetCommand(0, "Hello Notepad++", Hello);
+            SetCommand(0, "Show RText++ Console", ShowConsoleOutput, new ShortcutKey(true, true, true, Keys.R));
             //SetCommand(projectPanelId = index++, "Run", Run, "_Run:F5");
             //SetCommand(projectPanelId = index++, "Debug", Debug, "_Debug:Alt+F5");
             //SetCommand(projectPanelId = index++, "Debug External Process", DebugEx, "_DebugExternal:Ctrl+Shift+F5");

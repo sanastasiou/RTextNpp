@@ -205,11 +205,11 @@
     <Compile Include="Dialogs\WatchPanel.Designer.cs">
       <DependentUpon>WatchPanel.cs</DependentUpon>
     </Compile>
-    <Compile Include="Forms\JepOutput.cs">
+    <Compile Include="Forms\ConsoleOutput.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Forms\JepOutput.designer.cs">
-      <DependentUpon>JepOutput.cs</DependentUpon>
+    <Compile Include="Forms\ConsoleOutput.designer.cs">
+      <DependentUpon>ConsoleOutput.cs</DependentUpon>
     </Compile>
     <Compile Include="Main.cs" />
     <Compile Include="Interop\DllExport\NppPluginNETBase.cs" />
@@ -261,9 +261,14 @@
     <Compile Include="Utilities\ProcessUtilities.cs" />
     <Compile Include="Utilities\ThreadPerTaskkScheduler.cs" />
     <Compile Include="Utilities\Visual.cs" />
+    <Compile Include="WpfControls\ConsoleOutput.xaml.cs">
+      <DependentUpon>ConsoleOutput.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="WpfControls\ConsoleOutputHost.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
     <Reference Include="RGiesecke.DllExport.Metadata">
       <HintPath>..\packages\UnmanagedExports.1.2.6\lib\net\RGiesecke.DllExport.Metadata.dll</HintPath>
       <Private>False</Private>
@@ -276,9 +281,11 @@
     <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Windows" />
     <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xaml" />
     <Reference Include="System.XML" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="WindowsBase" />
+    <Reference Include="WindowsFormsIntegration" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Dialogs\AboutBox.resx">
@@ -335,8 +342,8 @@
     <EmbeddedResource Include="Dialogs\WatchPanel.resx">
       <DependentUpon>WatchPanel.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Forms\JepOutput.resx">
-      <DependentUpon>JepOutput.cs</DependentUpon>
+    <EmbeddedResource Include="Forms\ConsoleOutput.resx">
+      <DependentUpon>ConsoleOutput.cs</DependentUpon>
       <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
@@ -353,6 +360,12 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Page Include="WpfControls\ConsoleOutput.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <PropertyGroup>
     <PostBuildEvent>copy /Y "$(OutDir)$(TargetName).dll" "C:\Program Files (x86)\Notepad++\plugins"</PostBuildEvent>

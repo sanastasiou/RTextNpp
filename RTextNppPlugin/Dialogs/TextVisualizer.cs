@@ -3,7 +3,7 @@ using System.Linq;
 using System.Windows.Forms;
 using System.Xml.Linq;
 
-namespace NppPluginNET.Dialogs
+namespace RTextNppPlugin.Dialogs
 {
     public partial class TextVisualizer : Form
     {

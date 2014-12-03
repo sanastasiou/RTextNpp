@@ -7,7 +7,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 
-namespace NppPluginNET
+namespace RTextNppPlugin
 {
     partial class Plugin
     {

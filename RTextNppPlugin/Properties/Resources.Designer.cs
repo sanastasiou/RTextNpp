@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace NppPluginNET.Properties {
+namespace RTextNppPlugin.Properties {
 	using System;
 	
 	

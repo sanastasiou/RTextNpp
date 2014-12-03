@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-namespace NppPluginNET
+namespace RTextNppPlugin
 {
     public class Shortcuts : IniFile
     {
@@ -17,7 +17,7 @@ namespace NppPluginNET
         public Shortcuts()
         {
             base.file = Path.Combine(Plugin.ConfigDir, "shortcuts.ini");
-            NppPluginNET.Config.Shortcuts.SetFileName(base.file);
+            RTextNppPlugin.Config.Shortcuts.SetFileName(base.file);
         }
 
         public bool UsingExternalFile = false;
@@ -46,7 +46,7 @@ namespace NppPluginNET
                 foreach (string name in namedValues.Keys)
                     SetValue(Section, name, namedValues[name]);
 
-                NppPluginNET.Config.Shortcuts.Save();
+                RTextNppPlugin.Config.Shortcuts.Save();
             }
         }
 

@@ -1,11 +1,11 @@
-﻿using NppPluginNET.Dialogs;
+﻿using RTextNppPlugin.Dialogs;
 using System;
 using System.Diagnostics;
 using System.Reflection;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace NppPluginNET
+namespace RTextNppPlugin
 {
     partial class AboutBox : Form
     {

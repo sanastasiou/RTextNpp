@@ -4,7 +4,7 @@ using System.IO;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace NppPluginNET
+namespace RTextNppPlugin
 {
     public partial class ConfigForm : Form
     {

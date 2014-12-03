@@ -1,7 +1,7 @@
 using System;
 using System.Linq;
 
-namespace NppPluginNET.Dialogs
+namespace RTextNppPlugin.Dialogs
 {
     public class DbgObject
     {

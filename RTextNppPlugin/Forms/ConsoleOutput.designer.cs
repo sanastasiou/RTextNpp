@@ -1,6 +1,6 @@
-﻿namespace NppPluginNET
+﻿namespace RTextNppPlugin
 {
-    partial class frmGoToLine
+    partial class ConsoleOutputForm
     {
         /// <summary>
         /// Required designer variable.
@@ -28,45 +28,35 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.ConsoleOutput = new System.Windows.Forms.TextBox();
+            this._consoleOutputHost = new RTextNppPlugin.WpfControls.ConsoleOutputElementHost();
             this.SuspendLayout();
             // 
-            // ConsoleOutput
+            // _consoleOutputHost
             // 
-            this.ConsoleOutput.Location = new System.Drawing.Point(13, 13);
-            this.ConsoleOutput.Multiline = true;
-            this.ConsoleOutput.Name = "ConsoleOutput";
-            this.ConsoleOutput.ReadOnly = true;
-            this.ConsoleOutput.Size = new System.Drawing.Size(655, 161);
-            this.ConsoleOutput.TabIndex = 0;
-            this.ConsoleOutput.Text = "Initial Text";
+            this._consoleOutputHost.Dock = System.Windows.Forms.DockStyle.Fill;
+            this._consoleOutputHost.Location = new System.Drawing.Point(0, 0);
+            this._consoleOutputHost.Name = "_consoleOutputHost";
+            this._consoleOutputHost.Size = new System.Drawing.Size(680, 186);
+            this._consoleOutputHost.TabIndex = 0;
+            this._consoleOutputHost.Text = "ConsoleOutputHost";
             // 
-            // frmGoToLine
+            // ConsoleOutputForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(680, 186);
-            this.Controls.Add(this.ConsoleOutput);
-            this.Name = "frmGoToLine";
-            this.Text = "JEP Output";
+            this.Controls.Add(this._consoleOutputHost);
+            this.Name = "ConsoleOutputForm";
+            this.Text = "RText++ Console";
             this.VisibleChanged += new System.EventHandler(this.FrmGoToLineVisibleChanged);
             this.ResumeLayout(false);
-            this.PerformLayout();
-            this.ConsoleOutput.Text = "Some another Initial Text";
+
         }
 
-
-        public System.Windows.Forms.TextBox Console
-        {
-            get
-            {
-                return ConsoleOutput;
-            }
-        }
-        
         #endregion
 
-        private System.Windows.Forms.TextBox ConsoleOutput;
+        private RTextNppPlugin.WpfControls.ConsoleOutputElementHost _consoleOutputHost;
+
 
 
 

@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using Microsoft.Win32;
 
-namespace NppPluginNET
+namespace RTextNppPlugin
 {
     public class WinHook<T> : LocalWindowsHook, IDisposable where T : new()
     {

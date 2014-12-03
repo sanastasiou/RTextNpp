@@ -59,10 +59,12 @@ AUTOSAR {
           ReceiverAnnotation computed: true, dataElement: de1
       }
       RPortPrototype modeRPort,
-        requiredInterface: /P1/IMode1
+        requiredInterface: /P1/IMode1
     }
     InternalBehavior InternalBehavior1, component: /P1/SWC1 {	
       ExclusiveArea \
+	  
+	  
 		ea1		
       ExclusiveArea \
         ea2
@@ -79,7 +81,10 @@ AUTOSAR {
       RunnableEntity run2,
         canEnterExclusiveArea: [ea1, ea2]
       RunnableEntity run3, runsInsideExclusiveArea: [	  
+	  
+	  
           ea1,
+		  
           ea2
         ]
       RunnableEntity run4,

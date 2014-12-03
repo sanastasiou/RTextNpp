@@ -17,7 +17,7 @@
 using System;
 using System.Runtime.InteropServices;
 
-namespace NppPluginNET
+namespace RTextNppPlugin
 {
 	#region Class HookEventArgs
 	public class HookEventArgs : EventArgs

@@ -4,7 +4,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace NppPluginNET
+namespace RTextNppPlugin
 {
     public class IniFile
     {

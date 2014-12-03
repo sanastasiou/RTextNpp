@@ -1,4 +1,4 @@
-﻿namespace NppPluginNET
+﻿namespace RTextNppPlugin
 {
     partial class OutputPanel
     {

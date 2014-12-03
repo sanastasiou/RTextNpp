@@ -1,4 +1,4 @@
-﻿using NppPluginNET.Dialogs;
+﻿using RTextNppPlugin.Dialogs;
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -6,7 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace NppPluginNET
+namespace RTextNppPlugin
 {
     public partial class PluginShortcuts : Form
     {

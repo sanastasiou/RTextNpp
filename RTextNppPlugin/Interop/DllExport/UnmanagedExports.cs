@@ -7,7 +7,7 @@ using RGiesecke.DllExport;
 using System.Reflection;
 using System.Text.RegularExpressions;
 
-namespace NppPluginNET
+namespace RTextNppPlugin
 {
     class UnmanagedExports
     {
@@ -73,17 +73,17 @@ namespace NppPluginNET
                 SCNotification nc = (SCNotification)Marshal.PtrToStructure(notifyCode, typeof(SCNotification));
                 if (nc.nmhdr.code == (uint)NppMsg.NPPN_READY)
                 {
-                    NppPluginNET.Plugin.OnNppReady();
-                    NppPluginNET.Plugin.OnNppReady();
+                    RTextNppPlugin.Plugin.OnNppReady();
+                    RTextNppPlugin.Plugin.OnNppReady();
                     Npp.SetCalltipTime(200);
                 }
                 else if (nc.nmhdr.code == (uint)NppMsg.NPPN_TBMODIFICATION)
                 {
-                    NppPluginNET.Plugin.OnToolbarUpdate();
+                    RTextNppPlugin.Plugin.OnToolbarUpdate();
                 }
                 else if (nc.nmhdr.code == (uint)SciMsg.SCN_CHARADDED)
                 {
-                    NppPluginNET.Plugin.OnCharTyped((char)nc.ch);
+                    RTextNppPlugin.Plugin.OnCharTyped((char)nc.ch);
                 }
                 else if (nc.nmhdr.code == (uint)SciMsg.SCN_MARGINCLICK)
                 {
@@ -122,7 +122,7 @@ namespace NppPluginNET
                     }
                     else
                     {
-                        NppPluginNET.Plugin.OnCurrentFileChanged();
+                        RTextNppPlugin.Plugin.OnCurrentFileChanged();
                     }
                 }
                 else if (nc.nmhdr.code == (uint)NppMsg.NPPN_FILEOPENED)

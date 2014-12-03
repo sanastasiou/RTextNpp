@@ -1,6 +1,6 @@
 ﻿using System.Drawing;
 using System.Windows.Forms;
-namespace NppPluginNET.Dialogs
+namespace RTextNppPlugin.Dialogs
 {
     partial class DebugObjectsPanel
     {
@@ -31,7 +31,7 @@ namespace NppPluginNET.Dialogs
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            this.listView1 = new NppPluginNET.Dialogs.BufferedListView();
+            this.listView1 = new RTextNppPlugin.Dialogs.BufferedListView();
             this.columnHeader4 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader5 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader6 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
