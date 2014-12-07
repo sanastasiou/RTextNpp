@@ -20,9 +20,8 @@ namespace RTextNppPlugin
         const int ConsoleCommand = 0;
 
 
-        private static Utilities.NppControlHost<ConsoleOutputForm> _consoleOutput = null;
-        private static System.Timers.Timer _restoreTimer = new System.Timers.Timer(Constants.WINDOWS_RESTORE_TIMER * 5);
-        private static BackgroundWorker _restoreConsoleWorker = new BackgroundWorker();
+        private static Utilities.NppControlHost<ConsoleOutputForm> _consoleOutput = new Utilities.NppControlHost<ConsoleOutputForm>(Constants.CONSOLE_OUTPUT_SETTING_KEY);
+        private static System.Timers.Timer _startupTimer = new System.Timers.Timer(Constants.WINDOWS_RESTORE_TIMER);
 
         //private static ConsoleOutputForm _consoleOutput = null;
         //private static Icon _consoleOutputIcon = null;
@@ -34,6 +33,64 @@ namespace RTextNppPlugin
         public static int debugPanelId = -1;
 
         public static Dictionary<ShortcutKey, Tuple<string, Action>> internalShortcuts = new Dictionary<ShortcutKey, Tuple<string, Action>>();
+
+        /**
+         * Initializes command menu for the RText++ plugin.
+         */
+        static internal void CommandMenuInit()
+        {
+            _startupTimer.Elapsed += OnStartupTimerElapsed;
+            _startupTimer.AutoReset = false;
+            //'_' prefix in the shortcutName means "pluging action shortcut" as opposite to "plugin key interceptor action"
+            SetCommand(0, "Show RText++ Console", ShowConsoleOutput, new ShortcutKey(false, true, true, Keys.R));
+            //SetCommand(1, "Refresh RText++ Console", RefreshConsoleOutput, new ShortcutKey(false, true, true, Keys.Q));
+            //SetCommand(projectPanelId = index++, "Run", Run, "_Run:F5");
+            //SetCommand(projectPanelId = index++, "Debug", Debug, "_Debug:Alt+F5");
+            //SetCommand(projectPanelId = index++, "Debug External Process", DebugEx, "_DebugExternal:Ctrl+Shift+F5");
+            //SetCommand(index++, "---", null);
+            //SetCommand(projectPanelId = index++, "Project Panel", DoProjectPanel, Config.Instance.ShowProjectPanel);
+            //SetCommand(outputPanelId = index++, "Output Panel", DoOutputPanel, Config.Instance.ShowOutputPanel);
+            //SetCommand(debugPanelId = index++, "Debug Panel", DoDebugPanel, Config.Instance.ShowDebugPanel);
+            //SetCommand(index++, "---", null);
+            ////LoadIntellisenseCommands(ref index);
+            //SetCommand(index++, "About", ShowAbout);
+
+            //IEnumerable<Keys> keysToIntercept = BindInteranalShortcuts();
+
+            //KeyInterceptor.Instance.Install();
+
+            //foreach (var key in keysToIntercept)
+            //    KeyInterceptor.Instance.Add(key);
+            //KeyInterceptor.Instance.Add(Keys.Tab);
+            //KeyInterceptor.Instance.KeyDown += Instance_KeyDown;
+
+            ////setup dependency injection, which may be overwritten by other plugins (e.g. NppScripts)
+            //Plugin.RunScript = () => Plugin.ProjectPanel.Run();
+            //Plugin.RunScriptAsExternal = () => Plugin.ProjectPanel.RunAsExternal();
+            //Plugin.DebugScript = () => Plugin.ProjectPanel.Debug(false);
+
+            _startupTimer.Start();
+
+            //check box will have false value - check if this can be fixed via background timer
+            bool wasConsoleOpen = false;
+            Utilities.ConfigurationSetter.readSetting(ref wasConsoleOpen, Constants.CONSOLE_OUTPUT_SETTING_KEY);
+            if (wasConsoleOpen)
+            {
+                ShowConsoleOutput();
+            }
+        }
+
+        /**
+         * \brief   Raises the elapsed event.
+         *
+         * \param   sender  Source of the event.
+         * \param   e       Event information to send to registered event handlers.
+         */
+        private static void OnStartupTimerElapsed(object sender, ElapsedEventArgs e)
+        {
+            //update the cmd ids - cmd id's are 0 after plugin initialization
+            _consoleOutput.CmdId = FuncItems.Items[ConsoleCommand]._cmdID;
+        }
 
         public static void Debug(string s)
         {
@@ -56,10 +113,11 @@ namespace RTextNppPlugin
          */
         static void ShowConsoleOutput()
         {
-            if (_consoleOutput == null)
+            if (!_consoleOutput.Created)
             {
                 //fix the command id...
-                _consoleOutput = new Utilities.NppControlHost<ConsoleOutputForm>(Constants.CONSOLE_OUTPUT_SETTING_KEY, NppData._nppHandle);
+                //_consoleOutput = new Utilities.NppControlHost<ConsoleOutputForm>(Constants.CONSOLE_OUTPUT_SETTING_KEY, NppData._nppHandle);
+                _consoleOutput.SetNppHandle(NppData._nppHandle);
 
                 //using (Bitmap newBmp = new Bitmap(16, 16))
                 //{
@@ -103,56 +161,7 @@ namespace RTextNppPlugin
 
         static void _restoreConsoleWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
-            bool wasConsoleOpen = false;
-            Utilities.ConfigurationSetter.readSetting(ref wasConsoleOpen, Constants.CONSOLE_OUTPUT_SETTING_KEY);
-            if (wasConsoleOpen)
-            {
-                ShowConsoleOutput();
-            }
-        }
-
-        /**
-         * Initializes command menu for the RText++ plugin.         
-         */
-        static internal void CommandMenuInit()
-        {
-            _restoreConsoleWorker.RunWorkerCompleted += _restoreConsoleWorker_RunWorkerCompleted;
-            //SetCommand(0, "Show RText++ Console", Hello, new ShortcutKey(false, true, false, Keys.R));
-            //'_' prefix in the shortcutName means "pluging action shortcut" as opposite to "plugin key interceptor action"
-            SetCommand(0, "Show RText++ Console", ShowConsoleOutput, new ShortcutKey(false, true, true, Keys.R));
-            //SetCommand(1, "Refresh RText++ Console", RefreshConsoleOutput, new ShortcutKey(false, true, true, Keys.Q));
-            //SetCommand(projectPanelId = index++, "Run", Run, "_Run:F5");
-            //SetCommand(projectPanelId = index++, "Debug", Debug, "_Debug:Alt+F5");
-            //SetCommand(projectPanelId = index++, "Debug External Process", DebugEx, "_DebugExternal:Ctrl+Shift+F5");
-            //SetCommand(index++, "---", null);
-            //SetCommand(projectPanelId = index++, "Project Panel", DoProjectPanel, Config.Instance.ShowProjectPanel);
-            //SetCommand(outputPanelId = index++, "Output Panel", DoOutputPanel, Config.Instance.ShowOutputPanel);
-            //SetCommand(debugPanelId = index++, "Debug Panel", DoDebugPanel, Config.Instance.ShowDebugPanel);
-            //SetCommand(index++, "---", null);
-            ////LoadIntellisenseCommands(ref index);
-            //SetCommand(index++, "About", ShowAbout);
-
-            //IEnumerable<Keys> keysToIntercept = BindInteranalShortcuts();
-
-            //KeyInterceptor.Instance.Install();
-
-            //foreach (var key in keysToIntercept)
-            //    KeyInterceptor.Instance.Add(key);
-            //KeyInterceptor.Instance.Add(Keys.Tab);
-            //KeyInterceptor.Instance.KeyDown += Instance_KeyDown;
-
-            ////setup dependency injection, which may be overwritten by other plugins (e.g. NppScripts)
-            //Plugin.RunScript = () => Plugin.ProjectPanel.Run();
-            //Plugin.RunScriptAsExternal = () => Plugin.ProjectPanel.RunAsExternal();
-            //Plugin.DebugScript = () => Plugin.ProjectPanel.Debug(false);
-            //open window if corresponding setting is set
-            //notepad++ needs some time to give use correct command id's.. Re-opening of windows cannot take place directly inside this function
-
-            //_restoreTimer.Elapsed += OnRestoreTimerExpired;
-            //_restoreTimer.Enabled = true;
-            //_restoreTimer.AutoReset = false;
-            //_restoreTimer.Start();          
-            //_restoreConsoleWorker.RunWorkerAsync();
+            
         }
 
         static public Action RunScript;
@@ -480,14 +489,19 @@ namespace RTextNppPlugin
                 Plugin.ProjectPanel.RefreshProjectStructure();
         }
 
+        /**
+         * \brief   Occurs before notepad++ shuts down.
+         */
         static internal void CleanUp()
         {
-            Config.Instance.ShowProjectPanel = (dockedManagedPanels.ContainsKey(projectPanelId) && dockedManagedPanels[projectPanelId].Visible);
-            Config.Instance.ShowOutputPanel = (dockedManagedPanels.ContainsKey(outputPanelId) && dockedManagedPanels[outputPanelId].Visible);
-            Config.Instance.ShowDebugPanel = (dockedManagedPanels.ContainsKey(debugPanelId) && dockedManagedPanels[debugPanelId].Visible);
-            Config.Instance.Save();
-            OutputPanel.Clean();
-            CloseAutomationChannel();
+            _startupTimer.Elapsed -= OnStartupTimerElapsed;
+
+            //Config.Instance.ShowProjectPanel = (dockedManagedPanels.ContainsKey(projectPanelId) && dockedManagedPanels[projectPanelId].Visible);
+            //Config.Instance.ShowOutputPanel = (dockedManagedPanels.ContainsKey(outputPanelId) && dockedManagedPanels[outputPanelId].Visible);
+            //Config.Instance.ShowDebugPanel = (dockedManagedPanels.ContainsKey(debugPanelId) && dockedManagedPanels[debugPanelId].Visible);
+            //Config.Instance.Save();
+            //OutputPanel.Clean();
+            //CloseAutomationChannel();
         }
 
         internal static string HomeUrl = "https://NppPluginNET.codeplex.com/";

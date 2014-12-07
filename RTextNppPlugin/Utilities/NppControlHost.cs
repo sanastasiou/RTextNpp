@@ -25,15 +25,19 @@ namespace RTextNppPlugin.Utilities
          *
          * \param   settingKey  The key for the persistence setting.
          */
-        public NppControlHost(string settingKey, IntPtr nppHandle)
+        public NppControlHost(string settingKey)
         {
-            NPP_HANDLE = nppHandle;
             _elementHost = new T();
             _elementHost.VisibleChanged += OnVisibilityChanged;
-            _refreshTimer.Elapsed += onRefreshTimerElapsed;
+            _refreshTimer.Elapsed += OnRefreshTimerElapsed;
             _refreshTimer.Enabled = true;
             _refreshTimer.AutoReset = true;
             SETTING_KEY = settingKey;
+        }
+
+        public void SetNppHandle(IntPtr handle)
+        {
+            NPP_HANDLE = handle;
         }
 
         /**
@@ -58,13 +62,13 @@ namespace RTextNppPlugin.Utilities
          *
          * \return  The handle from element host.
          */
-        public IntPtr Handle
-        {
-            get
-            {
-                return _elementHost.Handle;
-            }
-        }
+        //public IntPtr Handle
+        //{
+        //    get
+        //    {
+        //        return _elementHost.Handle;
+        //    }
+        //}
 
         /**
          * Gets a value indicating whether the element host form is visible.
@@ -75,7 +79,15 @@ namespace RTextNppPlugin.Utilities
         {
             get
             {
-                return _elementHost.Visible;
+                if (this._elementHost.InvokeRequired)
+                {
+
+                    return (bool)this._elementHost.Invoke(new Func<bool>(IsVisible));
+                }
+                else
+                {
+                    return _elementHost.Visible;
+                }
             }
         }
 
@@ -86,10 +98,58 @@ namespace RTextNppPlugin.Utilities
          */
         public bool Focus()
         {
+            if (_elementHost.InvokeRequired)
+            {
+                return (bool)_elementHost.Invoke(new Func<bool>(_elementHost.Focus));
+            }
             return _elementHost.Focus();
         }
 
-        public int CmdId { set; private get; }
+        public int CmdId
+        {
+            set
+            {
+                if (this._elementHost.InvokeRequired)
+                {
+                    this._elementHost.Invoke(new Action<int>(SetCmdId), value);
+                }
+                else
+                {
+                    _cmdId = value;
+                }
+            }
+            private get
+            {
+                return _cmdId;
+            }
+        }
+
+        public IntPtr Handle
+        {
+            get
+            {
+                if (this._elementHost.InvokeRequired)
+                {
+                    return (IntPtr)this._elementHost.Invoke(new Func<IntPtr>(GetHandle));
+                }
+                return _elementHost.Handle;
+            }
+        }
+
+        public bool Created
+        {
+            get
+            {
+                if (this._elementHost.InvokeRequired)
+                {
+                    return (bool)this._elementHost.Invoke(new Func<bool>(IsCreated));
+                }
+                else
+                {
+                    return IsCreated();
+                }
+            }
+        }
         #endregion
 
         #region Helpers
@@ -106,13 +166,15 @@ namespace RTextNppPlugin.Utilities
             {
                 _refreshTimer.Enabled = false;
                 _refreshTimer.AutoReset = false;
-                _refreshTimer.Elapsed -= onRefreshTimerElapsed;
+                _refreshTimer.Elapsed -= OnRefreshTimerElapsed;
             }
             disposed = true;
         }
 
-        private void onRefreshTimerElapsed(object sender, ElapsedEventArgs e)
+        private void OnRefreshTimerElapsed(object sender, ElapsedEventArgs e)
         {
+            //update check box - special case where update box has false value after plugin initialization...
+            Win32.SendMessage(NPP_HANDLE, NppMsg.NPPM_SETMENUITEMCHECK, CmdId, _elementHost.Visible ? 1 : 0);
             //when the timer elapses the host shall be redrawed
             _elementHost.Refresh();
         }
@@ -127,14 +189,57 @@ namespace RTextNppPlugin.Utilities
         {
             Win32.SendMessage(NPP_HANDLE, NppMsg.NPPM_SETMENUITEMCHECK, CmdId, _elementHost.Visible ? 1 : 0);
             Utilities.ConfigurationSetter.saveSetting(_elementHost.Visible, SETTING_KEY);
+            if (_elementHost.Visible)
+            {
+                _refreshTimer.Start();
+            }
+            else
+            {
+                _refreshTimer.Stop();
+            }
+        }
+
+        private void SetHandle(IntPtr handle)
+        {
+            NPP_HANDLE = handle;
+        }
+
+        private IntPtr GetHandle()
+        {
+            return _elementHost.Handle;
+        }
+
+        bool IsCreated()
+        {
+            if (!_isCreated)
+            {
+                _isCreated = true;
+                return false;
+            }
+            return true;
+        }
+
+        bool IsVisible()
+        {
+            return _elementHost.Visible;
+        }
+
+        void SetCmdId(int id)
+        {
+            _cmdId = id;
         }
 
         #endregion
 
-        private readonly IntPtr NPP_HANDLE = IntPtr.Zero;                         //!< Notepad++ main window handle.
+        #region Data Members
+
+        private IntPtr NPP_HANDLE = IntPtr.Zero;                                  //!< Notepad++ main window handle.
         private readonly string SETTING_KEY = null;                               //!< The persistence setting for this form.
         private System.Windows.Forms.Form _elementHost;                           //!< The element host to be redrawed.
-        private Timer _refreshTimer = new Timer(Constants.FORM_INTERVAL_REFRESH * 10); //!< The timer, which if expired, shall refresh the element host window.
+        private Timer _refreshTimer = new Timer(Constants.FORM_INTERVAL_REFRESH); //!< The timer, which if expired, shall refresh the element host window.
         private bool disposed = false;                                            //!< Has the disposed method already been called.
+        private bool _isCreated = false;                                          //!< Indicates if windows was created.
+        private int _cmdId = 0;                                                   //!< Indicates the cmd id, needed to set check box on menu items.
+        #endregion
     }
 }
