@@ -9,16 +9,22 @@ using RTextNppPlugin.Dialogs;
 using System.Runtime.InteropServices;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.Configuration;
+using System.Timers;
+using System.ComponentModel;
 
 namespace RTextNppPlugin
 {
     public partial class Plugin
     {
         const int ConsoleCommand = 0;
-        const int FindRTextElementCommand = 1;
 
 
-        private static ConsoleOutputForm _consoleOutput = null;
+        private static Utilities.NppControlHost<ConsoleOutputForm> _consoleOutput = null;
+        private static System.Timers.Timer _restoreTimer = new System.Timers.Timer(Constants.WINDOWS_RESTORE_TIMER * 5);
+        private static BackgroundWorker _restoreConsoleWorker = new BackgroundWorker();
+
+        //private static ConsoleOutputForm _consoleOutput = null;
         //private static Icon _consoleOutputIcon = null;
         //static Bitmap tbBmp_tbTab = Properties.Resources.star_bmp;
         public const string PluginName = "&RText++";
@@ -46,12 +52,14 @@ namespace RTextNppPlugin
         /**
          * \brief   Shows the console output.
          * \todo    Find a way to fix the icon. Check if menu entry can also have associated icon.         
+         * \todo    Make this thing work with calibrun.micro
          */
         static void ShowConsoleOutput()
         {
             if (_consoleOutput == null)
             {
-                _consoleOutput = new ConsoleOutputForm();
+                //fix the command id...
+                _consoleOutput = new Utilities.NppControlHost<ConsoleOutputForm>(Constants.CONSOLE_OUTPUT_SETTING_KEY, NppData._nppHandle);
 
                 //using (Bitmap newBmp = new Bitmap(16, 16))
                 //{
@@ -76,32 +84,43 @@ namespace RTextNppPlugin
                 _nppTbData.pszModuleName = PluginName;
                 IntPtr _ptrNppTbData = Marshal.AllocHGlobal(Marshal.SizeOf(_nppTbData));
                 Marshal.StructureToPtr(_nppTbData, _ptrNppTbData, false);
-
+                _consoleOutput.CmdId = FuncItems.Items[ConsoleCommand]._cmdID;
                 Win32.SendMessage(NppData._nppHandle, NppMsg.NPPM_DMMREGASDCKDLG, 0, _ptrNppTbData);
-                // Following message will toogle both menu item state and toolbar button
-                Win32.SendMessage(NppData._nppHandle, NppMsg.NPPM_SETMENUITEMCHECK, FuncItems.Items[ConsoleCommand]._cmdID, 1);
             }
             else
             {
                 if (!_consoleOutput.Visible)
                 {
                     Win32.SendMessage(NppData._nppHandle, NppMsg.NPPM_DMMSHOW, 0, _consoleOutput.Handle);
-                    Win32.SendMessage(NppData._nppHandle, NppMsg.NPPM_SETMENUITEMCHECK, FuncItems.Items[ConsoleCommand]._cmdID, 1);
                 }
                 else
                 {
                     Win32.SendMessage(NppData._nppHandle, NppMsg.NPPM_DMMHIDE, 0, _consoleOutput.Handle);
-                    Win32.SendMessage(NppData._nppHandle, NppMsg.NPPM_SETMENUITEMCHECK, FuncItems.Items[ConsoleCommand]._cmdID, 0);
                 }
             }
             _consoleOutput.Focus();
         }
 
+        static void _restoreConsoleWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            bool wasConsoleOpen = false;
+            Utilities.ConfigurationSetter.readSetting(ref wasConsoleOpen, Constants.CONSOLE_OUTPUT_SETTING_KEY);
+            if (wasConsoleOpen)
+            {
+                ShowConsoleOutput();
+            }
+        }
+
+        /**
+         * Initializes command menu for the RText++ plugin.         
+         */
         static internal void CommandMenuInit()
         {
+            _restoreConsoleWorker.RunWorkerCompleted += _restoreConsoleWorker_RunWorkerCompleted;
             //SetCommand(0, "Show RText++ Console", Hello, new ShortcutKey(false, true, false, Keys.R));
             //'_' prefix in the shortcutName means "pluging action shortcut" as opposite to "plugin key interceptor action"
-            SetCommand(0, "Show RText++ Console", ShowConsoleOutput, new ShortcutKey(true, true, true, Keys.R));
+            SetCommand(0, "Show RText++ Console", ShowConsoleOutput, new ShortcutKey(false, true, true, Keys.R));
+            //SetCommand(1, "Refresh RText++ Console", RefreshConsoleOutput, new ShortcutKey(false, true, true, Keys.Q));
             //SetCommand(projectPanelId = index++, "Run", Run, "_Run:F5");
             //SetCommand(projectPanelId = index++, "Debug", Debug, "_Debug:Alt+F5");
             //SetCommand(projectPanelId = index++, "Debug External Process", DebugEx, "_DebugExternal:Ctrl+Shift+F5");
@@ -126,6 +145,14 @@ namespace RTextNppPlugin
             //Plugin.RunScript = () => Plugin.ProjectPanel.Run();
             //Plugin.RunScriptAsExternal = () => Plugin.ProjectPanel.RunAsExternal();
             //Plugin.DebugScript = () => Plugin.ProjectPanel.Debug(false);
+            //open window if corresponding setting is set
+            //notepad++ needs some time to give use correct command id's.. Re-opening of windows cannot take place directly inside this function
+
+            //_restoreTimer.Elapsed += OnRestoreTimerExpired;
+            //_restoreTimer.Enabled = true;
+            //_restoreTimer.AutoReset = false;
+            //_restoreTimer.Start();          
+            //_restoreConsoleWorker.RunWorkerAsync();
         }
 
         static public Action RunScript;

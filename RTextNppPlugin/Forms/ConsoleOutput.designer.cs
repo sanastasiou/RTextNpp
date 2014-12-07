@@ -48,7 +48,6 @@
             this.Controls.Add(this._consoleOutputHost);
             this.Name = "ConsoleOutputForm";
             this.Text = "RText++ Console";
-            this.VisibleChanged += new System.EventHandler(this.FrmGoToLineVisibleChanged);
             this.ResumeLayout(false);
 
         }

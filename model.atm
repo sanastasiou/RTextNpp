@@ -59,7 +59,7 @@ AUTOSAR {
           ReceiverAnnotation computed: true, dataElement: de1
       }
       RPortPrototype modeRPort,
-        requiredInterface: /P1/IMode1
+        requiredInterface: /P1/IMode1
     }
     InternalBehavior InternalBehavior1, component: /P1/SWC1 {	
       ExclusiveArea \

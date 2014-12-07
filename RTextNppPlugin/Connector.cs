@@ -16,6 +16,7 @@ using System.Runtime.InteropServices;
 using ESRLabs.RTextEditor.StateEngine;
 using ESRLabs.RTextEditor.Utilities;
 using System.Runtime.Serialization.Json;
+using RTextNppPlugin;
 
 
 namespace ESRLabs.RTextEditor

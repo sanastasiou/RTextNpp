@@ -6,20 +6,32 @@
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="300">
     <Grid>
-        <RichTextBox VerticalScrollBarVisibility="Auto" 
+        <DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" HorizontalAlignment="Stretch">
+                <Label>Workspace Root : </Label>
+                <ComboBox Name="WorkspaceSelector" HorizontalAlignment="Stretch"/>
+            </StackPanel>
+            <TabControl DockPanel.Dock="Bottom">
+                <TabItem Name="Console" Header="Console" >
+                    <RichTextBox VerticalScrollBarVisibility="Auto" 
                      HorizontalScrollBarVisibility="Auto"
                      HorizontalAlignment="Stretch"
                      VerticalAlignment="Stretch"
-                     IsReadOnly="True"
-                     Background="Aqua">
-            <FlowDocument FontSize="12" FontFamily="Courier New">
-                <FlowDocument.Resources>
-                    <Style TargetType="{x:Type Run}" x:Key="Information">
-                        <Setter Property="Foreground" Value="Black"/>
-                        <Setter Property="FontWeight" Value="Normal"/>
-                    </Style>
-                </FlowDocument.Resources>
-            </FlowDocument>
-        </RichTextBox>                    
+                     IsReadOnly="True">
+                        <FlowDocument FontSize="12" FontFamily="Courier New">
+                            <FlowDocument.Resources>
+                                <Style TargetType="{x:Type Run}" x:Key="Information">
+                                    <Setter Property="Foreground" Value="Black"/>
+                                    <Setter Property="FontWeight" Value="Normal"/>
+                                </Style>
+                            </FlowDocument.Resources>
+                        </FlowDocument>
+                    </RichTextBox>
+                </TabItem>
+                <TabItem Name="ErrorList" Header="Errors">
+                    
+                </TabItem>
+            </TabControl>
+        </DockPanel>                            
     </Grid>
 </UserControl>

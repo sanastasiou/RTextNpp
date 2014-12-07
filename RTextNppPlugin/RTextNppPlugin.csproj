@@ -9,7 +9,7 @@
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>RTextNppPlugin</RootNamespace>
-    <AssemblyName>RTextNppPluginLexer</AssemblyName>
+    <AssemblyName>RTextNppPlugin</AssemblyName>
     <StartupObject>
     </StartupObject>
     <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
@@ -223,6 +223,11 @@
     <Compile Include="Properties\Resources.Designer.cs">
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <DependentUpon>Settings.settings</DependentUpon>
+    </Compile>
     <Compile Include="Protocol\AutoCompleteAndReferenceRequest.cs" />
     <Compile Include="Protocol\AutoCompleteRequest.cs" />
     <Compile Include="Protocol\AutoCompleteResponse.cs" />
@@ -254,13 +259,18 @@
     <Compile Include="RTextNppPlugin\ToolStripPersistance.cs" />
     <Compile Include="StateEngine\StateMachine.cs" />
     <Compile Include="Interop\DllExport\UnmanagedExports.cs" />
+    <Compile Include="Utilities\ConfigurationSetter.cs" />
     <Compile Include="Utilities\FileUtilities.cs" />
     <Compile Include="Utilities\FuzzyMatching.cs" />
     <Compile Include="Utilities\HashUtilities.cs" />
+    <Compile Include="Utilities\NppControlHost.cs" />
     <Compile Include="Utilities\ParentProcessUtilities.cs" />
     <Compile Include="Utilities\ProcessUtilities.cs" />
     <Compile Include="Utilities\ThreadPerTaskkScheduler.cs" />
     <Compile Include="Utilities\Visual.cs" />
+    <Compile Include="ViewModels\ConsoleViewModel.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="WpfControls\ConsoleOutput.xaml.cs">
       <DependentUpon>ConsoleOutput.xaml</DependentUpon>
     </Compile>
@@ -275,6 +285,7 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
+    <Reference Include="System.configuration" />
     <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Management" />
@@ -344,7 +355,6 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Forms\ConsoleOutput.resx">
       <DependentUpon>ConsoleOutput.cs</DependentUpon>
-      <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <SubType>Designer</SubType>
@@ -360,6 +370,13 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+    <None Include="Properties\Settings.settings">
+      <Generator>PublicSettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+    <Content Include="RTextNppPlugin.dll.config">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <Page Include="WpfControls\ConsoleOutput.xaml">
@@ -367,6 +384,7 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
   </ItemGroup>
+  <ItemGroup />
   <PropertyGroup>
     <PostBuildEvent>copy /Y "$(OutDir)$(TargetName).dll" "C:\Program Files (x86)\Notepad++\plugins"</PostBuildEvent>
   </PropertyGroup>
