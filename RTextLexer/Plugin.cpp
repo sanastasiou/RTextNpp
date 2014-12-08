@@ -92,7 +92,7 @@ namespace RText
     {
         MessageBox(
             g_NppWindow,
-            L"External Lexer which provides syntax highlighting for RText based languages.\nBy S. Anastasiou.\n"
+            L"External Lexer which provides syntax highlighting for RText based languages.\n\nBy S. Anastasiou.\n\n"
             L"https://github.com/sanastasiou/RTextNpp",
             RTEXTLEXER_TITLE,
             MB_OK);
