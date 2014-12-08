@@ -94,7 +94,6 @@
   </Target>
   -->
   <ItemGroup>
-    <Compile Include="Connector.cs" />
     <Compile Include="Constants.cs" />
     <Compile Include="Dialogs\AboutBox.cs">
       <SubType>Form</SubType>
