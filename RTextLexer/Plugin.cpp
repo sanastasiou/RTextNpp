@@ -86,61 +86,14 @@ namespace RText
         }
 
         return false;
-    }
-
-    void RefreshSkin()
-    {
-        if (!GetRainmeter()) return;
-
-        WCHAR currentPath[MAX_PATH];
-        BOOL ret = SendMessage(g_NppWindow, NPPM_GETFULLCURRENTPATH, MAX_PATH, (LPARAM)&currentPath);
-
-        if (ret)
-        {
-            const size_t skinsPathLen = wcslen(g_SkinsPath);
-            const size_t currentPathLen = wcslen(currentPath);
-
-            // Make sure the file is in the skins folder and that extension is .ini
-            if (wcsncmp(g_SkinsPath, currentPath, skinsPathLen) == 0 &&
-                _wcsicmp(&currentPath[currentPathLen - 4], L".atm") == 0)
-            {
-                WCHAR* relativePath = &currentPath[skinsPathLen];
-                WCHAR* pos = wcsrchr(relativePath, L'\\');
-                if (pos)
-                {
-                    relativePath[pos - relativePath] = L'\0';
-                    WCHAR buffer[512];
-                    const int len = _snwprintf(
-                        buffer, _countof(buffer), L"!Refresh \"%s\"", relativePath);
-                    buffer[_countof(buffer) - 1] = L'\0';
-
-                    COPYDATASTRUCT cds;
-                    cds.dwData = 1;
-                    cds.cbData = (DWORD)(len + 1) * sizeof(WCHAR);
-                    cds.lpData = (void*)buffer;
-                    SendMessage(g_RainmeterWindow, WM_COPYDATA, 0, (LPARAM)&cds);
-                }
-            }
-        }
-    }
-
-    void RefreshAll()
-    {
-        if (!GetRainmeter()) return;
-
-        COPYDATASTRUCT cds;
-        cds.dwData = 1;
-        cds.cbData = sizeof(L"!Refresh *");
-        cds.lpData = L"!Refresh *";
-        SendMessage(g_RainmeterWindow, WM_COPYDATA, 0, (LPARAM)&cds);
-    }
+    }    
 
     void About()
     {
         MessageBox(
             g_NppWindow,
-            L"By S. Anastasiou.\n"
-            L"www.github.com/RText",
+            L"External Lexer which provides syntax highlighting for RText based languages.\nBy S. Anastasiou.\n"
+            L"https://github.com/sanastasiou/RTextNpp",
             RTEXTLEXER_TITLE,
             MB_OK);
     }
@@ -148,7 +101,6 @@ namespace RText
     //
     // Notepad++ exports
     //
-
     BOOL isUnicode()
     {
         return TRUE;
@@ -161,15 +113,13 @@ namespace RText
      */
     const WCHAR* getName()
     {
-        return NULL;//L"&RText++";
+        return L"&RTextLexer";
     }
 
     FuncItem* getFuncsArray(int* count)
     {
         static FuncItem funcItems[] =
         {
-            { L"Refresh skin", RefreshSkin, 0, false, nullptr },
-            { L"Refresh all", RefreshAll, 0, false, nullptr },
             { L"&About...", About, 0, false, nullptr }
         };
 
@@ -182,7 +132,6 @@ namespace RText
     void setInfo(NppData data)
     {
         g_NppWindow = data._nppHandle;
-        //forward this to main plugin
     }
 
     void beNotified(SCNotification* scn)
