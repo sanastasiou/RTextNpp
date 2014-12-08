@@ -28,7 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this._consoleOutputHost = new RTextNppPlugin.WpfControls.ConsoleOutputElementHost();
+            this._consoleOutputHost = new WpfControls.ConsoleOutputElementHost<WpfControls.ConsoleOutput, ViewModels.ConsoleViewModel>();
             this.SuspendLayout();
             // 
             // _consoleOutputHost
@@ -54,7 +54,7 @@
 
         #endregion
 
-        private RTextNppPlugin.WpfControls.ConsoleOutputElementHost _consoleOutputHost;
+        private WpfControls.ConsoleOutputElementHost<WpfControls.ConsoleOutput, ViewModels.ConsoleViewModel> _consoleOutputHost;
 
 
 

@@ -35,6 +35,14 @@ namespace RTextNppPlugin.Utilities
             SETTING_KEY = settingKey;
         }
 
+        public T WpfHost
+        {
+            get
+            {
+                return (T)_elementHost;
+            }
+        }
+
         public void SetNppHandle(IntPtr handle)
         {
             NPP_HANDLE = handle;
@@ -48,28 +56,7 @@ namespace RTextNppPlugin.Utilities
             Dispose(true);
             GC.SuppressFinalize(this);
         }
-
-        /**
-         * Finaliser.
-         */
-        ~NppControlHost()
-        {
-            Dispose(false);
-        }
-
-        /**
-         * Gets the handle.
-         *
-         * \return  The handle from element host.
-         */
-        //public IntPtr Handle
-        //{
-        //    get
-        //    {
-        //        return _elementHost.Handle;
-        //    }
-        //}
-
+   
         /**
          * Gets a value indicating whether the element host form is visible.
          *
@@ -153,6 +140,14 @@ namespace RTextNppPlugin.Utilities
         #endregion
 
         #region Helpers
+
+        /**
+         * Finaliser.
+         */
+        ~NppControlHost()
+        {
+            Dispose(false);
+        }
 
         // Protected implementation of Dispose pattern. 
         protected virtual void Dispose(bool disposing)
