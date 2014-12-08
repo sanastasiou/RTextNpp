@@ -6,11 +6,17 @@ namespace RTextNppPlugin
 {
     partial class ConsoleOutputForm : Form
     {
-        //public ConsoleOutputForm(string )
-
         public ConsoleOutputForm()
         {
             InitializeComponent();
         }
+
+        public WpfControls.ConsoleOutputElementHost<WpfControls.ConsoleOutput, ViewModels.ConsoleViewModel> WpfControl
+        {
+            get
+            {
+                return _consoleOutputHost;
+            }
+        }    
     }
 }

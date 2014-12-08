@@ -1,15 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using RTextNppPlugin.Dialogs;
 using System.Runtime.InteropServices;
-using System.Drawing;
-using System.Drawing.Imaging;
-using System.Configuration;
 using System.Timers;
 using System.ComponentModel;
 
@@ -17,16 +12,10 @@ namespace RTextNppPlugin
 {
     public partial class Plugin
     {
-        const int ConsoleCommand = 0;
-
-
-        private static Utilities.NppControlHost<ConsoleOutputForm> _consoleOutput = new Utilities.NppControlHost<ConsoleOutputForm>(Constants.CONSOLE_OUTPUT_SETTING_KEY);
+        private static Utilities.NppControlHost<ConsoleOutputForm> _consoleOutput = null;
         private static System.Timers.Timer _startupTimer = new System.Timers.Timer(Constants.WINDOWS_RESTORE_TIMER);
 
-        //private static ConsoleOutputForm _consoleOutput = null;
-        //private static Icon _consoleOutputIcon = null;
-        //static Bitmap tbBmp_tbTab = Properties.Resources.star_bmp;
-        public const string PluginName = "&RText++";
+        public const string PluginName = "&RTextNppPlugin";
 
         public static int projectPanelId = -1;
         public static int outputPanelId = -1;
@@ -42,8 +31,10 @@ namespace RTextNppPlugin
             _startupTimer.Elapsed += OnStartupTimerElapsed;
             _startupTimer.AutoReset = false;
             //'_' prefix in the shortcutName means "pluging action shortcut" as opposite to "plugin key interceptor action"
-            SetCommand(0, "Show RText++ Console", ShowConsoleOutput, new ShortcutKey(false, true, true, Keys.R));
-            //SetCommand(1, "Refresh RText++ Console", RefreshConsoleOutput, new ShortcutKey(false, true, true, Keys.Q));
+            SetCommand((int)Constants.NppMenuCommands.ConsoleWindow, "Show RText++ Console", ShowConsoleOutput, new ShortcutKey(false, true, true, Keys.R));
+            //SetCommand(0, "Add dummy workspace", Hello, false);
+            //SetCommand(1, "Add dummy workspace...", Hello);
+            //SetCommand(2, "Try to display modal window", ModalWindowTest);
             //SetCommand(projectPanelId = index++, "Run", Run, "_Run:F5");
             //SetCommand(projectPanelId = index++, "Debug", Debug, "_Debug:Alt+F5");
             //SetCommand(projectPanelId = index++, "Debug External Process", DebugEx, "_DebugExternal:Ctrl+Shift+F5");
@@ -71,7 +62,6 @@ namespace RTextNppPlugin
 
             _startupTimer.Start();
 
-            //check box will have false value - check if this can be fixed via background timer
             bool wasConsoleOpen = false;
             Utilities.ConfigurationSetter.readSetting(ref wasConsoleOpen, Constants.CONSOLE_OUTPUT_SETTING_KEY);
             if (wasConsoleOpen)
@@ -80,16 +70,19 @@ namespace RTextNppPlugin
             }
         }
 
-        /**
-         * \brief   Raises the elapsed event.
-         *
-         * \param   sender  Source of the event.
-         * \param   e       Event information to send to registered event handlers.
-         */
-        private static void OnStartupTimerElapsed(object sender, ElapsedEventArgs e)
+        public static void ModalWindowTest()
         {
-            //update the cmd ids - cmd id's are 0 after plugin initialization
-            _consoleOutput.CmdId = FuncItems.Items[ConsoleCommand]._cmdID;
+            Forms.Options testDialog = new Forms.Options();
+            Control.FromHandle(NppData._nppHandle);
+            if (testDialog.ShowDialog(Control.FromHandle(NppData._nppHandle)) == DialogResult.OK)
+            {
+                //save settings
+            }
+        }
+
+        public static void AddDummyWorkspace()
+        {
+            //_consoleOutput.WpfHost.WpfControl.addWorkspace("Dummy...");
         }
 
         public static void Debug(string s)
@@ -103,18 +96,18 @@ namespace RTextNppPlugin
             Win32.SendMessage(NppData._nppHandle, NppMsg.NPPM_MENUCOMMAND, 0, NppMenuCmd.IDM_FILE_NEW);
             // Say hello now :
             // Scintilla control has no Unicode mode, so we use ANSI here (marshalled as ANSI by default)
-            Win32.SendMessage(GetCurrentScintilla(), SciMsg.SCI_SETTEXT, 0, "Hello, Notepad++... from .NET!");
+            Win32.SendMessage(GetCurrentScintilla(), SciMsg.SCI_SETTEXT, 0, "Hello, Notepad++ from .NET!");
         }
 
         /**
          * \brief   Shows the console output.
-         * \todo    Find a way to fix the icon. Check if menu entry can also have associated icon.         
-         * \todo    Make this thing work with calibrun.micro
+         * \todo    Find a way to fix the icon. Check if menu entry can also have associated icon.
          */
         static void ShowConsoleOutput()
         {
-            if (!_consoleOutput.Created)
+            if (_consoleOutput == null)
             {
+                _consoleOutput = new Utilities.NppControlHost<ConsoleOutputForm>(Constants.CONSOLE_OUTPUT_SETTING_KEY);
                 //fix the command id...
                 //_consoleOutput = new Utilities.NppControlHost<ConsoleOutputForm>(Constants.CONSOLE_OUTPUT_SETTING_KEY, NppData._nppHandle);
                 _consoleOutput.SetNppHandle(NppData._nppHandle);
@@ -135,14 +128,14 @@ namespace RTextNppPlugin
                 NppTbData _nppTbData = new NppTbData();
                 _nppTbData.hClient = _consoleOutput.Handle;
                 _nppTbData.pszName = "RText++ Console Output";
-                _nppTbData.dlgID = ConsoleCommand;
+                _nppTbData.dlgID = (int)Constants.NppMenuCommands.ConsoleWindow;
                 // define the default docking behaviour
                 _nppTbData.uMask = NppTbMsg.DWS_DF_CONT_RIGHT | NppTbMsg.DWS_ICONTAB | NppTbMsg.DWS_ICONBAR;
                 //_nppTbData.hIconTab = (uint)_consoleOutputIcon.Handle;
                 _nppTbData.pszModuleName = PluginName;
                 IntPtr _ptrNppTbData = Marshal.AllocHGlobal(Marshal.SizeOf(_nppTbData));
                 Marshal.StructureToPtr(_nppTbData, _ptrNppTbData, false);
-                _consoleOutput.CmdId = FuncItems.Items[ConsoleCommand]._cmdID;
+                _consoleOutput.CmdId = FuncItems.Items[(int)Constants.NppMenuCommands.ConsoleWindow]._cmdID;
                 Win32.SendMessage(NppData._nppHandle, NppMsg.NPPM_DMMREGASDCKDLG, 0, _ptrNppTbData);
             }
             else
@@ -157,11 +150,6 @@ namespace RTextNppPlugin
                 }
             }
             _consoleOutput.Focus();
-        }
-
-        static void _restoreConsoleWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
-        {
-            
         }
 
         static public Action RunScript;
@@ -614,5 +602,22 @@ namespace RTextNppPlugin
                 //SourceCodeFormatter.OnCharTyped(c);
             }
         }
+
+        #region Event Handlers
+
+        /**
+         * \brief   Raises the elapsed event.
+         *
+         * \param   sender  Source of the event.
+         * \param   e       Event information to send to registered event handlers.
+         */
+        private static void OnStartupTimerElapsed(object sender, ElapsedEventArgs e)
+        {
+            //update the cmd ids - cmd id's are 0 after plugin initialization
+            //_consoleOutput.CmdId = FuncItems.Items[(int)Constants.NppMenuCommands.ConsoleWindow]._cmdID;
+            //_startupTimer.Stop();
+            //_startupTimer.Enabled = false;
+        }
+        #endregion
     }
 }

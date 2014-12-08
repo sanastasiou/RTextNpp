@@ -94,6 +94,8 @@
   </Target>
   -->
   <ItemGroup>
+    <Compile Include="Automate\Connector.cs" />
+    <Compile Include="Automate\ConnectorManager.cs" />
     <Compile Include="Constants.cs" />
     <Compile Include="Dialogs\AboutBox.cs">
       <SubType>Form</SubType>
@@ -210,6 +212,12 @@
     <Compile Include="Forms\ConsoleOutput.designer.cs">
       <DependentUpon>ConsoleOutput.cs</DependentUpon>
     </Compile>
+    <Compile Include="Forms\Options.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\Options.Designer.cs">
+      <DependentUpon>Options.cs</DependentUpon>
+    </Compile>
     <Compile Include="Main.cs" />
     <Compile Include="Interop\DllExport\NppPluginNETBase.cs" />
     <Compile Include="Interop\DllExport\NppPluginNETHelper.cs" />
@@ -270,6 +278,9 @@
     <Compile Include="ViewModels\ConsoleViewModel.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="ViewModels\IConsoleViewModel.cs" />
+    <Compile Include="ViewModels\WorkspaceViewModel.cs" />
+    <Compile Include="WpfControls\BindableObject.cs" />
     <Compile Include="WpfControls\ConsoleOutput.xaml.cs">
       <DependentUpon>ConsoleOutput.xaml</DependentUpon>
     </Compile>
@@ -355,6 +366,9 @@
     <EmbeddedResource Include="Forms\ConsoleOutput.resx">
       <DependentUpon>ConsoleOutput.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="Forms\Options.resx">
+      <DependentUpon>Options.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <SubType>Designer</SubType>
     </EmbeddedResource>
@@ -383,7 +397,9 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="Options\" />
+  </ItemGroup>
   <PropertyGroup>
     <PostBuildEvent>copy /Y "$(OutDir)$(TargetName).dll" "C:\Program Files (x86)\Notepad++\plugins"</PostBuildEvent>
   </PropertyGroup>
