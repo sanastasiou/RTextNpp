@@ -17,7 +17,7 @@ namespace RTextNppPlugin
     {
         #region " Fields "
         private static Utilities.NppControlHost<ConsoleOutputForm> _consoleOutput = null;
-        private static System.Timers.Timer _startupTimer = new System.Timers.Timer(Constants.WINDOWS_RESTORE_TIMER);
+        private static System.Timers.Timer _startupTimer = new System.Timers.Timer(Constants.ICON_RESTORE_TIMER);
 
         public const string PluginName = "RTextNpp";
         static string iniFilePath = null;
@@ -59,15 +59,7 @@ namespace RTextNppPlugin
             // get the parameter value from plugin config
             doCloseTag = (Win32.GetPrivateProfileInt(sectionName, keyName, 0, iniFilePath) != 0);
 
-            // with function :
-            // SetCommand(int index,                            // zero based number to indicate the order of command
-            //            string commandName,                   // the command name that you want to see in plugin menu
-            //            NppFuncItemDelegate functionPointer,  // the symbol of function (function pointer) associated with this command. The body should be defined below. See Step 4.
-            //            ShortcutKey *shortcut,                // optional. Define a shortcut to trigger this command
-            //            bool check0nInit                      // optional. Make this menu item be checked visually
-            //            );
-
-            SetCommand((int)Constants.NppMenuCommands.ConsoleWindow, "Show RText++ Console", ShowConsoleOutput, new ShortcutKey(false, true, true, Keys.R));           
+            SetCommand((int)Constants.NppMenuCommands.ConsoleWindow, "Show RText++ Console", ShowConsoleOutput, new ShortcutKey(false, true, true, Keys.R));
 
             _startupTimer.Start();
 
@@ -337,7 +329,7 @@ namespace RTextNppPlugin
                 NppTbData _nppTbData = new NppTbData();
                 _nppTbData.hClient = _consoleOutput.Handle;
                 _nppTbData.pszName = "RText++ Console Output";
-                _nppTbData.dlgID = (int)Constants.NppMenuCommands.ConsoleWindow;
+                _nppTbData.dlgID = 1;// (int)Constants.NppMenuCommands.ConsoleWindow;
                 // define the default docking behaviour
                 _nppTbData.uMask = NppTbMsg.DWS_DF_CONT_RIGHT | NppTbMsg.DWS_ICONTAB | NppTbMsg.DWS_ICONBAR;
                 _nppTbData.hIconTab = (uint)tbIcon.Handle;

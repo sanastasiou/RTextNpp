@@ -170,7 +170,6 @@ namespace RTextNppPlugin.Utilities
         {
             //update check box - special case where update box has false value after plugin initialization...
             Win32.SendMessage(NPP_HANDLE, NppMsg.NPPM_SETMENUITEMCHECK, CmdId, _elementHost.Visible ? 1 : 0);
-            //when the timer elapses the host shall be redrawed
             _elementHost.Refresh();
         }
 

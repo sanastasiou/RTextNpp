@@ -28,7 +28,6 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this._consoleOutputHost = new WpfControls.ConsoleOutputElementHost<WpfControls.ConsoleOutput, ViewModels.ConsoleViewModel>();
             this.SuspendLayout();
             // 
             // _consoleOutputHost
@@ -54,7 +53,7 @@
 
         #endregion
 
-        private WpfControls.ConsoleOutputElementHost<WpfControls.ConsoleOutput, ViewModels.ConsoleViewModel> _consoleOutputHost;
+        private WpfControls.ConsoleOutputElementHost<WpfControls.ConsoleOutput, ViewModels.ConsoleViewModel> _consoleOutputHost = new WpfControls.ConsoleOutputElementHost<WpfControls.ConsoleOutput,ViewModels.ConsoleViewModel>();
 
 
 
