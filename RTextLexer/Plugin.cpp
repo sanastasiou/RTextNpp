@@ -16,7 +16,7 @@
   */
 
 #include "StdAfx.h"
-#include "..\headers\PluginInterface.h"
+#include "PluginInterface.h"
 #include "Version.h"
 
 namespace RText

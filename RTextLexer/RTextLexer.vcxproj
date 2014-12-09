@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(SolutionDir)Config.props" />
+  <Import Project="$(SolutionDir)\RTextLexer\Config.props" />
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
       <Configuration>Debug</Configuration>
@@ -54,7 +54,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;RAINLEXER_EXPORTS;_HAS_EXCEPTIONS=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\RTextNppCLRWrapper\include;..\ThirdParty\Scintilla\include;..\ThirdParty\Scintilla\lexlib;..\ThirdParty\NotepadPlusPlus\src\MISC\PluginsManager;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\ThirdParty\Scintilla\include;..\ThirdParty\Scintilla\lexlib;..\ThirdParty\NotepadPlusPlus;</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>4996</DisableSpecificWarnings>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <ExceptionHandling>false</ExceptionHandling>
@@ -111,12 +111,20 @@
     <None Include="Exports.def" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\headers\Common.h" />
-    <ClInclude Include="..\headers\Notepad_plus_msgs.h" />
-    <ClInclude Include="..\headers\PluginInterface.h" />
-    <ClInclude Include="..\headers\precompiledHeaders.h" />
-    <ClInclude Include="..\headers\StaticDialog.h" />
-    <ClInclude Include="..\headers\Window.h" />
+    <ClInclude Include="..\ThirdParty\NotepadPlusPlus\Notepad_plus_msgs.h" />
+    <ClInclude Include="..\ThirdParty\NotepadPlusPlus\PluginInterface.h" />
+    <ClInclude Include="..\ThirdParty\Scintilla\lexlib\Accessor.h" />
+    <ClInclude Include="..\ThirdParty\Scintilla\lexlib\CharacterSet.h" />
+    <ClInclude Include="..\ThirdParty\Scintilla\lexlib\LexAccessor.h" />
+    <ClInclude Include="..\ThirdParty\Scintilla\lexlib\LexerBase.h" />
+    <ClInclude Include="..\ThirdParty\Scintilla\lexlib\LexerModule.h" />
+    <ClInclude Include="..\ThirdParty\Scintilla\lexlib\LexerNoExceptions.h" />
+    <ClInclude Include="..\ThirdParty\Scintilla\lexlib\LexerSimple.h" />
+    <ClInclude Include="..\ThirdParty\Scintilla\lexlib\OptionSet.h" />
+    <ClInclude Include="..\ThirdParty\Scintilla\lexlib\PropSetSimple.h" />
+    <ClInclude Include="..\ThirdParty\Scintilla\lexlib\SparseState.h" />
+    <ClInclude Include="..\ThirdParty\Scintilla\lexlib\StyleContext.h" />
+    <ClInclude Include="..\ThirdParty\Scintilla\lexlib\WordList.h" />
     <ClInclude Include="Lexer.h" />
     <ClInclude Include="StdAfx.h" />
   </ItemGroup>

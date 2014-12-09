@@ -49,22 +49,46 @@
     <ClInclude Include="StdAfx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\headers\Common.h">
+    <ClInclude Include="..\ThirdParty\NotepadPlusPlus\Notepad_plus_msgs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\headers\Notepad_plus_msgs.h">
+    <ClInclude Include="..\ThirdParty\NotepadPlusPlus\PluginInterface.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\headers\PluginInterface.h">
+    <ClInclude Include="..\ThirdParty\Scintilla\lexlib\Accessor.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\headers\precompiledHeaders.h">
+    <ClInclude Include="..\ThirdParty\Scintilla\lexlib\CharacterSet.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\headers\StaticDialog.h">
+    <ClInclude Include="..\ThirdParty\Scintilla\lexlib\LexAccessor.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\headers\Window.h">
+    <ClInclude Include="..\ThirdParty\Scintilla\lexlib\LexerBase.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ThirdParty\Scintilla\lexlib\LexerModule.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ThirdParty\Scintilla\lexlib\LexerNoExceptions.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ThirdParty\Scintilla\lexlib\LexerSimple.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ThirdParty\Scintilla\lexlib\OptionSet.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ThirdParty\Scintilla\lexlib\PropSetSimple.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ThirdParty\Scintilla\lexlib\SparseState.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ThirdParty\Scintilla\lexlib\StyleContext.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ThirdParty\Scintilla\lexlib\WordList.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
