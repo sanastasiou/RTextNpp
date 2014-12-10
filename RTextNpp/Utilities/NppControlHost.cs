@@ -1,10 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Timers;
-using System.Configuration;
-using System.Reflection;
+using RTextNppPlugin.Logging;
 
 namespace RTextNppPlugin.Utilities
 {
@@ -56,7 +52,7 @@ namespace RTextNppPlugin.Utilities
             Dispose(true);
             GC.SuppressFinalize(this);
         }
-   
+
         /**
          * Gets a value indicating whether the element host form is visible.
          *
@@ -171,6 +167,7 @@ namespace RTextNppPlugin.Utilities
             //update check box - special case where update box has false value after plugin initialization...
             Win32.SendMessage(NPP_HANDLE, NppMsg.NPPM_SETMENUITEMCHECK, CmdId, _elementHost.Visible ? 1 : 0);
             _elementHost.Refresh();
+            Logger.Instance.Append("Refresing...Some more text...............bla bla bla...\n", Logger.MessageType.Error);
         }
 
         /**

@@ -53,6 +53,9 @@
   </Target>
   -->
   <ItemGroup>
+    <Compile Include="Logging\ILoggingObserver.cs" />
+    <Compile Include="Logging\ISubscriber.cs" />
+    <Compile Include="Logging\Logger.cs" />
     <Compile Include="Main.cs" />
     <Compile Include="Forms\ConsoleOutput.cs">
       <SubType>Form</SubType>
@@ -89,6 +92,9 @@
     <Compile Include="ViewModels\IConsoleViewModel.cs" />
     <Compile Include="ViewModels\WorkspaceViewModel.cs" />
     <Compile Include="WpfControls\BindableObject.cs" />
+    <Compile Include="WpfControls\ConsoleFlowDocument.xaml.cs">
+      <DependentUpon>ConsoleFlowDocument.xaml</DependentUpon>
+    </Compile>
     <Compile Include="WpfControls\ConsoleOutput.xaml.cs">
       <DependentUpon>ConsoleOutput.xaml</DependentUpon>
     </Compile>
@@ -128,6 +134,10 @@
     <None Include="RTextNpp.dll.config" />
   </ItemGroup>
   <ItemGroup>
+    <Page Include="WpfControls\ConsoleFlowDocument.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="WpfControls\ConsoleOutput.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

@@ -3,11 +3,12 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:local="clr-namespace:RTextNppPlugin.ViewModels"
+             xmlns:viewModels="clr-namespace:RTextNppPlugin.ViewModels"
+             xmlns:wpfControls="clr-namespace:RTextNppPlugin.WpfControls"
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="300">
     <UserControl.DataContext>
-        <local:ConsoleViewModel/>
+        <viewModels:ConsoleViewModel/>
     </UserControl.DataContext>
     <Grid>
         <DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
@@ -23,19 +24,16 @@
             </StackPanel>
             <TabControl DockPanel.Dock="Bottom">
                 <TabItem Name="Console" Header="Console" >
-                    <RichTextBox VerticalScrollBarVisibility="Auto" 
-                     HorizontalScrollBarVisibility="Auto"
+                    <RichTextBox VerticalScrollBarVisibility="Auto"
+                     HorizontalScrollBarVisibility="Visible"
                      HorizontalAlignment="Stretch"
                      VerticalAlignment="Stretch"
-                     IsReadOnly="True">
-                        <FlowDocument FontSize="12" FontFamily="Courier New">
-                            <FlowDocument.Resources>
-                                <Style TargetType="{x:Type Run}" x:Key="Information">
-                                    <Setter Property="Foreground" Value="Black"/>
-                                    <Setter Property="FontWeight" Value="Normal"/>
-                                </Style>
-                            </FlowDocument.Resources>
-                        </FlowDocument>
+                     IsUndoEnabled="False"                     
+                     AllowDrop="False"                     
+                     Background="Black"                                 
+                     Name="ConsoleViewRichTextBox"                  
+                     IsReadOnly="True">                                                
+                        <wpfControls:ConsoleFlowDocument/>
                     </RichTextBox>
                 </TabItem>
                 <TabItem Name="ErrorList" Header="Errors">

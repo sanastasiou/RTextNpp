@@ -10,6 +10,8 @@ using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Timers;
 using RTextNppPlugin;
+using System.Reflection;
+using System.Diagnostics;
 
 namespace RTextNppPlugin
 {
@@ -17,7 +19,6 @@ namespace RTextNppPlugin
     {
         #region " Fields "
         private static Utilities.NppControlHost<ConsoleOutputForm> _consoleOutput = null;
-        private static System.Timers.Timer _startupTimer = new System.Timers.Timer(Constants.ICON_RESTORE_TIMER);
 
         public const string PluginName = "RTextNpp";
         static string iniFilePath = null;
@@ -31,16 +32,10 @@ namespace RTextNppPlugin
         #endregion
 
         #region " Startup/CleanUp "
+
         static internal void CommandMenuInit()
         {
             // Initialization of your plugin commands
-            // You should fill your plugins commands here
-            _startupTimer.Elapsed += OnStartupTimerElapsed;
-            _startupTimer.AutoReset = false;
-
-            //
-            // Firstly we get the parameters from your plugin config file (if any)
-            //
 
             // get path of plugin configuration
             StringBuilder sbIniFilePath = new StringBuilder(Win32.MAX_PATH);
@@ -60,15 +55,6 @@ namespace RTextNppPlugin
             doCloseTag = (Win32.GetPrivateProfileInt(sectionName, keyName, 0, iniFilePath) != 0);
 
             SetCommand((int)Constants.NppMenuCommands.ConsoleWindow, "Show RText++ Console", ShowConsoleOutput, new ShortcutKey(false, true, true, Keys.R));
-
-            _startupTimer.Start();
-
-            bool wasConsoleOpen = false;
-            Utilities.ConfigurationSetter.readSetting(ref wasConsoleOpen, Constants.CONSOLE_OUTPUT_SETTING_KEY);
-            if (wasConsoleOpen)
-            {
-                ShowConsoleOutput();
-            }
         }
         static internal void SetToolBarIcon()
         {
@@ -82,8 +68,6 @@ namespace RTextNppPlugin
 
         static internal void PluginCleanUp()
         {
-            _startupTimer.Stop();
-            _startupTimer.Elapsed -= OnStartupTimerElapsed;
             //Win32.WritePrivateProfileString(sectionName, keyName, doCloseTag ? "1" : "0", iniFilePath);
         }
         #endregion
@@ -355,22 +339,25 @@ namespace RTextNppPlugin
         }
 
         #endregion
+        static internal void LoadSettings()
+        {
+            //Assembly assembly = Assembly.GetExecutingAssembly();
+            //FileVersionInfo fvi = FileVersionInfo.GetVersionInfo(assembly.Location);
+            //string version = fvi.FileVersion;
+            //Logging.Logger.Instance.Append(Plugin.PluginName + "version : " + version, Logging.Logger.MessageType.Info);
+            //Logging.Logger.Instance.Append("Loading user settings...", Logging.Logger.MessageType.Info);
+            bool wasConsoleOpen = false;
+            Utilities.ConfigurationSetter.readSetting(ref wasConsoleOpen, Constants.CONSOLE_OUTPUT_SETTING_KEY);
+            if (wasConsoleOpen)
+            {
+                ShowConsoleOutput();
+                Win32.SendMessage(nppData._nppHandle, NppMsg.NPPM_SETMENUITEMCHECK, _funcItems.Items[0]._cmdID, 1);
+            }
+            //Logging.Logger.Instance.Append("User settings loaded.", Logging.Logger.MessageType.Info);
+        }
 
         #region Event Handlers
 
-        /**
-         * \brief   Raises the elapsed event.
-         *
-         * \param   sender  Source of the event.
-         * \param   e       Event information to send to registered event handlers.
-         */
-        private static void OnStartupTimerElapsed(object sender, ElapsedEventArgs e)
-        {
-            //update the cmd ids - cmd id's are 0 after plugin initialization
-            _consoleOutput.CmdId = _funcItems.Items[(int)Constants.NppMenuCommands.ConsoleWindow]._cmdID;
-            _startupTimer.Stop();
-            _startupTimer.Enabled = false;
-        }
         #endregion
     }
 }

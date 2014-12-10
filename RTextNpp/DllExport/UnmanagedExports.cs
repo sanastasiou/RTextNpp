@@ -45,19 +45,19 @@ namespace RTextNppPlugin
         static void beNotified(IntPtr notifyCode)
         {
             SCNotification nc = (SCNotification)Marshal.PtrToStructure(notifyCode, typeof(SCNotification));
-            if (nc.nmhdr.code == (uint)NppMsg.NPPN_TBMODIFICATION)
+            switch (nc.nmhdr.code)
             {
-                Plugin._funcItems.RefreshItems();
-                Plugin.SetToolBarIcon();
-            }
-            //else if (nc.nmhdr.code == (uint)SciMsg.SCN_CHARADDED)
-            //{
-            //    Plugin.doInsertHtmlCloseTag((char)nc.ch);
-            //}
-            else if(nc.nmhdr.code == (uint)NppMsg.NPPN_SHUTDOWN)
-            {
-                Plugin.PluginCleanUp();
-                Marshal.FreeHGlobal(_ptrPluginName);
+                case (uint)NppMsg.NPPN_TBMODIFICATION:
+                    Plugin._funcItems.RefreshItems();
+                    Plugin.SetToolBarIcon();
+                    break;
+                case (uint)NppMsg.NPPN_SHUTDOWN:
+                    Plugin.PluginCleanUp();
+                    Marshal.FreeHGlobal(_ptrPluginName);
+                    break;
+                case (uint)NppMsg.NPPN_READY:
+                    Plugin.LoadSettings();
+                    break;
             }
         }
     }
