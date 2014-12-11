@@ -167,7 +167,6 @@ namespace RTextNppPlugin.Utilities
             //update check box - special case where update box has false value after plugin initialization...
             Win32.SendMessage(NPP_HANDLE, NppMsg.NPPM_SETMENUITEMCHECK, CmdId, _elementHost.Visible ? 1 : 0);
             _elementHost.Refresh();
-            Logger.Instance.Append("Refresing...Some more text...............bla bla bla...\n", Logger.MessageType.Error);
         }
 
         /**

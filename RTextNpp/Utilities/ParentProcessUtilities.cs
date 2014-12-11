@@ -1,9 +1,7 @@
 ﻿using System;
-using Microsoft.Win32;
 using System.Runtime.InteropServices;
-using System.ComponentModel;
 
-namespace ESRLabs.RTextEditor.Utilities
+namespace RTextNppPlugin.RTextEditor.Utilities
 {
     /**
      * @struct  ParentProcessUtilities

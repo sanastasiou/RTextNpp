@@ -1,5 +1,4 @@
-﻿using System;
-namespace RTextNppPlugin.ViewModels
+﻿namespace RTextNppPlugin.ViewModels
 {
     /**
      * Interface for console view model.

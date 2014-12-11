@@ -3,7 +3,7 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Media;
 
-namespace ESRLabs.RTextEditor.Utilities
+namespace RTextNppPlugin.RTextEditor.Utilities
 {
     public class Visual
     {

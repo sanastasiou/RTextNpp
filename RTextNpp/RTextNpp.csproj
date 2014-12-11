@@ -53,6 +53,22 @@
   </Target>
   -->
   <ItemGroup>
+    <Compile Include="Automate\Connector.cs" />
+    <Compile Include="Automate\ConnectorManager.cs" />
+    <Compile Include="Automate\Process.cs" />
+    <Compile Include="Automate\Protocol\AutoCompleteAndReferenceRequest.cs" />
+    <Compile Include="Automate\Protocol\AutoCompleteRequest.cs" />
+    <Compile Include="Automate\Protocol\AutoCompleteResponse.cs" />
+    <Compile Include="Automate\Protocol\Base.cs" />
+    <Compile Include="Automate\Protocol\ContextInfoResponse.cs" />
+    <Compile Include="Automate\Protocol\ErrorResponse.cs" />
+    <Compile Include="Automate\Protocol\FindElementRequest.cs" />
+    <Compile Include="Automate\Protocol\FindRTextElementsResponse.cs" />
+    <Compile Include="Automate\Protocol\LinkTargetsResponse.cs" />
+    <Compile Include="Automate\Protocol\LoadResponse.cs" />
+    <Compile Include="Automate\Protocol\ProgressResponse.cs" />
+    <Compile Include="Automate\Protocol\SerializerFactory.cs" />
+    <Compile Include="Automate\StateEngine\StateMachine.cs" />
     <Compile Include="Logging\ILoggingObserver.cs" />
     <Compile Include="Logging\ISubscriber.cs" />
     <Compile Include="Logging\Logger.cs" />
@@ -101,6 +117,9 @@
     <Compile Include="WpfControls\ConsoleOutputHost.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Reference Include="FileSystemWatcherCLRWrapper">
+      <HintPath>..\ThirdParty\FileSystemWatcher\FileSystemWatcherCLRWrapper.dll</HintPath>
+    </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
     <Reference Include="RGiesecke.DllExport.Metadata">
@@ -111,9 +130,11 @@
     <Reference Include="System.configuration" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Management" />
+    <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Windows" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xaml" />
+    <Reference Include="System.XML" />
     <Reference Include="WindowsBase" />
     <Reference Include="WindowsFormsIntegration" />
   </ItemGroup>

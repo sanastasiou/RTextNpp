@@ -1,6 +1,6 @@
-﻿using System;
+﻿using RGiesecke.DllExport;
+using System;
 using System.Runtime.InteropServices;
-using RGiesecke.DllExport;
 
 namespace RTextNppPlugin
 {
