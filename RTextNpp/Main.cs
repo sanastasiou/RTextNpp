@@ -19,13 +19,13 @@ namespace RTextNppPlugin
     {
         #region " Fields "
         private static Utilities.NppControlHost<ConsoleOutputForm> _consoleOutput = null;
+        private static Automate.ConnectorManager _connectorManager = null;
 
         public const string PluginName = "RTextNpp";
         static string iniFilePath = null;
         static string sectionName = "Insert Extension";
         static string keyName = "doCloseTag";
         static bool doCloseTag = false;
-        static string sessionFilePath = @"C:\text.session";
         static Bitmap tbBmp = Properties.Resources.ConsoleIcon;
         static Bitmap tbBmp_tbTab = Properties.Resources.ConsoleIcon;
         static Icon tbIcon = null;
@@ -35,26 +35,9 @@ namespace RTextNppPlugin
 
         static internal void CommandMenuInit()
         {
-            // Initialization of your plugin commands
-
-            // get path of plugin configuration
-            StringBuilder sbIniFilePath = new StringBuilder(Win32.MAX_PATH);
-            Win32.SendMessage(nppData._nppHandle, NppMsg.NPPM_GETPLUGINSCONFIGDIR, Win32.MAX_PATH, sbIniFilePath);
-            iniFilePath = sbIniFilePath.ToString();
-
-            // if config path doesn't exist, we create it
-            if (!Directory.Exists(iniFilePath))
-            {
-                Directory.CreateDirectory(iniFilePath);
-            }
-
-            // make your plugin config file full file path name
-            iniFilePath = Path.Combine(iniFilePath, PluginName + ".ini");
-
-            // get the parameter value from plugin config
-            doCloseTag = (Win32.GetPrivateProfileInt(sectionName, keyName, 0, iniFilePath) != 0);
-
             SetCommand((int)Constants.NppMenuCommands.ConsoleWindow, "Show RText++ Console", ShowConsoleOutput, new ShortcutKey(false, true, true, Keys.R));
+
+            _connectorManager = new Automate.ConnectorManager(nppData);
         }
         static internal void SetToolBarIcon()
         {
@@ -265,30 +248,7 @@ namespace RTextNppPlugin
                 if (Win32.SendMessage(nppData._nppHandle, NppMsg.NPPM_GETOPENFILENAMES, cStrArray.NativePointer, nbFile) != IntPtr.Zero)
                     foreach (string file in cStrArray.ManagedStringsUnicode) MessageBox.Show(file);
             }
-        }
-        static void getSessionFileNamesDemo()
-        {
-            int nbFile = (int)Win32.SendMessage(nppData._nppHandle, NppMsg.NPPM_GETNBSESSIONFILES, 0, sessionFilePath);
-
-            if (nbFile < 1)
-            {
-                MessageBox.Show("Please modify \"sessionFilePath\" in \"Demo.cs\" in order to point to a valid session file", "Error");
-                return;
-            }
-            MessageBox.Show(nbFile.ToString(), "Number of session files:");
-
-            using (ClikeStringArray cStrArray = new ClikeStringArray(nbFile, Win32.MAX_PATH))
-            {
-                if (Win32.SendMessage(nppData._nppHandle, NppMsg.NPPM_GETSESSIONFILES, cStrArray.NativePointer, sessionFilePath) != IntPtr.Zero)
-                    foreach (string file in cStrArray.ManagedStringsUnicode) MessageBox.Show(file);
-            }
-        }
-        static void saveCurrentSessionDemo()
-        {
-            string sessionPath = Marshal.PtrToStringUni(Win32.SendMessage(nppData._nppHandle, NppMsg.NPPM_SAVECURRENTSESSION, 0, sessionFilePath));
-            if (!string.IsNullOrEmpty(sessionPath))
-                MessageBox.Show(sessionPath, "Saved Session File :", MessageBoxButtons.OK);
-        }
+        }        
 
         static void ShowConsoleOutput()
         {
@@ -357,6 +317,44 @@ namespace RTextNppPlugin
         }
 
         #region Event Handlers
+
+        public static void OnFileOpened()
+        {
+            //get active file
+            NppMsg msg = NppMsg.NPPM_GETFULLCURRENTPATH;
+            StringBuilder path = new StringBuilder(Win32.MAX_PATH);
+            Win32.SendMessage(nppData._nppHandle, msg, 0, path);
+            Logging.Logger.Instance.Append(String.Format("Buffer activated for file : {0}\n", path.ToString()), Logging.Logger.MessageType.Info);
+            _connectorManager.createConnector(path.ToString());
+        }
+
+        /**
+         * \brief   Pre load workspace(s).
+         * \todo    Only do this if corresponding options is set.         
+         */
+        public static void PreLoadWorkspace()
+        {
+            int nbFile = (int)Win32.SendMessage(nppData._nppHandle, NppMsg.NPPM_GETNBOPENFILES, 0, 0);
+
+            if (nbFile <= 0)
+            {
+                return;
+            }
+            else
+            {
+                using (ClikeStringArray cStrArray = new ClikeStringArray(nbFile, Win32.MAX_PATH))
+                {
+                    if (Win32.SendMessage(nppData._nppHandle, NppMsg.NPPM_GETOPENFILENAMES, cStrArray.NativePointer, nbFile) != IntPtr.Zero)
+                    {
+                        foreach (string file in cStrArray.ManagedStringsUnicode)
+                        {
+                            Logging.Logger.Instance.Append(String.Format("Open file at startup : {0}\n", file), Logging.Logger.MessageType.Info);
+                            _connectorManager.createConnector(file);
+                        }
+                    }
+                }
+            }
+        }
 
         #endregion
     }
