@@ -8,7 +8,6 @@ namespace RTextNppPlugin.RTextEditor.Utilities
     public class Visual
     {
         /**
-         * @fn  public static T FindVisualParent<T>(DependencyObject child) where T : DependencyObject
          *
          * @brief   Finds the parent of this item.
          *
@@ -32,7 +31,6 @@ namespace RTextNppPlugin.RTextEditor.Utilities
         }
 
         /**
-         * @fn  public static string[] GetEnumValues<T>(bool includeBlank)
          *
          * @brief   Gets an array of strings based on enums, with an optional black entry.
          *

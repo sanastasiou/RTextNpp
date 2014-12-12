@@ -32,7 +32,6 @@ namespace RTextNppPlugin.RTextEditor.Utilities
     public static class LevenshteinDistanceExtensions
     {
         /**
-         * @fn  public static int LevenshteinDistance(this string input, string comparedTo,
          *      bool caseSensitive = false)
          *
          * @brief   Levenshtein Distance algorithm with transposition. <br />
@@ -93,7 +92,6 @@ namespace RTextNppPlugin.RTextEditor.Utilities
         }
 
         /**
-         * @fn  private static int FindMinimum(params int[] p)
          *
          * @brief   Searches for the first minimum.
          *
@@ -127,7 +125,6 @@ namespace RTextNppPlugin.RTextEditor.Utilities
     public static class DiceCoefficientExtensions
     {
         /**
-         * @fn  public static double DiceCoefficient(this string input, string comparedTo)
          *
          * @brief   Dice Coefficient based on bigrams. <br />
          *          A good value would be 0.33 or above, a value under 0.2 is not a good match, from 0.2
@@ -149,7 +146,6 @@ namespace RTextNppPlugin.RTextEditor.Utilities
         }
 
         /**
-         * @fn  public static double DiceCoefficient(this string[] nGrams, string[] compareToNGrams)
          *
          * @brief   Dice Coefficient used to compare nGrams arrays produced in advance.
          *
@@ -174,7 +170,6 @@ namespace RTextNppPlugin.RTextEditor.Utilities
         }
 
         /**
-         * @fn  public static string[] ToBiGrams(this string input)
          *
          * @brief   A string extension method that converts an input to a bi grams.
          *
@@ -195,7 +190,6 @@ namespace RTextNppPlugin.RTextEditor.Utilities
         }
 
         /**
-         * @fn  public static string[] ToTriGrams(this string input)
          *
          * @brief   A string extension method that converts an input to a triangle grams.
          *
@@ -216,7 +210,6 @@ namespace RTextNppPlugin.RTextEditor.Utilities
         }
 
         /**
-         * @fn  private static string[] ToNGrams(string input, int nLength)
          *
          * @brief   Converts this object to a n grams.
          *

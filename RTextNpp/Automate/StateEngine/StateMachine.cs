@@ -60,7 +60,6 @@ namespace RTextNppPlugin.RTextEditor.StateEngine
             private Func<bool> mGuard;          //!< The guard for this transition
 
             /**
-             * @fn  public ProcessStateWithAction(ProcessState targetState, Action transitionAction = null)
              *
              * @brief   Constructor.
              *
@@ -119,7 +118,6 @@ namespace RTextNppPlugin.RTextEditor.StateEngine
         }
 
         /**
-         * @fn  internal void addStateTransition(StateTransition transition,
          *      ProcessStateWithAction processState)
          *
          * @brief   Adds a state transition to the FSM.
@@ -139,7 +137,6 @@ namespace RTextNppPlugin.RTextEditor.StateEngine
         }
 
         /**
-         * @fn  internal ProcessState GetNext(Command command)
          *
          * @brief   Gets the next state but doesn't transition to it.
          *
@@ -183,7 +180,6 @@ namespace RTextNppPlugin.RTextEditor.StateEngine
         }
 
         /**
-         * @fn  internal ProcessState MoveNext(Command command)
          *
          * @brief   Moves to the next state.
          *

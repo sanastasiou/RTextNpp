@@ -6,6 +6,8 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Threading;
+using System.IO;
+using System.Linq;
 
 namespace RTextNppPlugin.RTextEditor
 {
@@ -20,31 +22,31 @@ namespace RTextNppPlugin.RTextEditor
     public class Process : IDisposable
     {
         #region Fields
-        private System.Diagnostics.Process mProcess         = null;
-        private Utilities.ProcessInfo mPInfo                = null;
-        private FileSystemWatcher mFileSystemWatcher        = null;                                                                         //!< Observes all automate files for modifications.
-        private FileSystemWatcher mWorkspaceSystemWatcher   = null;                                                                         //!< Observes .rtext file for any modifications.
-        private CancellationTokenSource mStdOutTokenSource  = null;
-        private CancellationToken mStdOutToken;
-        private CancellationTokenSource mStdErrTokenSource  = null;
-        private CancellationToken mStdErrToken;
-        private Task mStdOutReaderTask                      = null;
-        private Task mStdErrReaderTask                      = null;
-        private bool mIsProcessStarting                     = true;
-        private int mPort                                   = -1;
-        private Connector mConnector                        = null;
-        private readonly Regex mBackendInitResponseRegex    = new Regex(@"^RText service, listening on port (\d+)$", RegexOptions.Compiled);
-        private ManualResetEvent mTimeoutEvent              = new ManualResetEvent(false);
-        private DispatcherTimer mTimer;
-        private bool mIsMessageDisplayed                    = false;
-        private IAsyncResult mGetPortNumberAsyncResult;
-        private bool mIsPortNumberRetrieved                 = false;                                                                         //!< Whether a process has started and the port number is retrieved.
-        private int mInvocationId                           = -1;                                                                            //!< The invocation id used when loading model.. maybe it can be used in the furure
-        private string mExtension                           = String.Empty;                                                                  //!< The associated extension string.
-        private string mAutoRunKey                          = String.Empty;                                                                  //!< The autorun registry value.
+
+        System.Diagnostics.Process mProcess                                   = null;
+        ProcessInfo mPInfo                                                    = null;
+        FileSystemWactherCLRWrapper.FileSystemWatcher mFileSystemWatcher      = null;                                                                          //!< Observes all automate files for modifications.
+        FileSystemWactherCLRWrapper.FileSystemWatcher mWorkspaceSystemWatcher = null;                                                                          //!< Observes .rtext file for any modifications.
+        CancellationTokenSource mStdOutTokenSource                            = null;
+        CancellationToken mStdOutToken;
+        CancellationTokenSource mStdErrTokenSource                            = null;
+        CancellationToken mStdErrToken;
+        Task mStdOutReaderTask                                                = null;
+        Task mStdErrReaderTask                                                = null;
+        bool mIsProcessStarting                                               = true;
+        int mPort                                                             = -1;
+        Connector mConnector                                                  = null;
+        readonly Regex mBackendInitResponseRegex                              = new Regex(@"^RText service, listening on port (\d+)$", RegexOptions.Compiled);
+        ManualResetEvent mTimeoutEvent                                        = new ManualResetEvent(false);
+        DispatcherTimer mTimer;
+        bool mIsMessageDisplayed                                              = false;
+        IAsyncResult mGetPortNumberAsyncResult;
+        bool mIsPortNumberRetrieved                                           = false;                                                                         //!< Whether a process has started and the port number is retrieved.
+        int mInvocationId                                                     = -1;                                                                            //!< The invocation id used when loading model.. maybe it can be used in the furure
+        string mExtension                                                     = String.Empty;                                                                  //!< The associated extension string.
+        string mAutoRunKey                                                    = String.Empty;                                                                  //!< The autorun registry value.
 
         /**
-         * @fn  public delegate bool AsyncMethodCaller(int timeout, out int portNumber );
          *
          * @brief   Asynchronous method caller. Used to run the process start up asynchronously so that the UI thread doesn't get blocked.
          *
@@ -54,17 +56,116 @@ namespace RTextNppPlugin.RTextEditor
          * @param   timeout         The timeout.
          * @param [out] portNumber  The port number.
          *
-         * @return  .
+         * @return  Indicates whether asyn caller was successfull.
          */
-        public delegate bool AsyncMethodCaller(int timeout, out int portNumber );
-        AsyncMethodCaller mStartProcessDelegate;	                                                                                        //!< The start process delegate
+        public delegate bool AsyncMethodCaller(int timeout, out int portNumber);
+        AsyncMethodCaller mStartProcessDelegate;	                                                                                                           //!< The start process delegate
         #endregion
 
         #region Interface
-        
+
+        #region Nested Types
+
+        /**
+         * @class   ProcessInfo
+         * 
+         * @brief   Information needed to start a backend process.
+         * 
+         * @author  Stefanos Anastasiou
+         * @date    17.11.2012.
+         */
+        public class ProcessInfo
+        {
+            /**
+             *
+             * @brief   Constructor.
+             *
+             * @author  Stefanos Anastasiou
+             * @date    17.11.2012
+             *
+             * @param   workingDir  The working dir.
+             * @param   rtextPath   Full pathname of the rtext file.
+             * @param   cmdLine     The command line.
+             * @param   key         The process key.
+             * @param   port        The port number associated with this process.
+             */
+            public ProcessInfo(string workingDir, string rtextPath, string cmdLine, string key, int port = -1)
+            {
+                WorkingDirectory = workingDir;
+                RTextFilePath = rtextPath;
+                CommandLine = cmdLine;
+                ProcKey = key;
+                Port = port;
+                Name = null;
+            }
+
+            /**
+             * @property    public string workingDirectory
+             *
+             * @brief   Gets or sets the pathname of the working directory.
+             *
+             * @return  The pathname of the working directory.
+             */
+            public string WorkingDirectory { get; private set; }
+
+            /**
+             * @property    public string rTextFilePath
+             *
+             * @brief   Gets or sets the full pathname of the text file.
+             *
+             * @return  The full pathname of the text file.
+             */
+            public string RTextFilePath { get; private set; }
+
+            /**
+             * @property    public string commandLine
+             *
+             * @brief   Gets or sets the command line.
+             *
+             * @return  The command line.
+             */
+            public string CommandLine { get; private set; }
+
+            /**
+             * @property    public string procKey
+             *
+             * @brief   Gets or sets a unique proc key based on the location of the rtxet file and the associated extensions
+             *
+             * @return  The proc key.
+             */
+            public string ProcKey { get; private set; }
+
+            /**
+             * @property    public int Port
+             *
+             * @brief   Gets or sets the port.
+             *
+             * @return  The port.
+             */
+            public int Port { get; set; }
+
+            /**
+             * @property    public string Name
+             *
+             * @brief   Gets or sets the name of the process.
+             *
+             * @return  The name.
+             */
+            public string Name { get; set; }
+
+            /**
+             * \property    public string Extension
+             *
+             * \brief   Gets or sets the extension for which a backend process was started.
+             *
+             * \return  The extension.
+             */
+            public string Extension { get; set; }
+        };
+        #endregion
+
         #region Events
         /**
-         * @fn  public delegate void ConnectorCreated(object source, ConnectorCreatedEventArgs e);
          *
          * @brief   Delegate to inform subscribers that a connector is created.
          *
@@ -96,7 +197,6 @@ namespace RTextNppPlugin.RTextEditor
         }
 
         /**
-         * @fn  public delegate void CommandExecuted(object source, CommandCompletedEventArgs e);
          *
          * @brief   Delegate for the CommandCompleted event.
          *
@@ -128,50 +228,36 @@ namespace RTextNppPlugin.RTextEditor
             }
         }
         #endregion
-        
-        /**
-         * @fn  public Process(string rTextFilePath, string workingDirectory, string commandLine,
-         *      string processKey)
-         *
-         * @brief   Constructor.
-         *
-         * @author  Stefanos Anastasiou
-         * @date    09.03.2013
-         *
-         * @param   rTextFilePath       Full pathname of the .rtext file.
-         * @param   workingDirectory    Pathname of the working directory.
-         * @param   commandLine         The command line.
-         * @param   processKey          The process key.
-         */
-        public Process(string rTextFilePath, string workingDirectory, string commandLine, string processKey, string extenstion )
-        {
-            mPInfo = new Utilities.ProcessInfo(workingDirectory, rTextFilePath, commandLine, null, processKey);
-            mTimer = new DispatcherTimer(DispatcherPriority.ApplicationIdle)
-            {
-                //wait one second before loading model in case of thousands of events / sec
-                Interval = TimeSpan.FromMilliseconds(50)
-            };
-            mTimer.Tick += OnTimerElapsed;
-            mExtension = extenstion;
-        }
 
         /**
-         * @property    public Utilities.ProcessInfo ProcessInfo
+         * Constructor.
          *
-         * @brief   Gets the information describing the process.
-         *
-         * @return  Information describing the process.
+         * \param   rTextFilePath   Full pathname of the text file.
+         * \param   ext             The extension of the rtext file. 
+         * \remark  For each extension, even of the same .rtext file, a different process should be started.                         
          */
-        public Utilities.ProcessInfo ProcessInfo
+        public Process(string rTextFilePath, string ext)
+            : this(rTextFilePath, Path.GetDirectoryName(rTextFilePath), GetCommandLine(rTextFilePath, ext), rTextFilePath + ext, ext)
+        {
+        }
+
+        public string ProcKey
         {
             get
             {
-                return this.mPInfo;
+                return mPInfo.ProcKey;
+            }
+        }
+
+        public int Port
+        {
+            get
+            {
+                return mPInfo.Port;
             }
         }
 
         /**
-         * @fn  public bool StartRTextService()
          *
          * @brief   Tries to start the backend service, as it is specified in the .rtext file.
          *
@@ -182,7 +268,7 @@ namespace RTextNppPlugin.RTextEditor
          */
         public void StartRTextService()
         {
-            if ( mGetPortNumberAsyncResult == null || mGetPortNumberAsyncResult.IsCompleted)
+            if (mGetPortNumberAsyncResult == null || mGetPortNumberAsyncResult.IsCompleted)
             {
                 //process was never started
                 Match aMatch = Regex.Match(mPInfo.CommandLine, @"(^\s*\S+)(.*)", RegexOptions.Compiled);
@@ -206,7 +292,7 @@ namespace RTextNppPlugin.RTextEditor
                     matchResults = matchResults.NextMatch();
                 }
                 aExtensionsFilter = aExtensionsFilter.Substring(0, aExtensionsFilter.Length - 1);
-                mFileSystemWatcher = new FileSystemWactherCLRWrapper.FileSystemWatcher( System.IO.Path.GetDirectoryName(mPInfo.RTextFilePath), 
+                mFileSystemWatcher = new FileSystemWactherCLRWrapper.FileSystemWatcher(System.IO.Path.GetDirectoryName(mPInfo.RTextFilePath),
                                                                                         false,
                                                                                         aExtensionsFilter,
                                                                                         String.Empty,
@@ -216,24 +302,24 @@ namespace RTextNppPlugin.RTextEditor
                 mFileSystemWatcher.Deleted += FileSystemWatcherDeleted;
                 mFileSystemWatcher.Created += FileSystemWatcherChanged;
                 mFileSystemWatcher.Renamed += FileSystemWatcherRenamed;
-                mFileSystemWatcher.Error   += ProcessError;
+                mFileSystemWatcher.Error += ProcessError;
                 //finally add .rtext wacther
-                mWorkspaceSystemWatcher = new FileSystemWactherCLRWrapper.FileSystemWatcher( System.IO.Path.GetDirectoryName(mPInfo.RTextFilePath),
+                mWorkspaceSystemWatcher = new FileSystemWactherCLRWrapper.FileSystemWatcher(System.IO.Path.GetDirectoryName(mPInfo.RTextFilePath),
                                                                                              false,
                                                                                              "*" + Constants.WORKSPACE_TYPE,
                                                                                              String.Empty,
                                                                                              (uint)(int)(System.IO.NotifyFilters.FileName | System.IO.NotifyFilters.LastWrite | System.IO.NotifyFilters.CreationTime | System.IO.NotifyFilters.Size | System.IO.NotifyFilters.LastAccess | System.IO.NotifyFilters.Attributes),
                                                                                              false
                                                                                            );
-                mWorkspaceSystemWatcher.Changed += mWorkspaceSystemWatcher_Changed;
-                mWorkspaceSystemWatcher.Deleted += mWorkspaceSystemWatcher_Deleted;
-                mWorkspaceSystemWatcher.Created += mWorkspaceSystemWatcher_Created;
-                mWorkspaceSystemWatcher.Renamed += mWorkspaceSystemWatcher_Renamed;             
-                mWorkspaceSystemWatcher.Error   += ProcessError;
+                mWorkspaceSystemWatcher.Changed += OnWorkspaceSystemWatcherChanged;
+                mWorkspaceSystemWatcher.Deleted += OnWorkspaceSystemWatcherDeleted;
+                mWorkspaceSystemWatcher.Created += OnWorkspaceSystemWatcherCreated;
+                mWorkspaceSystemWatcher.Renamed += OnWorkspaceSystemWatcherRenamed;
+                mWorkspaceSystemWatcher.Error += ProcessError;
 
                 mProcess.Exited += new EventHandler(OnProcessExited);
                 //disable doskey or whatever actions are associated with cmd.exe
-                mAutoRunKey = disabledCmdExeCustomization();
+                mAutoRunKey = DisableCmdExeCustomization();
                 mProcess.Start();
 
                 mProcess.EnableRaisingEvents = true;
@@ -249,39 +335,14 @@ namespace RTextNppPlugin.RTextEditor
 
                 mStartProcessDelegate = new AsyncMethodCaller(this.GetPortNumber);
                 this.mPort = -1; //reinit port every time this function is called
-                this.mGetPortNumberAsyncResult = mStartProcessDelegate.BeginInvoke( Constants.INITIAL_RESPONSE_TIMEOUT,
+                this.mGetPortNumberAsyncResult = mStartProcessDelegate.BeginInvoke(Constants.INITIAL_RESPONSE_TIMEOUT,
                                                                                     out this.mPort,
                                                                                     new AsyncCallback(PortNumberRetrievalCompleted),
                                                                                     mStartProcessDelegate);
             }
         }
 
-        void mWorkspaceSystemWatcher_Renamed(object sender, System.IO.RenamedEventArgs e)
-        {
-            //.rtext should never be renamed - process must be restarted - which will result to an error
-            RestartProcess();
-        }
-
-        void mWorkspaceSystemWatcher_Created(object sender, System.IO.FileSystemEventArgs e)
-        {
-            //.rtext should never be recreated - process must be restarted
-            RestartProcess();
-        }
-
-        void mWorkspaceSystemWatcher_Deleted(object sender, System.IO.FileSystemEventArgs e)
-        {
-            //.rtext should never be deleted - process must be restarted - which will result to an error
-            RestartProcess();
-        }
-
-        void mWorkspaceSystemWatcher_Changed(object sender, System.IO.FileSystemEventArgs e)
-        {
-            //.rtext changed load new setting
-            RestartProcess();
-        }
-
         /**
-         * @fn  ~Process()
          *
          * @brief   Finaliser.
          *
@@ -308,7 +369,7 @@ namespace RTextNppPlugin.RTextEditor
             //called when the getPortNumber method has finished work...    
             mIsPortNumberRetrieved = this.mStartProcessDelegate.EndInvoke(out this.mPort, ar);
             //process start attemp finished - notify subscribers
-            if ( ConnectorCreatedEvent != null)
+            if (ConnectorCreatedEvent != null)
             {
                 ConnectorCreatedEvent(this, new ConnectorCreatedEventArgs(this.mPInfo.ProcKey));
             }
@@ -322,7 +383,7 @@ namespace RTextNppPlugin.RTextEditor
                 //    this.OnTimerElapsed(null, EventArgs.Empty);
                 //}
             }
-            writeAutoRunValue(this.mAutoRunKey);
+            WriteAutoRunValue(this.mAutoRunKey);
             mAutoRunKey = String.Empty;
         }
 
@@ -342,7 +403,6 @@ namespace RTextNppPlugin.RTextEditor
         }
 
         /**
-         * \fn  private bool GetPortNumber(int timeout, out int portNumber)
          *
          * \brief   Gets port number.
          * \note    If the backend process could not be started, a -1 is returned.
@@ -362,7 +422,7 @@ namespace RTextNppPlugin.RTextEditor
                 if (mConnector == null)
                 {
                     //create a new connector if it's the first time for this workspace
-                    mConnector = new Connector( this );
+                    mConnector = new Connector(this);
                 }
                 this.mPInfo.Port = portNumber = this.mPort;
                 return true;
@@ -385,7 +445,6 @@ namespace RTextNppPlugin.RTextEditor
         public Connector Connector { get { return this.mConnector; } }
 
         /**
-         * @fn  public void Kill()
          *
          * @brief   Kills this process.
          *
@@ -404,9 +463,9 @@ namespace RTextNppPlugin.RTextEditor
          *
          * @return  true if this object has exited, false if not.
          */
-        public bool HasExited 
-        { 
-            get 
+        public bool HasExited
+        {
+            get
             {
                 try
                 {
@@ -420,7 +479,6 @@ namespace RTextNppPlugin.RTextEditor
         }
 
         /**
-         * @fn  public void Dispose()
          *
          * @brief   Performs application-defined tasks associated with freeing, releasing, or resetting
          *          unmanaged resources.
@@ -438,10 +496,33 @@ namespace RTextNppPlugin.RTextEditor
 
         #endregion
 
-        #region Helpers
+        #region Implementation Details
 
         /**
-         * @fn  private void Dispose(bool disposing)
+         *
+         * @brief   Constructor.
+         *
+         * @author  Stefanos Anastasiou
+         * @date    09.03.2013
+         *
+         * @param   rTextFilePath       Full pathname of the .rtext file.
+         * @param   workingDirectory    Pathname of the working directory.
+         * @param   commandLine         The command line.
+         * @param   processKey          The process key.
+         */
+        public Process(string rTextFilePath, string workingDirectory, string commandLine, string processKey, string extenstion)
+        {
+            mPInfo = new ProcessInfo(workingDirectory, rTextFilePath, commandLine, processKey);
+            mTimer = new DispatcherTimer(DispatcherPriority.ApplicationIdle)
+            {
+                //wait one second before loading model in case of thousands of events / sec
+                Interval = TimeSpan.FromMilliseconds(50)
+            };
+            mTimer.Tick += OnTimerElapsed;
+            mExtension = extenstion;
+        }
+
+        /**
          *
          * @brief   Releases the unmanaged resources used by the ConnectorManager and optionally releases
          *          the managed resources.
@@ -463,7 +544,6 @@ namespace RTextNppPlugin.RTextEditor
         }
 
         /**
-         * @fn  private void ReleaseNativeResources()
          *
          * @brief   Releases the native resources.
          *
@@ -476,7 +556,6 @@ namespace RTextNppPlugin.RTextEditor
         }
 
         /**
-         * @fn  private void CleanupProcess()
          *
          * @brief   Cleanup process.
          * @todo    Send shutdown command instead of killing the process.
@@ -493,9 +572,9 @@ namespace RTextNppPlugin.RTextEditor
                 Utilities.ProcessUtilities.KillProcessTree(mProcess);
                 mStdErrTokenSource.Cancel();
                 mStdOutTokenSource.Cancel();
-                mStdErrReaderTask.Wait( 2000 );
-                mStdOutReaderTask.Wait( 2000 );
-                
+                mStdErrReaderTask.Wait(2000);
+                mStdOutReaderTask.Wait(2000);
+
                 //todo send shutdown command to rtext service and wait for it to die
             }
             catch (Exception ex)
@@ -508,18 +587,17 @@ namespace RTextNppPlugin.RTextEditor
                 mFileSystemWatcher.Deleted -= FileSystemWatcherDeleted;
                 mFileSystemWatcher.Created -= FileSystemWatcherChanged;
                 mFileSystemWatcher.Renamed -= FileSystemWatcherRenamed;
-                mFileSystemWatcher.Error   -= ProcessError;
-                mWorkspaceSystemWatcher.Changed -= mWorkspaceSystemWatcher_Changed;
-                mWorkspaceSystemWatcher.Created -= mWorkspaceSystemWatcher_Created;
-                mWorkspaceSystemWatcher.Deleted -= mWorkspaceSystemWatcher_Deleted;
+                mFileSystemWatcher.Error -= ProcessError;
+                mWorkspaceSystemWatcher.Changed -= OnWorkspaceSystemWatcherChanged;
+                mWorkspaceSystemWatcher.Created -= OnWorkspaceSystemWatcherCreated;
+                mWorkspaceSystemWatcher.Deleted -= OnWorkspaceSystemWatcherDeleted;
                 mWorkspaceSystemWatcher.Error -= ProcessError;
-                mWorkspaceSystemWatcher.Renamed -= mWorkspaceSystemWatcher_Renamed;
-                mProcess.Exited            -= OnProcessExited;
+                mWorkspaceSystemWatcher.Renamed -= OnWorkspaceSystemWatcherRenamed;
+                mProcess.Exited -= OnProcessExited;
             }
         }
 
         /**
-         * @fn  private void ReadStream( StreamReader stream, CancellationToken token)
          *
          * @brief   Reads a synchronous stream asynchornously. .NET bug workaround.
          *
@@ -542,7 +620,7 @@ namespace RTextNppPlugin.RTextEditor
                 {
                     string aLine = stream.ReadLine();
                     //StatusBarManager.writeToOutputWindow(aLine, mPInfo.Guid.Value, mPInfo.ProcKey);
-                    if ( mIsProcessStarting )
+                    if (mIsProcessStarting)
                     {
                         if (mBackendInitResponseRegex.IsMatch(aLine))
                         {
@@ -556,7 +634,6 @@ namespace RTextNppPlugin.RTextEditor
         }
 
         /**
-         * @fn  private void OnProcessExited(object sender, EventArgs e)
          *
          * @brief   Raises the process exited event.
          *
@@ -572,7 +649,7 @@ namespace RTextNppPlugin.RTextEditor
             //notify connectors that their backend in no longer available!
             if (ProcessExitedEvent != null)
             {
-                ProcessExitedEvent(this, new ProcessExitedEventArgs( this.mPInfo.ProcKey ) );
+                ProcessExitedEvent(this, new ProcessExitedEventArgs(this.mPInfo.ProcKey));
             }
         }
 
@@ -591,56 +668,144 @@ namespace RTextNppPlugin.RTextEditor
         }
 
         /**
-         * \fn  private void RestartProcess()
          *
-         * \brief   Restart process.
-         *
-         * \author  Stefanos Anastasiou
-         * \date    12.10.2013
+         * \brief   Restart process. Occurs when .rtext file is modified.
+         *                   
          */
         private void RestartProcess()
         {
             try
             {
                 OnProcessExited(null, EventArgs.Empty);
-                //must re-read .rtext file and restart process
-                if (!Utilities.FileUtilities.findRTextFile(out mPInfo, mPInfo.WorkingDirectory, mExtension))
+                if(File.Exists(mPInfo.RTextFilePath))
                 {
-                    throw new Exception(String.Format("Could not restart process for .rtext file in directory : {0} after modification were made to the file.\nPlease check your configuration.", mPInfo.WorkingDirectory));
+                    string cmdLine = GetCommandLine(mPInfo.RTextFilePath, mExtension);
+                    if (cmdLine != null)
+                    {
+                        mPInfo = new ProcessInfo(mPInfo.WorkingDirectory, mPInfo.RTextFilePath, mPInfo.CommandLine, mPInfo.ProcKey);
+                    }
+                    else
+                    {
+                        Logging.Logger.Instance.Append("Could not read command line for extension {1} from file : {0} after modifications were made to the file.", Logging.Logger.MessageType.FatalError, mPInfo.RTextFilePath, mExtension);
+                        return;
+                    }
+                }
+                else
+                {
+                    Logging.Logger.Instance.Append("Could not locate file : {0} after modifications were made to the file.", Logging.Logger.MessageType.FatalError, mPInfo.RTextFilePath);
+                    return;
                 }
                 StartRTextService();
             }
             catch (Exception ex)
             {
-                //StatusBarManager.writeToOutputWindow(String.Format( "ERROR: {0}", ex.Message ),
-                //                                     Utilities.HashUtilities.getGUIDfromString(ProcessInfo.ProcKey),
-                //                                     ProcessInfo.ProcKey
-                //                                    );
+                Logging.Logger.Instance.Append("Process.RestartProcess : Exception : {0}", Logging.Logger.MessageType.FatalError, ex.Message);
                 //clean up
                 CleanupProcess();
                 OnProcessExited(null, EventArgs.Empty);
             }
         }
 
-        private string disabledCmdExeCustomization()
+        /**
+         * Disables the command executable customization because some broken programs throw exceptions when one tries to start a program from the command line.
+         *
+         * \return  A string.
+         */
+        private string DisableCmdExeCustomization()
         {
-            RegistryKey aCmdKey  = Registry.CurrentUser;
+            RegistryKey aCmdKey = Registry.CurrentUser;
             var aCmdProcessorKey = aCmdKey.OpenSubKey(@"Software\Microsoft\Command Processor", true);
             string aAutorunValue = aCmdProcessorKey.GetValue("autorun") as string;
-            writeAutoRunValue(String.Empty);
+            WriteAutoRunValue(String.Empty);
             return aAutorunValue;
         }
 
-        private void writeAutoRunValue(string value)
+        /**
+         * Restore command line customization.
+         *
+         * \param   value   The value.
+         */
+        private void WriteAutoRunValue(string value)
         {
             RegistryKey aCmdKey = Registry.CurrentUser;
             var aCmdProcessorKey = aCmdKey.OpenSubKey(@"Software\Microsoft\Command Processor", true);
             aCmdProcessorKey.SetValue("autorun", value != null ? value : String.Empty, RegistryValueKind.String);
         }
 
+        /**
+         * Gets command line.
+         *
+         * \param   rtextFilePath   Full pathname of the .rtext file.
+         * \param   extension       The extension for which the command line should be retrieved.
+         *
+         * \return  The command line.
+         */
+        private static string GetCommandLine(string rtextFilePath, string extension)
+        {
+            try
+            {
+                string[] aLines = File.ReadAllLines(rtextFilePath);
+                if (aLines.Count() != 0)
+                {
+
+                    for (int i = 0; i < aLines.Count(); ++i)
+                    {
+                        //skip empty lines
+                        if (String.IsNullOrEmpty(aLines[i])) continue;
+                        //find endings
+                        Match matchResults = Utilities.FileUtilities.FileExtensionRegex.Match(aLines[i]);
+                        bool aHasFoundMatch = false;
+                        while (matchResults.Success)
+                        {
+                            if (matchResults.Value.Equals(extension))
+                            {
+                                aHasFoundMatch = true;
+                                break;
+                            }
+                            matchResults = matchResults.NextMatch();
+                        }
+                        //ok found matching extension in .rtext file, check for commandline - next line should be the command line
+                        if (aHasFoundMatch && (i + 1 < aLines.Count()) && !String.IsNullOrEmpty(aLines[i + 1]))
+                        {
+                            return aLines[i + 1];
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Logging.Logger.Instance.Append("Process.GetCommandLine({0}, {1}) - Exception : {2}", Logging.Logger.MessageType.Error, rtextFilePath, extension, ex.Message);
+            }
+            return null;
+        }
+
         #endregion
 
         #region Event Handlers
+
+        void OnWorkspaceSystemWatcherRenamed(object sender, System.IO.RenamedEventArgs e)
+        {
+            //.rtext should never be renamed - process must be restarted - which will result to an error
+            RestartProcess();
+        }
+
+        void OnWorkspaceSystemWatcherCreated(object sender, System.IO.FileSystemEventArgs e)
+        {
+            //.rtext should never be recreated - process must be restarted
+            RestartProcess();
+        }
+
+        void OnWorkspaceSystemWatcherDeleted(object sender, System.IO.FileSystemEventArgs e)
+        {
+            //.rtext should never be deleted - process must be restarted - which will result to an error
+            RestartProcess();
+        }
+
+        void OnWorkspaceSystemWatcherChanged(object sender, System.IO.FileSystemEventArgs e)
+        {
+            //.rtext changed load new setting
+            RestartProcess();
+        }
 
         /**
          * \fn  void ProcessError(object sender, ErrorEventArgs e)
@@ -663,19 +828,19 @@ namespace RTextNppPlugin.RTextEditor
                 mFileSystemWatcher.Created -= FileSystemWatcherChanged;
                 mFileSystemWatcher.Renamed -= FileSystemWatcherRenamed;
                 mFileSystemWatcher.Error -= ProcessError;
-                var tempFileWatcher = new FileSystemWatcher(mFileSystemWatcher.Directory, 
-                                                            mFileSystemWatcher.HasGUI,
-                                                            mFileSystemWatcher.Include,
-                                                            mFileSystemWatcher.Exclude,
-                                                            mFileSystemWatcher.FilterFlags,
-                                                            mFileSystemWatcher.MonitorSubDirectories
-                                                           );
-                mFileSystemWatcher         = tempFileWatcher;
+                var tempFileWatcher = new FileSystemWactherCLRWrapper.FileSystemWatcher(mFileSystemWatcher.Directory,
+                                                                                        mFileSystemWatcher.HasGUI,
+                                                                                        mFileSystemWatcher.Include,
+                                                                                        mFileSystemWatcher.Exclude,
+                                                                                        mFileSystemWatcher.FilterFlags,
+                                                                                        mFileSystemWatcher.MonitorSubDirectories
+                                                                                       );
+                mFileSystemWatcher = tempFileWatcher;
                 mFileSystemWatcher.Changed += FileSystemWatcherChanged;
                 mFileSystemWatcher.Deleted += FileSystemWatcherDeleted;
                 mFileSystemWatcher.Created += FileSystemWatcherChanged;
                 mFileSystemWatcher.Renamed += FileSystemWatcherRenamed;
-                mFileSystemWatcher.Error   += ProcessError;
+                mFileSystemWatcher.Error += ProcessError;
             }
             else
             {
@@ -731,15 +896,16 @@ namespace RTextNppPlugin.RTextEditor
          *
          * \param   sender  Source of the event.
          * \param   e       File system event information.
+         * \todo    Automatically save workspace before reloading the backend.                  
          */
         private void FileSystemWatcherChanged(object sender, System.IO.FileSystemEventArgs e)
         {
             //is this an automate document and auto save all document is enabled?
             //IOptions aOptions = (IOptions)mMSVSInstance.GetObject("RText.NET");
-            if ( e.ChangeType == System.IO.WatcherChangeTypes.Changed)// && aOptions.AutoSaveAllDocuments )
+            if (e.ChangeType == System.IO.WatcherChangeTypes.Changed)// && aOptions.AutoSaveAllDocuments )
             {
                 //find .rtext file of this document 
-                string aRTextFilePath = Utilities.FileUtilities.findRTextFile(Utilities.FileUtilities.getDir(e.FullPath), Utilities.FileUtilities.getExt(e.FullPath));
+                string aRTextFilePath = Utilities.FileUtilities.FindWorkspaceRoot(Path.GetDirectoryName(e.FullPath));
                 //foreach (EnvDTE.Document doc in mMSVSInstance.Documents)
                 //{
                 //    if (!doc.Saved && aRTextFilePath == Utilities.FileUtilities.findRTextFile(Utilities.FileUtilities.getDir(doc.FullName), Utilities.FileUtilities.getExt(doc.FullName)))
@@ -755,7 +921,6 @@ namespace RTextNppPlugin.RTextEditor
         }
 
         /**
-         * @fn  private void OnTimerElapsed(object sender, EventArgs e)
          *
          * @brief   Event handler. Called when the dispatcher timer expires.
          *
@@ -772,7 +937,7 @@ namespace RTextNppPlugin.RTextEditor
             {
                 if (!mIsMessageDisplayed)
                 {
-                    //StatusBarManager.writeToOutputWindow(String.Format("Changes were made to automate files while the model was being loaded. New loading pending..."), Utilities.HashUtilities.getGUIDfromString(this.mPInfo.ProcKey));
+                    Logging.Logger.Instance.Append("Changes were made to automate files while the model was being loaded. New loading pending...", Logging.Logger.MessageType.Info, this.mPInfo.ProcKey);
                     mIsMessageDisplayed = true;
                 }
                 return;

@@ -23,7 +23,6 @@ namespace RTextNppPlugin.RTextEditor.Utilities
         internal IntPtr InheritedFromUniqueProcessId;
 
         /**
-         * @fn  private static extern int NtQueryInformationProcess(IntPtr processHandle,
          *      int processInformationClass, ref ParentProcessUtilities processInformation,
          *      int processInformationLength, out int returnLength);
          *
@@ -55,7 +54,6 @@ namespace RTextNppPlugin.RTextEditor.Utilities
         }
 
         /**
-         * @fn  static extern IntPtr OpenProcess(ProcessAccessFlags dwDesiredAccess,
          *      [MarshalAs(UnmanagedType.Bool)] bool bInheritHandle, int dwProcessId);
          *
          * @brief   Opens the process.
@@ -73,7 +71,6 @@ namespace RTextNppPlugin.RTextEditor.Utilities
         static extern IntPtr OpenProcess(ProcessAccessFlags dwDesiredAccess, [MarshalAs(UnmanagedType.Bool)] bool bInheritHandle, int dwProcessId);
 
         /**
-         * @fn  public static System.Diagnostics.Process GetParentProcess()
          *
          * @brief   Gets the parent process of the current process.
          *
@@ -88,7 +85,6 @@ namespace RTextNppPlugin.RTextEditor.Utilities
         }
 
         /**
-         * @fn  public static System.Diagnostics.Process GetParentProcess(int id)
          *
          * @brief   Gets the parent process of specified process.
          *
@@ -107,7 +103,6 @@ namespace RTextNppPlugin.RTextEditor.Utilities
         }
 
         /**
-         * @fn  public static System.Diagnostics.Process GetParentProcess(IntPtr handle)
          *
          * @brief   Gets the parent process of a specified process.
          *

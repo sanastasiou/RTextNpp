@@ -19,7 +19,7 @@ namespace RTextNppPlugin.ViewModels
          */
         public ConsoleViewModel()
         {
-                        
+            addWorkspace("General");            
         }
 
         public void addWorkspace(string workspace)
@@ -67,6 +67,32 @@ namespace RTextNppPlugin.ViewModels
         }
 
         /**
+         * Gets or sets the zero-based index of the workspace list.
+         *
+         * \return  The index.
+         */
+        public int Index
+        {
+            get
+            {
+                return _index;
+            }
+            set
+            {
+                if (value == _index)
+                {
+                    return;
+                }
+                else
+                {
+                    _index = value;
+                    base.RaisePropertyChanged("Index");
+                    base.RaisePropertyChanged("Workspace");
+                }
+            }
+        }
+
+        /**
          * Gets the workspace.
          *
          * \return  The workspace.
@@ -77,7 +103,6 @@ namespace RTextNppPlugin.ViewModels
             {
                 return _workspaceCollection[_index].Workspace;
             }
-
         }
 
         /**
@@ -96,6 +121,5 @@ namespace RTextNppPlugin.ViewModels
         private ObservableCollection<WorkspaceViewModel> _workspaceCollection = new ObservableCollection<WorkspaceViewModel>();
         private bool _workspaceExists = false;
         private int _index = 0;
-        //private readonly string _workspace = null; //!< Holds associated workspace for this viewmodel
     }
 }

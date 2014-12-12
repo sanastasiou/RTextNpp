@@ -9,16 +9,6 @@ namespace RTextNppPlugin
         public ConsoleOutputForm()
         {
             InitializeComponent();
-            this.Move += ConsoleOutputForm_Move;
-            this.Resize += ConsoleOutputForm_Move;
-        }
-
-        void ConsoleOutputForm_Move(object sender, EventArgs e)
-        {
-            if(_consoleOutputHost != null)
-            {
-                _consoleOutputHost.Refresh();
-            }
         }
 
         public WpfControls.ConsoleOutputElementHost<WpfControls.ConsoleOutput, ViewModels.ConsoleViewModel> WpfControl
@@ -27,6 +17,6 @@ namespace RTextNppPlugin
             {
                 return _consoleOutputHost;
             }
-        }    
+        }   
     }
 }

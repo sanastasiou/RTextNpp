@@ -32,16 +32,39 @@ namespace RTextNppPlugin.Automate
             //check if file extension is an automate file
             if (isAutomateFile(file))
             {
-                Logging.Logger.Instance.Append(String.Format("File : {0} is an automate file!\n", file), Logging.Logger.MessageType.Warning);
                 //identify .rtext file
-                
+                string rTextFileLocation = FileUtilities.FindWorkspaceRoot(file);
+                if(String.IsNullOrEmpty(rTextFileLocation))
+                {
+                    Logging.Logger.Instance.Append("Could not find .rtext file for automate file {0}", Logging.Logger.MessageType.Error, file);
+                }
+                else
+                {
+                    Logging.Logger.Instance.Append("Starting new process for workspace root {0}", Logging.Logger.MessageType.Info, rTextFileLocation);
+                }
+                string processKey = rTextFileLocation + Path.GetExtension(file);
+                //maybe process already exists..
+                if(_processList.ContainsKey(processKey))
+                {
+                    //maybe process is dead.. try restarting it
+                }
+                else
+                {
+                    _processList.Add(processKey, new RTextEditor.Process(rTextFileLocation, Path.GetExtension(file)));
+                    //Logging.Logger.Instance.Append(".rtext file location : {0}", Logging.Logger.MessageType.Info, rTextFileLocation);
+                    //Logging.Logger.Instance.Append("extension : {0}", Logging.Logger.MessageType.Info, Path.GetExtension(file));
+                    //Logging.Logger.Instance.Append("Process key : {0}", Logging.Logger.MessageType.Info, _processList[processKey].ProcKey);
+                }
             }
         }
         #endregion
 
         #region Data Members
-        private List<RTextEditor.Connector> _connectorList = new List<RTextEditor.Connector>();
+        private Dictionary<string, RTextEditor.Process> _processList = new Dictionary<string, RTextEditor.Process>();
         private readonly NppData _nppData;
+        #endregion
+
+        #region Implementation Details
 
         /**
          * \brief   Query if 'file' is an automate file.
@@ -55,7 +78,7 @@ namespace RTextNppPlugin.Automate
         {
             try
             {
-                string fileExt = FileUtilities.getExt(file);
+                string fileExt = Path.GetExtension(file);
                 if(fileExt.StartsWith("."))
                 {
                     fileExt = fileExt.Remove(0, 1);
@@ -108,7 +131,6 @@ namespace RTextNppPlugin.Automate
 
             try
             {
-                // if config path doesn't exist, we create it
                 if (Directory.Exists(configDir))
                 {
                     return configDir;

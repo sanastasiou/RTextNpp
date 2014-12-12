@@ -25,11 +25,14 @@ namespace RTextNppPlugin.Utilities
         {
             _elementHost = new T();
             _elementHost.VisibleChanged += OnVisibilityChanged;
+            _elementHost.Move += OnElementHostMove;
+            _elementHost.PaddingChanged += OnElementHostMove;
+            _elementHost.Resize += OnElementHostMove;
             _refreshTimer.Elapsed += OnRefreshTimerElapsed;
             _refreshTimer.Enabled = true;
             _refreshTimer.AutoReset = true;
             SETTING_KEY = settingKey;
-        }
+        } 
 
         public T WpfHost
         {
@@ -166,7 +169,11 @@ namespace RTextNppPlugin.Utilities
         {
             //update check box - special case where update box has false value after plugin initialization...
             Win32.SendMessage(NPP_HANDLE, NppMsg.NPPM_SETMENUITEMCHECK, CmdId, _elementHost.Visible ? 1 : 0);
-            _elementHost.Refresh();
+            if (_refreshNeeded)
+            {
+                _elementHost.Refresh();
+                _refreshNeeded = false;
+            }
         }
 
         /**
@@ -219,6 +226,11 @@ namespace RTextNppPlugin.Utilities
             _cmdId = id;
         }
 
+        void OnElementHostMove(object sender, EventArgs e)
+        {
+            _refreshNeeded = true;
+        }  
+
         #endregion
 
         #region Data Members
@@ -230,6 +242,7 @@ namespace RTextNppPlugin.Utilities
         private bool disposed = false;                                            //!< Has the disposed method already been called.
         private bool _isCreated = false;                                          //!< Indicates if windows was created.
         private int _cmdId = 0;                                                   //!< Indicates the cmd id, needed to set check box on menu items.
+        private bool _refreshNeeded = false;                                      //!< Indicates that a control refresh is needed, e.g. after a move.
         #endregion
     }
 }

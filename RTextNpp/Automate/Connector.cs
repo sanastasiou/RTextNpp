@@ -57,7 +57,6 @@ namespace RTextNppPlugin.RTextEditor
         }
 
         /**
-         * @fn  public delegate void CommandExecuted(object source, CommandCompletedEventArgs e);
          *
          * @brief   Delegate for the CommandCompleted event.
          *
@@ -145,7 +144,6 @@ namespace RTextNppPlugin.RTextEditor
         }
 
         /**
-         * @fn  public Connector( ConnectorManager.ProcessInfo pInfo, string filePath)
          *
          * @brief   Constructor.
          *
@@ -211,7 +209,7 @@ namespace RTextNppPlugin.RTextEditor
             //notify connectors that their backend in no longer available!
             if (OnStateChanged != null)
             {
-                OnStateChanged(this, new StateChangedEventArgs(nextState, mBackendProcess.ProcessInfo.ProcKey));
+                OnStateChanged(this, new StateChangedEventArgs(nextState, mBackendProcess.ProcKey));
             }
         }
 
@@ -236,7 +234,6 @@ namespace RTextNppPlugin.RTextEditor
         public ProcessState ConnectorState { get { return this.mFSM.CurrentState; } }
 
         /**
-         * @fn  public IResponseBase execute<Command, Response>(RequestBase command) where Command : RequestBase where Response : ResponseBase
          *
          * @brief   Executes the given command synchronously.
          *
@@ -311,7 +308,6 @@ namespace RTextNppPlugin.RTextEditor
         }
 
         /**
-         * @fn  private LoadModel()
          *
          * @brief   Executes after a socket connection is made to autoload the model.
          *
@@ -340,7 +336,6 @@ namespace RTextNppPlugin.RTextEditor
         }
 
         /**
-         * @fn      private bool isBusy()
          *
          * @brief   Query if this object is busy.
          *
@@ -355,7 +350,6 @@ namespace RTextNppPlugin.RTextEditor
         }
 
         /**
-         * @fn  private void beginSend<Command>(RequestBase command) where Command : RequestBase
          *
          * @brief   Begins an async send.
          *
@@ -422,7 +416,6 @@ namespace RTextNppPlugin.RTextEditor
         }
 
         /**
-         * @fn  private IResponseBase send<Command>(RequestBase command, int timeout) where Command : RequestBase
          *
          * @brief   Send a synchronous command and waits for a response.
          *
@@ -538,21 +531,6 @@ namespace RTextNppPlugin.RTextEditor
             return mLastResponse;
         }
 
-        /**
-         * @property    public ConnectorManager.ProcessInfo ProcessInfo
-         *
-         * @brief   Gets the information describing how to start the backend rtext process.
-         *
-         * @return  Information describing the process.
-         */
-        public Utilities.ProcessInfo ProcessInfo
-        {
-            get
-            {
-                return this.mBackendProcess.ProcessInfo;
-            }
-        }
-
         #endregion
 
         #region EventHandlers
@@ -562,7 +540,6 @@ namespace RTextNppPlugin.RTextEditor
         #region Helpers
 
         /**
-         * @fn  private bool Connect( )
          *
          * @brief   Tries to connect to a remote end point.
          *
@@ -597,7 +574,7 @@ namespace RTextNppPlugin.RTextEditor
                 if (!this.mReceiveStatus.Socket.Connected)
                 {
                     //will throw if something is wrong
-                    IAsyncResult aConnectedResult = this.mReceiveStatus.Socket.BeginConnect("localhost", this.mBackendProcess.ProcessInfo.Port, ConnectCallback, this.mReceiveStatus);
+                    IAsyncResult aConnectedResult = this.mReceiveStatus.Socket.BeginConnect("localhost", this.mBackendProcess.Port, ConnectCallback, this.mReceiveStatus);
                     if (!aConnectedResult.AsyncWaitHandle.WaitOne(Constants.CONNECT_TIMEOUT))
                     {
                         throw new Exception("Connection to RText Service timed out!");
@@ -616,7 +593,6 @@ namespace RTextNppPlugin.RTextEditor
         }
 
         /**
-        * @fn  private void ConnectCallback( IAsyncResult ar )
         *
         * @brief   Tries to connect to a remote end point. If it succeeds signals main thread and sets a flag that the connection is successful.
         *
@@ -640,7 +616,6 @@ namespace RTextNppPlugin.RTextEditor
         }
 
         /**
-         * @fn  private void receiveCallback(IAsyncResult ar)
          *
          * @brief   Callback for asynchronous receive functionality.
          *
@@ -677,7 +652,6 @@ namespace RTextNppPlugin.RTextEditor
         }
 
         /**
-        * @fn      private void tryDeserialize(StateObject state)
         *
         * @brief   Recursively deserialize JSON messages, and adds them to the message queue
         *
@@ -731,7 +705,6 @@ namespace RTextNppPlugin.RTextEditor
         }
 
         /**
-         * @fn  private void analyzeResponse(ref string response, ref StateObject state)
          *
          * @brief   Analyzes the last received response.
          *
@@ -841,7 +814,6 @@ namespace RTextNppPlugin.RTextEditor
         }
 
         /**
-         * @fn  private int SendRequest(byte[] request)
          *
          * @brief   Sends a request synchronously.
          *
@@ -858,7 +830,6 @@ namespace RTextNppPlugin.RTextEditor
         }
 
         /**
-         * @fn  private string PrepareRequestString( MemoryStream stream )
          *
          * @brief   Prepare request string by appending the length of the message.
          *
@@ -899,7 +870,6 @@ namespace RTextNppPlugin.RTextEditor
         }
 
         /**
-         * @fn  private void CleanUpSocket()
          *
          * @brief   Cleans up and disposes the socket.
          *

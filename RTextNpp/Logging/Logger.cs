@@ -16,9 +16,9 @@ namespace RTextNppPlugin.Logging
     public sealed class Logger : ILoggingObserver, ISubscriber
     {
         #region Data Members
-        private static volatile Logger instance;
-        private static object syncRoot = new Object();
-        private List<ILoggingObserver> _observers;
+        private static volatile Logger _instance;  //!< Singleton Instance.
+        private static object _lock = new Object();//!< Mutex.
+        private List<ILoggingObserver> _observers; //!< List of observers.
 
         //todo need to save messages from various workspaces... we only have one document..
         //private ConcurrentQueue<Tuple<string, MessageType>> _msgList = new ConcurrentQueue<Tuple<string, MessageType>>();
@@ -49,17 +49,22 @@ namespace RTextNppPlugin.Logging
         {
             get
             {
-                if (instance == null)
+                if (_instance == null)
                 {
-                    lock (syncRoot)
+                    lock (_lock)
                     {
-                        if (instance == null)
-                            instance = new Logger();
+                        if (_instance == null)
+                            _instance = new Logger();
                     }
                 }
 
-                return instance;
+                return _instance;
             }
+        }
+
+        public void Append(string msg, MessageType type, params object[] args)
+        {
+            Append(String.Format(msg, args), type);
         }
 
         /**
@@ -70,22 +75,32 @@ namespace RTextNppPlugin.Logging
          */
         public void Append(string msg, MessageType type)
         {
-            _observers.ForEach(x => x.Append(msg, type));
+            lock (_lock)
+            {
+                //many threads/process could be accesing this object - mutex needed
+                _observers.ForEach(x => x.Append(msg, type));
+            }
         }
 
         public void Subscribe(ILoggingObserver obs)
         {
-            if(obs != null)
+            lock (_lock)
             {
-                _observers.Add(obs);
+                if (obs != null)
+                {
+                    _observers.Add(obs);
+                }
             }
         }
 
         public void Unsubscribe(ILoggingObserver obs)
         {
-            if(obs != null)
+            lock (_lock)
             {
-                _observers.Remove(obs);
+                if (obs != null)
+                {
+                    _observers.Remove(obs);
+                }
             }
         }
         #endregion

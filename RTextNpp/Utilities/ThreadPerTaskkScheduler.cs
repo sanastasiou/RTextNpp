@@ -16,7 +16,6 @@ namespace RTextNppPlugin.RTextEditor.Utilities
     public class ThreadPerTaskScheduler : TaskScheduler
     {
         /**
-         * @fn  protected override IEnumerable<Task> GetScheduledTasks()
          *
          * @brief   Gets the tasks currently scheduled to this scheduler.
          *
@@ -32,7 +31,6 @@ namespace RTextNppPlugin.RTextEditor.Utilities
         protected override IEnumerable<Task> GetScheduledTasks() { return Enumerable.Empty<Task>(); }
 
         /**
-         * @fn  protected override void QueueTask(Task task)
          *
          * @brief   Starts a new thread to process the provided task.
          *
@@ -47,7 +45,6 @@ namespace RTextNppPlugin.RTextEditor.Utilities
         }
 
         /**
-         * @fn  protected override bool TryExecuteTaskInline(Task task, bool taskWasPreviouslyQueued)
          *
          * @brief   Runs the provided task on the current thread.
          *

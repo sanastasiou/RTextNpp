@@ -22,9 +22,6 @@ namespace RTextNppPlugin
         private static Automate.ConnectorManager _connectorManager = null;
 
         public const string PluginName = "RTextNpp";
-        static string iniFilePath = null;
-        static string sectionName = "Insert Extension";
-        static string keyName = "doCloseTag";
         static bool doCloseTag = false;
         static Bitmap tbBmp = Properties.Resources.ConsoleIcon;
         static Bitmap tbBmp_tbTab = Properties.Resources.ConsoleIcon;

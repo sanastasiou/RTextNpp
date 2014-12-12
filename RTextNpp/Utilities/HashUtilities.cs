@@ -7,7 +7,6 @@ namespace RTextNppPlugin.RTextEditor.Utilities
     public class HashUtilities
     {
         /**
-         * @fn  static string getMd5Hash(string input)
          *
          * @brief   Hash an input string and return the hash as a 32 character hexadecimal string.
          *
@@ -42,7 +41,6 @@ namespace RTextNppPlugin.RTextEditor.Utilities
         }
 
         /**
-         * @fn  static Guid getGUIDfromString(string input)
          *
          * @brief   Gets a GUID from a string.
          *
