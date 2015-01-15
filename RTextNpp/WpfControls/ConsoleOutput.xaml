@@ -17,7 +17,6 @@
                 <ComboBox Name="WorkspaceSelector" 
                           HorizontalAlignment="Stretch" 
                           MinWidth="100"
-                          IsEnabled="{Binding WorkspaceExists}"
                           IsReadOnly="True"
                           SelectedValue="Workspace"
                           SelectedIndex="{Binding Index, Mode=TwoWay }"

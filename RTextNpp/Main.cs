@@ -19,7 +19,7 @@ namespace RTextNppPlugin
     {
         #region " Fields "
         private static Utilities.NppControlHost<ConsoleOutputForm> _consoleOutput = null;
-        private static Automate.ConnectorManager _connectorManager = null;
+        private static Automate.ConnectorManager _connectorManager = Automate.ConnectorManager.Instance;
 
         public const string PluginName = "RTextNpp";
         static bool doCloseTag = false;
@@ -34,7 +34,7 @@ namespace RTextNppPlugin
         {
             SetCommand((int)Constants.NppMenuCommands.ConsoleWindow, "Show RText++ Console", ShowConsoleOutput, new ShortcutKey(false, true, true, Keys.R));
 
-            _connectorManager = new Automate.ConnectorManager(nppData);
+            _connectorManager.initialize(nppData);
         }
         static internal void SetToolBarIcon()
         {
@@ -321,7 +321,7 @@ namespace RTextNppPlugin
             NppMsg msg = NppMsg.NPPM_GETFULLCURRENTPATH;
             StringBuilder path = new StringBuilder(Win32.MAX_PATH);
             Win32.SendMessage(nppData._nppHandle, msg, 0, path);
-            Logging.Logger.Instance.Append(String.Format("Buffer activated for file : {0}\n", path.ToString()), Logging.Logger.MessageType.Info);
+            Logging.Logger.Instance.Append(Logging.Logger.MessageType.Info, Constants.GENERAL_CHANNEL, String.Format("Buffer activated for file : {0}\n", path.ToString()));
             _connectorManager.createConnector(path.ToString());
         }
 
@@ -345,7 +345,6 @@ namespace RTextNppPlugin
                     {
                         foreach (string file in cStrArray.ManagedStringsUnicode)
                         {
-                            Logging.Logger.Instance.Append(String.Format("Open file at startup : {0}\n", file), Logging.Logger.MessageType.Info);
                             _connectorManager.createConnector(file);
                         }
                     }

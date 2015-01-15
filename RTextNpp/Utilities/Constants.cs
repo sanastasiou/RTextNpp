@@ -36,6 +36,7 @@ namespace RTextNppPlugin
         public const int MAX_CONSUME_PROBLEMS = 100;                            //!< Max number of continuous error tokens than can occur in a single file.
         public const int INITIAL_RESPONSE_TIMEOUT = 20000;                      //!< Compensate for when a pc is under heavy load - the backend process may take a while to start
         public const int OUTPUT_POLL_PERIOD = 10;                               //!< Polling period for output stream threads
+        public const string GENERAL_CHANNEL = "General";                        //!< General output channel.
 
         #region NppMenuCommand
         public enum NppMenuCommands : int

@@ -25,7 +25,7 @@ namespace RTextNppPlugin.RTextEditor.Utilities
             }
             catch (Exception ex)
             {
-                Logging.Logger.Instance.Append(String.Format("FileUtilities.findRTextFile(string file) - Exception {0}", ex.Message), Logging.Logger.MessageType.Error);
+                Logging.Logger.Instance.Append(Logging.Logger.MessageType.Error, Constants.GENERAL_CHANNEL, String.Format("FileUtilities.findRTextFile(string file) - Exception {0}", ex.Message));
                 return null;
             }
         }
@@ -84,7 +84,7 @@ namespace RTextNppPlugin.RTextEditor.Utilities
             }
             catch (Exception ex)
             {
-                Logging.Logger.Instance.Append("FileUtilities.FindWorkspaceRoot({0}, {1} : Exception : {2}", Logging.Logger.MessageType.Error, currentDir, extension, ex.Message);
+                Logging.Logger.Instance.Append(Logging.Logger.MessageType.Error, Constants.GENERAL_CHANNEL, "FileUtilities.FindWorkspaceRoot({0}, {1} : Exception : {2}", currentDir, extension, ex.Message);
             }
             return null;
         }

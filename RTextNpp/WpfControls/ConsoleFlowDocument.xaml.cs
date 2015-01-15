@@ -47,28 +47,28 @@ namespace RTextNppPlugin.WpfControls
                                                                                                 new PropertyMetadata(string.Empty, OnChannelPropertyChanged)
                                                                                                );
 
-
         /**
          * Appends a msg.
          *
          * \param   msg     The message.
          * \param   type    The type.
+         * \param   channel The output channel.
          */
-        public void Append(string msg, Logger.MessageType type)
+        public void Append(Logger.MessageType type, string channel, string msg)
         {
             switch (type)
             {
                 case Logger.MessageType.Info:
-                    Append("Info : " + msg, "Information");
+                    Append("Info : " + msg, "Information", channel);
                     break;
                 case Logger.MessageType.Warning:
-                    Append("Warning : " + msg, "Warning");
+                    Append("Warning : " + msg, "Warning", channel);
                     break;
                 case Logger.MessageType.Error:
-                    Append("Error : " + msg, "Error");
+                    Append("Error : " + msg, "Error", channel);
                     break;
                 case Logger.MessageType.FatalError:
-                    Append("Fatal error : " + msg, "FatalError");
+                    Append("Fatal error : " + msg, "FatalError", channel);
                     break;
             }
         }
@@ -90,29 +90,47 @@ namespace RTextNppPlugin.WpfControls
             }
         } 
 
-        private void Append(string msg, string style)
+        private void Append(string msg, string style, string channel)
         {
             if(!msg.EndsWith(Environment.NewLine))
             {
                 msg += Environment.NewLine;
             }
-            if (Dispatcher.CheckAccess())
+            if (channel != _currentChannel)
             {
-                Debug.Assert(Blocks.LastBlock != null);
-                Debug.Assert(Blocks.LastBlock is Paragraph);
+                //add the entries internally don't log to output
+                if (!_logOutput.ContainsKey(channel))
+                {
+                    _logOutput.Add(channel, new List<Run>());
+                }
                 var run = new Run(msg);
                 run.Style = (Style)(Resources[style]);
                 if (run.Style == null)
                 {
                     run.Style = (Style)(Resources["Information"]);
+                    _logOutput[channel].Add(run);
                 }
-                ((Paragraph)Blocks.LastBlock).Inlines.Add(run);
-                _logOutput[_currentChannel].Add(run);
-                ScrollParent(this);                
             }
             else
             {
-                Dispatcher.Invoke(new Action<string, string>(Append), msg, style);
+                if (Dispatcher.CheckAccess())
+                {
+                    Debug.Assert(Blocks.LastBlock != null);
+                    Debug.Assert(Blocks.LastBlock is Paragraph);
+                    var run = new Run(msg);
+                    run.Style = (Style)(Resources[style]);
+                    if (run.Style == null)
+                    {
+                        run.Style = (Style)(Resources["Information"]);
+                    }
+                    ((Paragraph)Blocks.LastBlock).Inlines.Add(run);
+                    _logOutput[_currentChannel].Add(run);
+                    ScrollParent(this);
+                }
+                else
+                {
+                    Dispatcher.Invoke(new Action<string, string, string>(Append), msg, style, channel);
+                }
             }
         }
 

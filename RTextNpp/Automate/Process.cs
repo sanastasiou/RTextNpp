@@ -695,20 +695,20 @@ namespace RTextNppPlugin.RTextEditor
                     }
                     else
                     {
-                        Logging.Logger.Instance.Append("Could not read command line for extension {1} from file : {0} after modifications were made to the file.", Logging.Logger.MessageType.FatalError, mPInfo.RTextFilePath, mExtension);
+                        Logging.Logger.Instance.Append(Logging.Logger.MessageType.FatalError, mPInfo.ProcKey, "Could not read command line for extension {1} from file : {0} after modifications were made to the file.", mPInfo.RTextFilePath, mExtension);
                         return;
                     }
                 }
                 else
                 {
-                    Logging.Logger.Instance.Append("Could not locate file : {0} after modifications were made to the file.", Logging.Logger.MessageType.FatalError, mPInfo.RTextFilePath);
+                    Logging.Logger.Instance.Append(Logging.Logger.MessageType.FatalError, mPInfo.ProcKey, "Could not locate file : {0} after modifications were made to the file.", mPInfo.RTextFilePath);
                     return;
                 }
                 StartRTextService();
             }
             catch (Exception ex)
             {
-                Logging.Logger.Instance.Append("Process.RestartProcess : Exception : {0}", Logging.Logger.MessageType.FatalError, ex.Message);
+                Logging.Logger.Instance.Append(Logging.Logger.MessageType.FatalError, mPInfo.ProcKey, "Process.RestartProcess : Exception : {0}", ex.Message);
                 //clean up
                 CleanupProcess();
                 OnProcessExited(null, EventArgs.Empty);
@@ -783,7 +783,7 @@ namespace RTextNppPlugin.RTextEditor
             }
             catch (Exception ex)
             {
-                Logging.Logger.Instance.Append("Process.GetCommandLine({0}, {1}) - Exception : {2}", Logging.Logger.MessageType.Error, rtextFilePath, extension, ex.Message);
+                Logging.Logger.Instance.Append(Logging.Logger.MessageType.Error, Constants.GENERAL_CHANNEL, "Process.GetCommandLine({0}, {1}) - Exception : {2}", rtextFilePath, extension, ex.Message);
             }
             return null;
         }
@@ -946,7 +946,7 @@ namespace RTextNppPlugin.RTextEditor
             {
                 if (!mIsMessageDisplayed)
                 {
-                    Logging.Logger.Instance.Append("Changes were made to automate files while the model was being loaded. New loading pending...", Logging.Logger.MessageType.Info, this.mPInfo.ProcKey);
+                    Logging.Logger.Instance.Append(Logging.Logger.MessageType.Info, mPInfo.ProcKey, "Changes were made to automate files while the model was being loaded. New loading pending...", this.mPInfo.ProcKey);
                     mIsMessageDisplayed = true;
                 }
                 return;

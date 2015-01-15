@@ -15,12 +15,34 @@ namespace RTextNppPlugin.Automate
      */
     internal sealed class ConnectorManager
     {
-        #region Interface
-        public ConnectorManager(NppData nppData)
+        #region Events
+
+        /**
+         * Connector added event.
+         *
+         * \param   source  Source for the evemt.
+         * \param   e       Connector added event information.
+         */
+        public delegate void ConnectorAddedEvent(object source, ConnectorAddedEventArgs e);
+
+        public event ConnectorAddedEvent OnConnectorAdded;  //!< Event queue for all listeners interested in OnConnectorAdded events.
+
+        /**
+         * Additional information for connector added events.
+         */
+        public class ConnectorAddedEventArgs : EventArgs
         {
-            _nppData = nppData;
+            public String Workspace { get; private set; }
+
+            public ConnectorAddedEventArgs(string workspace)
+            {
+                Workspace = workspace;
+            }
         }
 
+        #endregion
+
+        #region Interface
 
         /**
          * \brief   Creates a connector.
@@ -34,34 +56,71 @@ namespace RTextNppPlugin.Automate
             {
                 //identify .rtext file
                 string rTextFileLocation = FileUtilities.FindWorkspaceRoot(file);
-                if(String.IsNullOrEmpty(rTextFileLocation))
+                if (String.IsNullOrEmpty(rTextFileLocation))
                 {
-                    Logging.Logger.Instance.Append("Could not find .rtext file for automate file {0}", Logging.Logger.MessageType.Error, file);
+                    Logging.Logger.Instance.Append(Logging.Logger.MessageType.Error, Constants.GENERAL_CHANNEL, "Could not find .rtext file for automate file {0}", file);
                 }
                 else
                 {
-                    Logging.Logger.Instance.Append("Starting new process for workspace root {0}", Logging.Logger.MessageType.Info, rTextFileLocation);
+                    string processKey = rTextFileLocation + Path.GetExtension(file);
+                    Logging.Logger.Instance.Append(Logging.Logger.MessageType.Info, processKey, "Workspace root for file : {0} \nis : {1}", file, rTextFileLocation);
+                    
+                    if (OnConnectorAdded != null)
+                    {
+                        OnConnectorAdded(this, new ConnectorAddedEventArgs(processKey));
+                    }
+                    //maybe process already exists..
+                    if (_processList.ContainsKey(processKey))
+                    {
+                        //maybe process is dead.. try restarting it
+                    }
+                    else
+                    {
+                        _processList.Add(processKey, new RTextEditor.Process(rTextFileLocation, Path.GetExtension(file)));
+                    }
                 }
-                string processKey = rTextFileLocation + Path.GetExtension(file);
-                //maybe process already exists..
-                if(_processList.ContainsKey(processKey))
+            }
+        }
+
+        /**
+         * Initializes this ConnectorManager.
+         *
+         * \param   nppData Information describing the npp.
+         * \remarks Must be called upon plugin initialization.                  
+         */
+        public void initialize(NppData nppData)
+        {
+            _nppData = nppData;
+        }
+
+        /**
+         * Gets the instance.
+         *
+         * \return  The instance.
+         */
+        public static ConnectorManager Instance
+        {
+            get
+            {
+                if (_instance == null)
                 {
-                    //maybe process is dead.. try restarting it
+                    lock (_lock)
+                    {
+                        if (_instance == null)
+                            _instance = new ConnectorManager();
+                    }
                 }
-                else
-                {
-                    _processList.Add(processKey, new RTextEditor.Process(rTextFileLocation, Path.GetExtension(file)));
-                    //Logging.Logger.Instance.Append(".rtext file location : {0}", Logging.Logger.MessageType.Info, rTextFileLocation);
-                    //Logging.Logger.Instance.Append("extension : {0}", Logging.Logger.MessageType.Info, Path.GetExtension(file));
-                    //Logging.Logger.Instance.Append("Process key : {0}", Logging.Logger.MessageType.Info, _processList[processKey].ProcKey);
-                }
+
+                return _instance;
             }
         }
         #endregion
 
         #region Data Members
         private Dictionary<string, RTextEditor.Process> _processList = new Dictionary<string, RTextEditor.Process>();
-        private readonly NppData _nppData;
+        private NppData _nppData;                            //!< Access to notepad++ data.
+        private static volatile ConnectorManager _instance;  //!< Singleton Instance.
+        private static object _lock = new Object();          //!< Mutex.
         #endregion
 
         #region Implementation Details
@@ -141,6 +200,13 @@ namespace RTextNppPlugin.Automate
             {
                 return null;
             }
+        }
+
+        /**
+         * Constructor that prevents a default instance of this class from being created.
+         */
+        private ConnectorManager()
+        {
         }
         #endregion
     }

@@ -15,6 +15,6 @@ namespace RTextNppPlugin.Logging
          * \param   type    The type.
          * \param   channel The output channel.
          */
-        void Append(string msg, Logger.MessageType type);
+        void Append(Logger.MessageType type, string channel, string msg);
     }
 }

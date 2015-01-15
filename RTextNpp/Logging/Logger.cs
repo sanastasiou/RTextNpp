@@ -13,15 +13,12 @@ using System.Collections.Concurrent;
 
 namespace RTextNppPlugin.Logging
 {
-    public sealed class Logger : ILoggingObserver, ISubscriber
+    public sealed class Logger : ISubscriber
     {
         #region Data Members
         private static volatile Logger _instance;  //!< Singleton Instance.
         private static object _lock = new Object();//!< Mutex.
         private List<ILoggingObserver> _observers; //!< List of observers.
-
-        //todo need to save messages from various workspaces... we only have one document..
-        //private ConcurrentQueue<Tuple<string, MessageType>> _msgList = new ConcurrentQueue<Tuple<string, MessageType>>();
         #endregion
 
         #region Implementation Details
@@ -62,23 +59,29 @@ namespace RTextNppPlugin.Logging
             }
         }
 
-        public void Append(string msg, MessageType type, params object[] args)
+        public void Append(MessageType type, string channel, string msg, params object[] args)
         {
-            Append(String.Format(msg, args), type);
+            Append(type, channel, String.Format(msg, args));
         }
 
         /**
          * Appends a msg to all observers.
          *
-         * \param   msg     The message.
          * \param   type    The type.
+         * \param   msg     The message.
+         * \param   channel The channel.
          */
-        public void Append(string msg, MessageType type)
+        private void Append(MessageType type, string channel, string msg)
         {
+            msg = DateTime.Now + " : " + msg;
+            if(!msg.EndsWith(Environment.NewLine))
+            {
+                msg += Environment.NewLine;
+            }
             lock (_lock)
             {
-                //many threads/process could be accesing this object - mutex needed
-                _observers.ForEach(x => x.Append(msg, type));
+                //many threads/processes could be accesing this object - mutex needed
+                _observers.ForEach(x => x.Append(type, channel, msg));
             }
         }
 

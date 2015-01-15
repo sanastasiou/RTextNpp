@@ -2,6 +2,7 @@
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
+using RTextNppPlugin.Automate;
 
 namespace RTextNppPlugin.ViewModels
 {
@@ -10,8 +11,10 @@ namespace RTextNppPlugin.ViewModels
      * The model is responsible for holding information about all loaded automate workspaces.
      * The model provide means to update the console, error list and rtext find windows.
      */
-    class ConsoleViewModel : BindableObject, IConsoleViewModel
+    class ConsoleViewModel : BindableObject, IConsoleViewModel, IDisposable
     {
+
+        #region Interface
         /**
          * Constructor.
          *
@@ -19,7 +22,15 @@ namespace RTextNppPlugin.ViewModels
          */
         public ConsoleViewModel()
         {
-            addWorkspace("General");            
+            addWorkspace(Constants.GENERAL_CHANNEL);            
+            //subscribe to connector manager for workspace events
+            ConnectorManager.Instance.OnConnectorAdded += ConnectorManagerOnConnectorAdded;
+        }
+
+        void ConnectorManagerOnConnectorAdded(object source, ConnectorManager.ConnectorAddedEventArgs e)
+        {
+            //change to newly added workspace            
+            addWorkspace(e.Workspace);
         }
 
         public void addWorkspace(string workspace)
@@ -28,42 +39,27 @@ namespace RTextNppPlugin.ViewModels
             if (workspaceModel == null)
             {
                 _workspaceCollection.Add(new WorkspaceViewModel(workspace));
+                Index = _workspaceCollection.IndexOf(_workspaceCollection.Last());
             }
-            WorkspaceExists = true;
+            else
+            {
+                Index = _workspaceCollection.IndexOf(workspaceModel);
+            }
         }
 
+        /**
+         * Removes the workspace described by workspace.
+         *
+         * \param   workspace   The workspace.                    
+         */
         public void removeWorkspace(string workspace)
         {
             var workspaceModel = _workspaceCollection.FirstOrDefault(x => x.Workspace.Equals(workspace, StringComparison.InvariantCultureIgnoreCase));
             if (workspaceModel != null)
-            {
+            {                
                 _workspaceCollection.RemoveAt(_workspaceCollection.IndexOf(workspaceModel));
+                Index = _workspaceCollection.IndexOf(_workspaceCollection.FirstOrDefault());
             }
-            if(_workspaceCollection.Count == 0)
-            {
-                _workspaceExists = false;
-            }
-        }
-
-        public bool WorkspaceExists
-        {
-            get
-            {
-                return _workspaceCollection.Count > 0;
-            }
-            private set
-            {
-                if(value == _workspaceExists)
-                {
-                    return;
-                }
-                else
-                {
-                    _workspaceExists = value;
-                    base.RaisePropertyChanged("WorkspaceExists");
-                }
-            }
-
         }
 
         /**
@@ -117,9 +113,31 @@ namespace RTextNppPlugin.ViewModels
                 return _workspaceCollection;
             }
         }
-       
+
+        public void Dispose()
+        {
+            Dispose(true);
+        }
+
+        #endregion
+
+        #region [Data Members]
         private ObservableCollection<WorkspaceViewModel> _workspaceCollection = new ObservableCollection<WorkspaceViewModel>();
-        private bool _workspaceExists = false;
         private int _index = 0;
+        #endregion
+
+        #region [Helpers]
+
+        private void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                // Dispose any disposable fields here
+                GC.SuppressFinalize(this);
+            }
+            ConnectorManager.Instance.OnConnectorAdded -= ConnectorManagerOnConnectorAdded;
+        }
+
+        #endregion
     }
 }
