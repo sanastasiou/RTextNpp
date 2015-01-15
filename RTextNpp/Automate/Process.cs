@@ -583,17 +583,26 @@ namespace RTextNppPlugin.RTextEditor
             }
             finally
             {
-                mFileSystemWatcher.Changed -= FileSystemWatcherChanged;
-                mFileSystemWatcher.Deleted -= FileSystemWatcherDeleted;
-                mFileSystemWatcher.Created -= FileSystemWatcherChanged;
-                mFileSystemWatcher.Renamed -= FileSystemWatcherRenamed;
-                mFileSystemWatcher.Error -= ProcessError;
-                mWorkspaceSystemWatcher.Changed -= OnWorkspaceSystemWatcherChanged;
-                mWorkspaceSystemWatcher.Created -= OnWorkspaceSystemWatcherCreated;
-                mWorkspaceSystemWatcher.Deleted -= OnWorkspaceSystemWatcherDeleted;
-                mWorkspaceSystemWatcher.Error -= ProcessError;
-                mWorkspaceSystemWatcher.Renamed -= OnWorkspaceSystemWatcherRenamed;
-                mProcess.Exited -= OnProcessExited;
+                if (mFileSystemWatcher != null)
+                {
+                    mFileSystemWatcher.Changed -= FileSystemWatcherChanged;
+                    mFileSystemWatcher.Deleted -= FileSystemWatcherDeleted;
+                    mFileSystemWatcher.Created -= FileSystemWatcherChanged;
+                    mFileSystemWatcher.Renamed -= FileSystemWatcherRenamed;
+                    mFileSystemWatcher.Error -= ProcessError;
+                }
+                if (mWorkspaceSystemWatcher != null)
+                {
+                    mWorkspaceSystemWatcher.Changed -= OnWorkspaceSystemWatcherChanged;
+                    mWorkspaceSystemWatcher.Created -= OnWorkspaceSystemWatcherCreated;
+                    mWorkspaceSystemWatcher.Deleted -= OnWorkspaceSystemWatcherDeleted;
+                    mWorkspaceSystemWatcher.Error -= ProcessError;
+                    mWorkspaceSystemWatcher.Renamed -= OnWorkspaceSystemWatcherRenamed;
+                }
+                if (mProcess != null)
+                {
+                    mProcess.Exited -= OnProcessExited;
+                }
             }
         }
 
