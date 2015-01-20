@@ -4,7 +4,7 @@ using System.Linq;
 using System.Xml.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using RTextNppPlugin.RTextEditor.Utilities;	 
+using RTextNppPlugin.RTextEditor.Utilities;
 using System.IO;
 
 namespace RTextNppPlugin.Automate
@@ -63,8 +63,8 @@ namespace RTextNppPlugin.Automate
                 else
                 {
                     string processKey = rTextFileLocation + Path.GetExtension(file);
-                    Logging.Logger.Instance.Append(Logging.Logger.MessageType.Info, processKey, "Workspace root for file : {0} \nis : {1}", file, rTextFileLocation);
-                    
+                    Logging.Logger.Instance.Append(Logging.Logger.MessageType.Info, processKey, "Workspace root for file : {0} is : {1}", file, rTextFileLocation);
+
                     if (OnConnectorAdded != null)
                     {
                         OnConnectorAdded(this, new ConnectorAddedEventArgs(processKey));
@@ -72,7 +72,10 @@ namespace RTextNppPlugin.Automate
                     //maybe process already exists..
                     if (_processList.ContainsKey(processKey))
                     {
-                        //maybe process is dead.. try restarting it
+                        if (_processList[processKey].HasExited)
+                        {
+                            _processList[processKey].StartRTextService();
+                        }
                     }
                     else
                     {
@@ -138,11 +141,11 @@ namespace RTextNppPlugin.Automate
             try
             {
                 string fileExt = Path.GetExtension(file);
-                if(fileExt.StartsWith("."))
+                if (fileExt.StartsWith("."))
                 {
                     fileExt = fileExt.Remove(0, 1);
                 }
-                
+
                 //get npp configuration directory
                 //get list of supported extensions
                 string configDir = getNppConfigDirectory();
@@ -196,7 +199,7 @@ namespace RTextNppPlugin.Automate
                 }
                 return null;
             }
-            catch(Exception)
+            catch (Exception)
             {
                 return null;
             }

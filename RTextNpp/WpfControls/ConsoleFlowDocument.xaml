@@ -4,6 +4,8 @@
                xmlns:sys="clr-namespace:System;assembly=mscorlib"               
                FontSize="12"
                Name="ConsoleDocument"
+               IsOptimalParagraphEnabled="False"
+               IsHyphenationEnabled="False"               
                FontFamily="Courier New">
     <FlowDocument.PageWidth>
         <sys:Double>700.0</sys:Double>

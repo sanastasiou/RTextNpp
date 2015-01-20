@@ -35,6 +35,7 @@ namespace RTextNppPlugin
             SetCommand((int)Constants.NppMenuCommands.ConsoleWindow, "Show RText++ Console", ShowConsoleOutput, new ShortcutKey(false, true, true, Keys.R));
 
             _connectorManager.initialize(nppData);
+            System.Diagnostics.Debugger.Launch();
         }
         static internal void SetToolBarIcon()
         {
@@ -321,7 +322,7 @@ namespace RTextNppPlugin
             NppMsg msg = NppMsg.NPPM_GETFULLCURRENTPATH;
             StringBuilder path = new StringBuilder(Win32.MAX_PATH);
             Win32.SendMessage(nppData._nppHandle, msg, 0, path);
-            Logging.Logger.Instance.Append(Logging.Logger.MessageType.Info, Constants.GENERAL_CHANNEL, String.Format("Buffer activated for file : {0}\n", path.ToString()));
+            //Logging.Logger.Instance.Append(Logging.Logger.MessageType.Info, Constants.GENERAL_CHANNEL, String.Format("Buffer activated for file : {0}", path.ToString()));
             _connectorManager.createConnector(path.ToString());
         }
 

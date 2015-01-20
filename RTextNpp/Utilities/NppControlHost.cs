@@ -171,7 +171,14 @@ namespace RTextNppPlugin.Utilities
             Win32.SendMessage(NPP_HANDLE, NppMsg.NPPM_SETMENUITEMCHECK, CmdId, _elementHost.Visible ? 1 : 0);
             if (_refreshNeeded)
             {
-                _elementHost.Refresh();
+                if (_elementHost.InvokeRequired)
+                {
+                    _elementHost.BeginInvoke((Action)(() => { _elementHost.Refresh(); }));
+                }
+                else
+                {
+                    _elementHost.Refresh();
+                }
                 _refreshNeeded = false;
             }
         }

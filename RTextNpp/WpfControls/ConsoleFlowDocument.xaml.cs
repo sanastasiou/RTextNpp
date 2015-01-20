@@ -17,9 +17,9 @@ using System.ComponentModel;
 
 namespace RTextNppPlugin.WpfControls
 {
-    /// <summary>
-    /// Interaction logic for ConsoleFlowDocument.xaml
-    /// </summary>
+    /**
+     * Interaction logic for ConsoleFlowDocument.xaml.
+     */    
     public partial class ConsoleFlowDocument : FlowDocument, ILoggingObserver, System.IDisposable, INotifyPropertyChanged
     {
         #region Interface
@@ -32,7 +32,6 @@ namespace RTextNppPlugin.WpfControls
             InitializeComponent();
             //subscribe to logger singleton
             Logger.Instance.Subscribe(this);
-            _logOutput = new Dictionary<string, List<Run>>();
         }
 
         public string Channel
@@ -59,16 +58,16 @@ namespace RTextNppPlugin.WpfControls
             switch (type)
             {
                 case Logger.MessageType.Info:
-                    Append("Info : " + msg, "Information", channel);
+                    Append("Info: " + msg, "Information", channel);
                     break;
                 case Logger.MessageType.Warning:
-                    Append("Warning : " + msg, "Warning", channel);
+                    Append("Warning: " + msg, "Warning", channel);
                     break;
                 case Logger.MessageType.Error:
-                    Append("Error : " + msg, "Error", channel);
+                    Append("Error: " + msg, "Error", channel);
                     break;
                 case Logger.MessageType.FatalError:
-                    Append("Fatal error : " + msg, "FatalError", channel);
+                    Append("Fatal error: " + msg, "FatalError", channel);
                     break;
             }
         }
@@ -88,33 +87,34 @@ namespace RTextNppPlugin.WpfControls
             {
                 PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
             }
-        } 
+        }
 
         private void Append(string msg, string style, string channel)
         {
-            if(!msg.EndsWith(Environment.NewLine))
+            if (Dispatcher.CheckAccess())
             {
-                msg += Environment.NewLine;
-            }
-            if (channel != _currentChannel)
-            {
-                //add the entries internally don't log to output
-                if (!_logOutput.ContainsKey(channel))
+                if (!msg.EndsWith("\r\n") || !msg.EndsWith("\n"))
                 {
-                    _logOutput.Add(channel, new List<Run>());
+                    msg += Environment.NewLine;
                 }
-                var run = new Run(msg);
-                run.Style = (Style)(Resources[style]);
-                if (run.Style == null)
+                if (channel != _currentChannel)
                 {
-                    run.Style = (Style)(Resources["Information"]);
+                    //add the entries internally don't log to output
+                    if (!_logOutput.ContainsKey(channel))
+                    {
+                        _logOutput.Add(channel, new List<Run>());
+                    }
+                    var run = new Run(msg);
+                    run.Style = (Style)(Resources[style]);
+                    if (run.Style == null)
+                    {
+                        run.Style = (Style)(Resources["Information"]);
+                    }
                     _logOutput[channel].Add(run);
                 }
-            }
-            else
-            {
-                if (Dispatcher.CheckAccess())
+                else
                 {
+
                     Debug.Assert(Blocks.LastBlock != null);
                     Debug.Assert(Blocks.LastBlock is Paragraph);
                     var run = new Run(msg);
@@ -127,10 +127,10 @@ namespace RTextNppPlugin.WpfControls
                     _logOutput[_currentChannel].Add(run);
                     ScrollParent(this);
                 }
-                else
-                {
-                    Dispatcher.Invoke(new Action<string, string, string>(Append), msg, style, channel);
-                }
+            }
+            else
+            {
+                Dispatcher.Invoke(new Action<string, string, string>(Append), msg, style, channel);
             }
         }
 
@@ -194,6 +194,8 @@ namespace RTextNppPlugin.WpfControls
                 //does channel already exist?
                 if (_logOutput.ContainsKey(_currentChannel))
                 {
+                    var lol = _logOutput[_currentChannel];
+                    ((Paragraph)Blocks.LastBlock).Inlines.Clear();
                     //load output with previous entries...
                     ((Paragraph)Blocks.LastBlock).Inlines.AddRange(_logOutput[_currentChannel]);
                     ScrollParent(this);
@@ -208,9 +210,9 @@ namespace RTextNppPlugin.WpfControls
         #endregion
 
         #region Data Members
-        private bool _disposed;                           //!< Whether the object has already been disposed.
-        private Dictionary<string, List<Run>> _logOutput; //!< Holds list of output per channel.
-        private string _currentChannel = null;            //!< Holds the current channel.
+        private bool _disposed;                                                                 //!< Whether the object has already been disposed.
+        private Dictionary<string, List<Run>> _logOutput = new Dictionary<string, List<Run>>(); //!< Holds list of output per channel.
+        private string _currentChannel = null;                                                  //!< Holds the current channel.
 
         #endregion
 

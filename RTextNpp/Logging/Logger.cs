@@ -73,16 +73,16 @@ namespace RTextNppPlugin.Logging
          */
         private void Append(MessageType type, string channel, string msg)
         {
-            msg = DateTime.Now + " : " + msg;
-            if(!msg.EndsWith(Environment.NewLine))
+            if (String.IsNullOrWhiteSpace(msg))
+            {
+                return;
+            }
+            msg = DateTime.Now.ToShortTimeString() + ":" + DateTime.Now.Second + ": " + msg;
+            if (!msg.EndsWith(Environment.NewLine))
             {
                 msg += Environment.NewLine;
             }
-            lock (_lock)
-            {
-                //many threads/processes could be accesing this object - mutex needed
-                _observers.ForEach(x => x.Append(type, channel, msg));
-            }
+            _observers.ForEach(x => x.Append(type, channel, msg));
         }
 
         public void Subscribe(ILoggingObserver obs)
@@ -105,6 +105,20 @@ namespace RTextNppPlugin.Logging
                     _observers.Remove(obs);
                 }
             }
+        }
+
+        /**
+         * A DateTime extension method that truncates time to msec, s etc.
+         *
+         * \param   dateTime    The dateTime to act on.
+         * \param   timeSpan    The time span.
+         *
+         * \return  A DateTime.
+         */
+        private DateTime Truncate(DateTime dateTime, TimeSpan timeSpan)
+        {
+            if (timeSpan == TimeSpan.Zero) return dateTime; // Or could throw an ArgumentException
+            return dateTime.AddTicks(-(dateTime.Ticks % timeSpan.Ticks));
         }
         #endregion
     }
