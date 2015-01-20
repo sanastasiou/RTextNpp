@@ -10,31 +10,17 @@ namespace RTextNppPlugin.Utilities
      */
     class ConfigurationSetter
     {
-        public static void saveSetting(bool setting, string settingKey)
+        public static void saveSetting<T>(T setting, string settingKey)
         {
-            try
-            {
-                Configuration myDllConfig = ConfigurationManager.OpenExeConfiguration(Assembly.GetExecutingAssembly().Location);
-                myDllConfig.AppSettings.Settings[settingKey].Value = setting.ToString();
-                myDllConfig.Save();
-            }
-            catch (Exception ex)
-            {
-                //todo save to some logger output...
-            }            
+            Configuration myDllConfig = ConfigurationManager.OpenExeConfiguration(Assembly.GetExecutingAssembly().Location);
+            myDllConfig.AppSettings.Settings[settingKey].Value = setting.ToString();
+            myDllConfig.Save();
         }
 
-        public static void readSetting(ref bool setting, string settingKey)
+        public static void readSetting<T>(ref T setting, string settingKey)
         {
-            try
-            {
-                Configuration myDllConfig = ConfigurationManager.OpenExeConfiguration(Assembly.GetExecutingAssembly().Location);
-                setting = Boolean.Parse(myDllConfig.AppSettings.Settings[settingKey].Value);                
-            }
-            catch (Exception ex)
-            {
-                //todo save to some logger output...
-            }
+            Configuration myDllConfig = ConfigurationManager.OpenExeConfiguration(Assembly.GetExecutingAssembly().Location);
+            setting = (T)Convert.ChangeType(myDllConfig.AppSettings.Settings[settingKey].Value, typeof(T));
         }
     }
 }

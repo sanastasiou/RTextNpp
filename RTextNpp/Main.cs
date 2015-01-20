@@ -12,13 +12,14 @@ using System.Timers;
 using RTextNppPlugin;
 using System.Reflection;
 using System.Diagnostics;
+using RTextNppPlugin.Utilities;
 
 namespace RTextNppPlugin
 {
     partial class Plugin
     {
         #region " Fields "
-        private static Utilities.NppControlHost<ConsoleOutputForm> _consoleOutput = null;
+        private static Utilities.NppControlHost<ConsoleOutputForm> _consoleOutput = new Utilities.NppControlHost<ConsoleOutputForm>(Settings.RTextNppSettings.ConsoleWindowActive);
         private static Automate.ConnectorManager _connectorManager = Automate.ConnectorManager.Instance;
 
         public const string PluginName = "RTextNpp";
@@ -26,6 +27,7 @@ namespace RTextNppPlugin
         static Bitmap tbBmp = Properties.Resources.ConsoleIcon;
         static Bitmap tbBmp_tbTab = Properties.Resources.ConsoleIcon;
         static Icon tbIcon = null;
+        static bool _consoleInitialized = false;
         #endregion
 
         #region " Startup/CleanUp "
@@ -250,9 +252,10 @@ namespace RTextNppPlugin
 
         static void ShowConsoleOutput()
         {
-            if (_consoleOutput == null)
+            if (!_consoleInitialized)
             {
-                _consoleOutput = new Utilities.NppControlHost<ConsoleOutputForm>(Constants.CONSOLE_OUTPUT_SETTING_KEY);
+                _consoleInitialized = true;
+                //_consoleOutput = new Utilities.NppControlHost<ConsoleOutputForm>(Constants.CONSOLE_OUTPUT_SETTING_KEY);
                 _consoleOutput.SetNppHandle(nppData._nppHandle);
 
                 using (Bitmap newBmp = new Bitmap(16, 16))
@@ -302,11 +305,8 @@ namespace RTextNppPlugin
             //Assembly assembly = Assembly.GetExecutingAssembly();
             //FileVersionInfo fvi = FileVersionInfo.GetVersionInfo(assembly.Location);
             //string version = fvi.FileVersion;
-            //Logging.Logger.Instance.Append(Plugin.PluginName + "version : " + version, Logging.Logger.MessageType.Info);
-            //Logging.Logger.Instance.Append("Loading user settings...", Logging.Logger.MessageType.Info);
-            bool wasConsoleOpen = false;
-            Utilities.ConfigurationSetter.readSetting(ref wasConsoleOpen, Constants.CONSOLE_OUTPUT_SETTING_KEY);
-            if (wasConsoleOpen)
+
+            if (Settings.Instance.Get<bool>(Utilities.Settings.RTextNppSettings.ConsoleWindowActive))
             {
                 ShowConsoleOutput();
                 Win32.SendMessage(nppData._nppHandle, NppMsg.NPPM_SETMENUITEMCHECK, _funcItems.Items[0]._cmdID, 1);

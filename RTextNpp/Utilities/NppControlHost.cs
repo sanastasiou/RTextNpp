@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Timers;
 using RTextNppPlugin.Logging;
+using RTextNppPlugin.Utilities;
 
 namespace RTextNppPlugin.Utilities
 {
@@ -21,7 +22,7 @@ namespace RTextNppPlugin.Utilities
          *
          * \param   settingKey  The key for the persistence setting.
          */
-        public NppControlHost(string settingKey)
+        public NppControlHost(Settings.RTextNppSettings settingKey)
         {
             _elementHost = new T();
             _elementHost.VisibleChanged += OnVisibilityChanged;
@@ -192,7 +193,7 @@ namespace RTextNppPlugin.Utilities
         private void OnVisibilityChanged(object sender, EventArgs e)
         {
             Win32.SendMessage(NPP_HANDLE, NppMsg.NPPM_SETMENUITEMCHECK, CmdId, _elementHost.Visible ? 1 : 0);
-            Utilities.ConfigurationSetter.saveSetting(_elementHost.Visible, SETTING_KEY);
+            Settings.Instance.Set(_elementHost.Visible, SETTING_KEY);
             if (_elementHost.Visible)
             {
                 _refreshTimer.Start();
@@ -243,7 +244,7 @@ namespace RTextNppPlugin.Utilities
         #region Data Members
 
         private IntPtr NPP_HANDLE = IntPtr.Zero;                                  //!< Notepad++ main window handle.
-        private readonly string SETTING_KEY = null;                               //!< The persistence setting for this form.
+        private readonly Settings.RTextNppSettings SETTING_KEY;                   //!< The persistence setting for this form.
         private System.Windows.Forms.Form _elementHost;                           //!< The element host to be redrawed.
         private Timer _refreshTimer = new Timer(Constants.FORM_INTERVAL_REFRESH); //!< The timer, which if expired, shall refresh the element host window.
         private bool disposed = false;                                            //!< Has the disposed method already been called.

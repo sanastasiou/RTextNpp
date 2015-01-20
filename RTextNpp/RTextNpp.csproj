@@ -103,6 +103,7 @@
     <Compile Include="Utilities\NppControlHost.cs" />
     <Compile Include="Utilities\ParentProcessUtilities.cs" />
     <Compile Include="Utilities\ProcessUtilities.cs" />
+    <Compile Include="Utilities\Settings.cs" />
     <Compile Include="Utilities\ThreadPerTaskkScheduler.cs" />
     <Compile Include="Utilities\Visual.cs" />
     <Compile Include="ViewModels\ConsoleViewModel.cs" />

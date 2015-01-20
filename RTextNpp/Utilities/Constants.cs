@@ -20,7 +20,6 @@ namespace RTextNppPlugin
     {
         public const string EX_LEXER_CONFIG_FILENAME = "RTextLexer.xml";        //!< External RText lexer configuration file.
         public const double FORM_INTERVAL_REFRESH = 500.0;                      //!< Defines an interval in ms, after which a form should be redrawn.
-        public const string CONSOLE_OUTPUT_SETTING_KEY = "IsConsoleWindowOpen"; //!< Settings key for the visibility of the console output.
         public const string DEFAULT_EXTENSION = ".atm";                         //!< Default automate extension.
         public static int SYNCHRONOUS_COMMANDS_TIMEOUT = 20000;                 //!< 20 seconds timeout for all synchronous commands to backend
         public static int ASYNC_COMMANDS_TIMEOUT = 80000;                       //!< Asynchronous commands timeout e.g. for load_model command
