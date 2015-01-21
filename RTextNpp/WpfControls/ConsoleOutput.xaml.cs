@@ -11,5 +11,17 @@ namespace RTextNppPlugin.WpfControls
         {
             InitializeComponent();
         }
+
+        private void ErrorListPreviewMouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            ErrorList.IsSelected = true;
+            ErrorList.Focus();
+        }
+
+        private void ConsolePreviewMouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            Console.IsSelected = true;
+            Console.Focus();
+        }
     }
 }

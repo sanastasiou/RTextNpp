@@ -51,6 +51,7 @@ namespace RTextNppPlugin.ViewModels
          * Removes the workspace described by workspace.
          *
          * \param   workspace   The workspace.                    
+         * \todo    check if this really works..and if is really needed                      
          */
         public void removeWorkspace(string workspace)
         {

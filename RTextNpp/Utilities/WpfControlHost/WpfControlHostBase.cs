@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Timers;
-using RTextNppPlugin.Logging;
-using RTextNppPlugin.Utilities;
 
-namespace RTextNppPlugin.Utilities
+namespace RTextNppPlugin.Utilities.WpfControlHost
 {
     /**
      * A npp control host.
@@ -11,18 +9,18 @@ namespace RTextNppPlugin.Utilities
      * The solid purpose of this class is to periodically refresh the hosted control, because Notepad++ doesn't do this.
      * This results in falsely drawn controls when the user resizes the Notepad++ window.
      * \tparam  T   Generic type parameter which has to be a wpf control host.
-     *                   */
-    class NppControlHost<T> : IDisposable where T : System.Windows.Forms.Form, new()
+     *                   
+     */
+    class WpfControlHostBase<T> : IDisposable where T : System.Windows.Forms.Form, new()
     {
 
         #region Interface
-
         /**
          * Constructor.
          *
          * \param   settingKey  The key for the persistence setting.
          */
-        public NppControlHost(Settings.RTextNppSettings settingKey)
+        public WpfControlHostBase()
         {
             _elementHost = new T();
             _elementHost.VisibleChanged += OnVisibilityChanged;
@@ -32,8 +30,7 @@ namespace RTextNppPlugin.Utilities
             _refreshTimer.Elapsed += OnRefreshTimerElapsed;
             _refreshTimer.Enabled = true;
             _refreshTimer.AutoReset = true;
-            SETTING_KEY = settingKey;
-        } 
+        }
 
         public T WpfHost
         {
@@ -139,32 +136,7 @@ namespace RTextNppPlugin.Utilities
         }
         #endregion
 
-        #region Helpers
-
-        /**
-         * Finaliser.
-         */
-        ~NppControlHost()
-        {
-            Dispose(false);
-        }
-
-        // Protected implementation of Dispose pattern. 
-        protected virtual void Dispose(bool disposing)
-        {
-            if (disposed)
-            {
-                return;
-            }
-
-            if (disposing)
-            {
-                _refreshTimer.Enabled = false;
-                _refreshTimer.AutoReset = false;
-                _refreshTimer.Elapsed -= OnRefreshTimerElapsed;
-            }
-            disposed = true;
-        }
+        #region [Event Handlers]
 
         private void OnRefreshTimerElapsed(object sender, ElapsedEventArgs e)
         {
@@ -184,16 +156,20 @@ namespace RTextNppPlugin.Utilities
             }
         }
 
+        void OnElementHostMove(object sender, EventArgs e)
+        {
+            _refreshNeeded = true;
+        }
+
         /**
          * Raises the visibility changed event.
          *
          * \param   sender  Source of the event.
          * \param   e       Event information to send to registered event handlers.
          */
-        private void OnVisibilityChanged(object sender, EventArgs e)
+        protected virtual void OnVisibilityChanged(object sender, EventArgs e)
         {
             Win32.SendMessage(NPP_HANDLE, NppMsg.NPPM_SETMENUITEMCHECK, CmdId, _elementHost.Visible ? 1 : 0);
-            Settings.Instance.Set(_elementHost.Visible, SETTING_KEY);
             if (_elementHost.Visible)
             {
                 _refreshTimer.Start();
@@ -202,6 +178,39 @@ namespace RTextNppPlugin.Utilities
             {
                 _refreshTimer.Stop();
             }
+        }
+
+        #endregion
+
+        #region Helpers
+
+        /**
+         * Finaliser.
+         */
+        ~WpfControlHostBase()
+        {
+            Dispose(false);
+        }
+
+        // Protected implementation of Dispose pattern. 
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposed)
+            {
+                return;
+            }
+
+            if (disposing)
+            {
+                _refreshTimer.Enabled = false;
+                _refreshTimer.AutoReset = false;
+                _elementHost.VisibleChanged -= OnVisibilityChanged;
+                _elementHost.Move -= OnElementHostMove;
+                _elementHost.PaddingChanged -= OnElementHostMove;
+                _elementHost.Resize -= OnElementHostMove;
+                _refreshTimer.Elapsed -= OnRefreshTimerElapsed;
+            }
+            disposed = true;
         }
 
         private void SetHandle(IntPtr handle)
@@ -234,17 +243,11 @@ namespace RTextNppPlugin.Utilities
             _cmdId = id;
         }
 
-        void OnElementHostMove(object sender, EventArgs e)
-        {
-            _refreshNeeded = true;
-        }  
-
         #endregion
 
-        #region Data Members
+        #region [Data Members]
 
         private IntPtr NPP_HANDLE = IntPtr.Zero;                                  //!< Notepad++ main window handle.
-        private readonly Settings.RTextNppSettings SETTING_KEY;                   //!< The persistence setting for this form.
         private System.Windows.Forms.Form _elementHost;                           //!< The element host to be redrawed.
         private Timer _refreshTimer = new Timer(Constants.FORM_INTERVAL_REFRESH); //!< The timer, which if expired, shall refresh the element host window.
         private bool disposed = false;                                            //!< Has the disposed method already been called.

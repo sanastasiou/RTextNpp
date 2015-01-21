@@ -100,12 +100,13 @@
     <Compile Include="Utilities\FileUtilities.cs" />
     <Compile Include="Utilities\FuzzyMatching.cs" />
     <Compile Include="Utilities\HashUtilities.cs" />
-    <Compile Include="Utilities\NppControlHost.cs" />
     <Compile Include="Utilities\ParentProcessUtilities.cs" />
     <Compile Include="Utilities\ProcessUtilities.cs" />
     <Compile Include="Utilities\Settings.cs" />
     <Compile Include="Utilities\ThreadPerTaskkScheduler.cs" />
     <Compile Include="Utilities\Visual.cs" />
+    <Compile Include="Utilities\WpfControlHost\PersistentWpfControlHost.cs" />
+    <Compile Include="Utilities\WpfControlHost\WpfControlHostBase.cs" />
     <Compile Include="ViewModels\ConsoleViewModel.cs" />
     <Compile Include="ViewModels\IConsoleViewModel.cs" />
     <Compile Include="ViewModels\WorkspaceViewModel.cs" />

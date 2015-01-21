@@ -41,9 +41,9 @@ namespace RTextNppPlugin
         public enum NppMenuCommands : int
         {
             ConsoleWindow = 0,
-            Options = 1,
-            Outline = 2,
-            About = 3
+            Options       = 1,
+            Outline       = 2,
+            About         = 3
         }
         #endregion
 

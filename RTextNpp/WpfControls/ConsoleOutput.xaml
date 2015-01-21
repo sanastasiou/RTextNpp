@@ -11,8 +11,12 @@
         <viewModels:ConsoleViewModel/>
     </UserControl.DataContext>
     <Grid>
-        <DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" HorizontalAlignment="Stretch">
+        <DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                   IsHitTestVisible="True"
+                   Background="Transparent">
+            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" HorizontalAlignment="Stretch"
+                        IsHitTestVisible="True"
+                        Background="Transparent">
                 <Label>Output channel : </Label>
                 <ComboBox Name="WorkspaceSelector" 
                           HorizontalAlignment="Stretch" 
@@ -23,8 +27,12 @@
                           ItemsSource="{Binding WorkspaceCollection}"
                           DisplayMemberPath="Workspace"/>
             </StackPanel>
-            <TabControl DockPanel.Dock="Bottom">
-                <TabItem Name="Console" Header="Console" >
+            <TabControl DockPanel.Dock="Bottom" IsHitTestVisible="True" Name="OutputTabControl"
+                        Background="Transparent">
+                <TabItem Name="Console" IsHitTestVisible="True" Background="Transparent" >
+                    <TabItem.Header>
+                        <Label IsHitTestVisible="True" PreviewMouseDown="ConsolePreviewMouseDown">Console</Label>
+                    </TabItem.Header>
                     <RichTextBox VerticalScrollBarVisibility="Auto"
                      HorizontalScrollBarVisibility="Visible"
                      HorizontalAlignment="Stretch"
@@ -37,7 +45,10 @@
                         <wpfControls:ConsoleFlowDocument Channel="{Binding Workspace}"/>
                     </RichTextBox>
                 </TabItem>
-                <TabItem Name="ErrorList" Header="Errors">
+                <TabItem Name="ErrorList" IsHitTestVisible="True" Background="Transparent">
+                    <TabItem.Header>
+                        <Label IsHitTestVisible="True" PreviewMouseDown="ErrorListPreviewMouseDown">Errors</Label>
+                    </TabItem.Header>
                     
                 </TabItem>
             </TabControl>

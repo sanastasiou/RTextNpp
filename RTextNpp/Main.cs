@@ -13,13 +13,14 @@ using RTextNppPlugin;
 using System.Reflection;
 using System.Diagnostics;
 using RTextNppPlugin.Utilities;
+using RTextNppPlugin.Utilities.WpfControlHost;
 
 namespace RTextNppPlugin
 {
     partial class Plugin
     {
         #region " Fields "
-        private static Utilities.NppControlHost<ConsoleOutputForm> _consoleOutput = new Utilities.NppControlHost<ConsoleOutputForm>(Settings.RTextNppSettings.ConsoleWindowActive);
+        private static PersistentWpfControlHost<ConsoleOutputForm> _consoleOutput = new PersistentWpfControlHost<ConsoleOutputForm>(Settings.RTextNppSettings.ConsoleWindowActive);
         private static Automate.ConnectorManager _connectorManager = Automate.ConnectorManager.Instance;
 
         public const string PluginName = "RTextNpp";
@@ -39,6 +40,7 @@ namespace RTextNppPlugin
             _connectorManager.initialize(nppData);
             System.Diagnostics.Debugger.Launch();
         }
+
         static internal void SetToolBarIcon()
         {
             toolbarIcons tbIcons = new toolbarIcons();
@@ -248,14 +250,13 @@ namespace RTextNppPlugin
                 if (Win32.SendMessage(nppData._nppHandle, NppMsg.NPPM_GETOPENFILENAMES, cStrArray.NativePointer, nbFile) != IntPtr.Zero)
                     foreach (string file in cStrArray.ManagedStringsUnicode) MessageBox.Show(file);
             }
-        }        
+        }
 
         static void ShowConsoleOutput()
         {
             if (!_consoleInitialized)
             {
                 _consoleInitialized = true;
-                //_consoleOutput = new Utilities.NppControlHost<ConsoleOutputForm>(Constants.CONSOLE_OUTPUT_SETTING_KEY);
                 _consoleOutput.SetNppHandle(nppData._nppHandle);
 
                 using (Bitmap newBmp = new Bitmap(16, 16))
@@ -274,7 +275,7 @@ namespace RTextNppPlugin
                 NppTbData _nppTbData = new NppTbData();
                 _nppTbData.hClient = _consoleOutput.Handle;
                 _nppTbData.pszName = "RText++ Console Output";
-                _nppTbData.dlgID = 1;// (int)Constants.NppMenuCommands.ConsoleWindow;
+                _nppTbData.dlgID = (int)Constants.NppMenuCommands.ConsoleWindow;
                 // define the default docking behaviour
                 _nppTbData.uMask = NppTbMsg.DWS_DF_CONT_RIGHT | NppTbMsg.DWS_ICONTAB | NppTbMsg.DWS_ICONBAR;
                 _nppTbData.hIconTab = (uint)tbIcon.Handle;
@@ -327,26 +328,28 @@ namespace RTextNppPlugin
         }
 
         /**
-         * \brief   Pre load workspace(s).
-         * \todo    Only do this if corresponding options is set.         
+         * \brief   Pre load workspace(s).      
          */
         public static void PreLoadWorkspace()
         {
-            int nbFile = (int)Win32.SendMessage(nppData._nppHandle, NppMsg.NPPM_GETNBOPENFILES, 0, 0);
+            if (Settings.Instance.Get<bool>(Settings.RTextNppSettings.AutoLoadWorkspace))
+            {
+                int nbFile = (int)Win32.SendMessage(nppData._nppHandle, NppMsg.NPPM_GETNBOPENFILES, 0, 0);
 
-            if (nbFile <= 0)
-            {
-                return;
-            }
-            else
-            {
-                using (ClikeStringArray cStrArray = new ClikeStringArray(nbFile, Win32.MAX_PATH))
+                if (nbFile <= 0)
                 {
-                    if (Win32.SendMessage(nppData._nppHandle, NppMsg.NPPM_GETOPENFILENAMES, cStrArray.NativePointer, nbFile) != IntPtr.Zero)
+                    return;
+                }
+                else
+                {
+                    using (ClikeStringArray cStrArray = new ClikeStringArray(nbFile, Win32.MAX_PATH))
                     {
-                        foreach (string file in cStrArray.ManagedStringsUnicode)
+                        if (Win32.SendMessage(nppData._nppHandle, NppMsg.NPPM_GETOPENFILENAMES, cStrArray.NativePointer, nbFile) != IntPtr.Zero)
                         {
-                            _connectorManager.createConnector(file);
+                            foreach (string file in cStrArray.ManagedStringsUnicode)
+                            {
+                                _connectorManager.createConnector(file);
+                            }
                         }
                     }
                 }

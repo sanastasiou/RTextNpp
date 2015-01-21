@@ -16,17 +16,17 @@ namespace RTextNppPlugin.Forms
 
         private void AutoLoadWorkspaceOnCheckedChanged(object sender, System.EventArgs e)
         {
-            
+            Settings.Instance.Set(_autoSelectWorkspaceCheckBox.Checked, Settings.RTextNppSettings.AutoLoadWorkspace);
         }
 
         private void AutoSaveAllOpenFilesCheckBoxOnCheckedChanged(object sender, System.EventArgs e)
         {
-
+            Settings.Instance.Set(_autoSaveFileCheckBox.Checked, Settings.RTextNppSettings.AutoSaveFiles);
         }
 
         private void AutoSelectActiveWorkspaceOnCheckdChanged(object sender, System.EventArgs e)
         {
-
+            Settings.Instance.Set(_autoSelectWorkspaceCheckBox.Checked, Settings.RTextNppSettings.AutoChangeWorkspace);
         }
     }
 }
