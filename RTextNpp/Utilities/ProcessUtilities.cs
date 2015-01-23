@@ -4,26 +4,22 @@ using System.Diagnostics;
 using System.Management;
 using System.Threading;
 
-namespace RTextNppPlugin.RTextEditor.Utilities
+namespace RTextNppPlugin.Utilities
 {
     /**
-     * @class   ProcessUtilities
+     * \class   ProcessUtilities
      *
-     * @brief   Process utilities.
+     * \brief   Process utilities.
      *
-     * @author  Stefanos Anastasiou
-     * @date    17.11.2012
      */
     class ProcessUtilities
     {
         /**
          *
-         * @brief   Kill process tree of this parent process.
+         * \brief   Kill process tree of this parent process.
          *
-         * @author  Stefanos Anastasiou
-         * @date    17.11.2012
          *
-         * @param   root    The root.
+         * \param   root    The root.
          */
         public static void KillProcessTree(System.Diagnostics.Process root)
         {
@@ -52,12 +48,10 @@ namespace RTextNppPlugin.RTextEditor.Utilities
 
         /**
          *
-         * @brief   Kill all processes spawned by a parent process.
+         * \brief   Kill all processes spawned by a parent process.
          *
-         * @author  Stefanos Anastasiou
-         * @date    10.03.2013
          *
-         * @param   parentProcessId Identifier for the parent process.
+         * \param   parentProcessId Identifier for the parent process.
          */
         public static void KillAllProcessesSpawnedBy(UInt32 parentProcessId)
         {
@@ -85,17 +79,15 @@ namespace RTextNppPlugin.RTextEditor.Utilities
 
         /**
          *
-         * @brief   Tries to execute a function within a timeout.
+         * \brief   Tries to execute a function within a timeout.
          *
-         * @author  Stefanos Anastasiou
-         * @date    17.11.2012
          *
-         * @tparam  T   Generic type parameter.
-         * @param   func        The function which will be executed.
-         * @param   timeout     The timeout.
-         * @param [out] result  The result of the executed function.
+         * \tparam  T   Generic type parameter.
+         * \param   func        The function which will be executed.
+         * \param   timeout     The timeout.
+         * \param [out] result  The result of the executed function.
          *
-         * @return  true if the functions returns a value before the timeout expires, false otherwise
+         * \return  true if the functions returns a value before the timeout expires, false otherwise
          */
         public static bool TryExecute<TResult>(Func<TResult> func, int timeout, out TResult result)
         {
@@ -123,15 +115,13 @@ namespace RTextNppPlugin.RTextEditor.Utilities
         /**
          *      List<Process> output, int indent)
          *
-         * @brief   Gets the children of this parent process.
+         * \brief   Gets the children of this parent process.
          *
-         * @author  Stefanos Anastasiou
-         * @date    17.11.2012
          *
-         * @param   plist   List of processes.
-         * @param   parent  The parent.
-         * @param   output  The output.
-         * @param   indent  The indent.
+         * \param   plist   List of processes.
+         * \param   parent  The parent.
+         * \param   output  The output.
+         * \param   indent  The indent.
          */
         private static void GetProcessAndChildren(System.Diagnostics.Process[] plist, System.Diagnostics.Process parent, List<System.Diagnostics.Process> output, int indent)
         {

@@ -2,20 +2,18 @@
 using System.Security.Cryptography;
 using System.Text;
 
-namespace RTextNppPlugin.RTextEditor.Utilities
+namespace RTextNppPlugin.Utilities
 {
     public class HashUtilities
     {
         /**
          *
-         * @brief   Hash an input string and return the hash as a 32 character hexadecimal string.
+         * \brief   Hash an input string and return the hash as a 32 character hexadecimal string.
          *
-         * @author  Stefanos Anastasiou
-         * @date    17.11.2012
          *
-         * @param   input   The input.
+         * \param   input   The input.
          *
-         * @return  The md 5 hash.
+         * \return  The md 5 hash.
          */
         public static string getMd5Hash(string input)
         {
@@ -42,14 +40,12 @@ namespace RTextNppPlugin.RTextEditor.Utilities
 
         /**
          *
-         * @brief   Gets a GUID from a string.
+         * \brief   Gets a GUID from a string.
          *
-         * @author  Stefanos Anastasiou
-         * @date    17.11.2012
          *
-         * @param   input   The input.
+         * \param   input   The input.
          *
-         * @return  a new GUID
+         * \return  a new GUID
          */
         public static Guid getGUIDfromString(string input)
         {

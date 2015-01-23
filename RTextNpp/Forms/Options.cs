@@ -8,25 +8,57 @@ namespace RTextNppPlugin.Forms
         public Options()
         {
             InitializeComponent();
-            _autoloadWorkspaceCheckButton.Checked = Settings.Instance.Get<bool>(Settings.RTextNppSettings.AutoLoadWorkspace);
-            _autoSaveFileCheckBox.Checked         = Settings.Instance.Get<bool>(Settings.RTextNppSettings.AutoSaveFiles);
-            _autoSelectWorkspaceCheckBox.Checked  = Settings.Instance.Get<bool>(Settings.RTextNppSettings.AutoChangeWorkspace);
-
+            RestoreSettings();
         }
 
-        private void AutoLoadWorkspaceOnCheckedChanged(object sender, System.EventArgs e)
+        public void SaveSettings()
         {
-            Settings.Instance.Set(_autoSelectWorkspaceCheckBox.Checked, Settings.RTextNppSettings.AutoLoadWorkspace);
+            Settings.Instance.Set(AutoChangeWorkspace, Settings.RTextNppSettings.AutoChangeWorkspace);
+            Settings.Instance.Set(AutoLoadWorkspace, Settings.RTextNppSettings.AutoLoadWorkspace);
+            Settings.Instance.Set(AutoSaveFiles, Settings.RTextNppSettings.AutoSaveFiles);
         }
 
-        private void AutoSaveAllOpenFilesCheckBoxOnCheckedChanged(object sender, System.EventArgs e)
+        public void RestoreSettings()
         {
-            Settings.Instance.Set(_autoSaveFileCheckBox.Checked, Settings.RTextNppSettings.AutoSaveFiles);
+            AutoLoadWorkspace = Settings.Instance.Get<bool>(Settings.RTextNppSettings.AutoLoadWorkspace);
+            AutoSaveFiles = Settings.Instance.Get<bool>(Settings.RTextNppSettings.AutoSaveFiles);
+            AutoChangeWorkspace = Settings.Instance.Get<bool>(Settings.RTextNppSettings.AutoChangeWorkspace);
         }
 
-        private void AutoSelectActiveWorkspaceOnCheckdChanged(object sender, System.EventArgs e)
+        public bool AutoLoadWorkspace 
         {
-            Settings.Instance.Set(_autoSelectWorkspaceCheckBox.Checked, Settings.RTextNppSettings.AutoChangeWorkspace);
+            get
+            {
+                return _autoloadWorkspaceCheckButton.Checked;
+            }
+            private set
+            {
+                _autoloadWorkspaceCheckButton.Checked = value;
+            }
+        }
+
+        public bool AutoSaveFiles 
+        { 
+            get
+            {
+                return _autoSaveFileCheckBox.Checked;
+            }
+            private set
+            {
+                _autoSaveFileCheckBox.Checked = value;
+            }
+        }
+
+        public bool AutoChangeWorkspace
+        { 
+            get
+            {
+                return _autoSelectWorkspaceCheckBox.Checked;
+            }
+            private set
+            {
+                _autoSelectWorkspaceCheckBox.Checked = value;
+            }
         }
     }
 }

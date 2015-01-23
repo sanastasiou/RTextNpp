@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Runtime.Serialization;
 
-namespace RTextNppPlugin.RTextEditor.Protocol
+namespace RTextNppPlugin.Utilities.Protocol
 {
     [DataContract]
     public class FindRTextElementsResponse : ProgressResponse, IResponseBase

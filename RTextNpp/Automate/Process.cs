@@ -1,23 +1,22 @@
-﻿using FileSystemWactherCLRWrapper;
-using Microsoft.Win32;
-using System;
+﻿using System;
 using System.Diagnostics;
+using System.IO;
+using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Threading;
-using System.IO;
-using System.Linq;
+using Microsoft.Win32;
+using RTextNppPlugin.Utilities;
+using System.Text;
 
-namespace RTextNppPlugin.RTextEditor
+namespace RTextNppPlugin.Utilities
 {
     /**
      * \class   Process
      *
      * \brief   Process wrapper class over the .NET process class. Fixes several bugs regarding IO redirect.
      *
-     * \author  Stefanos Anastasiou
-     * \date    31.05.2013
      */
     public class Process : IDisposable
     {
@@ -48,12 +47,12 @@ namespace RTextNppPlugin.RTextEditor
 
         /**
          *
-         * @brief   Asynchronous method caller. Used to run the process start up asynchronously so that the UI thread doesn't get blocked.
+         * \brief   Asynchronous method caller. Used to run the process start up asynchronously so that the UI thread doesn't get blocked.
          *
-         * @param   timeout         The timeout.
-         * @param [out] portNumber  The port number.
+         * \param   timeout         The timeout.
+         * \param [out] portNumber  The port number.
          *
-         * @return  Indicates whether asyn caller was successfull.
+         * \return  Indicates whether asyn caller was successfull.
          */
         public delegate bool AsyncMethodCaller(int timeout, out int portNumber);
         AsyncMethodCaller mStartProcessDelegate;	                                                                                                           //!< The start process delegate
@@ -64,27 +63,23 @@ namespace RTextNppPlugin.RTextEditor
         #region Nested Types
 
         /**
-         * @class   ProcessInfo
+         * \class   ProcessInfo
          * 
-         * @brief   Information needed to start a backend process.
+         * \brief   Information needed to start a backend process.
          * 
-         * @author  Stefanos Anastasiou
-         * @date    17.11.2012.
          */
         public class ProcessInfo
         {
             /**
              *
-             * @brief   Constructor.
+             * \brief   Constructor.
              *
-             * @author  Stefanos Anastasiou
-             * @date    17.11.2012
              *
-             * @param   workingDir  The working dir.
-             * @param   rtextPath   Full pathname of the rtext file.
-             * @param   cmdLine     The command line.
-             * @param   key         The process key.
-             * @param   port        The port number associated with this process.
+             * \param   workingDir  The working dir.
+             * \param   rtextPath   Full pathname of the rtext file.
+             * \param   cmdLine     The command line.
+             * \param   key         The process key.
+             * \param   port        The port number associated with this process.
              */
             public ProcessInfo(string workingDir, string rtextPath, string cmdLine, string key, int port = -1)
             {
@@ -97,56 +92,56 @@ namespace RTextNppPlugin.RTextEditor
             }
 
             /**
-             * @property    public string workingDirectory
+             * \property    public string workingDirectory
              *
-             * @brief   Gets or sets the pathname of the working directory.
+             * \brief   Gets or sets the pathname of the working directory.
              *
-             * @return  The pathname of the working directory.
+             * \return  The pathname of the working directory.
              */
             public string WorkingDirectory { get; private set; }
 
             /**
-             * @property    public string rTextFilePath
+             * \property    public string rTextFilePath
              *
-             * @brief   Gets or sets the full pathname of the text file.
+             * \brief   Gets or sets the full pathname of the text file.
              *
-             * @return  The full pathname of the text file.
+             * \return  The full pathname of the text file.
              */
             public string RTextFilePath { get; private set; }
 
             /**
-             * @property    public string commandLine
+             * \property    public string commandLine
              *
-             * @brief   Gets or sets the command line.
+             * \brief   Gets or sets the command line.
              *
-             * @return  The command line.
+             * \return  The command line.
              */
             public string CommandLine { get; private set; }
 
             /**
-             * @property    public string procKey
+             * \property    public string procKey
              *
-             * @brief   Gets or sets a unique proc key based on the location of the rtxet file and the associated extensions
+             * \brief   Gets or sets a unique proc key based on the location of the rtxet file and the associated extensions
              *
-             * @return  The proc key.
+             * \return  The proc key.
              */
             public string ProcKey { get; private set; }
 
             /**
-             * @property    public int Port
+             * \property    public int Port
              *
-             * @brief   Gets or sets the port.
+             * \brief   Gets or sets the port.
              *
-             * @return  The port.
+             * \return  The port.
              */
             public int Port { get; set; }
 
             /**
-             * @property    public string Name
+             * \property    public string Name
              *
-             * @brief   Gets or sets the name of the process.
+             * \brief   Gets or sets the name of the process.
              *
-             * @return  The name.
+             * \return  The name.
              */
             public string Name { get; set; }
 
@@ -164,25 +159,21 @@ namespace RTextNppPlugin.RTextEditor
         #region Events
         /**
          *
-         * @brief   Delegate for the CommandCompleted event.
+         * \brief   Delegate for the CommandCompleted event.
          *
-         * @author  Stefanos Anastasiou
-         * @date    17.11.2012
          *
-         * @param   source  Source object of the event.
-         * @param   e       Command completed event information.
+         * \param   source  Source object of the event.
+         * \param   e       Command completed event information.
          */
         public delegate void ProcessExited(object source, ProcessExitedEventArgs e);
 
         public event ProcessExited ProcessExitedEvent;                                                                                      //!< Event queue for all listeners interested in ProcessExited events.
 
         /**
-         * @class   CommandCompletedEventArgs
+         * \class   CommandCompletedEventArgs
          *
-         * @brief   Command completed is an event which is fired to notify subscribers that an async command has finished executing.
+         * \brief   Command completed is an event which is fired to notify subscribers that an async command has finished executing.
          *
-         * @author  Stefanos Anastasiou
-         * @date    25.11.2012
          */
         public class ProcessExitedEventArgs : EventArgs
         {
@@ -237,12 +228,10 @@ namespace RTextNppPlugin.RTextEditor
 
         /**
          *
-         * @brief   Tries to start the backend service, as it is specified in the .rtext file.
+         * \brief   Tries to start the backend service, as it is specified in the .rtext file.
          *
-         * @author  Stefanos Anastasiou
-         * @date    09.03.2013
          *
-         * @return  true if it succeeds, false if it fails.
+         * \return  true if it succeeds, false if it fails.
          */
         public void StartRTextService()
         {
@@ -322,7 +311,7 @@ namespace RTextNppPlugin.RTextEditor
 
         /**
          *
-         * @brief   Finaliser.
+         * \brief   Finaliser.
          *
          */
         ~Process()
@@ -346,22 +335,21 @@ namespace RTextNppPlugin.RTextEditor
             if (this.mPort != -1)
             {
                 //load model if specified option is enabled 
-                //IOptions aOptions = (IOptions)mMSVSInstance.GetObject("RText.NET");
-                //if (aOptions.EnableAutomaticModelLoad)
-                //{
-                //    this.OnTimerElapsed(null, EventArgs.Empty);
-                //}
+                if (Settings.Instance.Get<bool>(Settings.RTextNppSettings.AutoLoadWorkspace))
+                {
+                    this.OnTimerElapsed(null, EventArgs.Empty);
+                }
             }
             WriteAutoRunValue(this.mAutoRunKey);
             mAutoRunKey = String.Empty;
         }
 
         /**
-         * @property    public readonly bool IsPortNumberRetrieved
+         * \property    public readonly bool IsPortNumberRetrieved
          *
-         * @brief   Gets a value indicating whether this object could find it's port number from the backend.
+         * \brief   Gets a value indicating whether this object could find it's port number from the backend.
          *
-         * @return  true if this object's port number is retrieved, false if not.
+         * \return  true if this object's port number is retrieved, false if not.
          */
         public bool IsPortNumberRetrieved
         {
@@ -375,8 +363,6 @@ namespace RTextNppPlugin.RTextEditor
          *
          * \brief   Gets port number.
          * \note    If the backend process could not be started, a -1 is written in the portNumber.
-         * \author  Stefanos Anastasiou
-         * \date    31.05.2013
          *
          * \param   timeout         The timeout.
          * \param [out] portNumber  The port number.
@@ -405,20 +391,18 @@ namespace RTextNppPlugin.RTextEditor
         }
 
         /**
-         * @property    public Connector Connector
+         * \property    public Connector Connector
          *
-         * @brief   Gets the connector.
+         * \brief   Gets the connector.
          *
-         * @return  The connector.
+         * \return  The connector.
          */
         public Connector Connector { get { return this.mConnector; } }
 
         /**
          *
-         * @brief   Kills this process.
+         * \brief   Kills this process.
          *
-         * @author  Stefanos Anastasiou
-         * @date    04.12.2012
          */
         public void Kill()
         {
@@ -426,11 +410,11 @@ namespace RTextNppPlugin.RTextEditor
         }
 
         /**
-         * @property    public bool HasExited
+         * \property    public bool HasExited
          *
-         * @brief   Gets a value indicating whether this process has exited.
+         * \brief   Gets a value indicating whether this process has exited.
          *
-         * @return  true if this object has exited, false if not.
+         * \return  true if this object has exited, false if not.
          */
         public bool HasExited
         {
@@ -449,14 +433,8 @@ namespace RTextNppPlugin.RTextEditor
 
         /**
          *
-         * @brief   Performs application-defined tasks associated with freeing, releasing, or resetting
+         * \brief   Performs application-defined tasks associated with freeing, releasing, or resetting
          *          unmanaged resources.
-         *
-         * @author  Stefanos
-         * @date    15.11.2012
-         *
-         * ### summary  Performs application-defined tasks associated with freeing, releasing, or
-         *              resetting unmanaged resources.
          */
         public void Dispose()
         {
@@ -469,15 +447,13 @@ namespace RTextNppPlugin.RTextEditor
 
         /**
          *
-         * @brief   Constructor.
+         * \brief   Constructor.
          *
-         * @author  Stefanos Anastasiou
-         * @date    09.03.2013
          *
-         * @param   rTextFilePath       Full pathname of the .rtext file.
-         * @param   workingDirectory    Pathname of the working directory.
-         * @param   commandLine         The command line.
-         * @param   processKey          The process key.
+         * \param   rTextFilePath       Full pathname of the .rtext file.
+         * \param   workingDirectory    Pathname of the working directory.
+         * \param   commandLine         The command line.
+         * \param   processKey          The process key.
          */
         public Process(string rTextFilePath, string workingDirectory, string commandLine, string processKey, string extenstion)
         {
@@ -493,13 +469,11 @@ namespace RTextNppPlugin.RTextEditor
 
         /**
          *
-         * @brief   Releases the unmanaged resources used by the ConnectorManager and optionally releases
+         * \brief   Releases the unmanaged resources used by the ConnectorManager and optionally releases
          *          the managed resources.
          *
-         * @author  Stefanos Anastasiou
-         * @date    15.11.2012
          *
-         * @param   disposing   true to release both managed and unmanaged resources; false to release
+         * \param   disposing   true to release both managed and unmanaged resources; false to release
          *                      only unmanaged resources.
          */
         private void Dispose(bool disposing)
@@ -514,10 +488,8 @@ namespace RTextNppPlugin.RTextEditor
 
         /**
          *
-         * @brief   Releases the native resources.
+         * \brief   Releases the native resources.
          *
-         * @author  Stefanos Anastasiou
-         * @date    15.11.2012
          */
         private void ReleaseNativeResources()
         {
@@ -526,10 +498,8 @@ namespace RTextNppPlugin.RTextEditor
 
         /**
          *
-         * @brief   Cleanup process.
-         * @todo    Send shutdown command instead of killing the process.
-         * @author  Stefanos Anastasiou
-         * @date    09.03.2013
+         * \brief   Cleanup process.
+         * \todo    Send shutdown command instead of killing the process.
          */
         private void CleanupProcess()
         {
@@ -577,13 +547,11 @@ namespace RTextNppPlugin.RTextEditor
 
         /**
          *
-         * @brief   Reads a synchronous stream asynchornously. .NET bug workaround.
+         * \brief   Reads a synchronous stream asynchornously. .NET bug workaround.
          *
-         * @author  Stefanos Anastasiou
-         * @date    10.03.2013
          *
-         * @param   stream  The stream.
-         * @param   token   The cancellation token.
+         * \param   stream  The stream.
+         * \param   token   The cancellation token.
          */
         private void ReadStream(System.IO.StreamReader stream, CancellationToken token)
         {
@@ -613,13 +581,11 @@ namespace RTextNppPlugin.RTextEditor
 
         /**
          *
-         * @brief   Raises the process exited event.
+         * \brief   Raises the process exited event.
          *
-         * @author  Stefanos Anastasiou
-         * @date    10.03.2013
          *
-         * @param   sender  Source of the event.
-         * @param   e       Event information to send to registered event handlers.
+         * \param   sender  Source of the event.
+         * \param   e       Event information to send to registered event handlers.
          */
         private void OnProcessExited(object sender, EventArgs e)
         {
@@ -632,12 +598,10 @@ namespace RTextNppPlugin.RTextEditor
         }
 
         /**
-         * \fn  private void RestartLoadModelTimer()
+
          *
          * \brief   Restarts load model timer.
          *
-         * \author  Stefanos Anastasiou
-         * \date    11.06.2013
          */
         private void RestartLoadModelTimer()
         {
@@ -731,7 +695,7 @@ namespace RTextNppPlugin.RTextEditor
                         //skip empty lines
                         if (String.IsNullOrEmpty(aLines[i])) continue;
                         //find endings
-                        Match matchResults = Utilities.FileUtilities.FileExtensionRegex.Match(aLines[i]);
+                        Match matchResults = FileUtilities.FileExtensionRegex.Match(aLines[i]);
                         bool aHasFoundMatch = false;
                         while (matchResults.Success)
                         {
@@ -786,13 +750,9 @@ namespace RTextNppPlugin.RTextEditor
         }
 
         /**
-         * \fn  void ProcessError(object sender, ErrorEventArgs e)
          *
          * \brief   Process erros of FileSystemWatcher objetcs. Re-initialize watchers.
-         *
-         * \author  Stefanos Anastasiou
-         * \date    23.06.2013
-         *
+         *         
          * \param   sender  Source of the event.
          * \param   e       Error event information.
          */
@@ -827,50 +787,35 @@ namespace RTextNppPlugin.RTextEditor
         }
 
         /**
-         * \fn  private void FileSystemWatcherRenamed(object sender, RenamedEventArgs e)
          *
-         * \brief   Handle file renaming events.
-         *
-         * \author  Stefanos Anastasiou
-         * \date    23.06.2013
+         * \brief   Handle file renaming events.         
          *
          * \param   sender  Source of the event.
          * \param   e       Renamed event information.
          */
         private void FileSystemWatcherRenamed(object sender, System.IO.RenamedEventArgs e)
         {
-            if (this.mConnector != null)
-            {
-                RestartLoadModelTimer();
-            }
+            OnWorkspaceModified(e.OldFullPath);
         }
 
         /**
-         * \fn  private void FileSystemWatcherDeleted(object sender, FileSystemEventArgs e)
          *
          * \brief   Handle file deletion events.
          *
-         * \author  Stefanos Anastasiou
-         * \date    23.06.2013
          *
          * \param   sender  Source of the event.
          * \param   e       File system event information.
          */
         private void FileSystemWatcherDeleted(object sender, System.IO.FileSystemEventArgs e)
         {
-            if (this.mConnector != null)
-            {
-                RestartLoadModelTimer();
-            }
+            OnWorkspaceModified(e.FullPath);
         }
 
         /**
-         * \fn  private void FileSystemWatcherChanged(object sender, FileSystemEventArgs e)
+
          *
          * \brief   Handle file saved events.
          *
-         * \author  Stefanos Anastasiou
-         * \date    23.06.2013
          *
          * \param   sender  Source of the event.
          * \param   e       File system event information.
@@ -878,35 +823,48 @@ namespace RTextNppPlugin.RTextEditor
          */
         private void FileSystemWatcherChanged(object sender, System.IO.FileSystemEventArgs e)
         {
-            //is this an automate document and auto save all document is enabled?
-            //IOptions aOptions = (IOptions)mMSVSInstance.GetObject("RText.NET");
-            if (e.ChangeType == System.IO.WatcherChangeTypes.Changed)// && aOptions.AutoSaveAllDocuments )
+            OnWorkspaceModified(e.FullPath);
+        }
+
+        /**
+         * Executes the workspace modified action.
+         *
+         * \param   pathOfModifiedFile  The path of modified file.
+         */
+        private void OnWorkspaceModified(string pathOfModifiedFile)
+        {
+            mFileSystemWatcher.StopWatching();
+            if (Settings.Instance.Get<bool>(Settings.RTextNppSettings.AutoSaveFiles))
             {
                 //find .rtext file of this document 
-                string aRTextFilePath = Utilities.FileUtilities.FindWorkspaceRoot(Path.GetDirectoryName(e.FullPath));
-                //foreach (EnvDTE.Document doc in mMSVSInstance.Documents)
-                //{
-                //    if (!doc.Saved && aRTextFilePath == Utilities.FileUtilities.findRTextFile(Utilities.FileUtilities.getDir(doc.FullName), Utilities.FileUtilities.getExt(doc.FullName)))
-                //    {
-                //        doc.Save(doc.FullName);
-                //    }
-                //}
+                string aRTextFilePath = FileUtilities.FindWorkspaceRoot(pathOfModifiedFile);
+                StringBuilder aTempCurrentFile = new StringBuilder(Win32.MAX_PATH);
+                Win32.SendMessage(Plugin.nppData._nppHandle, NppMsg.NPPM_GETFULLCURRENTPATH, 0, aTempCurrentFile);
+                //cycle through all open documents and save them before reloading model
+                foreach (var file in FileUtilities.GetListOfOpenFiles(ref Plugin.nppData))
+                {
+                    //save only unsaved files - infinite recursion is otherwise possible
+                    if (aRTextFilePath == FileUtilities.FindWorkspaceRoot(file))
+                    {
+                        Win32.SendMessage(Plugin.nppData._nppHandle, NppMsg.NPPM_SWITCHTOFILE, 0, file);
+                        Win32.SendMessage(Plugin.nppData._nppHandle, NppMsg.NPPM_SAVECURRENTFILE, 0, 0);
+                    }
+                }
+                Win32.SendMessage(Plugin.nppData._nppHandle, NppMsg.NPPM_SWITCHTOFILE, 0, aTempCurrentFile);
             }
             if (this.mConnector != null)
             {
                 RestartLoadModelTimer();
             }
+            mFileSystemWatcher.RestartWatching();
         }
 
         /**
          *
-         * @brief   Event handler. Called when the dispatcher timer expires.
-         *
-         * @author  Stefanos Anastasiou
-         * @date    09.03.2013
-         *
-         * @param   sender  Source of the event.
-         * @param   e       Event information.
+         * \brief   Event handler. Called when the dispatcher timer expires.
+         *         
+         * \param   sender  Source of the event.
+         * \param   e       Event information.
          */
         private void OnTimerElapsed(object sender, EventArgs e)
         {

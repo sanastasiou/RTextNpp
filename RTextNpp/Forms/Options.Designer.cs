@@ -209,7 +209,6 @@
             this._autoloadWorkspaceCheckButton.TabIndex = 2;
             this._autoloadWorkspaceCheckButton.Text = "Automatically load workspace on file open";
             this._autoloadWorkspaceCheckButton.UseVisualStyleBackColor = true;
-            this._autoloadWorkspaceCheckButton.CheckedChanged += new System.EventHandler(this.AutoLoadWorkspaceOnCheckedChanged);
             // 
             // _autoSaveFileCheckBox
             // 
@@ -220,7 +219,6 @@
             this._autoSaveFileCheckBox.TabIndex = 1;
             this._autoSaveFileCheckBox.Text = "Automatically save all open files of a workspace";
             this._autoSaveFileCheckBox.UseVisualStyleBackColor = true;
-            this._autoSaveFileCheckBox.CheckedChanged += new System.EventHandler(this.AutoSaveAllOpenFilesCheckBoxOnCheckedChanged);
             // 
             // _autoSelectWorkspaceCheckBox
             // 
@@ -231,7 +229,6 @@
             this._autoSelectWorkspaceCheckBox.TabIndex = 0;
             this._autoSelectWorkspaceCheckBox.Text = "Automatically select active workspace";
             this._autoSelectWorkspaceCheckBox.UseVisualStyleBackColor = true;
-            this._autoSelectWorkspaceCheckBox.CheckedChanged += new System.EventHandler(this.AutoSelectActiveWorkspaceOnCheckdChanged);
             // 
             // tabPage3
             // 

@@ -3,26 +3,22 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace RTextNppPlugin.RTextEditor.Utilities
+namespace RTextNppPlugin.Utilities
 {
     /**
-     * @class   ThreadPerTaskScheduler
+     * \class   ThreadPerTaskScheduler
      *
-     * @brief   Provides a task scheduler that dedicates a thread per task.
+     * \brief   Provides a task scheduler that dedicates a thread per task.
      *
-     * @author  Stefanos Anastasiou
-     * @date    19.12.2012
      */
     public class ThreadPerTaskScheduler : TaskScheduler
     {
         /**
          *
-         * @brief   Gets the tasks currently scheduled to this scheduler.
+         * \brief   Gets the tasks currently scheduled to this scheduler.
          *
-         * @author  Stefanos Anastasiou
-         * @date    19.12.2012
          *
-         * @return  An enumerator that allows foreach to be used to process get scheduled tasks in this
+         * \return  An enumerator that allows foreach to be used to process get scheduled tasks in this
          *          collection.
          *
          * ### remarks  This will always return an empty enumerable, as tasks are launched as soon as
@@ -32,12 +28,10 @@ namespace RTextNppPlugin.RTextEditor.Utilities
 
         /**
          *
-         * @brief   Starts a new thread to process the provided task.
+         * \brief   Starts a new thread to process the provided task.
          *
-         * @author  Stefanos Anastasiou
-         * @date    19.12.2012
          *
-         * @param   task    The task to be executed.
+         * \param   task    The task to be executed.
          */     
         protected override void QueueTask(Task task)
         {
@@ -46,15 +40,13 @@ namespace RTextNppPlugin.RTextEditor.Utilities
 
         /**
          *
-         * @brief   Runs the provided task on the current thread.
+         * \brief   Runs the provided task on the current thread.
          *
-         * @author  Stefanos Anastasiou
-         * @date    19.12.2012
          *
-         * @param   task                    The task to be executed.
-         * @param   taskWasPreviouslyQueued Ignored.
+         * \param   task                    The task to be executed.
+         * \param   taskWasPreviouslyQueued Ignored.
          *
-         * @return  Whether the task could be executed on the current thread.
+         * \return  Whether the task could be executed on the current thread.
          */        
         protected override bool TryExecuteTaskInline(Task task, bool taskWasPreviouslyQueued)
         {

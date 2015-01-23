@@ -1,10 +1,10 @@
 ﻿using System;
-using System.Diagnostics;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 
-namespace RTextNppPlugin.RTextEditor.Utilities
+namespace RTextNppPlugin.Utilities
 {    
     public static class FileUtilities
     {
@@ -32,15 +32,13 @@ namespace RTextNppPlugin.RTextEditor.Utilities
 
         /**
          *
-         * @brief   Searches for the first rtext file based on a directory and an extension.
+         * \brief   Searches for the first rtext file based on a directory and an extension.
          *
-         * @author  Stefanos Anastasiou
-         * @date    15.12.2012
          *
-         * @param   currentDir  The current dir.
-         * @param   extension   The extension.
+         * \param   currentDir  The current dir.
+         * \param   extension   The extension.
          *
-         * @return  The found .rtext file fullpath.
+         * \return  The found .rtext file fullpath.
          */
         private static string FindWorkspaceRoot(string currentDir, string extension)
         {
@@ -87,6 +85,31 @@ namespace RTextNppPlugin.RTextEditor.Utilities
                 Logging.Logger.Instance.Append(Logging.Logger.MessageType.Error, Constants.GENERAL_CHANNEL, "FileUtilities.FindWorkspaceRoot({0}, {1} : Exception : {2}", currentDir, extension, ex.Message);
             }
             return null;
+        }
+
+        /**
+         * Gets list of open files from npp instance.
+         *
+         * \param [in,out]  nppData Notepad++ instance data.
+         *
+         * \return  The list of open files, an empty list in case no file is open.
+         */
+        public static List<string> GetListOfOpenFiles(ref NppData nppData)
+        {
+            List<string> aFiles = new List<string>();
+
+            int nbFile = (int)Win32.SendMessage(nppData._nppHandle, NppMsg.NPPM_GETNBOPENFILES, 0, 0);
+            if (nbFile > 0)            
+            {
+                using (ClikeStringArray cStrArray = new ClikeStringArray(nbFile, Win32.MAX_PATH))
+                {
+                    if (Win32.SendMessage(nppData._nppHandle, NppMsg.NPPM_GETOPENFILENAMES, cStrArray.NativePointer, nbFile) != IntPtr.Zero)
+                    {
+                        aFiles = new List<string>(cStrArray.ManagedStringsUnicode);
+                    }
+                }
+            }
+            return aFiles;
         }
     }
 }

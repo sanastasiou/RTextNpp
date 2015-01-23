@@ -1,5 +1,5 @@
-﻿using RTextNppPlugin.RTextEditor.Protocol;
-using RTextNppPlugin.RTextEditor.StateEngine;
+﻿using RTextNppPlugin.Utilities.Protocol;
+using RTextNppPlugin.Utilities.StateEngine;
 using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
@@ -12,15 +12,13 @@ using System.Text.RegularExpressions;
 using System.Threading;
 
 
-namespace RTextNppPlugin.RTextEditor
+namespace RTextNppPlugin.Utilities
 {
     /**
-     * @class   Connector
+     * \class   Connector
      *
-     * @brief   Connector. All commands are going through a connector instance.
+     * \brief   Connector. All commands are going through a connector instance.
      *
-     * @author  Stefanos Anastasiou
-     * @date    09.12.2012
      */
     public class Connector
     {
@@ -47,8 +45,6 @@ namespace RTextNppPlugin.RTextEditor
          *
          * \brief   Progress response structure. Maps a command with a progress response message.
          *
-         * \author  Stefanos Anastasiou
-         * \date    01.02.2013
          */
         public struct ProgressResponseStruct
         {          
@@ -58,13 +54,11 @@ namespace RTextNppPlugin.RTextEditor
 
         /**
          *
-         * @brief   Delegate for the CommandCompleted event.
+         * \brief   Delegate for the CommandCompleted event.
          *
-         * @author  Stefanos Anastasiou
-         * @date    17.11.2012
          *
-         * @param   source  Source object of the event.
-         * @param   e       Command completed event information.
+         * \param   source  Source object of the event.
+         * \param   e       Command completed event information.
          */
         public delegate void CommandExecuted(object source, CommandCompletedEventArgs e);
 
@@ -88,12 +82,10 @@ namespace RTextNppPlugin.RTextEditor
         }
 
         /**
-         * @class   CommandCompletedEventArgs
+         * \class   CommandCompletedEventArgs
          *
-         * @brief   Command completed is an event which is fired to notify subscribers that an async command has finished executing.
+         * \brief   Command completed is an event which is fired to notify subscribers that an async command has finished executing.
          *
-         * @author  Stefanos Anastasiou
-         * @date    25.11.2012
          */
         public class CommandCompletedEventArgs : EventArgs
         {
@@ -125,12 +117,9 @@ namespace RTextNppPlugin.RTextEditor
             public string ResponseType { get; private set; }
 
             /**
-             * \fn  public CommandCompletedEventArgs(string response, int invocationId )
              *
              * \brief   Constructor.
              *
-             * \author  Stefanos Anastasiou
-             * \date    24.05.2013
              *
              * \param   response        The response.
              * \param   invocationId    Identifier for the invocation.
@@ -145,13 +134,11 @@ namespace RTextNppPlugin.RTextEditor
 
         /**
          *
-         * @brief   Constructor.
+         * \brief   Constructor.
          *
-         * @author  Stefanos Anastasiou
-         * @date    17.11.2012
          *
-         * @param   pInfo       The information.
-         * @param   filePath    Full pathname of the file associated with this connector.
+         * \param   pInfo       The information.
+         * \param   filePath    Full pathname of the file associated with this connector.
          */
         public Connector( Process proc) : base()
         {
@@ -225,28 +212,26 @@ namespace RTextNppPlugin.RTextEditor
 
 
         /**
-         * @property    public ProcessState ConnectorState
+         * \property    public ProcessState ConnectorState
          *
-         * @brief   Gets the state of the connector.
+         * \brief   Gets the state of the connector.
          *
-         * @return  The connector state.
+         * \return  The connector state.
          */
         public ProcessState ConnectorState { get { return this.mFSM.CurrentState; } }
 
         /**
          *
-         * @brief   Executes the given command synchronously.
+         * \brief   Executes the given command synchronously.
          *
-         * @author  Stefanos Anastasiou
-         * @date    24.11.2012
          *
-         * @tparam  Command      Type of the command.
-         * @param   ref invocationid The current invocation id.
-         * @tparam  Response         Type of the response.
-         * @param   command          The command.
+         * \tparam  Command      Type of the command.
+         * \param   ref invocationid The current invocation id.
+         * \tparam  Response         Type of the response.
+         * \param   command          The command.
          *
-         * @return  A Response type instance if the command could be executed succesfully and within the provided timeout, else null.
-         * @remarks Users of this function must be prepared to receive null, as indication that something went wrong.
+         * \return  A Response type instance if the command could be executed succesfully and within the provided timeout, else null.
+         * \remarks Users of this function must be prepared to receive null, as indication that something went wrong.
          */
         public IResponseBase execute<Command>( Command command, ref int invocationId, int timeout = -1 ) where Command : RequestBase                                                                                  
         {
@@ -293,12 +278,9 @@ namespace RTextNppPlugin.RTextEditor
         }
 
         /**
-         * \fn  bool isConnected()
          *
          * \brief   Query if this connector is connected with the backend service.
          *
-         * \author  Stefanos Anastasiou
-         * \date    09.03.2013
          *
          * \return  true if connected, false if not.
          */
@@ -309,10 +291,8 @@ namespace RTextNppPlugin.RTextEditor
 
         /**
          *
-         * @brief   Executes after a socket connection is made to autoload the model.
+         * \brief   Executes after a socket connection is made to autoload the model.
          *
-         * @author  Stefanos Anastasiou
-         * @date    17.11.2012
          *
          */
         private void LoadModel( ref int invocationId )
@@ -337,12 +317,10 @@ namespace RTextNppPlugin.RTextEditor
 
         /**
          *
-         * @brief   Query if this object is busy.
+         * \brief   Query if this object is busy.
          *
-         * @author  Stefanos Anastasiou
-         * @date    15.12.2012
          *
-         * @return  true if busy, false if not.
+         * \return  true if busy, false if not.
          */
         private bool isBusy()
         {
@@ -351,14 +329,12 @@ namespace RTextNppPlugin.RTextEditor
 
         /**
          *
-         * @brief   Begins an async send.
+         * \brief   Begins an async send.
          *
-         * @author  Stefanos Anastasiou
-         * @date    09.03.2013
          *
-         * @tparam  ref Command Type of the command.
-         * @param   ref invocationId The current invocation id.
-         * @param   command The command.
+         * \tparam  ref Command Type of the command.
+         * \param   ref invocationId The current invocation id.
+         * \param   command The command.
          */
         private void beginSend<Command>(ref Command command, ref int invocationId) where Command : RequestBase
         {
@@ -417,17 +393,15 @@ namespace RTextNppPlugin.RTextEditor
 
         /**
          *
-         * @brief   Send a synchronous command and waits for a response.
+         * \brief   Send a synchronous command and waits for a response.
          *
-         * @author  Stefanos Anastasiou
-         * @date    09.03.2013
          *
-         * @tparam  Command Type of the command.
-         * @param   ref command The command.
-         * @param   ref invocationId The current invocation id.
-         * @param   timeout The timeout.
+         * \tparam  Command Type of the command.
+         * \param   ref command The command.
+         * \param   ref invocationId The current invocation id.
+         * \param   timeout The timeout.
          *
-         * @return  The response.
+         * \return  The response.
          */
         private IResponseBase send<Command>(ref Command command, ref int invocationId, int timeout) where Command : RequestBase                                                                              
         {
@@ -541,13 +515,11 @@ namespace RTextNppPlugin.RTextEditor
 
         /**
          *
-         * @brief   Tries to connect to a remote end point.
-         *
-         * @author  Stefanos Anastasiou
-         * @date    18.11.2012
+         * \brief   Tries to connect to a remote end point.
          *
          *
-         * @return  True if connection is successful, false otherwise.
+         *
+         * \return  True if connection is successful, false otherwise.
          */
         private void Connect()
         {
@@ -594,14 +566,12 @@ namespace RTextNppPlugin.RTextEditor
 
         /**
         *
-        * @brief   Tries to connect to a remote end point. If it succeeds signals main thread and sets a flag that the connection is successful.
+        * \brief   Tries to connect to a remote end point. If it succeeds signals main thread and sets a flag that the connection is successful.
         *
-        * @author  Stefanos Anastasiou
-        * @date    18.11.2012
         *
-        * @param ar THe async result
+        * \param ar THe async result
         * 
-        * @return  True if connection is successful, false otherwise.
+        * \return  True if connection is successful, false otherwise.
         */
         private void ConnectCallback(IAsyncResult ar)
         {
@@ -617,12 +587,10 @@ namespace RTextNppPlugin.RTextEditor
 
         /**
          *
-         * @brief   Callback for asynchronous receive functionality.
+         * \brief   Callback for asynchronous receive functionality.
          *
-         * @author  Stefanos Anastasiou
-         * @date    15.12.2012
          *
-         * @param   ar  The async result.
+         * \param   ar  The async result.
          */
         private void receiveCallback(IAsyncResult ar)
         {
@@ -653,14 +621,12 @@ namespace RTextNppPlugin.RTextEditor
 
         /**
         *
-        * @brief   Recursively deserialize JSON messages, and adds them to the message queue
+        * \brief   Recursively deserialize JSON messages, and adds them to the message queue
         *
-        * @author  Stefanos Anastasiou
-        * @date    18.11.2012
         *
-        * @param state State object used in the async receive method
+        * \param state State object used in the async receive method
         * 
-        * @return  True if connection is successful, false otherwise.
+        * \return  True if connection is successful, false otherwise.
         */
         private void tryDeserialize(ref StateObject state)
         {
@@ -706,13 +672,11 @@ namespace RTextNppPlugin.RTextEditor
 
         /**
          *
-         * @brief   Analyzes the last received response.
+         * \brief   Analyzes the last received response.
          *
-         * @author  Stefanos Anastasiou
-         * @date    15.12.2012
          *
-         * @param [in,out]  response    The response string.
-         * @param [in,out]  state       The state object.
+         * \param [in,out]  response    The response string.
+         * \param [in,out]  state       The state object.
          */
         private void analyzeResponse(ref string response, ref StateObject state)
         {
@@ -786,12 +750,9 @@ namespace RTextNppPlugin.RTextEditor
         }
 
         /**
-         * \fn  private bool updateProgress( ref IResponseBase response )
          *
          * \brief   Updates the progress described by response.
          *
-         * \author  Stefanos Anastasiou
-         * \date    03.09.2013
          *
          * \param [in,out]  response    The response.
          *
@@ -815,14 +776,12 @@ namespace RTextNppPlugin.RTextEditor
 
         /**
          *
-         * @brief   Sends a request synchronously.
+         * \brief   Sends a request synchronously.
          *
-         * @author  Stefanos Anastasiou
-         * @date    15.12.2012
          *
-         * @param   request The request.
+         * \param   request The request.
          *
-         * @return  The bytes that were actually send.
+         * \return  The bytes that were actually send.
          */
         private int SendRequest(byte[] request)
         {
@@ -831,15 +790,13 @@ namespace RTextNppPlugin.RTextEditor
 
         /**
          *
-         * @brief   Prepare request string by appending the length of the message.
+         * \brief   Prepare request string by appending the length of the message.
          *
-         * @author  Stefanos Anastasiou
-         * @date    18.11.2012
          *
-         * @param   stream  The stream.
-         * @param   addLengthToStart Optional parameter. When set to true it will add the length of the JSON stream to the start of the string.                 
+         * \param   stream  The stream.
+         * \param   addLengthToStart Optional parameter. When set to true it will add the length of the JSON stream to the start of the string.                 
          *
-         * @return  Response from backend as a string.
+         * \return  Response from backend as a string.
          */
         private string PrepareRequestString( ref MemoryStream stream )
         {
@@ -871,10 +828,8 @@ namespace RTextNppPlugin.RTextEditor
 
         /**
          *
-         * @brief   Cleans up and disposes the socket.
+         * \brief   Cleans up and disposes the socket.
          *
-         * @author  Stefanos Anastasiou
-         * @date    15.12.2012
          */
         private void CleanUpSocket()
         {
@@ -888,12 +843,9 @@ namespace RTextNppPlugin.RTextEditor
         }
 
         /**
-         * \fn  private void DispatchOnCommandExecutedEvent()
          *
          * \brief   Dispatch on command executed event to notify all subscribers that the current command was executed.
          *
-         * \author  Stefanos Anastasiou
-         * \date    30.05.2013
          */
         private void DispatchOnCommandExecutedEvent()
         {

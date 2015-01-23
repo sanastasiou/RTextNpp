@@ -3,21 +3,19 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Media;
 
-namespace RTextNppPlugin.RTextEditor.Utilities
+namespace RTextNppPlugin.Utilities
 {
     public class Visual
     {
         /**
          *
-         * @brief   Finds the parent of this item.
+         * \brief   Finds the parent of this item.
          *
-         * @author  Stefanos Anastasiou
-         * @date    10.03.2013
          *
-         * @tparam  T   Generic type parameter.
-         * @param   child   The child.
+         * \tparam  T   Generic type parameter.
+         * \param   child   The child.
          *
-         * @return  The found visual parent&lt; t&gt;
+         * \return  The found visual parent&lt; t&gt;
          */
         public static T FindVisualParent<T>(DependencyObject child ) where T : DependencyObject
         {
@@ -32,15 +30,13 @@ namespace RTextNppPlugin.RTextEditor.Utilities
 
         /**
          *
-         * @brief   Gets an array of strings based on enums, with an optional black entry.
+         * \brief   Gets an array of strings based on enums, with an optional black entry.
          *
-         * @author  Stefanos Anastasiou
-         * @date    10.03.2013
          *
-         * @tparam  T   Generic type parameter.
-         * @param   includeBlank    true to include, false to exclude the blank.
+         * \tparam  T   Generic type parameter.
+         * \param   includeBlank    true to include, false to exclude the blank.
          *
-         * @return  The enum values&lt; t&gt;
+         * \return  The enum values&lt; t&gt;
          */
         public static string[] GetEnumValues<T>(bool includeBlank = false, params T[] skipEnums)
         {

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace RTextNppPlugin.RTextEditor.StateEngine
+namespace RTextNppPlugin.Utilities.StateEngine
 {
     /**
     * \enum    ProcessState
@@ -61,13 +61,11 @@ namespace RTextNppPlugin.RTextEditor.StateEngine
 
             /**
              *
-             * @brief   Constructor.
+             * \brief   Constructor.
              *
-             * @author  Stefanos Anastasiou
-             * @date    15.12.2012
              *
-             * @param   targetState         State of the target.
-             * @param   transitionAction    (optional) the transition action.
+             * \param   targetState         State of the target.
+             * \param   transitionAction    (optional) the transition action.
              */
             public ProcessStateWithAction(ProcessState targetState, Action transitionAction = null, Func<bool> guard = null)
             {
@@ -77,29 +75,29 @@ namespace RTextNppPlugin.RTextEditor.StateEngine
             }
 
             /**
-             * @property    public ProcessState TargetState
+             * \property    public ProcessState TargetState
              *
-             * @brief   Gets or sets the state of the target.
+             * \brief   Gets or sets the state of the target.
              *
-             * @return  The target state.
+             * \return  The target state.
              */
             public ProcessState TargetState { get { return this.mTargetState; } private set { this.mTargetState = value; } }
 
             /**
-             * @property    public Action TransitionAction
+             * \property    public Action TransitionAction
              *
-             * @brief   Gets or sets the transition action.
+             * \brief   Gets or sets the transition action.
              *
-             * @return  The transition action.
+             * \return  The transition action.
              */
             public Action TransitionAction { get { return this.mTransitionAction; } private set { this.mTransitionAction = value; } }
 
             /**
-             * @property    public Func<bool> Guard
+             * \property    public Func<bool> Guard
              *
-             * @brief   Gets or sets the guard.
+             * \brief   Gets or sets the guard.
              *
-             * @return  The guard.
+             * \return  The guard.
              */
             public Func<bool> Guard { get { return this.mGuard; } private set { this.mGuard = value; } }
         }
@@ -120,13 +118,11 @@ namespace RTextNppPlugin.RTextEditor.StateEngine
         /**
          *      ProcessStateWithAction processState)
          *
-         * @brief   Adds a state transition to the FSM.
+         * \brief   Adds a state transition to the FSM.
          *
-         * @author  Stefanos Anastasiou
-         * @date    15.12.2012
          *
-         * @param   transition      The transition.
-         * @param   processState    State of the process.
+         * \param   transition      The transition.
+         * \param   processState    State of the process.
          */
         internal void addStateTransition(StateTransition transition, ProcessStateWithAction processState)
         {
@@ -138,16 +134,14 @@ namespace RTextNppPlugin.RTextEditor.StateEngine
 
         /**
          *
-         * @brief   Gets the next state but doesn't transition to it.
+         * \brief   Gets the next state but doesn't transition to it.
          *
-         * @author  Stefanos Anastasiou
-         * @date    15.12.2012
          *
-         * @exception   Exception   Thrown when an exception error condition occurs.
+         * \exception   Exception   Thrown when an exception error condition occurs.
          *
-         * @param   command The command.
+         * \param   command The command.
          *
-         * @return  The next.
+         * \return  The next.
          */
         internal ProcessState GetNext(Command command)
         {
@@ -181,14 +175,12 @@ namespace RTextNppPlugin.RTextEditor.StateEngine
 
         /**
          *
-         * @brief   Moves to the next state.
+         * \brief   Moves to the next state.
          *
-         * @author  Stefanos Anastasiou
-         * @date    15.12.2012
          *
-         * @param   command The command.
+         * \param   command The command.
          *
-         * @return  The next state.
+         * \return  The next state.
          */
         internal ProcessState MoveNext(Command command)
         {

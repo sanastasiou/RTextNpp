@@ -1,17 +1,17 @@
 ﻿/**
- * @file    LevenshteinDistanceExtensions.cs
+ * \file    LevenshteinDistanceExtensions.cs
  *
- * @brief   Implements the levenshtein distance extensions class.
+ * \brief   Implements the levenshtein distance extensions class.
  */
 
 using System;
 using System.Linq;
 
 /**
- * @namespace   RTextNppPlugin.RTextEditor.Utilities
+ * \namespace   RTextNppPlugin.RTextEditor.Utilities
  *
  */
-namespace RTextNppPlugin.RTextEditor.Utilities
+namespace RTextNppPlugin.Utilities
 {
     public static class ContainsWithIgnoreCase
     {
@@ -22,29 +22,25 @@ namespace RTextNppPlugin.RTextEditor.Utilities
     }
 
     /**
-     * @class   LevenshteinDistanceExtensions
+     * \class   LevenshteinDistanceExtensions
      *
-     * @brief   Levenshtein distance string extensions.
+     * \brief   Levenshtein distance string extensions.
      *
-     * @author  Stefanos Anastasiou
-     * @date    26.01.2013
      */
     public static class LevenshteinDistanceExtensions
     {
         /**
          *      bool caseSensitive = false)
          *
-         * @brief   Levenshtein Distance algorithm with transposition. <br />
+         * \brief   Levenshtein Distance algorithm with transposition. <br />
          *          A value of 1 or 2 is okay, 3 is iffy and greater than 4 is a poor match.
          *
-         * @author  Stefanos Anastasiou
-         * @date    26.01.2013
          *
-         * @param   input            the input string
-         * @param   comparedTo       the string to compare the input with
-         * @param   caseSensitive    whether the matching should be case sensitive
+         * \param   input            the input string
+         * \param   comparedTo       the string to compare the input with
+         * \param   caseSensitive    whether the matching should be case sensitive
          *
-         * @return  The number of edits need to be done in the compared string, in order to match the input string.
+         * \return  The number of edits need to be done in the compared string, in order to match the input string.
          */
         public static int LevenshteinDistance(this string input, string comparedTo, bool caseSensitive = false)
         {
@@ -93,14 +89,12 @@ namespace RTextNppPlugin.RTextEditor.Utilities
 
         /**
          *
-         * @brief   Searches for the first minimum.
+         * \brief   Searches for the first minimum.
          *
-         * @author  Stefanos Anastasiou
-         * @date    26.01.2013
          *
-         * @param   p   A variable-length parameters list containing p.
+         * \param   p   A variable-length parameters list containing p.
          *
-         * @return  The found minimum.
+         * \return  The found minimum.
          */
         private static int FindMinimum(params int[] p)
         {
@@ -115,28 +109,24 @@ namespace RTextNppPlugin.RTextEditor.Utilities
     }
 
     /**
-     * @class   DiceCoefficientExtensions
+     * \class   DiceCoefficientExtensions
      *
-     * @brief   Dice coefficient string extension.
+     * \brief   Dice coefficient string extension.
      *
-     * @author  Stefanos Anastasiou
-     * @date    26.01.2013
      */
     public static class DiceCoefficientExtensions
     {
         /**
          *
-         * @brief   Dice Coefficient based on bigrams. <br />
+         * \brief   Dice Coefficient based on bigrams. <br />
          *          A good value would be 0.33 or above, a value under 0.2 is not a good match, from 0.2
          *          to 0.33 is iffy.
          *
-         * @author  Stefanos Anastasiou
-         * @date    26.01.2013
          *
-         * @param   input       The input string.
-         * @param   comparedTo  The string to compare the input with.
+         * \param   input       The input string.
+         * \param   comparedTo  The string to compare the input with.
          *
-         * @return  Dice's coefficient.
+         * \return  Dice's coefficient.
          */
         public static double DiceCoefficient(this string input, string comparedTo)
         {
@@ -147,15 +137,13 @@ namespace RTextNppPlugin.RTextEditor.Utilities
 
         /**
          *
-         * @brief   Dice Coefficient used to compare nGrams arrays produced in advance.
+         * \brief   Dice Coefficient used to compare nGrams arrays produced in advance.
          *
-         * @author  Stefanos Anastasiou
-         * @date    26.01.2013
          *
-         * @param   nGrams          .
-         * @param   compareToNGrams .
+         * \param   nGrams          .
+         * \param   compareToNGrams .
          *
-         * @return  .
+         * \return  .
          */
         public static double DiceCoefficient(this string[] nGrams, string[] compareToNGrams)
         {
@@ -171,14 +159,12 @@ namespace RTextNppPlugin.RTextEditor.Utilities
 
         /**
          *
-         * @brief   A string extension method that converts an input to a bi grams.
+         * \brief   A string extension method that converts an input to a bi grams.
          *
-         * @author  Stefanos Anastasiou
-         * @date    26.01.2013
          *
-         * @param   input   The input to act on.
+         * \param   input   The input to act on.
          *
-         * @return  input as a string[].
+         * \return  input as a string[].
          */
         public static string[] ToBiGrams(this string input)
         {
@@ -191,14 +177,12 @@ namespace RTextNppPlugin.RTextEditor.Utilities
 
         /**
          *
-         * @brief   A string extension method that converts an input to a triangle grams.
+         * \brief   A string extension method that converts an input to a triangle grams.
          *
-         * @author  Stefanos Anastasiou
-         * @date    26.01.2013
          *
-         * @param   input   The input to act on.
+         * \param   input   The input to act on.
          *
-         * @return  input as a string[].
+         * \return  input as a string[].
          */
         public static string[] ToTriGrams(this string input)
         {
@@ -211,15 +195,13 @@ namespace RTextNppPlugin.RTextEditor.Utilities
 
         /**
          *
-         * @brief   Converts this object to a n grams.
+         * \brief   Converts this object to a n grams.
          *
-         * @author  Stefanos Anastasiou
-         * @date    26.01.2013
          *
-         * @param   input   The input.
-         * @param   nLength The length.
+         * \param   input   The input.
+         * \param   nLength The length.
          *
-         * @return  The given data converted to a string[].
+         * \return  The given data converted to a string[].
          */
         private static string[] ToNGrams(string input, int nLength)
         {

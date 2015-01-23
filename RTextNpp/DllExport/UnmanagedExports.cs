@@ -57,7 +57,7 @@ namespace RTextNppPlugin
                     break;
                 case (uint)NppMsg.NPPN_READY:
                     Plugin.LoadSettings();
-                    Plugin.PreLoadWorkspace();
+                    Plugin.PrestartBackend();
                     break;
                 case (uint)NppMsg.NPPN_BUFFERACTIVATED:
                     Plugin.OnFileOpened();

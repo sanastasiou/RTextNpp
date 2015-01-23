@@ -20,8 +20,9 @@ namespace RTextNppPlugin
     partial class Plugin
     {
         #region " Fields "
-        private static PersistentWpfControlHost<ConsoleOutputForm> _consoleOutput = new PersistentWpfControlHost<ConsoleOutputForm>(Settings.RTextNppSettings.ConsoleWindowActive);
+        private static PersistentWpfControlHost<ConsoleOutputForm> _consoleOutput = new PersistentWpfControlHost<ConsoleOutputForm>(Settings.RTextNppSettings.ConsoleWindowActive);        
         private static Automate.ConnectorManager _connectorManager = Automate.ConnectorManager.Instance;
+        private static Forms.Options _options = new Forms.Options();
 
         public const string PluginName = "RTextNpp";
         static bool doCloseTag = false;
@@ -35,7 +36,8 @@ namespace RTextNppPlugin
 
         static internal void CommandMenuInit()
         {
-            SetCommand((int)Constants.NppMenuCommands.ConsoleWindow, "Show RText++ Console", ShowConsoleOutput, new ShortcutKey(false, true, true, Keys.R));
+            SetCommand((int)Constants.NppMenuCommands.ConsoleWindow, Properties.Resources.RTEXT_SHOW_OUTPUT_WINDOW, ShowConsoleOutput, new ShortcutKey(false, true, true, Keys.R));
+            SetCommand((int)Constants.NppMenuCommands.Options, Properties.Resources.RTEXT_SHOW_OPTIONS_WINDOW, ModifyOptions, new ShortcutKey(true, false, true, Keys.R));
 
             _connectorManager.initialize(nppData);
             System.Diagnostics.Debugger.Launch();
@@ -53,7 +55,7 @@ namespace RTextNppPlugin
 
         static internal void PluginCleanUp()
         {
-            //Win32.WritePrivateProfileString(sectionName, keyName, doCloseTag ? "1" : "0", iniFilePath);
+
         }
         #endregion
 
@@ -133,18 +135,6 @@ namespace RTextNppPlugin
             }
         }
 
-        static void insertCurrentFullPath()
-        {
-            insertCurrentPath(NppMsg.FULL_CURRENT_PATH);
-        }
-        static void insertCurrentFileName()
-        {
-            insertCurrentPath(NppMsg.FILE_NAME);
-        }
-        static void insertCurrentDirectory()
-        {
-            insertCurrentPath(NppMsg.CURRENT_DIRECTORY);
-        }
         static void insertCurrentPath(NppMsg which)
         {
             NppMsg msg = NppMsg.NPPM_GETFULLCURRENTPATH;
@@ -159,14 +149,6 @@ namespace RTextNppPlugin
             Win32.SendMessage(GetCurrentScintilla(), SciMsg.SCI_REPLACESEL, 0, path);
         }
 
-        static void insertShortDateTime()
-        {
-            insertDateTime(false);
-        }
-        static void insertLongDateTime()
-        {
-            insertDateTime(true);
-        }
         static void insertDateTime(bool longFormat)
         {
             string dateTime = string.Format("{0} {1}",
@@ -201,7 +183,7 @@ namespace RTextNppPlugin
                     if (size >= 3)
                     {
                         using (Sci_TextRange tr = new Sci_TextRange(startPos, currentPos, bufCapacity))
-                        {
+                        {                            
                             Win32.SendMessage(hCurrentEditView, SciMsg.SCI_GETTEXTRANGE, 0, tr.NativePointer);
                             string buf = tr.lpstrText;
 
@@ -240,16 +222,21 @@ namespace RTextNppPlugin
             }
         }
 
-        static void getFileNamesDemo()
+        /**
+         * \brief Modify options callback from plugin menu.           
+         */
+        static void ModifyOptions()
         {
-            int nbFile = (int)Win32.SendMessage(nppData._nppHandle, NppMsg.NPPM_GETNBOPENFILES, 0, 0);
-            MessageBox.Show(nbFile.ToString(), "Number of opened files:");
-
-            using (ClikeStringArray cStrArray = new ClikeStringArray(nbFile, Win32.MAX_PATH))
+            Win32.SendMessage(nppData._nppHandle, NppMsg.NPPM_MODELESSDIALOG, (int)NppMsg.MODELESSDIALOGADD, _options.Handle.ToInt32());
+            if( _options.ShowDialog(Control.FromHandle(nppData._nppHandle)) == DialogResult.OK )
             {
-                if (Win32.SendMessage(nppData._nppHandle, NppMsg.NPPM_GETOPENFILENAMES, cStrArray.NativePointer, nbFile) != IntPtr.Zero)
-                    foreach (string file in cStrArray.ManagedStringsUnicode) MessageBox.Show(file);
+                _options.SaveSettings();
             }
+            else
+            {
+                _options.RestoreSettings();
+            }
+            Win32.SendMessage(nppData._nppHandle, NppMsg.NPPM_MODELESSDIALOG, (int)NppMsg.MODELESSDIALOGREMOVE, _options.Handle.ToInt32());
         }
 
         static void ShowConsoleOutput()
@@ -274,7 +261,7 @@ namespace RTextNppPlugin
 
                 NppTbData _nppTbData = new NppTbData();
                 _nppTbData.hClient = _consoleOutput.Handle;
-                _nppTbData.pszName = "RText++ Console Output";
+                _nppTbData.pszName = Properties.Resources.RTEXT_OUTPUT_WINDOW_CAPTION;
                 _nppTbData.dlgID = (int)Constants.NppMenuCommands.ConsoleWindow;
                 // define the default docking behaviour
                 _nppTbData.uMask = NppTbMsg.DWS_DF_CONT_RIGHT | NppTbMsg.DWS_ICONTAB | NppTbMsg.DWS_ICONBAR;
@@ -299,8 +286,7 @@ namespace RTextNppPlugin
             }
             _consoleOutput.Focus();
         }
-
-        #endregion
+        
         static internal void LoadSettings()
         {
             //Assembly assembly = Assembly.GetExecutingAssembly();
@@ -315,44 +301,30 @@ namespace RTextNppPlugin
             //Logging.Logger.Instance.Append("User settings loaded.", Logging.Logger.MessageType.Info);
         }
 
-        #region Event Handlers
+        #endregion
 
+        #region [Event Handlers]
+
+        /**
+         * Handles file opened event to start backend process, in case the relevant  backend process is not yet started.
+         */
         public static void OnFileOpened()
         {
             //get active file
             NppMsg msg = NppMsg.NPPM_GETFULLCURRENTPATH;
             StringBuilder path = new StringBuilder(Win32.MAX_PATH);
             Win32.SendMessage(nppData._nppHandle, msg, 0, path);
-            //Logging.Logger.Instance.Append(Logging.Logger.MessageType.Info, Constants.GENERAL_CHANNEL, String.Format("Buffer activated for file : {0}", path.ToString()));
             _connectorManager.createConnector(path.ToString());
-        }
+        }      
 
         /**
-         * \brief   Pre load workspace(s).      
+         * \brief   Pre start backend process at startup.
          */
-        public static void PreLoadWorkspace()
+        public static void PrestartBackend()
         {
-            if (Settings.Instance.Get<bool>(Settings.RTextNppSettings.AutoLoadWorkspace))
+            foreach(var file in Utilities.FileUtilities.GetListOfOpenFiles(ref nppData) )
             {
-                int nbFile = (int)Win32.SendMessage(nppData._nppHandle, NppMsg.NPPM_GETNBOPENFILES, 0, 0);
-
-                if (nbFile <= 0)
-                {
-                    return;
-                }
-                else
-                {
-                    using (ClikeStringArray cStrArray = new ClikeStringArray(nbFile, Win32.MAX_PATH))
-                    {
-                        if (Win32.SendMessage(nppData._nppHandle, NppMsg.NPPM_GETOPENFILENAMES, cStrArray.NativePointer, nbFile) != IntPtr.Zero)
-                        {
-                            foreach (string file in cStrArray.ManagedStringsUnicode)
-                            {
-                                _connectorManager.createConnector(file);
-                            }
-                        }
-                    }
-                }
+                _connectorManager.createConnector(file);
             }
         }
 

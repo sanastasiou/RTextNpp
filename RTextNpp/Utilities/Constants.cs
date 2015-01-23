@@ -13,8 +13,6 @@ namespace RTextNppPlugin
      *
      * \brief   Constants used throughout RText.NET.
      *
-     * \author  Stefanos Anastasiou
-     * \date    25.05.2013
      */
     internal static class Constants
     {

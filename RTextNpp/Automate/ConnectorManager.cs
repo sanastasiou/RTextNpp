@@ -4,7 +4,7 @@ using System.Linq;
 using System.Xml.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using RTextNppPlugin.RTextEditor.Utilities;
+using RTextNppPlugin.Utilities;
 using System.IO;
 
 namespace RTextNppPlugin.Automate
@@ -79,7 +79,7 @@ namespace RTextNppPlugin.Automate
                     }
                     else
                     {
-                        _processList.Add(processKey, new RTextEditor.Process(rTextFileLocation, Path.GetExtension(file)));
+                        _processList.Add(processKey, new Utilities.Process(rTextFileLocation, Path.GetExtension(file)));
                     }
                 }
             }
@@ -120,7 +120,7 @@ namespace RTextNppPlugin.Automate
         #endregion
 
         #region Data Members
-        private Dictionary<string, RTextEditor.Process> _processList = new Dictionary<string, RTextEditor.Process>();
+        private Dictionary<string, Utilities.Process> _processList = new Dictionary<string, Utilities.Process>();
         private NppData _nppData;                            //!< Access to notepad++ data.
         private static volatile ConnectorManager _instance;  //!< Singleton Instance.
         private static object _lock = new Object();          //!< Mutex.

@@ -1,15 +1,13 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 
-namespace RTextNppPlugin.RTextEditor.Utilities
+namespace RTextNppPlugin.Utilities
 {
     /**
-     * @struct  ParentProcessUtilities
+     * \struct  ParentProcessUtilities
      *
-     * @brief   A utility class to determine a process parent.
+     * \brief   A utility class to determine a process parent.
      *
-     * @author  Stefanos Anastasiou
-     * @date    19.01.2013
      */
     [StructLayout(LayoutKind.Sequential)]
     public struct ParentProcessUtilities
@@ -26,26 +24,24 @@ namespace RTextNppPlugin.RTextEditor.Utilities
          *      int processInformationClass, ref ParentProcessUtilities processInformation,
          *      int processInformationLength, out int returnLength);
          *
-         * @brief   NT query information process.
+         * \brief   NT query information process.
          *
-         * @author  Stefanos Anastasiou
-         * @date    19.01.2013
          *
-         * @param   processHandle                   Handle of the process.
-         * @param   processInformationClass         The process information class.
-         * @param   [in,out]  processInformation    Information describing the process.
-         * @param   processInformationLength        Length of the process information.
-         * @param   [out] returnLength              Length of the return.
+         * \param   processHandle                   Handle of the process.
+         * \param   processInformationClass         The process information class.
+         * \param   [in,out]  processInformation    Information describing the process.
+         * \param   processInformationLength        Length of the process information.
+         * \param   [out] returnLength              Length of the return.
          *
-         * @return  .
+         * \return  .
          */
         [DllImport("ntdll.dll")]
         private static extern int NtQueryInformationProcess(IntPtr processHandle, int processInformationClass, ref ParentProcessUtilities processInformation, int processInformationLength, out int returnLength);
 
         /**
-         * @enum    ProcessAccessFlags
+         * \enum    ProcessAccessFlags
          *
-         * @brief   Bitfield of flags for specifying ProcessAccessFlags.
+         * \brief   Bitfield of flags for specifying ProcessAccessFlags.
          */
         [Flags]
         enum ProcessAccessFlags : uint
@@ -56,28 +52,24 @@ namespace RTextNppPlugin.RTextEditor.Utilities
         /**
          *      [MarshalAs(UnmanagedType.Bool)] bool bInheritHandle, int dwProcessId);
          *
-         * @brief   Opens the process.
+         * \brief   Opens the process.
          *
-         * @author  Stefanos Anastasiou
-         * @date    19.01.2013
          *
-         * @param   dwDesiredAccess The desired access.
-         * @param   bInheritHandle  Whether this process should be inherited.
-         * @param   dwProcessId     Identifier for the process.
+         * \param   dwDesiredAccess The desired access.
+         * \param   bInheritHandle  Whether this process should be inherited.
+         * \param   dwProcessId     Identifier for the process.
          *
-         * @return  .
+         * \return  .
          */
         [DllImport("kernel32.dll")]
         static extern IntPtr OpenProcess(ProcessAccessFlags dwDesiredAccess, [MarshalAs(UnmanagedType.Bool)] bool bInheritHandle, int dwProcessId);
 
         /**
          *
-         * @brief   Gets the parent process of the current process.
+         * \brief   Gets the parent process of the current process.
          *
-         * @author  Stefanos Anastasiou
-         * @date    19.01.2013
          *
-         * @return  An instance of the Process class.
+         * \return  An instance of the Process class.
          */
         public static System.Diagnostics.Process GetParentProcess()
         {
@@ -86,14 +78,12 @@ namespace RTextNppPlugin.RTextEditor.Utilities
 
         /**
          *
-         * @brief   Gets the parent process of specified process.
+         * \brief   Gets the parent process of specified process.
          *
-         * @author  Stefanos Anastasiou
-         * @date    19.01.2013
          *
-         * @param   id  The process id.
+         * \param   id  The process id.
          *
-         * @return  An instance of the Process class.
+         * \return  An instance of the Process class.
          */
         public static System.Diagnostics.Process GetParentProcess(int id)
         {
@@ -104,17 +94,15 @@ namespace RTextNppPlugin.RTextEditor.Utilities
 
         /**
          *
-         * @brief   Gets the parent process of a specified process.
+         * \brief   Gets the parent process of a specified process.
          *
-         * @author  Stefanos Anastasiou
-         * @date    19.01.2013
          *
-         * @exception   Win32Exception  Thrown when a window 32 error condition occurs. It is handled internally.
-         * @exception   ArgumentException is thrown when the handle property cannot be accessed. This is a bug in the System.Diagnostics.Process class.
+         * \exception   Win32Exception  Thrown when a window 32 error condition occurs. It is handled internally.
+         * \exception   ArgumentException is thrown when the handle property cannot be accessed. This is a bug in the System.Diagnostics.Process class.
          *
-         * @param   handle  The process handle.
+         * \param   handle  The process handle.
          *
-         * @return  An instance of the Process class.
+         * \return  An instance of the Process class.
          */
         public static System.Diagnostics.Process GetParentProcess(IntPtr handle)
         {
