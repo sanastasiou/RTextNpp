@@ -34,14 +34,16 @@ namespace RTextNppPlugin
         public const int INITIAL_RESPONSE_TIMEOUT = 20000;                      //!< Compensate for when a pc is under heavy load - the backend process may take a while to start
         public const int OUTPUT_POLL_PERIOD = 10;                               //!< Polling period for output stream threads
         public const string GENERAL_CHANNEL = "General";                        //!< General output channel.
+        public const string DEBUG_CHANNEL = "Debug";                            //!< Debug channel - disabled on release mode.
 
         #region NppMenuCommand
         public enum NppMenuCommands : int
         {
-            ConsoleWindow = 0,
-            Options       = 1,
-            Outline       = 2,
-            About         = 3
+            ConsoleWindow  = 0,
+            Options        = 1,
+            AutoCompletion = 2,
+            Outline        = 3,
+            About          = 4
         }
         #endregion
 

@@ -240,17 +240,17 @@ namespace RTextNppPlugin.Utilities
                 //process was never started or has already been started and stopped
                 Match aMatch = Regex.Match(mPInfo.CommandLine, @"(^\s*\S+)(.*)", RegexOptions.Compiled);
                 System.Diagnostics.ProcessStartInfo aProcessStartInfo = new ProcessStartInfo(aMatch.Groups[1].Value, aMatch.Groups[2].Value);
-                mPInfo.Name                                           = aMatch.Groups[1].Value;
-                aProcessStartInfo.CreateNoWindow                      = true;
-                aProcessStartInfo.RedirectStandardError               = true;
-                aProcessStartInfo.RedirectStandardOutput              = true;
-                aProcessStartInfo.UseShellExecute                     = false;
-                aProcessStartInfo.WorkingDirectory                    = mPInfo.WorkingDirectory;
-                mProcess                                              = new System.Diagnostics.Process();
-                mProcess.StartInfo                                    = aProcessStartInfo;
+                mPInfo.Name = aMatch.Groups[1].Value;
+                aProcessStartInfo.CreateNoWindow = true;
+                aProcessStartInfo.RedirectStandardError = true;
+                aProcessStartInfo.RedirectStandardOutput = true;
+                aProcessStartInfo.UseShellExecute = false;
+                aProcessStartInfo.WorkingDirectory = mPInfo.WorkingDirectory;
+                mProcess = new System.Diagnostics.Process();
+                mProcess.StartInfo = aProcessStartInfo;
                 //add filewacthers for .rtext file and all associated extensions
-                string aExtensions                                    = mPInfo.ProcKey.Substring(mPInfo.RTextFilePath.Length, mPInfo.ProcKey.Length - mPInfo.RTextFilePath.Length);
-                Regex regexObj                                        = new Regex(@"\.\w+");
+                string aExtensions = mPInfo.ProcKey.Substring(mPInfo.RTextFilePath.Length, mPInfo.ProcKey.Length - mPInfo.RTextFilePath.Length);
+                Regex regexObj = new Regex(@"\.\w+");
                 Match matchResults = regexObj.Match(aExtensions);
                 string aExtensionsFilter = String.Empty;
                 while (matchResults.Success)
@@ -263,26 +263,26 @@ namespace RTextNppPlugin.Utilities
                                                                                         false,
                                                                                         aExtensionsFilter,
                                                                                         String.Empty,
-                                                                                        (uint)(System.IO.NotifyFilters.FileName | System.IO.NotifyFilters.LastWrite | System.IO.NotifyFilters.CreationTime | System.IO.NotifyFilters.Size | System.IO.NotifyFilters.LastAccess | System.IO.NotifyFilters.Attributes),
+                                                                                        (uint)(System.IO.NotifyFilters.FileName | System.IO.NotifyFilters.LastWrite | System.IO.NotifyFilters.CreationTime),
                                                                                         true);
                 mFileSystemWatcher.Changed += FileSystemWatcherChanged;
                 mFileSystemWatcher.Deleted += FileSystemWatcherDeleted;
                 mFileSystemWatcher.Created += FileSystemWatcherChanged;
                 mFileSystemWatcher.Renamed += FileSystemWatcherRenamed;
-                mFileSystemWatcher.Error   += ProcessError;
+                mFileSystemWatcher.Error += ProcessError;
                 //finally add .rtext wacther
                 mWorkspaceSystemWatcher = new FileSystemWactherCLRWrapper.FileSystemWatcher(System.IO.Path.GetDirectoryName(mPInfo.RTextFilePath),
                                                                                              false,
                                                                                              "*" + Constants.WORKSPACE_TYPE,
                                                                                              String.Empty,
-                                                                                             (uint)(System.IO.NotifyFilters.FileName | System.IO.NotifyFilters.LastWrite | System.IO.NotifyFilters.CreationTime | System.IO.NotifyFilters.Size | System.IO.NotifyFilters.LastAccess | System.IO.NotifyFilters.Attributes),
+                                                                                             (uint)(System.IO.NotifyFilters.FileName | System.IO.NotifyFilters.LastWrite | System.IO.NotifyFilters.CreationTime),
                                                                                              false
                                                                                            );
                 mWorkspaceSystemWatcher.Changed += OnWorkspaceSystemWatcherChanged;
                 mWorkspaceSystemWatcher.Deleted += OnWorkspaceSystemWatcherDeleted;
                 mWorkspaceSystemWatcher.Created += OnWorkspaceSystemWatcherCreated;
                 mWorkspaceSystemWatcher.Renamed += OnWorkspaceSystemWatcherRenamed;
-                mWorkspaceSystemWatcher.Error   += ProcessError;
+                mWorkspaceSystemWatcher.Error += ProcessError;
 
                 mProcess.Exited += new EventHandler(OnProcessExited);
                 //disable doskey or whatever actions are associated with cmd.exe
@@ -833,30 +833,35 @@ namespace RTextNppPlugin.Utilities
          */
         private void OnWorkspaceModified(string pathOfModifiedFile)
         {
-            mFileSystemWatcher.StopWatching();
+            //mFileSystemWatcher.StopWatching();
             if (Settings.Instance.Get<bool>(Settings.RTextNppSettings.AutoSaveFiles))
             {
                 //find .rtext file of this document 
                 string aRTextFilePath = FileUtilities.FindWorkspaceRoot(pathOfModifiedFile);
-                StringBuilder aTempCurrentFile = new StringBuilder(Win32.MAX_PATH);
-                Win32.SendMessage(Plugin.nppData._nppHandle, NppMsg.NPPM_GETFULLCURRENTPATH, 0, aTempCurrentFile);
-                //cycle through all open documents and save them before reloading model
-                foreach (var file in FileUtilities.GetListOfOpenFiles(ref Plugin.nppData))
-                {
-                    //save only unsaved files - infinite recursion is otherwise possible
-                    if (aRTextFilePath == FileUtilities.FindWorkspaceRoot(file))
-                    {
-                        Win32.SendMessage(Plugin.nppData._nppHandle, NppMsg.NPPM_SWITCHTOFILE, 0, file);
-                        Win32.SendMessage(Plugin.nppData._nppHandle, NppMsg.NPPM_SAVECURRENTFILE, 0, 0);
-                    }
-                }
-                Win32.SendMessage(Plugin.nppData._nppHandle, NppMsg.NPPM_SWITCHTOFILE, 0, aTempCurrentFile);
+                Plugin.GetFileObserver().SaveWorkspaceFiles(aRTextFilePath);
+
+                //StringBuilder aTempCurrentFile = new StringBuilder(Win32.MAX_PATH);
+                //Win32.SendMessage(Plugin.nppData._nppHandle, NppMsg.NPPM_GETFULLCURRENTPATH, 0, aTempCurrentFile);
+                ////cycle through all open documents and save them before reloading model
+                //foreach (var file in FileUtilities.GetListOfOpenFiles(ref Plugin.nppData))
+                //{
+                //    if (FileUtilities.IsAutomateFile(file))
+                //    {
+                //        //save only unsaved files - infinite recursion is otherwise possible
+                //        if ((aRTextFilePath == FileUtilities.FindWorkspaceRoot(file)) && !file.Equals(aTempCurrentFile))
+                //        {
+                //            Win32.SendMessage(Plugin.nppData._nppHandle, NppMsg.NPPM_SWITCHTOFILE, 0, file);
+                //            Win32.SendMessage(Plugin.nppData._nppHandle, NppMsg.NPPM_SAVECURRENTFILE, 0, 0);
+                //        }
+                //    }
+                //}
+                //Win32.SendMessage(Plugin.nppData._nppHandle, NppMsg.NPPM_SWITCHTOFILE, 0, aTempCurrentFile);
             }
             if (this.mConnector != null)
             {
                 RestartLoadModelTimer();
             }
-            mFileSystemWatcher.RestartWatching();
+            //mFileSystemWatcher.RestartWatching();
         }
 
         /**

@@ -115,5 +115,14 @@ namespace RTextNppPlugin.Properties {
                 return ResourceManager.GetString("RTEXT_SHOW_OUTPUT_WINDOW", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Show auto-complete list.
+        /// </summary>
+        internal static string SHOW_AUTO_COMPLETION_LIST_NAME {
+            get {
+                return ResourceManager.GetString("SHOW_AUTO_COMPLETION_LIST_NAME", resourceCulture);
+            }
+        }
     }
 }

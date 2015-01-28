@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Text;
+using System.Xml.Linq;
 
 namespace RTextNppPlugin.Utilities
 {    
@@ -110,6 +112,132 @@ namespace RTextNppPlugin.Utilities
                 }
             }
             return aFiles;
+        }
+
+        /**
+         * Gets npp configuration directory.
+         *
+         * \return  The npp configuration directory.
+         */
+        public static string GetNppConfigDirectory()
+        {
+            StringBuilder sbIniFilePath = new StringBuilder(Win32.MAX_PATH);
+            Win32.SendMessage(Plugin.nppData._nppHandle, NppMsg.NPPM_GETPLUGINSCONFIGDIR, Win32.MAX_PATH, sbIniFilePath);
+            string configDir = sbIniFilePath.ToString();
+
+            try
+            {
+                if (Directory.Exists(configDir))
+                {
+                    return configDir;
+                }
+                return null;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
+        /**
+         * \brief   Query if 'file' is an automate file.
+         *
+         * \param   file    The file.
+         *
+         * \return  true if file parameter is an automate file, false if not.      
+         */
+        public static bool IsAutomateFile(string file)
+        {
+            try
+            {
+                string fileExt = Path.GetExtension(file);
+                if (fileExt.StartsWith("."))
+                {
+                    fileExt = fileExt.Remove(0, 1);
+                }
+                //list of excluded extensions
+                List<string> aExlusionList = new List<string>(Settings.Instance.Get(Settings.RTextNppSettings.ExcludeExtensions).Split(';'));
+
+                //get npp configuration directory
+                //get list of supported extensions
+                string configDir = GetNppConfigDirectory();
+                if (!String.IsNullOrEmpty(configDir))
+                {
+                    //try to open external lexer configuration file
+                    XDocument xmlDom = XDocument.Load(configDir + @"\" + Constants.EX_LEXER_CONFIG_FILENAME);
+                    if (fileExt.Equals((xmlDom.Root.Element("Languages").Element("Language").Attribute("ext").Value), StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        return !aExlusionList.Contains(fileExt);
+                    }
+                    //check user defined extensions as well
+                    string additionalExt = xmlDom.Root.Element("LexerStyles").Element("LexerType").Attribute("ext").Value;
+                    if (!String.IsNullOrWhiteSpace(additionalExt))
+                    {
+                        foreach (var ext in additionalExt.Split(' '))
+                        {
+                            if (fileExt.Equals(ext, StringComparison.InvariantCultureIgnoreCase))
+                            {
+                                return !aExlusionList.Contains(fileExt);
+                            }
+                        }
+                    }
+
+                }
+                return false;
+            }
+            catch (Exception ex)
+            {
+                Logging.Logger.Instance.Append(Logging.Logger.MessageType.Error, Constants.GENERAL_CHANNEL, "FileUtilities.IsAutomateFile exception : {0}", ex.Message);
+                return false;
+            }
+
+        }
+
+        /**
+         * Gets current file path.
+         *
+         * \return  The file path of the currently viewed document.
+         */
+        public static string GetCurrentFilePath()
+        {
+            NppMsg msg = NppMsg.NPPM_GETFULLCURRENTPATH;
+            StringBuilder path = new StringBuilder(Win32.MAX_PATH);
+            Win32.SendMessage(Plugin.nppData._nppHandle, msg, 0, path);
+            return path.ToString();
+        }
+
+        /**
+         * Query if 'file' is file modified.
+         *
+         * \param   file    The file.
+         *
+         * \return  true if file is considered to be modified, false if not.
+         */
+        public static bool IsFileModified(string file)
+        {
+            IntPtr sci = Plugin.GetCurrentScintilla();
+            return ((int)Win32.SendMessage(sci, SciMsg.SCI_GETMODIFY, 0, 0) != 0);  
+        }
+
+        /**
+         * Saves the currently viewed file.
+         *
+         * \param   file    The file.
+         */
+        public static void SaveFile(string file)
+        {
+            Win32.SendMessage(Plugin.nppData._nppHandle, NppMsg.NPPM_SWITCHTOFILE, 0, file);
+            Win32.SendMessage(Plugin.nppData._nppHandle, NppMsg.NPPM_SAVECURRENTFILE, 0, 0);
+        }
+
+        /**
+         * Switches active view to file.
+         *
+         * \param   file    The file.
+         */
+        public static void SwitchToFile(string file)
+        {
+            Win32.SendMessage(Plugin.nppData._nppHandle, NppMsg.NPPM_SWITCHTOFILE, 0, file);
         }
     }
 }

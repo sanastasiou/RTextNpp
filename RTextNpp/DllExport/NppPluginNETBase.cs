@@ -10,6 +10,11 @@ namespace RTextNppPlugin
         #endregion
 
         #region " Helper "
+        internal static void SetCommand(int index, string commandName, NppFuncItemDelegate functionPointer, string shortcut)
+        {
+            SetCommand(index, commandName, functionPointer, new ShortcutKey(shortcut), false);
+        }
+
         internal static void SetCommand(int index, string commandName, NppFuncItemDelegate functionPointer)
         {
             SetCommand(index, commandName, functionPointer, new ShortcutKey(), false);

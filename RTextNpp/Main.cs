@@ -14,18 +14,20 @@ using System.Reflection;
 using System.Diagnostics;
 using RTextNppPlugin.Utilities;
 using RTextNppPlugin.Utilities.WpfControlHost;
+using RTextNppPlugin.Automate;
+using RTextNppPlugin.Forms;
 
 namespace RTextNppPlugin
 {
     partial class Plugin
     {
         #region " Fields "
-        private static PersistentWpfControlHost<ConsoleOutputForm> _consoleOutput = new PersistentWpfControlHost<ConsoleOutputForm>(Settings.RTextNppSettings.ConsoleWindowActive);        
-        private static Automate.ConnectorManager _connectorManager = Automate.ConnectorManager.Instance;
-        private static Forms.Options _options = new Forms.Options();
+        private static PersistentWpfControlHost<ConsoleOutputForm> _consoleOutput = new PersistentWpfControlHost<ConsoleOutputForm>(Settings.RTextNppSettings.ConsoleWindowActive);
+        private static ConnectorManager _connectorManager = Automate.ConnectorManager.Instance;
+        private static Options _options = new Forms.Options();
+        private static FileModificationObserver _fileObserver = new FileModificationObserver();
 
         public const string PluginName = "RTextNpp";
-        static bool doCloseTag = false;
         static Bitmap tbBmp = Properties.Resources.ConsoleIcon;
         static Bitmap tbBmp_tbTab = Properties.Resources.ConsoleIcon;
         static Icon tbIcon = null;
@@ -36,190 +38,41 @@ namespace RTextNppPlugin
 
         static internal void CommandMenuInit()
         {
+            CSScriptIntellisense.KeyInterceptor.Instance.Install();
+
             SetCommand((int)Constants.NppMenuCommands.ConsoleWindow, Properties.Resources.RTEXT_SHOW_OUTPUT_WINDOW, ShowConsoleOutput, new ShortcutKey(false, true, true, Keys.R));
             SetCommand((int)Constants.NppMenuCommands.Options, Properties.Resources.RTEXT_SHOW_OPTIONS_WINDOW, ModifyOptions, new ShortcutKey(true, false, true, Keys.R));
+            SetCommand((int)Constants.NppMenuCommands.AutoCompletion, Properties.Resources.SHOW_AUTO_COMPLETION_LIST_NAME, ShowAutoCompletionList, "Ctrl+Space");
 
             _connectorManager.initialize(nppData);
+
+            CSScriptIntellisense.KeyInterceptor.Instance.KeyDown += OnKeyInterceptorKeyDown;
+            CSScriptIntellisense.KeyInterceptor.Instance.Add(Keys.Tab, Keys.Enter, Keys.Escape);
+
             System.Diagnostics.Debugger.Launch();
         }
 
-        static internal void SetToolBarIcon()
+        static void OnKeyInterceptorKeyDown(Keys key, int repeatCount, ref bool handled)
         {
-            toolbarIcons tbIcons = new toolbarIcons();
-            tbIcons.hToolbarBmp = tbBmp.GetHbitmap();
-            IntPtr pTbIcons = Marshal.AllocHGlobal(Marshal.SizeOf(tbIcons));
-            Marshal.StructureToPtr(tbIcons, pTbIcons, false);
-            Win32.SendMessage(nppData._nppHandle, NppMsg.NPPM_ADDTOOLBARICON, _funcItems.Items[(int)Constants.NppMenuCommands.ConsoleWindow]._cmdID, pTbIcons);
-            Marshal.FreeHGlobal(pTbIcons);
+            Trace.WriteLine("Key {0} pressed...");
         }
 
         static internal void PluginCleanUp()
         {
-
+            CSScriptIntellisense.KeyInterceptor.Instance.Remove(Keys.Tab, Keys.Enter, Keys.Escape);
+            CSScriptIntellisense.KeyInterceptor.Instance.KeyDown -= OnKeyInterceptorKeyDown;
+            _fileObserver.CleanBackup();
         }
         #endregion
 
-        #region " Menu functions "
-        static void hello()
+        #region [Commands]
+
+        /**
+         * Shows the automatic completion list.
+         */
+        static void ShowAutoCompletionList()
         {
-            // Open a new document
-            Win32.SendMessage(nppData._nppHandle, NppMsg.NPPM_MENUCOMMAND, 0, NppMenuCmd.IDM_FILE_NEW);
-            // Say hello now :
-            // Scintilla control has no Unicode mode, so we use ANSI here (marshalled as ANSI by default)
-            Win32.SendMessage(GetCurrentScintilla(), SciMsg.SCI_SETTEXT, 0, "Hello, Notepad++... from .NET!");
-        }
-        static void helloFX()
-        {
-            hello();
-            new Thread(callbackHelloFX).Start();
-        }
-        static void callbackHelloFX()
-        {
-            IntPtr curScintilla = GetCurrentScintilla();
-            int currentZoomLevel = (int)Win32.SendMessage(curScintilla, SciMsg.SCI_GETZOOM, 0, 0);
-            int i = currentZoomLevel;
-            for (int j = 0; j < 4; j++)
-            {
-                for (; i >= -10; i--)
-                {
-                    Win32.SendMessage(curScintilla, SciMsg.SCI_SETZOOM, i, 0);
-                    Thread.Sleep(30);
-                }
-                Thread.Sleep(100);
-                for (; i <= 20; i++)
-                {
-                    Thread.Sleep(30);
-                    Win32.SendMessage(curScintilla, SciMsg.SCI_SETZOOM, i, 0);
-                }
-                Thread.Sleep(100);
-            }
-            for (; i >= currentZoomLevel; i--)
-            {
-                Thread.Sleep(30);
-                Win32.SendMessage(curScintilla, SciMsg.SCI_SETZOOM, i, 0);
-            }
-        }
-        static void WhatIsNpp()
-        {
-            string text2display = "Notepad++ is a free (as in \"free speech\" and also as in \"free beer\") " +
-                "source code editor and Notepad replacement that supports several languages.\n" +
-                "Running in the MS Windows environment, its use is governed by GPL License.\n\n" +
-                "Based on a powerful editing component Scintilla, Notepad++ is written in C++ and " +
-                "uses pure Win32 API and STL which ensures a higher execution speed and smaller program size.\n" +
-                "By optimizing as many routines as possible without losing user friendliness, Notepad++ is trying " +
-                "to reduce the world carbon dioxide emissions. When using less CPU power, the PC can throttle down " +
-                "and reduce power consumption, resulting in a greener environment.";
-            new Thread(new ParameterizedThreadStart(callbackWhatIsNpp)).Start(text2display);
-        }
-        static void callbackWhatIsNpp(object data)
-        {
-            string text2display = (string)data;
-            // Open a new document
-            Win32.SendMessage(nppData._nppHandle, NppMsg.NPPM_MENUCOMMAND, 0, NppMenuCmd.IDM_FILE_NEW);
-
-            // Get the current scintilla
-            IntPtr curScintilla = GetCurrentScintilla();
-
-            Random srand = new Random(DateTime.Now.Millisecond);
-            int rangeMin = 0;
-            int rangeMax = 250;
-            for (int i = 0; i < text2display.Length; i++)
-            {
-                StringBuilder charToShow = new StringBuilder(text2display[i].ToString());
-
-                int ranNum = srand.Next(rangeMin, rangeMax);
-                Thread.Sleep(ranNum + 30);
-
-                Win32.SendMessage(curScintilla, SciMsg.SCI_APPENDTEXT, 1, charToShow);
-                Win32.SendMessage(curScintilla, SciMsg.SCI_GOTOPOS, (int)Win32.SendMessage(curScintilla, SciMsg.SCI_GETLENGTH, 0, 0), 0);
-            }
-        }
-
-        static void insertCurrentPath(NppMsg which)
-        {
-            NppMsg msg = NppMsg.NPPM_GETFULLCURRENTPATH;
-            if (which == NppMsg.FILE_NAME)
-                msg = NppMsg.NPPM_GETFILENAME;
-            else if (which == NppMsg.CURRENT_DIRECTORY)
-                msg = NppMsg.NPPM_GETCURRENTDIRECTORY;
-
-            StringBuilder path = new StringBuilder(Win32.MAX_PATH);
-            Win32.SendMessage(nppData._nppHandle, msg, 0, path);
-
-            Win32.SendMessage(GetCurrentScintilla(), SciMsg.SCI_REPLACESEL, 0, path);
-        }
-
-        static void insertDateTime(bool longFormat)
-        {
-            string dateTime = string.Format("{0} {1}",
-                DateTime.Now.ToShortTimeString(),
-                longFormat ? DateTime.Now.ToLongDateString() : DateTime.Now.ToShortDateString());
-            Win32.SendMessage(GetCurrentScintilla(), SciMsg.SCI_REPLACESEL, 0, dateTime);
-        }
-
-        static void checkInsertHtmlCloseTag()
-        {
-            doCloseTag = !doCloseTag;
-
-            int i = Win32.CheckMenuItem(Win32.GetMenu(nppData._nppHandle), _funcItems.Items[9]._cmdID,
-                Win32.MF_BYCOMMAND | (doCloseTag ? Win32.MF_CHECKED : Win32.MF_UNCHECKED));
-        }
-        static internal void doInsertHtmlCloseTag(char newChar)
-        {
-            LangType docType = LangType.L_TEXT;
-            Win32.SendMessage(nppData._nppHandle, NppMsg.NPPM_GETCURRENTLANGTYPE, 0, ref docType);
-            bool isDocTypeHTML = (docType == LangType.L_HTML || docType == LangType.L_XML || docType == LangType.L_PHP);
-            if (doCloseTag && isDocTypeHTML)
-            {
-                if (newChar == '>')
-                {
-                    int bufCapacity = 512;
-                    IntPtr hCurrentEditView = GetCurrentScintilla();
-                    int currentPos = (int)Win32.SendMessage(hCurrentEditView, SciMsg.SCI_GETCURRENTPOS, 0, 0);
-                    int beginPos = currentPos - (bufCapacity - 1);
-                    int startPos = (beginPos > 0) ? beginPos : 0;
-                    int size = currentPos - startPos;
-
-                    if (size >= 3)
-                    {
-                        using (Sci_TextRange tr = new Sci_TextRange(startPos, currentPos, bufCapacity))
-                        {                            
-                            Win32.SendMessage(hCurrentEditView, SciMsg.SCI_GETTEXTRANGE, 0, tr.NativePointer);
-                            string buf = tr.lpstrText;
-
-                            if (buf[size - 2] != '/')
-                            {
-                                StringBuilder insertString = new StringBuilder("</");
-
-                                int pCur = size - 2;
-                                for (; (pCur > 0) && (buf[pCur] != '<') && (buf[pCur] != '>'); )
-                                    pCur--;
-
-                                if (buf[pCur] == '<')
-                                {
-                                    pCur++;
-
-                                    Regex regex = new Regex(@"[\._\-:\w]");
-                                    while (regex.IsMatch(buf[pCur].ToString()))
-                                    {
-                                        insertString.Append(buf[pCur]);
-                                        pCur++;
-                                    }
-                                    insertString.Append('>');
-
-                                    if (insertString.Length > 3)
-                                    {
-                                        Win32.SendMessage(hCurrentEditView, SciMsg.SCI_BEGINUNDOACTION, 0, 0);
-                                        Win32.SendMessage(hCurrentEditView, SciMsg.SCI_REPLACESEL, 0, insertString);
-                                        Win32.SendMessage(hCurrentEditView, SciMsg.SCI_SETSEL, currentPos, currentPos);
-                                        Win32.SendMessage(hCurrentEditView, SciMsg.SCI_ENDUNDOACTION, 0, 0);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+            Trace.WriteLine("Launching auto completion...");
         }
 
         /**
@@ -228,7 +81,7 @@ namespace RTextNppPlugin
         static void ModifyOptions()
         {
             Win32.SendMessage(nppData._nppHandle, NppMsg.NPPM_MODELESSDIALOG, (int)NppMsg.MODELESSDIALOGADD, _options.Handle.ToInt32());
-            if( _options.ShowDialog(Control.FromHandle(nppData._nppHandle)) == DialogResult.OK )
+            if (_options.ShowDialog(Control.FromHandle(nppData._nppHandle)) == DialogResult.OK)
             {
                 _options.SaveSettings();
             }
@@ -286,7 +139,96 @@ namespace RTextNppPlugin
             }
             _consoleOutput.Focus();
         }
-        
+
+        #endregion
+
+        #region [Event Handlers]
+
+        static internal void SetToolBarIcon()
+        {
+            toolbarIcons tbIcons = new toolbarIcons();
+            tbIcons.hToolbarBmp = tbBmp.GetHbitmap();
+            IntPtr pTbIcons = Marshal.AllocHGlobal(Marshal.SizeOf(tbIcons));
+            Marshal.StructureToPtr(tbIcons, pTbIcons, false);
+            Win32.SendMessage(nppData._nppHandle, NppMsg.NPPM_ADDTOOLBARICON, _funcItems.Items[(int)Constants.NppMenuCommands.ConsoleWindow]._cmdID, pTbIcons);
+            Marshal.FreeHGlobal(pTbIcons);
+        }
+
+        /**
+         * Handles file opened event to start backend process, in case the relevant  backend process is not yet started.
+         */
+        public static void OnFileOpened()
+        {            
+            string aFileOpened = FileUtilities.GetCurrentFilePath();
+            _connectorManager.createConnector(aFileOpened);
+            _fileObserver.OnFileOpened(aFileOpened);
+        }
+
+        /**
+         * Occurs when undo operation exists for the current document.
+         */
+        public static void OnFileConsideredModified()
+        {
+            _fileObserver.OnFileOpened(FileUtilities.GetCurrentFilePath());
+        }
+
+        /**
+         * Occurs when no undo operation exist for the current document.
+         */
+        public static void OnFileConsideredUnmodified()
+        {
+            _fileObserver.OnFileOpened(FileUtilities.GetCurrentFilePath());
+        }
+
+        /**
+         * Gets file modification observer. Can be used to save all opened files of a workspace.
+         *
+         * \return  The file observer.
+         */
+        public static FileModificationObserver GetFileObserver()
+        {
+            return _fileObserver;
+        }
+
+        #endregion
+
+        #region [Helpers]
+
+        /**
+         * Enumerates bind interanal shortcuts in this collection.
+         *
+         * \return  An enumerator that allows foreach to be used to process interanal shortcuts.
+         */
+        static IEnumerable<Keys> BindInteranalShortcuts()
+        {
+            var uniqueKeys = new Dictionary<Keys, int>();
+
+            AddInternalShortcuts("_ShowAutoComplete:Ctrl+Space",
+                                 "Show auto-complete list",
+                                  ShowAutoCompletionList, uniqueKeys);
+
+            //AddInternalShortcuts("_FindAllReferences:Shift+F12",
+            //                     "Find All References",
+            //                      FindAllReferences, uniqueKeys);
+
+            //AddInternalShortcuts("_GoToDefinition:F12",
+            //                     "Go To Definition",
+            //                      GoToDefinition, uniqueKeys);
+
+            return uniqueKeys.Keys;
+        }
+
+        static void AddInternalShortcuts(string shortcutSpec, string displayName, Action handler, Dictionary<Keys, int> uniqueKeys)
+        {
+            //ShortcutKey shortcut = Plugin.ParseAsShortcutKey(shortcutSpec);
+
+            //internalShortcuts.Add(shortcut, new Tuple<string, Action>(displayName, handler));
+
+            //var key = (Keys)shortcut._key;
+            //if (!uniqueKeys.ContainsKey(key))
+            //    uniqueKeys.Add(key, 0);
+        }
+
         static internal void LoadSettings()
         {
             //Assembly assembly = Assembly.GetExecutingAssembly();
@@ -300,34 +242,6 @@ namespace RTextNppPlugin
             }
             //Logging.Logger.Instance.Append("User settings loaded.", Logging.Logger.MessageType.Info);
         }
-
-        #endregion
-
-        #region [Event Handlers]
-
-        /**
-         * Handles file opened event to start backend process, in case the relevant  backend process is not yet started.
-         */
-        public static void OnFileOpened()
-        {
-            //get active file
-            NppMsg msg = NppMsg.NPPM_GETFULLCURRENTPATH;
-            StringBuilder path = new StringBuilder(Win32.MAX_PATH);
-            Win32.SendMessage(nppData._nppHandle, msg, 0, path);
-            _connectorManager.createConnector(path.ToString());
-        }      
-
-        /**
-         * \brief   Pre start backend process at startup.
-         */
-        public static void PrestartBackend()
-        {
-            foreach(var file in Utilities.FileUtilities.GetListOfOpenFiles(ref nppData) )
-            {
-                _connectorManager.createConnector(file);
-            }
-        }
-
         #endregion
     }
 }

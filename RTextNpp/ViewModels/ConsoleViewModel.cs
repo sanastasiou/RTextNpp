@@ -22,6 +22,9 @@ namespace RTextNppPlugin.ViewModels
          */
         public ConsoleViewModel()
         {
+            #if DEBUG
+            addWorkspace(Constants.DEBUG_CHANNEL);
+            #endif
             addWorkspace(Constants.GENERAL_CHANNEL);            
             //subscribe to connector manager for workspace events
             ConnectorManager.Instance.OnConnectorAdded += ConnectorManagerOnConnectorAdded;

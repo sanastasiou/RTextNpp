@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows.Forms;
+using System.Linq;
 
 namespace RTextNppPlugin
 {
@@ -20,6 +21,17 @@ namespace RTextNppPlugin
     [StructLayout(LayoutKind.Sequential)]
     public struct ShortcutKey
     {
+        public ShortcutKey(string data)
+        {
+            //Ctrl+Shift+Alt+Key
+            var parts = data.Split('+');
+            _key = Convert.ToByte(Enum.Parse(typeof(Keys), parts.Last()));
+            parts = parts.Take(parts.Length - 1).ToArray();
+            _isCtrl = Convert.ToByte(parts.Contains("Ctrl"));
+            _isShift = Convert.ToByte(parts.Contains("Shift"));
+            _isAlt = Convert.ToByte(parts.Contains("Alt"));
+        }
+
         public ShortcutKey(bool isCtrl, bool isAlt, bool isShift, Keys key)
         {
             // the types 'bool' and 'char' have a size of 1 byte only!

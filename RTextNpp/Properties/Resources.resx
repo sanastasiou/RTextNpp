@@ -139,4 +139,8 @@
     <value>Show/Hide RText++ output window</value>
     <comment>Menu text for RText++ output window activation.</comment>
   </data>
+  <data name="SHOW_AUTO_COMPLETION_LIST_NAME" xml:space="preserve">
+    <value>Show auto-complete list</value>
+    <comment>Command for showing auto completion list.</comment>
+  </data>
 </root>

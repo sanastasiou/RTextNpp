@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             this.CancelOptionsButton = new System.Windows.Forms.Button();
             this.SaveOptionsButton = new System.Windows.Forms.Button();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
@@ -47,12 +48,21 @@
             this._autoSelectWorkspaceCheckBox = new System.Windows.Forms.CheckBox();
             this.tabPage3 = new System.Windows.Forms.TabPage();
             this.tabPage4 = new System.Windows.Forms.TabPage();
+            this._tooltipPlaceholder = new System.Windows.Forms.ToolTip(this.components);
+            this.groupBox4 = new System.Windows.Forms.GroupBox();
+            this.groupBox5 = new System.Windows.Forms.GroupBox();
+            this._excludeExtensionsTextBox = new System.Windows.Forms.TextBox();
+            this.label3 = new System.Windows.Forms.Label();
+            this._exludeExtensionsErrorProvider = new System.Windows.Forms.ErrorProvider(this.components);
             this.groupBox1.SuspendLayout();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.groupBox3.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.tabPage2.SuspendLayout();
+            this.groupBox4.SuspendLayout();
+            this.groupBox5.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this._exludeExtensionsErrorProvider)).BeginInit();
             this.SuspendLayout();
             // 
             // CancelOptionsButton
@@ -189,9 +199,8 @@
             // 
             // tabPage2
             // 
-            this.tabPage2.Controls.Add(this._autoloadWorkspaceCheckButton);
-            this.tabPage2.Controls.Add(this._autoSaveFileCheckBox);
-            this.tabPage2.Controls.Add(this._autoSelectWorkspaceCheckBox);
+            this.tabPage2.Controls.Add(this.groupBox5);
+            this.tabPage2.Controls.Add(this.groupBox4);
             this.tabPage2.Location = new System.Drawing.Point(4, 22);
             this.tabPage2.Name = "tabPage2";
             this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
@@ -203,7 +212,7 @@
             // _autoloadWorkspaceCheckButton
             // 
             this._autoloadWorkspaceCheckButton.AutoSize = true;
-            this._autoloadWorkspaceCheckButton.Location = new System.Drawing.Point(6, 52);
+            this._autoloadWorkspaceCheckButton.Location = new System.Drawing.Point(6, 65);
             this._autoloadWorkspaceCheckButton.Name = "_autoloadWorkspaceCheckButton";
             this._autoloadWorkspaceCheckButton.Size = new System.Drawing.Size(224, 17);
             this._autoloadWorkspaceCheckButton.TabIndex = 2;
@@ -213,7 +222,7 @@
             // _autoSaveFileCheckBox
             // 
             this._autoSaveFileCheckBox.AutoSize = true;
-            this._autoSaveFileCheckBox.Location = new System.Drawing.Point(6, 29);
+            this._autoSaveFileCheckBox.Location = new System.Drawing.Point(6, 42);
             this._autoSaveFileCheckBox.Name = "_autoSaveFileCheckBox";
             this._autoSaveFileCheckBox.Size = new System.Drawing.Size(251, 17);
             this._autoSaveFileCheckBox.TabIndex = 1;
@@ -223,7 +232,7 @@
             // _autoSelectWorkspaceCheckBox
             // 
             this._autoSelectWorkspaceCheckBox.AutoSize = true;
-            this._autoSelectWorkspaceCheckBox.Location = new System.Drawing.Point(6, 6);
+            this._autoSelectWorkspaceCheckBox.Location = new System.Drawing.Point(6, 19);
             this._autoSelectWorkspaceCheckBox.Name = "_autoSelectWorkspaceCheckBox";
             this._autoSelectWorkspaceCheckBox.Size = new System.Drawing.Size(206, 17);
             this._autoSelectWorkspaceCheckBox.TabIndex = 0;
@@ -250,6 +259,51 @@
             this.tabPage4.Text = "Auto Completion";
             this.tabPage4.UseVisualStyleBackColor = true;
             // 
+            // groupBox4
+            // 
+            this.groupBox4.Controls.Add(this._autoSelectWorkspaceCheckBox);
+            this.groupBox4.Controls.Add(this._autoloadWorkspaceCheckButton);
+            this.groupBox4.Controls.Add(this._autoSaveFileCheckBox);
+            this.groupBox4.Location = new System.Drawing.Point(6, 6);
+            this.groupBox4.Name = "groupBox4";
+            this.groupBox4.Size = new System.Drawing.Size(278, 91);
+            this.groupBox4.TabIndex = 3;
+            this.groupBox4.TabStop = false;
+            this.groupBox4.Text = "General Settings";
+            // 
+            // groupBox5
+            // 
+            this.groupBox5.Controls.Add(this.label3);
+            this.groupBox5.Controls.Add(this._excludeExtensionsTextBox);
+            this.groupBox5.Location = new System.Drawing.Point(6, 103);
+            this.groupBox5.Name = "groupBox5";
+            this.groupBox5.Size = new System.Drawing.Size(278, 53);
+            this.groupBox5.TabIndex = 4;
+            this.groupBox5.TabStop = false;
+            this.groupBox5.Text = "Exclude extensions";
+            // 
+            // _excludeExtensionsTextBox
+            // 
+            this._excludeExtensionsTextBox.Location = new System.Drawing.Point(59, 19);
+            this._excludeExtensionsTextBox.Name = "_excludeExtensionsTextBox";
+            this._excludeExtensionsTextBox.Size = new System.Drawing.Size(192, 20);
+            this._excludeExtensionsTextBox.TabIndex = 5;
+            this._excludeExtensionsTextBox.Text = "meta;";
+            this._excludeExtensionsTextBox.Validating += new System.ComponentModel.CancelEventHandler(this.OnValidatingExcludedExtensions);
+            // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.Location = new System.Drawing.Point(5, 22);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(51, 13);
+            this.label3.TabIndex = 5;
+            this.label3.Text = "Exclude :";
+            // 
+            // _exludeExtensionsErrorProvider
+            // 
+            this._exludeExtensionsErrorProvider.ContainerControl = this;
+            // 
             // Options
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -264,6 +318,7 @@
             this.ShowIcon = false;
             this.ShowInTaskbar = false;
             this.Text = "Options";
+            this.Load += new System.EventHandler(this.OnOptionsFormLoad);
             this.groupBox1.ResumeLayout(false);
             this.tabControl1.ResumeLayout(false);
             this.tabPage1.ResumeLayout(false);
@@ -272,7 +327,11 @@
             this.groupBox2.ResumeLayout(false);
             this.groupBox2.PerformLayout();
             this.tabPage2.ResumeLayout(false);
-            this.tabPage2.PerformLayout();
+            this.groupBox4.ResumeLayout(false);
+            this.groupBox4.PerformLayout();
+            this.groupBox5.ResumeLayout(false);
+            this.groupBox5.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this._exludeExtensionsErrorProvider)).EndInit();
             this.ResumeLayout(false);
 
         }
@@ -298,5 +357,11 @@
         private System.Windows.Forms.CheckBox _autoloadWorkspaceCheckButton;
         private System.Windows.Forms.CheckBox _autoSaveFileCheckBox;
         private System.Windows.Forms.CheckBox _autoSelectWorkspaceCheckBox;
+        private System.Windows.Forms.ToolTip _tooltipPlaceholder;
+        private System.Windows.Forms.GroupBox groupBox5;
+        private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.TextBox _excludeExtensionsTextBox;
+        private System.Windows.Forms.GroupBox groupBox4;
+        private System.Windows.Forms.ErrorProvider _exludeExtensionsErrorProvider;
     }
 }

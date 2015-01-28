@@ -45,7 +45,8 @@ namespace RTextNppPlugin.Utilities
             ConsoleWindowActive,
             AutoLoadWorkspace,
             AutoSaveFiles,
-            AutoChangeWorkspace
+            AutoChangeWorkspace,
+            ExcludeExtensions
         }
 
         #region [Implementation Details]
@@ -76,6 +77,20 @@ namespace RTextNppPlugin.Utilities
                 }
                 return _instance;
             }
+        }
+
+        public string Get(RTextNppSettings settingKey)
+        {
+            string setting = String.Empty;
+            try
+            {
+                ConfigurationSetter.readSetting(ref setting, _settingKeys[(int)settingKey]);
+            }
+            catch (Exception ex)
+            {
+                Logger.Instance.Append(Logger.MessageType.Error, Constants.GENERAL_CHANNEL, "Could not read setting {0} - exception : {1}", settingKey, ex.Message);
+            }
+            return setting;
         }
 
         public T Get<T>(RTextNppSettings settingKey) where T : new()

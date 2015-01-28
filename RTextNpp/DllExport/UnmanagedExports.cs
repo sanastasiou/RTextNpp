@@ -1,6 +1,7 @@
 ﻿using RGiesecke.DllExport;
 using System;
 using System.Runtime.InteropServices;
+using RTextNppPlugin.Utilities;
 
 namespace RTextNppPlugin
 {
@@ -57,10 +58,18 @@ namespace RTextNppPlugin
                     break;
                 case (uint)NppMsg.NPPN_READY:
                     Plugin.LoadSettings();
-                    Plugin.PrestartBackend();
                     break;
                 case (uint)NppMsg.NPPN_BUFFERACTIVATED:
                     Plugin.OnFileOpened();
+                    Logging.Logger.Instance.Append("File {0} is modification status : {1}", FileUtilities.GetCurrentFilePath(), FileUtilities.IsFileModified(FileUtilities.GetCurrentFilePath()));
+                    break;
+                case (uint)SciMsg.SCN_SAVEPOINTLEFT:
+                    Plugin.OnFileConsideredModified();
+                    Logging.Logger.Instance.Append("Catching SCN_SAVEPOINTLEFT for file : {0}", FileUtilities.GetCurrentFilePath());
+                    break;
+                case (uint)SciMsg.SCN_SAVEPOINTREACHED:
+                    Plugin.OnFileConsideredUnmodified();
+                    Logging.Logger.Instance.Append("Catching SCN_SAVEPOINTREACHED for file : {0}", FileUtilities.GetCurrentFilePath());
                     break;
             }
         }

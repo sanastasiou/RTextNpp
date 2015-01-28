@@ -59,6 +59,13 @@ namespace RTextNppPlugin.Logging
             }
         }
 
+        public void Append(string msg, params object[] args)
+        {
+            #if DEBUG
+            Append(MessageType.Info, Constants.DEBUG_CHANNEL, String.Format(msg, args));
+            #endif
+        }
+
         public void Append(MessageType type, string channel, string msg, params object[] args)
         {
             Append(type, channel, String.Format(msg, args));
