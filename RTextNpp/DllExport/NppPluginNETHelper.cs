@@ -44,6 +44,15 @@ namespace RTextNppPlugin
         public byte _isAlt;
         public byte _isShift;
         public byte _key;
+
+        public bool IsCtrl { get { return _isCtrl != 0; } }
+        public bool IsShift { get { return _isShift != 0; } }
+        public bool IsAlt { get { return _isAlt != 0; } }
+
+        public bool IsSet
+        {
+            get { return _key != 0; }
+        }
     }
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
@@ -644,6 +653,12 @@ namespace RTextNppPlugin
         //scnNotification->nmhdr.code = NPPN_DOCORDERCHANGED;
         //scnNotification->nmhdr.hwndFrom = newIndex;
         //scnNotification->nmhdr.idFrom = BufferID;
+    }
+
+    [Flags]
+    public enum WinMsg : int
+    {
+        WM_COMMAND = 0x111
     }
 
     public enum NppMenuCmd : uint
@@ -1427,6 +1442,7 @@ namespace RTextNppPlugin
         SCI_FINDTEXT = 2150,
         SCI_FORMATRANGE = 2151,
         SCI_GETFIRSTVISIBLELINE = 2152,
+        SCI_SETFIRSTVISIBLELINE = 2613,
         SCI_GETLINE = 2153,
         SCI_GETLINECOUNT = 2154,
         SCI_SETMARGINLEFT = 2155,
@@ -2097,6 +2113,29 @@ namespace RTextNppPlugin
         public static extern IntPtr SendMessage(IntPtr hWnd, SciMsg Msg, int wParam, [MarshalAs(UnmanagedType.LPStr)] StringBuilder lParam);
         [DllImport("user32")]
         public static extern IntPtr SendMessage(IntPtr hWnd, SciMsg Msg, int wParam, int lParam);
+
+        public static IntPtr SendMessage(IntPtr hWnd, SciMsg Msg, string text)
+        {
+            byte[] bites = Encoding.UTF8.GetBytes(text);
+            IntPtr ip = ToUnmanagedArray(bites);
+            var result = Win32.SendMessage(hWnd, Msg, bites.Length, ip);
+            Marshal.FreeHGlobal(ip);
+            return result;
+        }
+
+        static IntPtr ToUnmanagedArray(byte[] data)
+        {
+            unsafe
+            {
+                int newSizeInBytes = Marshal.SizeOf(typeof(byte)) * data.Length + 2;
+                byte* newArrayPointer = (byte*)Marshal.AllocHGlobal(newSizeInBytes).ToPointer();
+
+                for (int i = 0; i < newSizeInBytes; i++)
+                    *(newArrayPointer + i) = (i < data.Length ? data[i] : (byte)0);
+
+                return (IntPtr)newArrayPointer;
+            }
+        }
 
         public const int MAX_PATH = 260;
         [DllImport("kernel32")]

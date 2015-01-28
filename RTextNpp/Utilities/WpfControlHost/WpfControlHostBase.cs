@@ -15,6 +15,14 @@ namespace RTextNppPlugin.Utilities.WpfControlHost
     {
 
         #region Interface
+
+        /**
+         * Gets the underlying element host.
+         *
+         * \return  The element host.
+         */
+        public System.Windows.Forms.Form ElementHost { get { return _elementHost; } }
+       
         /**
          * Constructor.
          *

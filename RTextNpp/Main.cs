@@ -16,6 +16,7 @@ using RTextNppPlugin.Utilities;
 using RTextNppPlugin.Utilities.WpfControlHost;
 using RTextNppPlugin.Automate;
 using RTextNppPlugin.Forms;
+using System.Threading.Tasks;
 
 namespace RTextNppPlugin
 {
@@ -26,12 +27,15 @@ namespace RTextNppPlugin
         private static ConnectorManager _connectorManager = Automate.ConnectorManager.Instance;
         private static Options _options = new Forms.Options();
         private static FileModificationObserver _fileObserver = new FileModificationObserver();
+        private static Dictionary<ShortcutKey, Tuple<string, Action>> internalShortcuts = new Dictionary<ShortcutKey, Tuple<string, Action>>();
+        private static WpfControlHostBase<AutoCompletionForm> _autoCompletionForm = null;
 
         public const string PluginName = "RTextNpp";
         static Bitmap tbBmp = Properties.Resources.ConsoleIcon;
         static Bitmap tbBmp_tbTab = Properties.Resources.ConsoleIcon;
         static Icon tbIcon = null;
         static bool _consoleInitialized = false;
+        static bool _invokeInProgress = false;        
         #endregion
 
         #region " Startup/CleanUp "
@@ -45,6 +49,11 @@ namespace RTextNppPlugin
             SetCommand((int)Constants.NppMenuCommands.AutoCompletion, Properties.Resources.SHOW_AUTO_COMPLETION_LIST_NAME, ShowAutoCompletionList, "Ctrl+Space");
 
             _connectorManager.initialize(nppData);
+            foreach(var key in BindInteranalShortcuts())
+            {
+                CSScriptIntellisense.KeyInterceptor.Instance.Add(key);                
+            }
+
 
             CSScriptIntellisense.KeyInterceptor.Instance.KeyDown += OnKeyInterceptorKeyDown;
             CSScriptIntellisense.KeyInterceptor.Instance.Add(Keys.Tab, Keys.Enter, Keys.Escape);
@@ -54,7 +63,33 @@ namespace RTextNppPlugin
 
         static void OnKeyInterceptorKeyDown(Keys key, int repeatCount, ref bool handled)
         {
-            Trace.WriteLine("Key {0} pressed...");
+            foreach (var shortcut in internalShortcuts.Keys)
+            {
+                if ((byte)key == shortcut._key)
+                {
+                    CSScriptIntellisense.Modifiers modifiers = CSScriptIntellisense.KeyInterceptor.GetModifiers();
+
+                    if (modifiers.IsCtrl == shortcut.IsCtrl && modifiers.IsShift == shortcut.IsShift && modifiers.IsAlt == shortcut.IsAlt)
+                    {
+                        handled = true;
+                        var handler = internalShortcuts[shortcut];
+                        //launch auto completion form asynchronously
+                        var aAsyncResult = AsyncInvoke(handler.Item2);
+                        return;
+                    }
+                }
+            }
+        }
+
+        private static async Task AsyncInvoke(Action action)
+        {
+            if (!_invokeInProgress)
+            {
+                _invokeInProgress = true;
+                await Task.Delay(10);
+                action();
+                _invokeInProgress = false;
+            }
         }
 
         static internal void PluginCleanUp()
@@ -72,7 +107,63 @@ namespace RTextNppPlugin
          */
         static void ShowAutoCompletionList()
         {
-            Trace.WriteLine("Launching auto completion...");
+            HandleErrors(() =>
+            {
+                if (FileUtilities.IsAutomateFile())
+                {
+                    if (_autoCompletionForm == null || !_autoCompletionForm.Visible)
+                    {
+
+                        //todo - get backend context 
+                        //todo - get response from backend
+                        //todo - handle text insertion
+
+                        _autoCompletionForm = new WpfControlHostBase<AutoCompletionForm>(); //new _autoCompletionForm(OnAccepted, items, NppEditor.GetSuggestionHint());
+                        Point point = CSScriptIntellisense.Npp.GetCaretScreenLocation();
+                        _autoCompletionForm.ElementHost.Left = point.X;
+                        _autoCompletionForm.ElementHost.Top = point.Y + CSScriptIntellisense.Npp.GetTextHeight(CSScriptIntellisense.Npp.GetCaretLineNumber());
+
+                        //_autoCompletionForm.ElementHost.FormClosed += (sender, e) =>
+                        //{
+                        //    //if (memberInfoWasShowing)
+                        //    //    NppUI.Marshal(() => Dispatcher.Shedule(100, ShowMethodInfo));
+                        //};
+                        //_autoCompletionForm.ElementHost.KeyPress += (sender, e) =>
+                        //{
+                        //    if (e.KeyChar >= ' ' || e.KeyChar == 8) //8 is backspace
+                        //        On_autoCompletion_autoCompletionFormcompleteKeyPress(e.KeyChar);
+                        //};
+                        _autoCompletionForm.ElementHost.Show();
+
+                        //OnAutocompleteKeyPress(allowNoText: true); //to grab current word at the caret an process it as a hint
+                    }
+                    else
+                    {
+                        _autoCompletionForm.ElementHost.Close();
+                    }
+                }
+                else
+                {
+                    Win32.SendMessage(Plugin.nppData._nppHandle, (NppMsg)WinMsg.WM_COMMAND, (int)NppMenuCmd.IDM_EDIT_AUTOCOMPLETE, 0);
+                }
+            });
+        }
+
+        /**
+         * Handles exceptions that may be thrown by the action.
+         *
+         * \param   action  The action to be executed.
+         */
+        static void HandleErrors(Action action)
+        {
+            try
+            {
+                action();
+            }
+            catch (Exception e)
+            {
+                Logging.Logger.Instance.Append("HandleErrors exception : {0}", e.Message);
+            }
         }
 
         /**
@@ -203,7 +294,7 @@ namespace RTextNppPlugin
         {
             var uniqueKeys = new Dictionary<Keys, int>();
 
-            AddInternalShortcuts("_ShowAutoComplete:Ctrl+Space",
+            AddInternalShortcuts("Ctrl+Space",
                                  "Show auto-complete list",
                                   ShowAutoCompletionList, uniqueKeys);
 
@@ -220,13 +311,13 @@ namespace RTextNppPlugin
 
         static void AddInternalShortcuts(string shortcutSpec, string displayName, Action handler, Dictionary<Keys, int> uniqueKeys)
         {
-            //ShortcutKey shortcut = Plugin.ParseAsShortcutKey(shortcutSpec);
+            ShortcutKey shortcut = new ShortcutKey(shortcutSpec);// Plugin.ParseAsShortcutKey(shortcutSpec);
 
-            //internalShortcuts.Add(shortcut, new Tuple<string, Action>(displayName, handler));
+            internalShortcuts.Add(shortcut, new Tuple<string, Action>(displayName, handler));
 
-            //var key = (Keys)shortcut._key;
-            //if (!uniqueKeys.ContainsKey(key))
-            //    uniqueKeys.Add(key, 0);
+            var key = (Keys)shortcut._key;
+            if (!uniqueKeys.ContainsKey(key))
+                uniqueKeys.Add(key, 0);
         }
 
         static internal void LoadSettings()

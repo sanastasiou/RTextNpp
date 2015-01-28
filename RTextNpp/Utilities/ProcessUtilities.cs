@@ -128,7 +128,7 @@ namespace RTextNppPlugin.Utilities
             foreach (System.Diagnostics.Process p in plist)
             {
                 try
-                {
+                {                    
                     var par = Utilities.ParentProcessUtilities.GetParentProcess(p.Id);
                     if (par == null) continue;
                     if (par.Id == parent.Id)

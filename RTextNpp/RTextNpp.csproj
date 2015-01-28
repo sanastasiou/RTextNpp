@@ -31,6 +31,7 @@
     <PlatformTarget>x86</PlatformTarget>
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
     <Prefer32Bit>false</Prefer32Bit>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>none</DebugType>
@@ -70,6 +71,12 @@
     <Compile Include="Automate\Protocol\ProgressResponse.cs" />
     <Compile Include="Automate\Protocol\SerializerFactory.cs" />
     <Compile Include="Automate\StateEngine\StateMachine.cs" />
+    <Compile Include="Forms\AutoCompletionForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\AutoCompletionForm.Designer.cs">
+      <DependentUpon>AutoCompletionForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="Logging\ILoggingObserver.cs" />
     <Compile Include="Logging\ISubscriber.cs" />
     <Compile Include="Logging\Logger.cs" />
@@ -102,6 +109,7 @@
     <Compile Include="Utilities\FuzzyMatching.cs" />
     <Compile Include="Utilities\HashUtilities.cs" />
     <Compile Include="Utilities\LocalWindowsHook.cs" />
+    <Compile Include="Utilities\Npp.cs" />
     <Compile Include="Utilities\ParentProcessUtilities.cs" />
     <Compile Include="Utilities\ProcessUtilities.cs" />
     <Compile Include="Utilities\Settings.cs" />
@@ -110,9 +118,13 @@
     <Compile Include="Utilities\WinHook.cs" />
     <Compile Include="Utilities\WpfControlHost\PersistentWpfControlHost.cs" />
     <Compile Include="Utilities\WpfControlHost\WpfControlHostBase.cs" />
+    <Compile Include="ViewModels\AutoCompletionViewModel.cs" />
     <Compile Include="ViewModels\ConsoleViewModel.cs" />
     <Compile Include="ViewModels\IConsoleViewModel.cs" />
     <Compile Include="ViewModels\WorkspaceViewModel.cs" />
+    <Compile Include="WpfControls\AutoCompletionControl.xaml.cs">
+      <DependentUpon>AutoCompletionControl.xaml</DependentUpon>
+    </Compile>
     <Compile Include="WpfControls\BindableObject.cs" />
     <Compile Include="WpfControls\ConsoleFlowDocument.xaml.cs">
       <DependentUpon>ConsoleFlowDocument.xaml</DependentUpon>
@@ -135,6 +147,7 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.configuration" />
+    <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Management" />
     <Reference Include="System.Runtime.Serialization" />
@@ -147,6 +160,9 @@
     <Reference Include="WindowsFormsIntegration" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="Forms\AutoCompletionForm.resx">
+      <DependentUpon>AutoCompletionForm.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Forms\ConsoleOutput.resx">
       <DependentUpon>ConsoleOutput.cs</DependentUpon>
     </EmbeddedResource>
@@ -163,6 +179,10 @@
     <None Include="RTextNpp.dll.config" />
   </ItemGroup>
   <ItemGroup>
+    <Page Include="WpfControls\AutoCompletionControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="WpfControls\ConsoleFlowDocument.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

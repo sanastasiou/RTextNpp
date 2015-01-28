@@ -35,6 +35,7 @@ namespace RTextNppPlugin
         public const int OUTPUT_POLL_PERIOD = 10;                               //!< Polling period for output stream threads
         public const string GENERAL_CHANNEL = "General";                        //!< General output channel.
         public const string DEBUG_CHANNEL = "Debug";                            //!< Debug channel - disabled on release mode.
+        public const string NPP_BACKUP_DIR = @"\Notepad++\backup";              //!< Notepad ++ back up directory.
 
         #region NppMenuCommand
         public enum NppMenuCommands : int

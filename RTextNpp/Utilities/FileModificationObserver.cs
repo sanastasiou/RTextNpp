@@ -119,7 +119,7 @@ namespace RTextNppPlugin.Utilities
          */
         public void CleanBackup()
         {
-            string aAppDataDir = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\Notepad++\backup";
+            string aAppDataDir = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + Constants.NPP_BACKUP_DIR;
             try
             {
                 if (Directory.Exists(aAppDataDir))

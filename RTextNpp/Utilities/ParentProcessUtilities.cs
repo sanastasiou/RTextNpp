@@ -87,9 +87,17 @@ namespace RTextNppPlugin.Utilities
          */
         public static System.Diagnostics.Process GetParentProcess(int id)
         {
-            System.Diagnostics.Process process = System.Diagnostics.Process.GetProcessById(id);
-            var handle = OpenProcess(ProcessAccessFlags.PROCESS_QUERY_LIMITED_INFORMATION, false, process.Id);
-            return GetParentProcess(handle);
+            try
+            {
+                System.Diagnostics.Process process = System.Diagnostics.Process.GetProcessById(id);
+                var handle = OpenProcess(ProcessAccessFlags.PROCESS_QUERY_LIMITED_INFORMATION, false, process.Id);
+                return GetParentProcess(handle);
+            }
+            catch(Exception ex)
+            {
+                Logging.Logger.Instance.Append("GetParentProcess(int id) exception : {0}", ex.Message);
+                return null;
+            }
         }
 
         /**

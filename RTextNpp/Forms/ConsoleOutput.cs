@@ -10,13 +10,5 @@ namespace RTextNppPlugin
         {
             InitializeComponent();
         }
-
-        public WpfControls.ConsoleOutputElementHost<WpfControls.ConsoleOutput, ViewModels.ConsoleViewModel> WpfControl
-        {
-            get
-            {
-                return _consoleOutputHost;
-            }
-        }   
     }
 }

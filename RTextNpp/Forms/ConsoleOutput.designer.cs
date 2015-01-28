@@ -1,11 +1,15 @@
-﻿namespace RTextNppPlugin
+﻿using System.ComponentModel;
+using RTextNppPlugin.WpfControls;
+
+
+namespace RTextNppPlugin
 {
     partial class ConsoleOutputForm
     {
         /// <summary>
         /// Required designer variable.
         /// </summary>
-        private System.ComponentModel.IContainer components = null;
+        private IContainer components = null;
 
         /// <summary>
         /// Clean up any resources being used.
@@ -52,8 +56,7 @@
         }
 
         #endregion
-
-        private WpfControls.ConsoleOutputElementHost<WpfControls.ConsoleOutput, ViewModels.ConsoleViewModel> _consoleOutputHost = new WpfControls.ConsoleOutputElementHost<WpfControls.ConsoleOutput,ViewModels.ConsoleViewModel>();
+        private System.Windows.Forms.Integration.ElementHost _consoleOutputHost = new ConsoleOutputElementHost<WpfControls.ConsoleOutput, ViewModels.ConsoleViewModel>();
 
 
 

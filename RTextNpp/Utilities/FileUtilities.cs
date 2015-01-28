@@ -140,6 +140,16 @@ namespace RTextNppPlugin.Utilities
         }
 
         /**
+         * Query if the current file is an automate file.
+         *
+         * \return  true if the current file is an automate file, false if not.
+         */
+        public static bool IsAutomateFile()
+        {
+            return IsAutomateFile(GetCurrentFilePath());
+        }
+
+        /**
          * \brief   Query if 'file' is an automate file.
          *
          * \param   file    The file.
