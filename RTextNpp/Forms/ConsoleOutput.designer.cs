@@ -56,7 +56,7 @@ namespace RTextNppPlugin
         }
 
         #endregion
-        private System.Windows.Forms.Integration.ElementHost _consoleOutputHost = new ConsoleOutputElementHost<WpfControls.ConsoleOutput, ViewModels.ConsoleViewModel>();
+        private System.Windows.Forms.Integration.ElementHost _consoleOutputHost = new ElementHost<WpfControls.ConsoleOutput, ViewModels.ConsoleViewModel>();
 
 
 

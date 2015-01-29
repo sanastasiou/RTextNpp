@@ -138,14 +138,9 @@ namespace CSScriptIntellisense
                     KeysToIntercept.Add(key);
         }
 
-        public void Remove(params Keys[] keys)
+        public void RemoveAll()
         {
-            foreach (int key in keys)
-            {
-                //ignore for now as anyway the extra invoke will not do any harm 
-                //but eventually it needs to be ref counting based
-                //KeysToIntercept.RemoveAll(k => k == key);
-            }
+            KeysToIntercept.Clear();
         }
 
         public const int KF_UP = 0x8000;
@@ -170,61 +165,4 @@ namespace CSScriptIntellisense
             return false;
         }
     }
-
-    //unfortunately this class does not intercept WM_SIZE and WM_MOVE properly. So it is not in use.
-    //public class MsgMonitor : WinHook<MsgMonitor>
-    //{
-    //    [StructLayout(LayoutKind.Sequential)]
-    //    public struct MSG
-    //    {
-    //        public IntPtr hwnd;
-    //        public UInt32 message;
-    //        public IntPtr wParam;
-    //        public IntPtr lParam;
-    //        public UInt32 time;
-    //        public POINT pt;
-    //    }
-
-    //    [StructLayout(LayoutKind.Sequential)]
-    //    public struct POINT
-    //    {
-    //        public int x;
-    //        public int y;
-    //    }
-
-    //    public delegate void MsgHandler(IntPtr window, uint message);
-
-    //    public event MsgHandler OnMsg;
-
-    //    public List<uint> MsgsToMonitor = new List<uint>();
-
-    //    public void Add(params uint[] msgs)
-    //    {
-    //        foreach (uint item in msgs)
-    //            MsgsToMonitor.Add(item);
-    //    }
-
-    //    public void Remove(params uint[] msgs)
-    //    {
-    //        foreach (uint item in msgs)
-    //            MsgsToMonitor.RemoveAll(m => m == item);
-    //    }
-
-    //    override protected bool HandleHookEvent(IntPtr wParam, IntPtr lParam)
-    //    {
-    //        var msg = (MSG)Marshal.PtrToStructure(lParam, typeof(MSG));
-
-    //        bool shouldMonitor = MsgsToMonitor.Contains(msg.message);
-
-    //        if (shouldMonitor && OnMsg != null)
-    //            OnMsg(msg.hwnd, msg.message);
-
-    //        return false;
-    //    }
-
-    //    public new void Install()
-    //    {
-    //        base.Install(HookType.WH_GETMESSAGE);
-    //    }
-    //}
 }

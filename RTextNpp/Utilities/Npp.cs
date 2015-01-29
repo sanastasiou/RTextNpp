@@ -114,6 +114,16 @@ namespace CSScriptIntellisense
             return ranges.ToArray();
         }
 
+        /**
+         * Gets the line.
+         *
+         * \return  The current line from the caret position.
+         */
+        static public string GetLine()
+        {
+            return Npp.GetLine(Npp.GetLineNumber(Npp.GetCaretPosition()));
+        }
+
         static public string GetLine(int line)
         {
             IntPtr sci = Plugin.GetCurrentScintilla();
@@ -123,6 +133,16 @@ namespace CSScriptIntellisense
             Win32.SendMessage(sci, SciMsg.SCI_GETLINE, line, buffer);
             buffer.Length = length; //NPP may inject some rubbish at the end of the line
             return buffer.ToString();
+        }
+
+        /**
+         * Gets line number.
+         *
+         * \return  The line number from the current caret position.
+         */
+        static public int GetLineNumber()
+        {
+            return GetLineNumber(Npp.GetCaretPosition());
         }
 
         static public int GetLineNumber(int position)
@@ -168,6 +188,18 @@ namespace CSScriptIntellisense
 
         [DllImport("user32.dll")]
         public static extern long GetWindowRect(IntPtr hWnd, ref Rectangle lpRect);
+
+        /**
+         * Gets caret screen location for form. ( under caret character )
+         *
+         * \return  The caret screen location for form.
+         */
+        static public Point GetCaretScreenLocationForForm()
+        {
+            Point aPoint = CSScriptIntellisense.Npp.GetCaretScreenLocation();
+            aPoint.Y += CSScriptIntellisense.Npp.GetTextHeight(CSScriptIntellisense.Npp.GetCaretLineNumber());
+            return aPoint;
+        }
 
         static public Point GetCaretScreenLocation()
         {

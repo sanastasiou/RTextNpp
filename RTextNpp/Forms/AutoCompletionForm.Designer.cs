@@ -31,26 +31,27 @@ namespace RTextNppPlugin.Forms
         /// </summary>
         private void InitializeComponent()
         {
-            this._autoCompletionListHost = new System.Windows.Forms.Integration.ElementHost();
+            this._autoCompletionControlHost = new ElementHost<AutoCompletionControl, AutoCompletionViewModel>();// new System.Windows.Forms.Integration.ElementHost();
             this.SuspendLayout();
             // 
-            // _autoCompletionListHost
+            // _autoCompletionControlHost
             // 
-            this._autoCompletionListHost.AutoSize = true;
-            this._autoCompletionListHost.Location = new System.Drawing.Point(12, 12);
-            this._autoCompletionListHost.Name = "_autoCompletionListHost";
-            this._autoCompletionListHost.Size = new System.Drawing.Size(1, 1);
-            this._autoCompletionListHost.TabIndex = 0;
-            this._autoCompletionListHost.Text = "elementHost1";
-            this._autoCompletionListHost.Child = null;
+            this._autoCompletionControlHost.Dock = System.Windows.Forms.DockStyle.Fill;
+            this._autoCompletionControlHost.Location = new System.Drawing.Point(0, 0);
+            this._autoCompletionControlHost.Name = "_autoCompletionControlHost";
+            this._autoCompletionControlHost.Size = new System.Drawing.Size(549, 304);
+            this._autoCompletionControlHost.TabIndex = 0;
+            this._autoCompletionControlHost.Text = "elementHost1";
+            this._autoCompletionControlHost.Child = null;
             // 
             // AutoCompletionForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(284, 262);
+            this.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.ClientSize = new System.Drawing.Size(549, 304);
             this.ControlBox = false;
-            this.Controls.Add(this._autoCompletionListHost);
+            this.Controls.Add(this._autoCompletionControlHost);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
             this.KeyPreview = true;
             this.MaximizeBox = false;
@@ -60,13 +61,14 @@ namespace RTextNppPlugin.Forms
             this.ShowInTaskbar = false;
             this.StartPosition = System.Windows.Forms.FormStartPosition.Manual;
             this.Text = "AutoCompletionForm";
+            this.Load += new System.EventHandler(this.AutoCompletionForm_Load);
             this.ResumeLayout(false);
-            this.PerformLayout();
 
         }
 
         #endregion
 
-        private System.Windows.Forms.Integration.ElementHost _autoCompletionListHost = new ConsoleOutputElementHost<AutoCompletionControl, AutoCompletionViewModel>();
+        private ElementHost<AutoCompletionControl, AutoCompletionViewModel> _autoCompletionControlHost;
+
     }
 }

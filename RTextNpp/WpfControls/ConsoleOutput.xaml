@@ -48,8 +48,7 @@
                 <TabItem Name="ErrorList" IsHitTestVisible="True" Background="Transparent">
                     <TabItem.Header>
                         <Label IsHitTestVisible="True" PreviewMouseDown="ErrorListPreviewMouseDown">Errors</Label>
-                    </TabItem.Header>
-                    
+                    </TabItem.Header>                 
                 </TabItem>
             </TabControl>
         </DockPanel>                            

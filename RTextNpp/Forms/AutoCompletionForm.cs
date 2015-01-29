@@ -7,6 +7,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using RTextNppPlugin.WpfControls;
+using RTextNppPlugin.ViewModels;
 
 namespace RTextNppPlugin.Forms
 {
@@ -27,10 +29,24 @@ namespace RTextNppPlugin.Forms
          */
         protected override bool ShowWithoutActivation
         {
-            get 
-            { 
+            get
+            {
                 return true;
             }
+        }
+
+        /**
+         * Gets or sets a value indicating whether to request an automatic completion list or use the cached list.
+         *
+         * \return  true if a new list is required, false otherwise.
+         */
+        public bool RequestAutoCompletionList { get; set; }
+
+        private void AutoCompletionForm_Load(object sender, EventArgs e)
+        {
+            this._autoCompletionControlHost.Child = new AutoCompletionControl();
+            var g = this._autoCompletionControlHost.CreateGraphics();
+            g.Dispose();
         }
     }
 }

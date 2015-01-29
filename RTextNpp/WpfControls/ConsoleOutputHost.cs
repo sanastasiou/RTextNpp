@@ -12,16 +12,16 @@ namespace RTextNppPlugin.WpfControls
      */
     [Designer("System.Windows.Forms.Design.ControlDesigner, System.Design")]
     [DesignerSerializer("System.ComponentModel.Design.Serialization.TypeCodeDomSerializer , System.Design", "System.ComponentModel.Design.Serialization.CodeDomSerializer, System.Design")]
-    class ConsoleOutputElementHost<T, U> : System.Windows.Forms.Integration.ElementHost where T : System.Windows.Controls.UserControl, new()
-                                                                                        where U : BindableObject
+    class ElementHost<T, U> : System.Windows.Forms.Integration.ElementHost where T : System.Windows.Controls.UserControl, new()
+                                                                           where U : BindableObject
     {
-        private T _consoleOutput = new T();
+        private T _wpfControl = new T();
         private U _viewModel = default(U);
 
-        public ConsoleOutputElementHost()
+        public ElementHost()
         {
-            base.Child = _consoleOutput;
-            _viewModel = (U)_consoleOutput.DataContext;
+            base.Child = _wpfControl;
+            _viewModel = (U)_wpfControl.DataContext;
         }
     } 
 

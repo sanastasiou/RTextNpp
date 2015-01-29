@@ -7,21 +7,30 @@
              xmlns:wpfControls="clr-namespace:RTextNppPlugin.WpfControls"
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="300">
-    <UserControl.Resources>
+    <!--<UserControl.Resources>
         <Style TargetType="{x:Type ListView}">
             <Setter Property="VirtualizingPanel.VirtualizationMode" Value="Recycling"/>
         </Style>
-    </UserControl.Resources>
+    </UserControl.Resources>-->
+    <UserControl.DataContext>
+        <viewModels:AutoCompletionViewModel/>
+    </UserControl.DataContext>
     <Grid>
-        <ListView Margin="0"                  
-                  Name="AutoCompletionList"
-                  VirtualizingPanel.IsVirtualizing="True">
-            <ListView.View>
-                <GridView>
-                    <GridViewColumn Header="Text" Width="120"/>
-                    <GridViewColumn Header="Type" Width="50"/>
-                </GridView>
-            </ListView.View>
-        </ListView>
+        <DockPanel HorizontalAlignment="Stretch"
+                   VerticalAlignment="Stretch"
+                   Background="Transparent">
+            <Label DockPanel.Dock="Top" Background="Red" >Some stupid stuff</Label>
+            <ListView Margin="0"                  
+                      Name="AutoCompletionList"
+                      DockPanel.Dock="Top"
+                      VirtualizingPanel.IsVirtualizing="True">
+                <ListView.View>
+                    <GridView>
+                        <GridViewColumn Header="Text" Width="120"/>
+                        <GridViewColumn Header="Type" Width="50"/>
+                    </GridView>
+                </ListView.View>
+            </ListView>
+        </DockPanel>        
     </Grid>
 </UserControl>
