@@ -10,7 +10,7 @@ using CSScriptIntellisense;
 using System.Diagnostics;
 
 namespace RTextNppPlugin.Utilities
-{    
+{
     public static class FileUtilities
     {
         public static Regex FileExtensionRegex = new Regex(@"(?<=\*)\..*?(?=,|:)", RegexOptions.Compiled); //!< The file extensions regular expression
@@ -104,7 +104,7 @@ namespace RTextNppPlugin.Utilities
             List<string> aFiles = new List<string>();
 
             int nbFile = (int)Win32.SendMessage(nppData._nppHandle, NppMsg.NPPM_GETNBOPENFILES, 0, 0);
-            if (nbFile > 0)            
+            if (nbFile > 0)
             {
                 using (ClikeStringArray cStrArray = new ClikeStringArray(nbFile, Win32.MAX_PATH))
                 {
@@ -229,7 +229,7 @@ namespace RTextNppPlugin.Utilities
         public static bool IsFileModified(string file)
         {
             IntPtr sci = Plugin.GetCurrentScintilla();
-            return ((int)Win32.SendMessage(sci, SciMsg.SCI_GETMODIFY, 0, 0) != 0);  
+            return ((int)Win32.SendMessage(sci, SciMsg.SCI_GETMODIFY, 0, 0) != 0);
         }
 
         /**
@@ -268,6 +268,7 @@ namespace RTextNppPlugin.Utilities
             //we can find line start by substracting line length from caret position
             //line starts from 0 - in editor they start from 1
             //  
+
             Trace.WriteLine(String.Format("Current line number {0}\nCurrent line length {1}\nCurrent line text {2}", Npp.GetLineNumber(), Npp.GetCaretPosition() - aCurrentLine.Length, aCurrentLine));
             return aTriggerPoint;
         }
