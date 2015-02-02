@@ -315,10 +315,18 @@ namespace RText
                         context.SetState(TokenType_Identifier);
                     }
                 }
+                else if (context.Match(',') || context.Match('{') || context.Match('}') || context.Match('[') || context.Match(']'))
+                {
+                    context.SetState(TokenType_Other);
+                    context.Forward();
+                    context.SetState(TokenType_Default);
+                }
                 else
                 {
+                    context.SetState(TokenType_Error);
                     //don't care about this char/token
                     context.Forward();
+                    context.SetState(TokenType_Default);
                 }
                 break;
             case TokenType_Command:
