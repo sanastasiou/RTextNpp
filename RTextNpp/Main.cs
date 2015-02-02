@@ -27,8 +27,9 @@ namespace RTextNppPlugin
         private static ConnectorManager _connectorManager = Automate.ConnectorManager.Instance;
         private static Options _options = new Forms.Options();
         private static FileModificationObserver _fileObserver = new FileModificationObserver();
-        private static Dictionary<ShortcutKey, Tuple<string, Action<object>>> internalShortcuts = new Dictionary<ShortcutKey, Tuple<string, Action<object>>>();
+        private static Dictionary<ShortcutKey, Tuple<string, Action>> internalShortcuts = new Dictionary<ShortcutKey, Tuple<string, Action>>();
         private static WpfControlHostBase<AutoCompletionForm> _autoCompletionForm = new WpfControlHostBase<AutoCompletionForm>();
+        private static Point _autoCompletionTriggerPoint = new Point();
 
         public const string PluginName = "RTextNpp";
         static Bitmap tbBmp = Properties.Resources.ConsoleIcon;
@@ -80,7 +81,7 @@ namespace RTextNppPlugin
                             handled = !_autoCompletionForm.ElementHost.Visible;
                             if (!_autoCompletionForm.ElementHost.Visible)
                             {
-                                var res = AsyncInvoke(handler.Item2, null);
+                                var res = AsyncInvoke(handler.Item2);
                             }
                             return;
                         }
@@ -102,9 +103,9 @@ namespace RTextNppPlugin
                         if (!_autoCompletionForm.ElementHost.Visible)
                         {
                             var lol = FileUtilities.GetAutoCompletionTriggerPoint();
-
+                            _autoCompletionTriggerPoint = CSScriptIntellisense.Npp.GetCaretScreenLocationForForm();
                             //caret position before first character is needs - or first character in current token                            
-                            var res = AsyncInvoke(StartAutoCompleteSession, CSScriptIntellisense.Npp.GetCaretScreenLocationForForm());                            
+                            var res = AsyncInvoke(StartAutoCompleteSession);                            
                         }
                         break;
                     case Keys.Return:
@@ -142,13 +143,13 @@ namespace RTextNppPlugin
             }
         }
 
-        private static async Task AsyncInvoke(Action<object> action, object tag)
+        private static async Task AsyncInvoke(Action action)
         {
             if (!_invokeInProgress)
             {
                 _invokeInProgress = true;
                 await Task.Delay(10);
-                action(tag);
+                action();
                 _invokeInProgress = false;
             }
         }
@@ -166,7 +167,7 @@ namespace RTextNppPlugin
         /**
          * Shows the automatic completion list.
          */
-        static void StartAutoCompleteSession(object tag)
+        static void StartAutoCompleteSession()
         {
             HandleErrors(() =>
             {
@@ -179,14 +180,14 @@ namespace RTextNppPlugin
                         //todo - handle text insertion
 
                         Point aCaretPoint = new Point();
-                        if(tag != null && tag is Point)
-                        {
-                            aCaretPoint = (Point)tag;
-                        }
-                        else
-                        {
+                        //if(_autoCompletionTriggerPoint != null)
+                        //{
+                        //    aCaretPoint = _autoCompletionTriggerPoint;
+                        //}
+                        //else
+                        //{
                             aCaretPoint = CSScriptIntellisense.Npp.GetCaretScreenLocationForForm();
-                        }
+                        //}
 
                         _autoCompletionForm = new WpfControlHostBase<AutoCompletionForm>();
                         _autoCompletionForm.ElementHost.Left = aCaretPoint.X;
@@ -238,7 +239,7 @@ namespace RTextNppPlugin
         /**
          * \brief Modify options callback from plugin menu.           
          */
-        static void ModifyOptions(object tag = null)
+        static void ModifyOptions()
         {
             Win32.SendMessage(nppData._nppHandle, NppMsg.NPPM_MODELESSDIALOG, (int)NppMsg.MODELESSDIALOGADD, _options.Handle.ToInt32());
             if (_options.ShowDialog(Control.FromHandle(nppData._nppHandle)) == DialogResult.OK)
@@ -252,7 +253,7 @@ namespace RTextNppPlugin
             Win32.SendMessage(nppData._nppHandle, NppMsg.NPPM_MODELESSDIALOG, (int)NppMsg.MODELESSDIALOGREMOVE, _options.Handle.ToInt32());
         }
 
-        static void ShowConsoleOutput(object tag = null)
+        static void ShowConsoleOutput()
         {
             if (!_consoleInitialized)
             {
@@ -378,11 +379,11 @@ namespace RTextNppPlugin
             return uniqueKeys.Keys;
         }
 
-        static void AddInternalShortcuts(string shortcutSpec, string displayName, Action<object> handler, Dictionary<Keys, int> uniqueKeys)
+        static void AddInternalShortcuts(string shortcutSpec, string displayName, Action handler, Dictionary<Keys, int> uniqueKeys)
         {
             ShortcutKey shortcut = new ShortcutKey(shortcutSpec);
 
-            internalShortcuts.Add(shortcut, new Tuple<string, Action<object>>(displayName, handler));
+            internalShortcuts.Add(shortcut, new Tuple<string, Action>(displayName, handler));
 
             var key = (Keys)shortcut._key;
             if (!uniqueKeys.ContainsKey(key))

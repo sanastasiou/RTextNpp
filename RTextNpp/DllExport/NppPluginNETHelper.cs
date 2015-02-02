@@ -16,7 +16,7 @@ namespace RTextNppPlugin
         public IntPtr _scintillaSecondHandle;
     }
 
-    public delegate void NppFuncItemDelegate(object tag);
+    public delegate void NppFuncItemDelegate();
 
     [StructLayout(LayoutKind.Sequential)]
     public struct ShortcutKey
