@@ -137,7 +137,7 @@
   <ItemGroup>
     <Reference Include="FileSystemWatcherCLRWrapper, Version=1.0.5458.21429, Culture=neutral, processorArchitecture=x86">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\FileSystemWatcher\Release\FileSystemWatcherCLRWrapper.dll</HintPath>
+      <HintPath>..\ThirdParty\FileSystemWatcher\FileSystemWatcherCLRWrapper.dll</HintPath>
     </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
