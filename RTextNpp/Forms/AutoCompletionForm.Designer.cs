@@ -62,6 +62,7 @@ namespace RTextNppPlugin.Forms
             this.StartPosition = System.Windows.Forms.FormStartPosition.Manual;
             this.Text = "AutoCompletionForm";
             this.Load += new System.EventHandler(this.AutoCompletionForm_Load);
+            this.Click += AutoCompletionForm_OnClick;
             this.ResumeLayout(false);
 
         }

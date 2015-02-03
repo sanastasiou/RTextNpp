@@ -58,8 +58,12 @@ namespace CSScriptIntellisense
         protected int Proc(int code, IntPtr wParam, IntPtr lParam)
         {
             if (code == 0) //Win32.HC_ACTION
+            {
                 if (HandleHookEvent(wParam, lParam))
+                {
                     return 1;
+                }
+            }
 
             return CallNextHookEx(m_hhook, code, wParam, lParam);
         }
@@ -73,16 +77,51 @@ namespace CSScriptIntellisense
     public class MouseMonitor : WinHook<MouseMonitor>
     {
         public event Action MouseMove;
+        public event Action MouseClicked;
+        public event Action MouseReleased;
+
+        private enum MouseMessages
+        {
+            WM_LBUTTONDOWN = 0x0201,
+            WM_LBUTTONUP   = 0x0202,
+            WM_MOUSEMOVE   = 0x0200,
+            WM_MOUSEWHEEL  = 0x020A,
+            WM_RBUTTONDOWN = 0x0204,
+            WM_RBUTTONUP   = 0x0205,
+            WM_NCMOUSEMOVE = 0x00A0
+        }
 
         override protected bool HandleHookEvent(IntPtr wParam, IntPtr lParam)
         {
-            const int WM_MOUSEMOVE = 0x0200;
-            const int WM_NCMOUSEMOVE = 0x00A0;
-
-            if ((wParam.ToInt32() == WM_MOUSEMOVE || wParam.ToInt32() == WM_NCMOUSEMOVE) && MouseMove != null)
+            MouseMessages aMsg = (MouseMessages)wParam.ToInt32();
+            switch (aMsg)
             {
-                MouseMove();
+                case MouseMessages.WM_LBUTTONDOWN:
+                case MouseMessages.WM_RBUTTONDOWN:
+                    if(MouseClicked != null)
+                    {
+                        MouseClicked();
+                    }
+                    break;
+                case MouseMessages.WM_LBUTTONUP:
+                case MouseMessages.WM_RBUTTONUP:
+                    if(MouseReleased != null)
+                    {
+                        MouseReleased();
+                    }
+                    break;
+                case MouseMessages.WM_MOUSEMOVE:
+                case MouseMessages.WM_NCMOUSEMOVE:
+                    if(MouseMove != null)
+                    {
+                        MouseMove();
+                    }
+                    break;
+                case MouseMessages.WM_MOUSEWHEEL:
+                default:
+                    break;
             }
+            //return false to allow routing of the event
             return false;
         }
 

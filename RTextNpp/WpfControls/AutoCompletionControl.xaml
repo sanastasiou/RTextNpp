@@ -5,13 +5,14 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:viewModels="clr-namespace:RTextNppPlugin.ViewModels"
              xmlns:wpfControls="clr-namespace:RTextNppPlugin.WpfControls"
-             mc:Ignorable="d" 
+             mc:Ignorable="d"
+             IsHitTestVisible="True"
              d:DesignHeight="300" d:DesignWidth="300">
-    <!--<UserControl.Resources>
+    <UserControl.Resources>
         <Style TargetType="{x:Type ListView}">
             <Setter Property="VirtualizingPanel.VirtualizationMode" Value="Recycling"/>
         </Style>
-    </UserControl.Resources>-->
+    </UserControl.Resources>
     <UserControl.DataContext>
         <viewModels:AutoCompletionViewModel/>
     </UserControl.DataContext>

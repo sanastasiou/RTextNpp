@@ -82,13 +82,6 @@ namespace RTextNppPlugin
                             {
                                 var res = AsyncInvoke(handler.Item2);
                             }
-                            //test tokenizer
-                            Parsing.Tokenizer t = new Parsing.Tokenizer(CSScriptIntellisense.Npp.GetLineNumber());
-                            foreach(var token in t.Tokenize())
-                            {
-                                Trace.WriteLine(String.Format("Token type : {0}\nsc : {1}\nec : {2}\ncontext : {3}\nPosition : {4}\nLine : {5}",
-                                    token.Type, token.StartColumn, token.EndColumn, token.Context, token.BufferPosition, token.Line));
-                            }
                             return;
                         }
                     }

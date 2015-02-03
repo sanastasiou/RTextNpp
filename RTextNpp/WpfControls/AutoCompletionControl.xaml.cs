@@ -20,9 +20,20 @@ namespace RTextNppPlugin.WpfControls
     /// </summary>
     public partial class AutoCompletionControl : UserControl
     {
+        #region [Interface]
         public AutoCompletionControl()
         {
             InitializeComponent();
         }
+
+        #endregion
+
+        #region[Event Handlers]
+
+        #endregion
+
+        #region [Data Members]
+
+        #endregion
     }
 }
