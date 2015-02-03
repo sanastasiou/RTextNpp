@@ -135,6 +135,17 @@ namespace CSScriptIntellisense
             return buffer.ToString();
         }
 
+        static public StringBuilder GetLineAsStringBuilder(int line)
+        {
+            IntPtr sci = Plugin.GetCurrentScintilla();
+
+            int length = (int)Win32.SendMessage(sci, SciMsg.SCI_LINELENGTH, line, 0);
+            var buffer = new StringBuilder(length + 1);
+            Win32.SendMessage(sci, SciMsg.SCI_GETLINE, line, buffer);
+            buffer.Length = length; //NPP may inject some rubbish at the end of the line
+            return buffer;
+        }
+
         /**
          * Gets line number.
          *
@@ -188,6 +199,21 @@ namespace CSScriptIntellisense
 
         [DllImport("user32.dll")]
         public static extern long GetWindowRect(IntPtr hWnd, ref Rectangle lpRect);
+                    
+
+        /**
+         * Gets caret screen location relative to position. ( -/+ characters from the actual caret position )
+         *
+         * \param   position    The position relative to the current caret position.
+         *
+         * \return  The caret screen location relative to position.
+         */
+        public static Point GetCaretScreenLocationRelativeToPosition(int position)
+        {
+            Point aPoint = new Point();
+
+            return aPoint;
+        }
 
         /**
          * Gets caret screen location for form. ( under caret character )

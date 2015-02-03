@@ -22,7 +22,7 @@ namespace RTextNppPlugin
 {
     partial class Plugin
     {
-        #region " Fields "
+        #region [Fields]
         private static PersistentWpfControlHost<ConsoleOutputForm> _consoleOutput = new PersistentWpfControlHost<ConsoleOutputForm>(Settings.RTextNppSettings.ConsoleWindowActive);
         private static ConnectorManager _connectorManager = Automate.ConnectorManager.Instance;
         private static Options _options = new Forms.Options();
@@ -39,7 +39,7 @@ namespace RTextNppPlugin
         static bool _invokeInProgress = false;        
         #endregion
 
-        #region " Startup/CleanUp "
+        #region [Startup/CleanUp]
 
         static internal void CommandMenuInit()
         {
@@ -68,13 +68,12 @@ namespace RTextNppPlugin
         static void OnKeyInterceptorKeyDown(Keys key, int repeatCount, ref bool handled)
         {            
             if (FileUtilities.IsAutomateFile())
-            { 
+            {
+                CSScriptIntellisense.Modifiers modifiers = CSScriptIntellisense.KeyInterceptor.GetModifiers();
                 foreach (var shortcut in internalShortcuts.Keys)
                 {
                     if ((byte)key == shortcut._key)
-                    {
-                        CSScriptIntellisense.Modifiers modifiers = CSScriptIntellisense.KeyInterceptor.GetModifiers();
-
+                    {                       
                         if (modifiers.IsCtrl == shortcut.IsCtrl && modifiers.IsShift == shortcut.IsShift && modifiers.IsAlt == shortcut.IsAlt)
                         {
                             var handler = internalShortcuts[shortcut];
@@ -83,10 +82,23 @@ namespace RTextNppPlugin
                             {
                                 var res = AsyncInvoke(handler.Item2);
                             }
+                            //test tokenizer
+                            Parsing.Tokenizer t = new Parsing.Tokenizer(CSScriptIntellisense.Npp.GetLineNumber());
+                            foreach(var token in t.Tokenize())
+                            {
+                                Trace.WriteLine(String.Format("Token type : {0}\nsc : {1}\nec : {2}\ncontext : {3}\nPosition : {4}\nLine : {5}",
+                                    token.Type, token.StartColumn, token.EndColumn, token.Context, token.BufferPosition, token.Line));
+                            }
                             return;
                         }
                     }
                 }
+                //if any modifier key is pressed - ignore this key press
+                if (modifiers.IsCtrl || modifiers.IsShift || modifiers.IsAlt)
+                {
+                    return;
+                }
+
                 //auto complete Ctrl+Space is handled above - here we handle single characters
                 switch (key)
                 {
