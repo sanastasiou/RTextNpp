@@ -24,6 +24,7 @@
             <ListView Margin="0"                  
                       Name="AutoCompletionList"
                       DockPanel.Dock="Top"
+                      MouseDoubleClick="OnAutoCompletionListDoubleClick"
                       VirtualizingPanel.IsVirtualizing="True">
                 <ListView.View>
                     <GridView>

@@ -28,6 +28,14 @@ namespace RTextNppPlugin.WpfControls
 
         #endregion
 
+        /**
+         * On double click insert the selected option in text.
+         */
+        private void OnAutoCompletionListDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            System.Diagnostics.Trace.WriteLine("Auto completion list double click event");
+        }
+
         #region[Event Handlers]
 
         #endregion

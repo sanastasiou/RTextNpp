@@ -1,22 +1,15 @@
 using System;
-using System.IO;
-using System.Text;
-using System.Drawing;
-using System.Threading;
-using System.Windows.Forms;
-using System.Drawing.Imaging;
 using System.Collections.Generic;
+using System.Drawing;
+using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
-using System.Text.RegularExpressions;
-using System.Timers;
-using RTextNppPlugin;
-using System.Reflection;
-using System.Diagnostics;
-using RTextNppPlugin.Utilities;
-using RTextNppPlugin.Utilities.WpfControlHost;
+using System.Threading.Tasks;
+using System.Windows.Forms;
 using RTextNppPlugin.Automate;
 using RTextNppPlugin.Forms;
-using System.Threading.Tasks;
+using RTextNppPlugin.Utilities;
+using RTextNppPlugin.Utilities.WpfControlHost;
+using RTextNppPlugin.Parsing;
 
 namespace RTextNppPlugin
 {
@@ -185,36 +178,39 @@ namespace RTextNppPlugin
                         //todo - handle text insertion
 
                         Point aCaretPoint = new Point();
-                        //if(_autoCompletionTriggerPoint != null)
-                        //{
-                        //    aCaretPoint = _autoCompletionTriggerPoint;
-                        //}
-                        //else
-                        //{
+                        //if auto completion is inside comment, notation, name, string jusr return
+                        Tokenizer aTokenizer = new Tokenizer(CSScriptIntellisense.Npp.GetLineNumber());
+                        int aCurrentPosition = CSScriptIntellisense.Npp.GetCaretPosition();
+                        if (aCurrentPosition >= 0)
+                        {
+                            Tokenizer.TokenTag aCurrentToken = new Tokenizer.TokenTag();
+                            foreach (var t in aTokenizer.Tokenize())
+                            {
+                                if (aCurrentPosition >= t.BufferPosition && aCurrentPosition <= t.BufferPosition + (t.EndColumn - t.StartColumn))
+                                {
+                                    aCurrentToken = t;
+                                    break;
+                                }
+                            }
+                            System.Diagnostics.Trace.WriteLine(String.Format("Autocompletion Token line : {0}\nsc : {1}\nec : {2}", aCurrentToken.Line, aCurrentToken.StartColumn, aCurrentToken.EndColumn));
                             aCaretPoint = CSScriptIntellisense.Npp.GetCaretScreenLocationForForm();
-                        //}
+                            _autoCompletionForm.ElementHost.Left = aCaretPoint.X;
+                            _autoCompletionForm.ElementHost.Top = aCaretPoint.Y;
 
-                        _autoCompletionForm = new WpfControlHostBase<AutoCompletionForm>();
-                        _autoCompletionForm.ElementHost.Left = aCaretPoint.X;
-                        _autoCompletionForm.ElementHost.Top = aCaretPoint.Y;
+                            //_autoCompletionForm.ElementHost.FormClosed += (sender, e) =>
+                            //{
+                            //    //if (memberInfoWasShowing)
+                            //    //    NppUI.Marshal(() => Dispatcher.Shedule(100, ShowMethodInfo));
+                            //};
+                            //_autoCompletionForm.ElementHost.KeyPress += (sender, e) =>
+                            //{
+                            //    if (e.KeyChar >= ' ' || e.KeyChar == 8) //8 is backspace
+                            //        On_autoCompletion_autoCompletionFormcompleteKeyPress(e.KeyChar);
+                            //};
+                            _autoCompletionForm.ElementHost.Show(Control.FromHandle(nppData._nppHandle));
 
-                        //_autoCompletionForm.ElementHost.FormClosed += (sender, e) =>
-                        //{
-                        //    //if (memberInfoWasShowing)
-                        //    //    NppUI.Marshal(() => Dispatcher.Shedule(100, ShowMethodInfo));
-                        //};
-                        //_autoCompletionForm.ElementHost.KeyPress += (sender, e) =>
-                        //{
-                        //    if (e.KeyChar >= ' ' || e.KeyChar == 8) //8 is backspace
-                        //        On_autoCompletion_autoCompletionFormcompleteKeyPress(e.KeyChar);
-                        //};
-                        _autoCompletionForm.ElementHost.Show(Control.FromHandle(nppData._nppHandle));
-
-                        //OnAutocompleteKeyPress(allowNoText: true); //to grab current word at the caret an process it as a hint
-                    }
-                    else
-                    {
-                        //already active auto completion session                                                   
+                            //OnAutocompleteKeyPress(allowNoText: true); //to grab current word at the caret an process it as a hint
+                        }
                     }
                 }
                 else
