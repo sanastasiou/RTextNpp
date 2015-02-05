@@ -49,7 +49,7 @@ namespace RTextNppPlugin.Automate
          *
          * \param   file    The file.
          */
-        public void createConnector(string file)
+        public void CreateConnector(string file)
         {
             //check if file extension is an automate file
             if (FileUtilities.IsAutomateFile(file))
@@ -91,7 +91,7 @@ namespace RTextNppPlugin.Automate
          * \param   nppData Information describing the npp.
          * \remarks Must be called upon plugin initialization.                  
          */
-        public void initialize(NppData nppData)
+        public void Initialize(NppData nppData)
         {
             _nppData = nppData;
         }
@@ -115,6 +115,33 @@ namespace RTextNppPlugin.Automate
                 }
 
                 return _instance;
+            }
+        }
+
+        /**
+         * \brief   Gets the connector of the file which is being viewed.
+         *
+         * \return  The connector.
+         */
+        public Connector Connector
+        {
+            get
+            {
+                string aCurrentFile = CSScriptIntellisense.Npp.GetCurrentFile();
+                if (FileUtilities.IsAutomateFile(aCurrentFile))
+                {
+                    //find root of file
+                    string aProcKey = FileUtilities.FindWorkspaceRoot(aCurrentFile);
+                    if(_processList.ContainsKey(aProcKey) && !_processList[aProcKey].HasExited)
+                    {
+                        return _processList[aProcKey].Connector;
+                    }
+                    else
+                    {
+                        CreateConnector(aCurrentFile);
+                    }
+                }
+                return null;
             }
         }
         #endregion

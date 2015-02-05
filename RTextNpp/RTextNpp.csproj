@@ -143,6 +143,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\ThirdParty\FileSystemWatcher\FileSystemWatcherCLRWrapper.dll</HintPath>
     </Reference>
+    <Reference Include="LedControl">
+      <HintPath>..\ThirdParty\WpfLedControl\LedControl.dll</HintPath>
+    </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
     <Reference Include="RGiesecke.DllExport.Metadata">

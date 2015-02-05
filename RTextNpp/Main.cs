@@ -42,7 +42,7 @@ namespace RTextNppPlugin
             SetCommand((int)Constants.NppMenuCommands.Options, Properties.Resources.RTEXT_SHOW_OPTIONS_WINDOW, ModifyOptions, new ShortcutKey(true, false, true, Keys.R));
             SetCommand((int)Constants.NppMenuCommands.AutoCompletion, Properties.Resources.SHOW_AUTO_COMPLETION_LIST_NAME, StartAutoCompleteSession, "Ctrl+Space");
 
-            _connectorManager.initialize(nppData);
+            _connectorManager.Initialize(nppData);
             foreach(var key in BindInteranalShortcuts())
             {
                 CSScriptIntellisense.KeyInterceptor.Instance.Add(key);                
@@ -207,29 +207,17 @@ namespace RTextNppPlugin
                             }
                             
                             _autoCompletionForm.ElementHost.Left = aCaretPoint.X;
-                            _autoCompletionForm.ElementHost.Top = aCaretPoint.Y;
+                            _autoCompletionForm.ElementHost.Top  = aCaretPoint.Y;
 
-                            //todo - get backend context 
                             //get text from start till current line end
-                            var aMaxContextLines = CSScriptIntellisense.Npp.GetTextBetween(0, CSScriptIntellisense.Npp.GetLineEnd(aLineNumber)).Split(new string[] { Environment.NewLine, "\n" }, StringSplitOptions.RemoveEmptyEntries);
-                            
-                            
+                            string aContextBlock = CSScriptIntellisense.Npp.GetTextBetween(0, CSScriptIntellisense.Npp.GetLineEnd(aLineNumber));
+                            ContextExtractor aExtractor = new ContextExtractor(aContextBlock, CSScriptIntellisense.Npp.GetLengthToEndOfLine());
+                            //_connectorManager.Connector.execute
+
                             //todo - get response from backend
                             //todo - handle text insertion
 
-                            //_autoCompletionForm.ElementHost.FormClosed += (sender, e) =>
-                            //{
-                            //    //if (memberInfoWasShowing)
-                            //    //    NppUI.Marshal(() => Dispatcher.Shedule(100, ShowMethodInfo));
-                            //};
-                            //_autoCompletionForm.ElementHost.KeyPress += (sender, e) =>
-                            //{
-                            //    if (e.KeyChar >= ' ' || e.KeyChar == 8) //8 is backspace
-                            //        On_autoCompletion_autoCompletionFormcompleteKeyPress(e.KeyChar);
-                            //};
                             _autoCompletionForm.ElementHost.Show(Control.FromHandle(nppData._nppHandle));
-
-                            //OnAutocompleteKeyPress(allowNoText: true); //to grab current word at the caret an process it as a hint
                         }
                     }
                 }
@@ -342,7 +330,7 @@ namespace RTextNppPlugin
         public static void OnFileOpened()
         {            
             string aFileOpened = FileUtilities.GetCurrentFilePath();
-            _connectorManager.createConnector(aFileOpened);
+            _connectorManager.CreateConnector(aFileOpened);
             _fileObserver.OnFileOpened(aFileOpened);
         }
 
