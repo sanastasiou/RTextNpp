@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace RTextNppPlugin.Utilities.StateEngine
+namespace RTextNppPlugin.Automate.StateEngine
 {
     /**
     * \enum    ProcessState

@@ -130,6 +130,9 @@
       <DependentUpon>AutoCompletionControl.xaml</DependentUpon>
     </Compile>
     <Compile Include="WpfControls\BindableObject.cs" />
+    <Compile Include="WpfControls\CircularProgressBar.xaml.cs">
+      <DependentUpon>CircularProgressBar.xaml</DependentUpon>
+    </Compile>
     <Compile Include="WpfControls\ConsoleFlowDocument.xaml.cs">
       <DependentUpon>ConsoleFlowDocument.xaml</DependentUpon>
     </Compile>
@@ -137,6 +140,7 @@
       <DependentUpon>ConsoleOutput.xaml</DependentUpon>
     </Compile>
     <Compile Include="WpfControls\ConsoleOutputHost.cs" />
+    <Compile Include="WpfControls\Converters\ProgressBarRadiusConverter.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="FileSystemWatcherCLRWrapper, Version=1.0.5458.21429, Culture=neutral, processorArchitecture=x86">
@@ -189,6 +193,10 @@
     <Page Include="WpfControls\AutoCompletionControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="WpfControls\CircularProgressBar.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
     </Page>
     <Page Include="WpfControls\ConsoleFlowDocument.xaml">
       <SubType>Designer</SubType>

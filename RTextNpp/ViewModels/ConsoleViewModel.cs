@@ -33,15 +33,15 @@ namespace RTextNppPlugin.ViewModels
         void ConnectorManagerOnConnectorAdded(object source, ConnectorManager.ConnectorAddedEventArgs e)
         {
             //change to newly added workspace            
-            addWorkspace(e.Workspace);
+            addWorkspace(e.Workspace, e.Connector);
         }
 
-        public void addWorkspace(string workspace)
+        public void addWorkspace(string workspace, Connector connector = null)
         {
             var workspaceModel = _workspaceCollection.FirstOrDefault(x => x.Workspace.Equals(workspace, StringComparison.InvariantCultureIgnoreCase));
             if (workspaceModel == null)
             {
-                _workspaceCollection.Add(new WorkspaceViewModel(workspace));
+                _workspaceCollection.Add(new WorkspaceViewModel(workspace, ref connector));
                 Index = _workspaceCollection.IndexOf(_workspaceCollection.Last());
             }
             else
@@ -88,6 +88,7 @@ namespace RTextNppPlugin.ViewModels
                     _index = value;
                     base.RaisePropertyChanged("Index");
                     base.RaisePropertyChanged("Workspace");
+                    base.RaisePropertyChanged("IsLoading");
                 }
             }
         }
@@ -102,6 +103,27 @@ namespace RTextNppPlugin.ViewModels
             get
             {
                 return _workspaceCollection[_index].Workspace;
+            }
+        }
+
+        /**
+         * \brief   Gets a value indicating whether the backend is loading is model loading.
+         *
+         * \return  true if this object is model loading, false if not.
+         */
+        public bool IsLoading
+        {
+            get
+            {
+                return _workspaceCollection[_index].IsLoading;
+            }
+        }
+
+        public double ProgressPercentage
+        {
+            get
+            {
+                return _workspaceCollection[_index].ProgressPercentage;
             }
         }
 
@@ -127,7 +149,7 @@ namespace RTextNppPlugin.ViewModels
 
         #region [Data Members]
         private ObservableCollection<WorkspaceViewModel> _workspaceCollection = new ObservableCollection<WorkspaceViewModel>();
-        private int _index = 0;
+        private int _index                                                    = 0;
         #endregion
 
         #region [Helpers]

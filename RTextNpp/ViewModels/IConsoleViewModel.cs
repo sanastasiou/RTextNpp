@@ -1,4 +1,6 @@
-﻿namespace RTextNppPlugin.ViewModels
+﻿using RTextNppPlugin.Automate;
+
+namespace RTextNppPlugin.ViewModels
 {
     /**
      * Interface for console view model.
@@ -6,7 +8,7 @@
      */
     interface IConsoleViewModel
     {
-        void addWorkspace(string workspace);
+        void addWorkspace(string workspace, Connector connector);
         void removeWorkspace(string workspace);
     }
 }

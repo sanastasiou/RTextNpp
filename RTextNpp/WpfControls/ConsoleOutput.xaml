@@ -4,12 +4,17 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:viewModels="clr-namespace:RTextNppPlugin.ViewModels"
-             xmlns:wpfControls="clr-namespace:RTextNppPlugin.WpfControls"
+             xmlns:wpfControls="clr-namespace:RTextNppPlugin.WpfControls"             
+             xmlns:converters="clr-namespace:RTextNppPlugin.WpfControls.Converters"             
+             xmlns:uc="clr-namespace:LedControl;assembly=LedControl"
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="300">
     <UserControl.DataContext>
         <viewModels:ConsoleViewModel/>
-    </UserControl.DataContext>
+    </UserControl.DataContext>       
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+    </UserControl.Resources>
     <Grid>
         <DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
                    IsHitTestVisible="True"
@@ -27,13 +32,19 @@
                           ItemsSource="{Binding WorkspaceCollection}"
                           DisplayMemberPath="Workspace"/>
             </StackPanel>
-            <TabControl DockPanel.Dock="Bottom" IsHitTestVisible="True" Name="OutputTabControl"
-                        Background="Transparent">
-                <TabItem Name="Console" IsHitTestVisible="True" Background="Transparent" >
-                    <TabItem.Header>
-                        <Label IsHitTestVisible="True" PreviewMouseDown="ConsolePreviewMouseDown">Console</Label>
-                    </TabItem.Header>
-                    <RichTextBox VerticalScrollBarVisibility="Auto"
+            <StackPanel Orientation="Horizontal" Background="Wheat" DockPanel.Dock="Bottom">
+                <uc:Led Height="15"/>
+                <Label/>
+            </StackPanel>
+            <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch" DockPanel.Dock="Top" x:Name="WorkspaceGrid" SizeChanged="OnWorkspaceGridSizeChanged">
+                <TabControl IsHitTestVisible="True" 
+                            Name="OutputTabControl"
+                            Background="Transparent">
+                    <TabItem Name="Console" IsHitTestVisible="True" Background="Transparent">
+                        <TabItem.Header>
+                            <Label IsHitTestVisible="True" PreviewMouseDown="ConsolePreviewMouseDown">Console</Label>
+                        </TabItem.Header>
+                        <RichTextBox VerticalScrollBarVisibility="Auto"
                      HorizontalScrollBarVisibility="Visible"
                      HorizontalAlignment="Stretch"
                      VerticalAlignment="Stretch"
@@ -41,16 +52,32 @@
                      AllowDrop="False"                     
                      Background="Black"                                 
                      Name="ConsoleViewRichTextBox"                  
-                     IsReadOnly="True">                                                
-                        <wpfControls:ConsoleFlowDocument Channel="{Binding Workspace}"/>
-                    </RichTextBox>
-                </TabItem>
-                <TabItem Name="ErrorList" IsHitTestVisible="True" Background="Transparent">
-                    <TabItem.Header>
-                        <Label IsHitTestVisible="True" PreviewMouseDown="ErrorListPreviewMouseDown">Errors</Label>
-                    </TabItem.Header>                 
-                </TabItem>
-            </TabControl>
+                     IsReadOnly="True">
+                            <wpfControls:ConsoleFlowDocument Channel="{Binding Workspace}"/>
+                        </RichTextBox>
+                    </TabItem>
+                    <TabItem Name="ErrorList" IsHitTestVisible="True" Background="Transparent">
+                        <TabItem.Header>
+                            <Label IsHitTestVisible="True" PreviewMouseDown="ErrorListPreviewMouseDown">Errors</Label>
+                        </TabItem.Header>
+                    </TabItem>
+                </TabControl>
+                <Grid HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False" Visibility="{Binding IsLoading, Converter={StaticResource ResourceKey=BooleanToVisibilityConverter}}">
+                    <wpfControls:CircularProgressBar HorizontalAlignment="Center" 
+                                                     VerticalAlignment="Center" 
+                                                     SegmentColor="#FF878889"
+                                                     StrokeThickness="25"
+                                                     x:Name="OuterProgressBar"
+                                                     Percentage="100"/>
+                    <Label HorizontalAlignment="Center" VerticalAlignment="Center" Content="{Binding ProgressPercentage}" />
+                    <wpfControls:CircularProgressBar HorizontalAlignment="Center"
+                                                     VerticalAlignment="Center"
+                                                     Percentage="{Binding ProgressPercentage}"
+                                                     SegmentColor="#026873"
+                                                     x:Name="InnerProgressBar"
+                                                     StrokeThickness="15"/>
+                </Grid>
+            </Grid>            
         </DockPanel>                            
     </Grid>
 </UserControl>

@@ -1,4 +1,5 @@
 ﻿using System.Windows.Controls;
+using System;
 
 namespace RTextNppPlugin.WpfControls
 {
@@ -22,6 +23,17 @@ namespace RTextNppPlugin.WpfControls
         {
             Console.IsSelected = true;
             Console.Focus();
+        }
+
+        private void OnWorkspaceGridSizeChanged(object sender, System.Windows.SizeChangedEventArgs e)
+        {
+            double aWSpaceHeight = WorkspaceGrid.ActualHeight;
+            double aWSpaceWidth = WorkspaceGrid.ActualWidth;
+
+            int aNewRadius = (int)(Math.Floor(Math.Min(aWSpaceHeight, aWSpaceWidth)) * 0.80);
+            aNewRadius >>= 1;
+            OuterProgressBar.Radius = aNewRadius;
+            InnerProgressBar.Radius = aNewRadius;
         }
     }
 }

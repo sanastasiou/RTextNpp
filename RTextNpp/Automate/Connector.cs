@@ -1,5 +1,5 @@
 ﻿using RTextNppPlugin.Utilities.Protocol;
-using RTextNppPlugin.Utilities.StateEngine;
+using RTextNppPlugin.Automate.StateEngine;
 using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
@@ -10,9 +10,10 @@ using System.Runtime.Serialization.Json;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
+using RTextNppPlugin.Utilities;
 
 
-namespace RTextNppPlugin.Utilities
+namespace RTextNppPlugin.Automate
 {
     /**
      * \class   Connector
@@ -31,7 +32,7 @@ namespace RTextNppPlugin.Utilities
         private Regex mMessageLengthRegex                                  = new Regex(@"^(\d+)\{", RegexOptions.Compiled)   ;   //!< The message length regular expression
         private StateMachine mFSM                                                                                            ;   //!< The fsm
         private string mActiveCommand                                                                                        ;   //!< Indicates the currently executing command
-        private Process mBackendProcess                                                                                      ;   //!< Indicates the backend process
+        private RTextBackendProcess mBackendProcess                                                                          ;   //!< Indicates the backend process
         private CancellationTokenSource mReceivingThreadCancellationSource = null                                            ;   //!< Used to cancel a synchronous receiving thread without waiting for the timeout to complete.
         private IResponseBase mLastResponse                                = null                                            ;   //!< Holds the last response from the backend.
         private int mLastInvocationId                                      = -1                                              ;   //!< Holds the last invocation id from the backend.
@@ -48,7 +49,7 @@ namespace RTextNppPlugin.Utilities
          */
         public struct ProgressResponseStruct
         {          
-            public Protocol.ProgressResponse Response;
+            public ProgressResponse Response;
             public String Command;
         }
 
@@ -140,7 +141,7 @@ namespace RTextNppPlugin.Utilities
          * \param   pInfo       The information.
          * \param   filePath    Full pathname of the file associated with this connector.
          */
-        public Connector( Process proc) : base()
+        public Connector( RTextBackendProcess proc) : base()
         {
             mBackendProcess = proc;
             mFSM = new StateMachine(this);
@@ -171,7 +172,7 @@ namespace RTextNppPlugin.Utilities
             //mProgressManager = new StatusBarManager(ref this.mProgressQueue, this);
         }
 
-        void ProcessExitedEvent(object source, Process.ProcessExitedEventArgs e)
+        void ProcessExitedEvent(object source, RTextBackendProcess.ProcessExitedEventArgs e)
         {
             //kill any ongoing commands
             if (this.isBusy() && mReceivingThreadCancellationSource != null)
@@ -310,8 +311,8 @@ namespace RTextNppPlugin.Utilities
             //    }
             //}
             //send asynchronous command since load model may take a long time to complete depending on the workspace
-            Protocol.RequestBase aTempCommand = new Protocol.RequestBase { command = Constants.Commands.LOAD_MODEL, type = "request" };
-            this.beginSend<Protocol.RequestBase>(ref aTempCommand, ref invocationId);
+            Utilities.Protocol.RequestBase aTempCommand = new Utilities.Protocol.RequestBase { command = Constants.Commands.LOAD_MODEL, type = "request" };
+            this.beginSend<Utilities.Protocol.RequestBase>(ref aTempCommand, ref invocationId);
             OnFsmTransition(ProcessState.Connecting);
         }
 

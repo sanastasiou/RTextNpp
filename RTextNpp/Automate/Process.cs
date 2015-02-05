@@ -9,6 +9,7 @@ using System.Windows.Threading;
 using Microsoft.Win32;
 using RTextNppPlugin.Utilities;
 using System.Text;
+using RTextNppPlugin.Automate;
 
 namespace RTextNppPlugin.Utilities
 {
@@ -18,7 +19,7 @@ namespace RTextNppPlugin.Utilities
      * \brief   Process wrapper class over the .NET process class. Fixes several bugs regarding IO redirect.
      *
      */
-    public class Process : IDisposable
+    public class RTextBackendProcess : IDisposable
     {
         #region Fields
 
@@ -193,7 +194,7 @@ namespace RTextNppPlugin.Utilities
          * \param   ext             The extension of the rtext file. 
          * \remark  For each extension, even of the same .rtext file, a different process should be started.                         
          */
-        public Process(string rTextFilePath, string ext)
+        public RTextBackendProcess(string rTextFilePath, string ext)
             : this(rTextFilePath, Path.GetDirectoryName(rTextFilePath), GetCommandLine(rTextFilePath, ext), rTextFilePath + ext, ext)
         {
             StartRTextService();
@@ -314,7 +315,7 @@ namespace RTextNppPlugin.Utilities
          * \brief   Finaliser.
          *
          */
-        ~Process()
+        ~RTextBackendProcess()
         {
             Dispose(false);
         }
@@ -455,7 +456,7 @@ namespace RTextNppPlugin.Utilities
          * \param   commandLine         The command line.
          * \param   processKey          The process key.
          */
-        public Process(string rTextFilePath, string workingDirectory, string commandLine, string processKey, string extenstion)
+        public RTextBackendProcess(string rTextFilePath, string workingDirectory, string commandLine, string processKey, string extenstion)
         {
             mPInfo = new ProcessInfo(workingDirectory, rTextFilePath, commandLine, processKey);
             mTimer = new DispatcherTimer(DispatcherPriority.ApplicationIdle)
@@ -874,7 +875,7 @@ namespace RTextNppPlugin.Utilities
         private void OnTimerElapsed(object sender, EventArgs e)
         {
             //check needed so that the interval timer don't stop if a command could not be loaded - this way we can ensure that the complete model will always be loaded!
-            if (this.mConnector.ConnectorState == StateEngine.ProcessState.Busy)
+            if (this.mConnector.ConnectorState == Automate.StateEngine.ProcessState.Busy)
             {
                 if (!mIsMessageDisplayed)
                 {

@@ -33,10 +33,12 @@ namespace RTextNppPlugin.Automate
         public class ConnectorAddedEventArgs : EventArgs
         {
             public String Workspace { get; private set; }
+            public Connector Connector { get; private set; }
 
-            public ConnectorAddedEventArgs(string workspace)
+            public ConnectorAddedEventArgs(string workspace, Connector connector)
             {
                 Workspace = workspace;
+                Connector = connector;
             }
         }
 
@@ -65,10 +67,6 @@ namespace RTextNppPlugin.Automate
                     string processKey = rTextFileLocation + Path.GetExtension(file);
                     Logging.Logger.Instance.Append(Logging.Logger.MessageType.Info, processKey, "Workspace root for file : {0} is : {1}", file, rTextFileLocation);
 
-                    if (OnConnectorAdded != null)
-                    {
-                        OnConnectorAdded(this, new ConnectorAddedEventArgs(processKey));
-                    }
                     //maybe process already exists..
                     if (_processList.ContainsKey(processKey))
                     {
@@ -79,7 +77,12 @@ namespace RTextNppPlugin.Automate
                     }
                     else
                     {
-                        _processList.Add(processKey, new Utilities.Process(rTextFileLocation, Path.GetExtension(file)));
+                        _processList.Add(processKey, new Utilities.RTextBackendProcess(rTextFileLocation, Path.GetExtension(file)));
+                    }
+
+                    if (OnConnectorAdded != null)
+                    {
+                        OnConnectorAdded(this, new ConnectorAddedEventArgs(processKey, _processList[processKey].Connector));
                     }
                 }
             }
@@ -147,7 +150,7 @@ namespace RTextNppPlugin.Automate
         #endregion
 
         #region Data Members
-        private Dictionary<string, Utilities.Process> _processList = new Dictionary<string, Utilities.Process>();
+        private Dictionary<string, Utilities.RTextBackendProcess> _processList = new Dictionary<string, Utilities.RTextBackendProcess>();
         private NppData _nppData;                            //!< Access to notepad++ data.
         private static volatile ConnectorManager _instance;  //!< Singleton Instance.
         private static object _lock = new Object();          //!< Mutex.
