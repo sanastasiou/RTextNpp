@@ -30,6 +30,7 @@ namespace RTextNppPlugin.Parsing
         {
             int aOffset = CSScriptIntellisense.Npp.GetLineStart(_lineNumber);
             bool aFirstToken = true;
+            //column in rtext protocol starts at 1
             int aColumn = 0;
             while (!string.IsNullOrEmpty(_lineText))
             {

@@ -22,7 +22,7 @@ namespace RTextNppPlugin
         private static FileModificationObserver _fileObserver = new FileModificationObserver();
         private static Dictionary<ShortcutKey, Tuple<string, Action>> internalShortcuts = new Dictionary<ShortcutKey, Tuple<string, Action>>();
         private static WpfControlHostBase<AutoCompletionForm> _autoCompletionForm = new WpfControlHostBase<AutoCompletionForm>();
-        private static Point _autoCompletionTriggerPoint = new Point();
+        private static Point _triggerPoint = new Point();
 
         public const string PluginName = "RTextNpp";
         static Bitmap tbBmp = Properties.Resources.ConsoleIcon;
@@ -99,10 +99,7 @@ namespace RTextNppPlugin
                         //character needs to be entered
                         handled = false;
                         if (!_autoCompletionForm.ElementHost.Visible)
-                        {
-                            var lol = FileUtilities.GetAutoCompletionTriggerPoint();
-                            _autoCompletionTriggerPoint = CSScriptIntellisense.Npp.GetCaretScreenLocationForForm();
-                            //caret position before first character is needs - or first character in current token                            
+                        {                        
                             var res = AsyncInvoke(StartAutoCompleteSession);                            
                         }
                         break;
@@ -172,19 +169,21 @@ namespace RTextNppPlugin
                 if (FileUtilities.IsAutomateFile())
                 {
                     if (!_autoCompletionForm.Visible)
-                    {                                                                            
-                        //todo - get backend context 
-                        //todo - get response from backend
-                        //todo - handle text insertion
-
-                        Point aCaretPoint = new Point();
+                    {          
+                        int aLineNumber = CSScriptIntellisense.Npp.GetLineNumber();                                          
                         //if auto completion is inside comment, notation, name, string jusr return
-                        Tokenizer aTokenizer = new Tokenizer(CSScriptIntellisense.Npp.GetLineNumber());
+                        Tokenizer aTokenizer = new Tokenizer(aLineNumber);
                         int aCurrentPosition = CSScriptIntellisense.Npp.GetCaretPosition();
                         if (aCurrentPosition >= 0)
                         {
-                            Tokenizer.TokenTag aCurrentToken = new Tokenizer.TokenTag();
-                            foreach (var t in aTokenizer.Tokenize())
+                            Tokenizer.TokenTag? aCurrentToken = null;
+                            foreach (var t in aTokenizer.Tokenize(RTextTokenTypes.Boolean, RTextTokenTypes.Comma,
+                                                                  RTextTokenTypes.Command, RTextTokenTypes.Float,
+                                                                  RTextTokenTypes.Integer, RTextTokenTypes.Label,
+                                                                  RTextTokenTypes.LeftAngleBrakcet, RTextTokenTypes.LeftBracket,
+                                                                  RTextTokenTypes.Reference, RTextTokenTypes.RightAngleBracket,
+                                                                  RTextTokenTypes.RightBrakcet, RTextTokenTypes.RTextName,
+                                                                  RTextTokenTypes.Template))
                             {
                                 if (aCurrentPosition >= t.BufferPosition && aCurrentPosition <= t.BufferPosition + (t.EndColumn - t.StartColumn))
                                 {
@@ -192,10 +191,31 @@ namespace RTextNppPlugin
                                     break;
                                 }
                             }
-                            System.Diagnostics.Trace.WriteLine(String.Format("Autocompletion Token line : {0}\nsc : {1}\nec : {2}", aCurrentToken.Line, aCurrentToken.StartColumn, aCurrentToken.EndColumn));
-                            aCaretPoint = CSScriptIntellisense.Npp.GetCaretScreenLocationForForm();
+                            if (aCurrentToken.HasValue)
+                            {
+                                System.Diagnostics.Trace.WriteLine( String.Format("Autocompletion Token line : {0}\nsc : {1}\nec : {2}\npos : {3}",
+                                                                    aCurrentToken.Value.Line,
+                                                                    aCurrentToken.Value.StartColumn,
+                                                                    aCurrentToken.Value.EndColumn,
+                                                                    aCurrentToken.Value.BufferPosition));
+                            }
+                            //if a token is found then the window should appear at the start of it, else it should appear at the caret
+                            Point aCaretPoint = CSScriptIntellisense.Npp.GetCaretScreenLocationForForm();
+                            if(aCurrentToken.HasValue)
+                            {
+                                aCaretPoint = CSScriptIntellisense.Npp.GetCaretScreenLocationRelativeToPosition(aCurrentToken.Value.BufferPosition);
+                            }
+                            
                             _autoCompletionForm.ElementHost.Left = aCaretPoint.X;
                             _autoCompletionForm.ElementHost.Top = aCaretPoint.Y;
+
+                            //todo - get backend context 
+                            //get text from start till current line end
+                            var aMaxContextLines = CSScriptIntellisense.Npp.GetTextBetween(0, CSScriptIntellisense.Npp.GetLineEnd(aLineNumber)).Split(new string[] { Environment.NewLine, "\n" }, StringSplitOptions.RemoveEmptyEntries);
+                            
+                            
+                            //todo - get response from backend
+                            //todo - handle text insertion
 
                             //_autoCompletionForm.ElementHost.FormClosed += (sender, e) =>
                             //{

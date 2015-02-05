@@ -252,25 +252,5 @@ namespace RTextNppPlugin.Utilities
         {
             Win32.SendMessage(Plugin.nppData._nppHandle, NppMsg.NPPM_SWITCHTOFILE, 0, file);
         }
-
-        /**
-         * Gets automatic completion trigger point.
-         * This point needs to be at start of token if the caret is currently at the end of a token.
-         * In addition, the point needs to be before a character, if this is the first character of a token being typed.         
-         *
-         * \return  The automatic completion trigger point.
-         */
-        public static Point GetAutoCompletionTriggerPoint()
-        {
-            Point aTriggerPoint = new Point();
-            //tokenize current line of current document            
-            string aCurrentLine = Npp.GetLine(Npp.GetLineNumber(Npp.GetCaretPosition()));
-            //we can find line start by substracting line length from caret position
-            //line starts from 0 - in editor they start from 1
-            //  
-
-            Trace.WriteLine(String.Format("Current line number {0}\nCurrent line length {1}\nCurrent line text {2}", Npp.GetLineNumber(), Npp.GetCaretPosition() - aCurrentLine.Length, aCurrentLine));
-            return aTriggerPoint;
-        }
     }
 }

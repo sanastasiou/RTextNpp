@@ -95,6 +95,7 @@
     </Compile>
     <Compile Include="DllExport\NppPluginNETBase.cs" />
     <Compile Include="DllExport\NppPluginNETHelper.cs" />
+    <Compile Include="Parsing\ContextExtraction.cs" />
     <Compile Include="Parsing\RTextRegexMap.cs" />
     <Compile Include="Parsing\RTextTokenTypes.cs" />
     <Compile Include="Parsing\Tokenizer.cs" />

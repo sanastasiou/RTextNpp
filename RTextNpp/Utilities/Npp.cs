@@ -161,6 +161,11 @@ namespace CSScriptIntellisense
             IntPtr sci = Plugin.GetCurrentScintilla();
             return (int)Win32.SendMessage(sci, SciMsg.SCI_LINEFROMPOSITION, position, 0);
         }
+     
+        static public int GetLineEnd(int line)
+        {
+            return (GetLineStart(line) + GetLine().Length);
+        }
 
         static public int GetLineStart(int line)
         {
@@ -202,16 +207,32 @@ namespace CSScriptIntellisense
                     
 
         /**
-         * Gets caret screen location relative to position. ( -/+ characters from the actual caret position )
+         * Gets caret screen location relative to buffer position.
          *
-         * \param   position    The position relative to the current caret position.
+         * \param   position    The buffer position.
          *
-         * \return  The caret screen location relative to position.
+         * \return  A point from the relative buffer position.
          */
         public static Point GetCaretScreenLocationRelativeToPosition(int position)
         {
-            Point aPoint = new Point();
+            IntPtr sci = Plugin.GetCurrentScintilla();
+            int x = (int)Win32.SendMessage(sci, SciMsg.SCI_POINTXFROMPOSITION, 0, position);
+            int y = (int)Win32.SendMessage(sci, SciMsg.SCI_POINTYFROMPOSITION, 0, position);
+            Point aPoint = new Point(x, y);
+            ClientToScreen(sci, ref aPoint);
+            aPoint.Y += CSScriptIntellisense.Npp.GetTextHeight(CSScriptIntellisense.Npp.GetCaretLineNumber());
+            return aPoint;
+        }
 
+        /**
+         * Gets caret screen location for form. ( under a certain buffer position )
+         *
+         * \return  The caret screen location for form.
+         */
+        static public Point GetCaretScreenLocationForForm(int position)
+        {
+            Point aPoint = GetCaretScreenLocationRelativeToPosition(position);
+            aPoint.Y += CSScriptIntellisense.Npp.GetTextHeight(CSScriptIntellisense.Npp.GetCaretLineNumber());
             return aPoint;
         }
 
@@ -231,6 +252,7 @@ namespace CSScriptIntellisense
         {
             IntPtr sci = Plugin.GetCurrentScintilla();
             int pos = (int)Win32.SendMessage(sci, SciMsg.SCI_GETCURRENTPOS, 0, 0);
+            Trace.WriteLine(String.Format("Position from caret : {0}", pos));
             int x = (int)Win32.SendMessage(sci, SciMsg.SCI_POINTXFROMPOSITION, 0, pos);
             int y = (int)Win32.SendMessage(sci, SciMsg.SCI_POINTYFROMPOSITION, 0, pos);
 
