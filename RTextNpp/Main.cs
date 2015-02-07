@@ -48,7 +48,6 @@ namespace RTextNppPlugin
                 CSScriptIntellisense.KeyInterceptor.Instance.Add(key);                
             }
 
-
             CSScriptIntellisense.KeyInterceptor.Instance.KeyDown += OnKeyInterceptorKeyDown;
             foreach(var key in Enum.GetValues(typeof(Keys)))
             {

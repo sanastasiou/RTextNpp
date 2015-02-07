@@ -4,11 +4,14 @@ namespace RTextNppPlugin.ViewModels
 {
     /**
      * Interface for console view model.
-     * This interface provides means to modify the underlying view model of the console window of the plugin.
      */
-    interface IConsoleViewModel
+    interface IConsoleViewModelBase
     {
-        void addWorkspace(string workspace, Connector connector);
-        void removeWorkspace(string workspace);
+        void AddWorkspace(string workspace, Connector connector = null);
+        string Workspace { get; }
+        bool IsBusy { get; }
+        bool IsActive { get; }
+        bool IsAutomateWorkspace { get; }
+        double ProgressPercentage { get; }
     }
 }

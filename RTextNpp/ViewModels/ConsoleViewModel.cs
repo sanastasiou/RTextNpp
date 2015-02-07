@@ -11,7 +11,7 @@ namespace RTextNppPlugin.ViewModels
      * The model is responsible for holding information about all loaded automate workspaces.
      * The model provide means to update the console, error list and rtext find windows.
      */
-    class ConsoleViewModel : BindableObject, IConsoleViewModel, IDisposable
+    class ConsoleViewModel : BindableObject, IConsoleViewModelBase, IDisposable
     {
 
         #region Interface
@@ -23,46 +23,38 @@ namespace RTextNppPlugin.ViewModels
         public ConsoleViewModel()
         {
             #if DEBUG
-            addWorkspace(Constants.DEBUG_CHANNEL);
+            AddWorkspace(Constants.DEBUG_CHANNEL);
             #endif
-            addWorkspace(Constants.GENERAL_CHANNEL);            
+            AddWorkspace(Constants.GENERAL_CHANNEL);            
             //subscribe to connector manager for workspace events
             ConnectorManager.Instance.OnConnectorAdded += ConnectorManagerOnConnectorAdded;
         }
 
         void ConnectorManagerOnConnectorAdded(object source, ConnectorManager.ConnectorAddedEventArgs e)
         {
+
             //change to newly added workspace            
-            addWorkspace(e.Workspace, e.Connector);
+            AddWorkspace(e.Workspace, e.Connector);
         }
 
-        public void addWorkspace(string workspace, Connector connector = null)
+        public void AddWorkspace(string workspace, Connector connector = null)
         {
             var workspaceModel = _workspaceCollection.FirstOrDefault(x => x.Workspace.Equals(workspace, StringComparison.InvariantCultureIgnoreCase));
             if (workspaceModel == null)
             {
-                _workspaceCollection.Add(new WorkspaceViewModel(workspace, ref connector));
+                if (connector == null)
+                {
+                    _workspaceCollection.Add(new WorkspaceViewModelBase(workspace));
+                }
+                else
+                {
+                    _workspaceCollection.Add(new WorkspaceViewModel(workspace, ref connector));
+                }
                 Index = _workspaceCollection.IndexOf(_workspaceCollection.Last());
             }
             else
             {
                 Index = _workspaceCollection.IndexOf(workspaceModel);
-            }
-        }
-
-        /**
-         * Removes the workspace described by workspace.
-         *
-         * \param   workspace   The workspace.                    
-         * \todo    check if this really works..and if is really needed                      
-         */
-        public void removeWorkspace(string workspace)
-        {
-            var workspaceModel = _workspaceCollection.FirstOrDefault(x => x.Workspace.Equals(workspace, StringComparison.InvariantCultureIgnoreCase));
-            if (workspaceModel != null)
-            {                
-                _workspaceCollection.RemoveAt(_workspaceCollection.IndexOf(workspaceModel));
-                Index = _workspaceCollection.IndexOf(_workspaceCollection.FirstOrDefault());
             }
         }
 
@@ -88,7 +80,8 @@ namespace RTextNppPlugin.ViewModels
                     _index = value;
                     base.RaisePropertyChanged("Index");
                     base.RaisePropertyChanged("Workspace");
-                    base.RaisePropertyChanged("IsLoading");
+                    base.RaisePropertyChanged("IsBusy");
+                    base.RaisePropertyChanged("IsAutomateWorkspace");
                 }
             }
         }
@@ -111,14 +104,19 @@ namespace RTextNppPlugin.ViewModels
          *
          * \return  true if this object is model loading, false if not.
          */
-        public bool IsLoading
+        public bool IsBusy
         {
             get
             {
-                return _workspaceCollection[_index].IsLoading;
+                return _workspaceCollection[_index].IsBusy;
             }
         }
 
+        /**
+         * Gets the progress percentage.
+         *
+         * \return  The progress percentage of current backend command.
+         */
         public double ProgressPercentage
         {
             get
@@ -127,12 +125,29 @@ namespace RTextNppPlugin.ViewModels
             }
         }
 
+        public bool IsAutomateWorkspace
+        {
+            get
+            {
+                return _workspaceCollection[_index].IsAutomateWorkspace;
+            }
+        }
+
+        public bool IsActive
+        {
+            get
+            {
+                return _workspaceCollection[_index].IsActive;
+            }
+        }
+
+
         /**
          * Gets a collection of workspaces.
          *
          * \return  A Collection of workspaces.
          */
-        public ObservableCollection<WorkspaceViewModel> WorkspaceCollection
+        public ObservableCollection<IConsoleViewModelBase> WorkspaceCollection
         {
             get
             {
@@ -148,7 +163,7 @@ namespace RTextNppPlugin.ViewModels
         #endregion
 
         #region [Data Members]
-        private ObservableCollection<WorkspaceViewModel> _workspaceCollection = new ObservableCollection<WorkspaceViewModel>();
+        private ObservableCollection<IConsoleViewModelBase> _workspaceCollection = new ObservableCollection<IConsoleViewModelBase>();
         private int _index                                                    = 0;
         #endregion
 

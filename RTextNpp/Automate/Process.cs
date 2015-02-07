@@ -197,6 +197,7 @@ namespace RTextNppPlugin.Utilities
         public RTextBackendProcess(string rTextFilePath, string ext)
             : this(rTextFilePath, Path.GetDirectoryName(rTextFilePath), GetCommandLine(rTextFilePath, ext), rTextFilePath + ext, ext)
         {
+            mConnector = new Connector(this);            
             StartRTextService();
         }
 
@@ -375,11 +376,6 @@ namespace RTextNppPlugin.Utilities
             //will only return true if port number is retrieved during a timeout of 2 seconds!
             if (mTimeoutEvent.WaitOne(Constants.INITIAL_RESPONSE_TIMEOUT))
             {
-                if (mConnector == null)
-                {
-                    //create a new connector if it's the first time for this workspace
-                    mConnector = new Connector(this);
-                }
                 this.mPInfo.Port = portNumber = this.mPort;
                 return true;
             }

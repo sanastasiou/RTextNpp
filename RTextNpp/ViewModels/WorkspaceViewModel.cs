@@ -1,21 +1,15 @@
-﻿using RTextNppPlugin.Automate;
+﻿using System;
+
+using RTextNppPlugin.Automate;
 
 namespace RTextNppPlugin.ViewModels
 {
-    class WorkspaceViewModel
+    class WorkspaceViewModel : WorkspaceViewModelBase, IConsoleViewModelBase
     {
-        public WorkspaceViewModel(string workspace, ref Connector connector)
+        #region [Interface]
+        public WorkspaceViewModel(string workspace, ref Connector connector) : base(workspace)
         {
-            _workspace = workspace;
             _connector = connector;
-        }
-
-        public string Workspace
-        {
-            get
-            {
-                return _workspace;
-            }
         }
 
         /**
@@ -23,7 +17,7 @@ namespace RTextNppPlugin.ViewModels
          *
          * \return  true if this workspace is loading, false if not.
          */
-        public bool IsLoading
+        new public bool IsBusy
         {
             get
             {
@@ -31,10 +25,38 @@ namespace RTextNppPlugin.ViewModels
             }
         }
 
-        public double ProgressPercentage { get; private set; }
+        new public double ProgressPercentage 
+        { 
+            get
+            {
+                return _percentage;
+            }
+        }
 
-        private readonly string _workspace = null;  //!< Associated namespace name.
-        private bool _isLoading            = false; //!< Model loading status.
-        private Connector _connector       = null;  //!< Associated connector instance.
+        public void AddConnector(Connector connector)
+        {
+            _connector = connector;
+        }
+
+        new public bool IsActive
+        {
+            get { return _isActive; }
+        }
+
+        new public bool IsAutomateWorkspace
+        {
+            get { return true; }
+        }
+
+        #endregion
+
+        #region [Data Members]
+
+        private bool _isActive = false;
+        private double _percentage   = 0.0;   //!< The current command percentage.
+        private bool _isLoading      = false; //!< Model loading status.
+        private Connector _connector = null;  //!< Associated connector instance.
+
+        #endregion
     }
 }
