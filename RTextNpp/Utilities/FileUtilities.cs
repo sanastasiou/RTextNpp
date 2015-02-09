@@ -31,7 +31,7 @@ namespace RTextNppPlugin.Utilities
             catch (Exception ex)
             {
                 Logging.Logger.Instance.Append(Logging.Logger.MessageType.Error, Constants.GENERAL_CHANNEL, String.Format("FileUtilities.findRTextFile(string file) - Exception {0}", ex.Message));
-                return null;
+                return String.Empty;
             }
         }
 
@@ -49,7 +49,7 @@ namespace RTextNppPlugin.Utilities
         {
             if (String.IsNullOrEmpty(extension) || String.IsNullOrEmpty(currentDir))
             {
-                return null;
+                return String.Empty;
             }
             try
             {
@@ -89,7 +89,7 @@ namespace RTextNppPlugin.Utilities
             {
                 Logging.Logger.Instance.Append(Logging.Logger.MessageType.Error, Constants.GENERAL_CHANNEL, "FileUtilities.FindWorkspaceRoot({0}, {1} : Exception : {2}", currentDir, extension, ex.Message);
             }
-            return null;
+            return String.Empty;
         }
 
         /**

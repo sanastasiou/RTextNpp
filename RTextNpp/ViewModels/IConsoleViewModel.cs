@@ -11,6 +11,7 @@ namespace RTextNppPlugin.ViewModels
         string Workspace { get; }
         bool IsBusy { get; }
         bool IsActive { get; }
+        bool IsLoading { get; }
         bool IsAutomateWorkspace { get; }
         double ProgressPercentage { get; }
     }

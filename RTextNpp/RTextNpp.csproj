@@ -141,6 +141,7 @@
       <DependentUpon>ConsoleOutput.xaml</DependentUpon>
     </Compile>
     <Compile Include="WpfControls\ConsoleOutputHost.cs" />
+    <Compile Include="WpfControls\Converters.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="FileSystemWatcherCLRWrapper, Version=1.0.5458.21429, Culture=neutral, processorArchitecture=x86">
@@ -206,6 +207,10 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
+    <Page Include="WpfControls\Styles.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\ConsoleIcon.bmp" />
@@ -216,9 +221,7 @@
   <ItemGroup>
     <Content Include="FodyWeavers.xml" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="WpfControls\Converters\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="../packages/UnmanagedExports.1.2.6/tools/RGiesecke.DllExport.targets" Condition="Exists('../packages/UnmanagedExports.1.2.6/tools/RGiesecke.DllExport.targets')" />
   <PropertyGroup>
     <PostBuildEvent>copy /Y "$(ProjectDir)$(OutDir)$(TargetName).dll" "C:\Program Files (x86)\Notepad++\plugins"</PostBuildEvent>

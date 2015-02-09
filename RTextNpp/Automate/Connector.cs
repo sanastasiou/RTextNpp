@@ -147,14 +147,14 @@ namespace RTextNppPlugin.Automate
             mFSM = new StateMachine(this);
             proc.ProcessExitedEvent += ProcessExitedEvent;
             //cannot have identical transitions
-            mFSM.addStateTransition( new StateMachine.StateTransition(ProcessState.Closed, StateEngine.Command.Connect),
-                                     new StateMachine.ProcessStateWithAction(ProcessState.Connected, null, isConnected));
+            mFSM.addStateTransition(new StateMachine.StateTransition(ProcessState.Closed, StateEngine.Command.Connect),
+                                     new StateMachine.ProcessStateWithAction(ProcessState.Connected, null, () => { return mReceiveStatus.Socket.Connected; }));
 
             mFSM.addStateTransition( new StateMachine.StateTransition(ProcessState.Closed, StateEngine.Command.Disconnected),
                                      new StateMachine.ProcessStateWithAction(ProcessState.Closed, CleanUpSocket, null));
 
             mFSM.addStateTransition( new StateMachine.StateTransition(ProcessState.Connected, StateEngine.Command.Execute),
-                                     new StateMachine.ProcessStateWithAction(ProcessState.Busy, null, isConnected));
+                                     new StateMachine.ProcessStateWithAction(ProcessState.Busy, null, () => { return mReceiveStatus.Socket.Connected; }));
 
             mFSM.addStateTransition( new StateMachine.StateTransition(ProcessState.Connected, StateEngine.Command.Disconnected),
                                      new StateMachine.ProcessStateWithAction(ProcessState.Closed, CleanUpSocket, null));
@@ -278,16 +278,12 @@ namespace RTextNppPlugin.Automate
             }
         }
 
-        /**
-         *
-         * \brief   Query if this connector is connected with the backend service.
-         *
-         *
-         * \return  true if connected, false if not.
-         */
-        bool isConnected()
+        public bool IsLoading
         {
-            return this.mReceiveStatus.Socket.Connected;
+            get
+            {
+                return (mActiveCommand == Constants.Commands.LOAD_MODEL);
+            }
         }
 
         /**
@@ -298,18 +294,12 @@ namespace RTextNppPlugin.Automate
          */
         private void LoadModel( ref int invocationId )
         {
-            //if (!ConnectorManager.getInstance.isProcessRunning( ProcessInfo.ProcKey))
-            //{
-            //    if (mBackendProcess.HasExited)
-            //    {
-            //        //StatusBarManager.writeToOutputWindow("ERROR: RTextService is not running. Trying to restart service...",
-            //        //                                         Utilities.HashUtilities.getGUIDfromString(ProcessInfo.ProcKey),
-            //        //                                         ProcessInfo.ProcKey
-            //        //                                    );
-            //        ConnectorManager.getInstance.StartProcess(mBackendProcess.ProcessInfo);
-            //        return;
-            //    }
-            //}
+            if(this.mBackendProcess.HasExited)
+            {
+                Logging.Logger.Instance.Append(Logging.Logger.MessageType.Error, mBackendProcess.Workspace, "ERROR: RTextService is not running. Trying to restart service...");
+                mBackendProcess.StartRTextService();
+                return;
+            }
             //send asynchronous command since load model may take a long time to complete depending on the workspace
             Utilities.Protocol.RequestBase aTempCommand = new Utilities.Protocol.RequestBase { command = Constants.Commands.LOAD_MODEL, type = "request" };
             this.beginSend<Utilities.Protocol.RequestBase>(ref aTempCommand, ref invocationId);

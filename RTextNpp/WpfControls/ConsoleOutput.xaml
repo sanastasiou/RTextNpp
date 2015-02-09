@@ -12,14 +12,12 @@
         <viewModels:ConsoleViewModel/>
     </UserControl.DataContext>       
     <UserControl.Resources>
-        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
-        <Storyboard x:Key="OnControlLoaded">
-            <ObjectAnimationUsingKeyFrames BeginTime="00:00:00" Storyboard.TargetProperty="(UIElement.Visibility)">
-                <DiscreteObjectKeyFrame KeyTime="00:00:00" Value="{x:Static Visibility.Visible}"/>
-                <DiscreteObjectKeyFrame KeyTime="00:00:00.8000000" Value="{x:Static Visibility.Collapsed}"/>
-                <DiscreteObjectKeyFrame KeyTime="00:00:01.4000000" Value="{x:Static Visibility.Visible}"/>
-            </ObjectAnimationUsingKeyFrames>
-        </Storyboard>
+        <ResourceDictionary>
+            <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Styles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
     </UserControl.Resources>
     <Grid>
         <DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
@@ -38,46 +36,55 @@
                           ItemsSource="{Binding WorkspaceCollection}"
                           DisplayMemberPath="Workspace"/>
             </StackPanel>
-            <StackPanel Orientation="Horizontal" DockPanel.Dock="Bottom" Visibility="{Binding IsAutomateWorkspace, Converter={StaticResource ResourceKey=BooleanToVisibilityConverter}}">
+            <StackPanel Orientation="Horizontal"
+                        DockPanel.Dock="Bottom"
+                        Style="{StaticResource Workspace_FadeInFadeOutStyle}">
                 <Label>Backend Status : </Label>
-                <uc:Led Height="17" FlashingPeriod="300" IsActive="{x:Null}" ColorOn="Green" ColorOff="Yellow"/>
+                <uc:Led Height="17" FlashingPeriod="300" IsActive="{Binding IsActive}" ColorOn="Green" ColorOff="Yellow" ColorNull="Red" Flashing="{Binding IsBusy}"/>
                 <Label/>
             </StackPanel>
             <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch" DockPanel.Dock="Top" x:Name="WorkspaceGrid" SizeChanged="OnWorkspaceGridSizeChanged">
                 <TabControl IsHitTestVisible="True" 
-                            Name="OutputTabControl"
+                            x:Name="OutputTabControl"
                             Background="Transparent">
+                    <TabControl.Style>
+                        <Style TargetType="TabControl">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsAutomateWorkspace}" Value="False">
+                                    <Setter Property="SelectedIndex" Value="0"/>
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding IsAutomateWorkspace}" Value="True">
+                                    <Setter Property="SelectedIndex" Value="0"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TabControl.Style>
                     <TabItem Name="Console" IsHitTestVisible="True" Background="Transparent">
                         <TabItem.Header>
                             <Label IsHitTestVisible="True" PreviewMouseDown="ConsolePreviewMouseDown">Console</Label>
                         </TabItem.Header>
-                        <RichTextBox VerticalScrollBarVisibility="Auto"
-                     HorizontalScrollBarVisibility="Visible"
-                     HorizontalAlignment="Stretch"
-                     VerticalAlignment="Stretch"
-                     IsUndoEnabled="False"                     
-                     AllowDrop="False"                     
-                     Background="Black"                                 
-                     Name="ConsoleViewRichTextBox"                  
-                     IsReadOnly="True">
+                        <RichTextBox    VerticalScrollBarVisibility="Auto"
+                                        HorizontalScrollBarVisibility="Visible"
+                                        HorizontalAlignment="Stretch"
+                                        VerticalAlignment="Stretch"
+                                        IsUndoEnabled="False"                     
+                                        AllowDrop="False"                     
+                                        Background="Black"                                 
+                                        Name="ConsoleViewRichTextBox"                  
+                                        IsReadOnly="True">
                             <wpfControls:ConsoleFlowDocument Channel="{Binding Workspace}"/>
                         </RichTextBox>
                     </TabItem>
                     <TabItem Name="ErrorList"
                              IsHitTestVisible="True"
-                             Background="Transparent"
-                             Visibility="{Binding IsAutomateWorkspace, Converter={StaticResource ResourceKey=BooleanToVisibilityConverter}}">
-                        <TabItem.Triggers>
-                            <EventTrigger RoutedEvent="FrameworkElement.Loaded">
-                                <BeginStoryboard Storyboard="{StaticResource OnControlLoaded}"/>
-                            </EventTrigger>
-                        </TabItem.Triggers>
+                             Style="{StaticResource Workspace_FadeInFadeOutStyle}"
+                             Background="Transparent">
                         <TabItem.Header>
                             <Label IsHitTestVisible="True" PreviewMouseDown="ErrorListPreviewMouseDown">Errors</Label>
                         </TabItem.Header>
                     </TabItem>
                 </TabControl>
-                <Grid HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False" Visibility="{Binding IsBusy, Converter={StaticResource ResourceKey=BooleanToVisibilityConverter}}">
+                <Grid HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False" Visibility="{Binding IsLoading, Converter={StaticResource ResourceKey=BooleanToVisibilityConverter}}">
                     <wpfControls:CircularProgressBar HorizontalAlignment="Center" 
                                                      VerticalAlignment="Center" 
                                                      SegmentColor="#FF878889"

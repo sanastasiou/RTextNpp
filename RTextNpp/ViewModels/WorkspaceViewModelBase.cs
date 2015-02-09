@@ -42,6 +42,11 @@ namespace RTextNppPlugin.ViewModels
             get { return false; }
         }
 
+        public bool IsLoading
+        {
+            get { return false; }
+        }
+
         #endregion
 
         #region [Data Members]

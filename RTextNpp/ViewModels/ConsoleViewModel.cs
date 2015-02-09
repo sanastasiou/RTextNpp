@@ -48,7 +48,7 @@ namespace RTextNppPlugin.ViewModels
                 }
                 else
                 {
-                    _workspaceCollection.Add(new WorkspaceViewModel(workspace, ref connector));
+                    _workspaceCollection.Add(new WorkspaceViewModel(workspace, ref connector, this));
                 }
                 Index = _workspaceCollection.IndexOf(_workspaceCollection.Last());
             }
@@ -71,31 +71,35 @@ namespace RTextNppPlugin.ViewModels
             }
             set
             {
-                if (value == _index)
+                if (value != _index)
                 {
-                    return;
-                }
-                else
-                {
-                    _index = value;
+                    _index              = value;
+                    IsActive            = _workspaceCollection[_index].IsActive;
+                    IsBusy              = _workspaceCollection[_index].IsBusy;
+                    IsLoading           = _workspaceCollection[_index].IsLoading;
+                    IsAutomateWorkspace = _workspaceCollection[_index].IsAutomateWorkspace;
+                    ProgressPercentage  = _workspaceCollection[_index].ProgressPercentage;
+                    Workspace           = _workspaceCollection[_index].Workspace;
+
                     base.RaisePropertyChanged("Index");
-                    base.RaisePropertyChanged("Workspace");
-                    base.RaisePropertyChanged("IsBusy");
-                    base.RaisePropertyChanged("IsAutomateWorkspace");
+
                 }
             }
         }
 
-        /**
-         * Gets the workspace.
-         *
-         * \return  The workspace.
-         */
         public string Workspace
         {
             get
             {
-                return _workspaceCollection[_index].Workspace;
+                return _workspace;
+            }
+            set
+            {
+                if(value != _workspace)
+                {
+                    _workspace = value;
+                    base.RaisePropertyChanged("Workspace");
+                }
             }
         }
 
@@ -108,7 +112,31 @@ namespace RTextNppPlugin.ViewModels
         {
             get
             {
-                return _workspaceCollection[_index].IsBusy;
+                return _isBusy;
+            }
+            set
+            {
+                if(value != _workspaceCollection[_index].IsBusy)
+                {
+                    _isBusy = value;
+                    base.RaisePropertyChanged("IsBusy");
+                }
+            }
+        }
+
+        public bool IsLoading
+        {
+            get
+            {
+                return _isLoading;
+            }
+            set
+            {
+                if(value !=  _isLoading)
+                {
+                    _isLoading = value;
+                    base.RaisePropertyChanged("IsLoading");
+                }
             }
         }
 
@@ -121,7 +149,15 @@ namespace RTextNppPlugin.ViewModels
         {
             get
             {
-                return _workspaceCollection[_index].ProgressPercentage;
+                return _progressPercentage;
+            }
+            set
+            {
+                if (value != _progressPercentage)
+                {
+                    _progressPercentage = value;
+                    base.RaisePropertyChanged("ProgressPercentage");
+                }
             }
         }
 
@@ -129,7 +165,15 @@ namespace RTextNppPlugin.ViewModels
         {
             get
             {
-                return _workspaceCollection[_index].IsAutomateWorkspace;
+                return _isAutomateWorkspace;
+            }
+            set
+            {
+                if(value != _isAutomateWorkspace)
+                {
+                    _isAutomateWorkspace = value;
+                    base.RaisePropertyChanged("IsAutomateWorkspace");
+                }
             }
         }
 
@@ -137,7 +181,15 @@ namespace RTextNppPlugin.ViewModels
         {
             get
             {
-                return _workspaceCollection[_index].IsActive;
+                return _isActive;
+            }
+            set
+            {
+                if(value != _workspaceCollection[_index].IsActive)
+                {
+                    _isActive = value;
+                    base.RaisePropertyChanged("IsActive");
+                }
             }
         }
 
@@ -164,7 +216,13 @@ namespace RTextNppPlugin.ViewModels
 
         #region [Data Members]
         private ObservableCollection<IConsoleViewModelBase> _workspaceCollection = new ObservableCollection<IConsoleViewModelBase>();
-        private int _index                                                    = 0;
+        private int _index = 0;
+        private bool _isBusy               = false;
+        private bool _isLoading            = false;
+        private bool _isActive             = false;
+        private bool _isAutomateWorkspace  = false;
+        private double _progressPercentage = 0.0;
+        private string _workspace          = null;
         #endregion
 
         #region [Helpers]

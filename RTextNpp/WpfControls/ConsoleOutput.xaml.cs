@@ -35,5 +35,10 @@ namespace RTextNppPlugin.WpfControls
             OuterProgressBar.Radius = aNewRadius;
             InnerProgressBar.Radius = aNewRadius;
         }
+
+        private void DoubleAnimation_Completed(object sender, EventArgs e)
+        {
+
+        }
     }
 }

@@ -228,6 +228,14 @@ namespace RTextNppPlugin.Utilities
             }
         }
 
+        public string Workspace
+        {
+            get
+            {
+                return (mPInfo != null ? mPInfo.ProcKey : null);
+            }
+        }
+
         /**
          *
          * \brief   Tries to start the backend service, as it is specified in the .rtext file.
