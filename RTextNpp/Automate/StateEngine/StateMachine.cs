@@ -11,7 +11,7 @@ namespace RTextNppPlugin.Automate.StateEngine
     public enum ProcessState
     {
         Closed,
-        Connecting,
+        Loading,
         Connected,
         Busy
     }

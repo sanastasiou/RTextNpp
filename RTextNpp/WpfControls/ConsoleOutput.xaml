@@ -40,7 +40,13 @@
                         DockPanel.Dock="Bottom"
                         Style="{StaticResource Workspace_FadeInFadeOutStyle}">
                 <Label>Backend Status : </Label>
-                <uc:Led Height="17" FlashingPeriod="300" IsActive="{Binding IsActive}" ColorOn="Green" ColorOff="Yellow" ColorNull="Red" Flashing="{Binding IsBusy}"/>
+                <uc:Led Height="17" 
+                        FlashingPeriod="300" 
+                        IsActive="{Binding IsActive, Mode=OneWay}"
+                        ColorOn="Green" 
+                        ColorOff="Red" 
+                        ColorBusy="Yellow"
+                        Flashing="{Binding IsBusy, Mode=OneWay}"/>
                 <Label/>
             </StackPanel>
             <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch" DockPanel.Dock="Top" x:Name="WorkspaceGrid" SizeChanged="OnWorkspaceGridSizeChanged">

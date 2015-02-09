@@ -303,7 +303,7 @@ namespace RTextNppPlugin.Automate
             //send asynchronous command since load model may take a long time to complete depending on the workspace
             Utilities.Protocol.RequestBase aTempCommand = new Utilities.Protocol.RequestBase { command = Constants.Commands.LOAD_MODEL, type = "request" };
             this.beginSend<Utilities.Protocol.RequestBase>(ref aTempCommand, ref invocationId);
-            OnFsmTransition(ProcessState.Connecting);
+            OnFsmTransition(ProcessState.Loading);
         }
 
         /**

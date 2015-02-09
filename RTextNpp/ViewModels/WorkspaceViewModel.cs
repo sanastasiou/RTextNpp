@@ -64,20 +64,22 @@ namespace RTextNppPlugin.ViewModels
         #region [Event Handlers]
         void OnConnectorStateChanged(object source, Connector.StateChangedEventArgs e)
         {
+            System.Diagnostics.Trace.WriteLine(String.Format("OnConnectorStateChanged : {0}", e.State));
             switch (e.State)
             {
-                case RTextNppPlugin.Automate.StateEngine.ProcessState.Connecting:
+                case RTextNppPlugin.Automate.StateEngine.ProcessState.Loading:
                 case RTextNppPlugin.Automate.StateEngine.ProcessState.Busy:
                     _isActive = true;
-                    _isBusy   = true;
+                    _isBusy   = true;                   
+                    if(e.State == Automate.StateEngine.ProcessState.Loading)
+                    {
+                        _isLoading = true;
+                    }
                     if (e.Workspace == _mainModel.Workspace)
                     {
-                        _mainModel.IsActive = true;
-                        _mainModel.IsBusy   = true;
-                        if (_connector.IsLoading)
-                        {
-                            _mainModel.IsLoading = true;
-                        }
+                        _mainModel.IsActive  = _isActive;
+                        _mainModel.IsBusy    = _isBusy;
+                        _mainModel.IsLoading = _isLoading;                        
                     }
                     break;
                 case RTextNppPlugin.Automate.StateEngine.ProcessState.Connected:
@@ -86,7 +88,7 @@ namespace RTextNppPlugin.ViewModels
                     _isBusy    = false;
                     if (e.Workspace == _mainModel.Workspace)
                     {
-                        _mainModel.IsActive = true;
+                        _mainModel.IsActive = _isActive;
                         _mainModel.IsBusy = _mainModel.IsLoading = false;
                     }
                     break;

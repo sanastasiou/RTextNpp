@@ -80,9 +80,7 @@ namespace RTextNppPlugin.ViewModels
                     IsAutomateWorkspace = _workspaceCollection[_index].IsAutomateWorkspace;
                     ProgressPercentage  = _workspaceCollection[_index].ProgressPercentage;
                     Workspace           = _workspaceCollection[_index].Workspace;
-
                     base.RaisePropertyChanged("Index");
-
                 }
             }
         }
@@ -116,9 +114,9 @@ namespace RTextNppPlugin.ViewModels
             }
             set
             {
-                if(value != _workspaceCollection[_index].IsBusy)
+                if(value != _isBusy)
                 {
-                    _isBusy = value;
+                    _isBusy = value;                   
                     base.RaisePropertyChanged("IsBusy");
                 }
             }
@@ -185,7 +183,7 @@ namespace RTextNppPlugin.ViewModels
             }
             set
             {
-                if(value != _workspaceCollection[_index].IsActive)
+                if(value != _isActive)
                 {
                     _isActive = value;
                     base.RaisePropertyChanged("IsActive");
