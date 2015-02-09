@@ -124,6 +124,24 @@
   <data name="ConsoleIconPng" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\ConsoleIconPng.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
+  <data name="constructor" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\constructor.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="extension_method" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\extension_method.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="field" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\field.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="label" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\property.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="method" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\method.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="namespace_add" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\namespace_add.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
   <data name="RTEXT_OUTPUT_WINDOW_CAPTION" xml:space="preserve">
     <value>RText++ output</value>
   </data>
@@ -142,5 +160,25 @@
   <data name="SHOW_AUTO_COMPLETION_LIST_NAME" xml:space="preserve">
     <value>Show auto-complete list</value>
     <comment>Command for showing auto completion list.</comment>
+  </data>
+  <data name="snippet" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\snippet.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="unresolved" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\unresolved.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="_event" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\event.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="_namespace" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\namespace.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="CONSTRUCTOR_IMG" xml:space="preserve">
+    <value>constructor.png</value>
+    <comment>Auto completion constructor image.</comment>
+  </data>
+  <data name="EVENT_IMG" xml:space="preserve">
+    <value>_event.png</value>
+    <comment>Auto completion event image.</comment>
   </data>
 </root>

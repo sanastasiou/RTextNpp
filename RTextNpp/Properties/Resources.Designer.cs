@@ -22,7 +22,7 @@ namespace RTextNppPlugin.Properties {
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    internal class Resources {
+    public class Resources {
         
         private static global::System.Resources.ResourceManager resourceMan;
         
@@ -36,7 +36,7 @@ namespace RTextNppPlugin.Properties {
         ///   Returns the cached ResourceManager instance used by this class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static global::System.Resources.ResourceManager ResourceManager {
+        public static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
                     global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("RTextNppPlugin.Properties.Resources", typeof(Resources).Assembly);
@@ -51,7 +51,7 @@ namespace RTextNppPlugin.Properties {
         ///   resource lookups using this strongly typed resource class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static global::System.Globalization.CultureInfo Culture {
+        public static global::System.Globalization.CultureInfo Culture {
             get {
                 return resourceCulture;
             }
@@ -63,7 +63,27 @@ namespace RTextNppPlugin.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap ConsoleIcon {
+        public static System.Drawing.Bitmap _event {
+            get {
+                object obj = ResourceManager.GetObject("_event", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        public static System.Drawing.Bitmap _namespace {
+            get {
+                object obj = ResourceManager.GetObject("_namespace", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        public static System.Drawing.Bitmap ConsoleIcon {
             get {
                 object obj = ResourceManager.GetObject("ConsoleIcon", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
@@ -73,7 +93,7 @@ namespace RTextNppPlugin.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap ConsoleIconPng {
+        public static System.Drawing.Bitmap ConsoleIconPng {
             get {
                 object obj = ResourceManager.GetObject("ConsoleIconPng", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
@@ -81,9 +101,87 @@ namespace RTextNppPlugin.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        public static System.Drawing.Bitmap constructor {
+            get {
+                object obj = ResourceManager.GetObject("constructor", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to constructor.png.
+        /// </summary>
+        public static string CONSTRUCTOR_IMG {
+            get {
+                return ResourceManager.GetString("CONSTRUCTOR_IMG", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to _event.png.
+        /// </summary>
+        public static string EVENT_IMG {
+            get {
+                return ResourceManager.GetString("EVENT_IMG", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        public static System.Drawing.Bitmap extension_method {
+            get {
+                object obj = ResourceManager.GetObject("extension_method", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        public static System.Drawing.Bitmap field {
+            get {
+                object obj = ResourceManager.GetObject("field", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        public static System.Drawing.Bitmap label {
+            get {
+                object obj = ResourceManager.GetObject("label", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        public static System.Drawing.Bitmap method {
+            get {
+                object obj = ResourceManager.GetObject("method", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        public static System.Drawing.Bitmap namespace_add {
+            get {
+                object obj = ResourceManager.GetObject("namespace_add", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to RText++ output.
         /// </summary>
-        internal static string RTEXT_OUTPUT_WINDOW_CAPTION {
+        public static string RTEXT_OUTPUT_WINDOW_CAPTION {
             get {
                 return ResourceManager.GetString("RTEXT_OUTPUT_WINDOW_CAPTION", resourceCulture);
             }
@@ -92,7 +190,7 @@ namespace RTextNppPlugin.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Change RText++ options....
         /// </summary>
-        internal static string RTEXT_SHOW_OPTIONS_WINDOW {
+        public static string RTEXT_SHOW_OPTIONS_WINDOW {
             get {
                 return ResourceManager.GetString("RTEXT_SHOW_OPTIONS_WINDOW", resourceCulture);
             }
@@ -101,7 +199,7 @@ namespace RTextNppPlugin.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Show/Hide RText++ outline window.
         /// </summary>
-        internal static string RTEXT_SHOW_OUTLINE_WINDOW {
+        public static string RTEXT_SHOW_OUTLINE_WINDOW {
             get {
                 return ResourceManager.GetString("RTEXT_SHOW_OUTLINE_WINDOW", resourceCulture);
             }
@@ -110,7 +208,7 @@ namespace RTextNppPlugin.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Show/Hide RText++ output window.
         /// </summary>
-        internal static string RTEXT_SHOW_OUTPUT_WINDOW {
+        public static string RTEXT_SHOW_OUTPUT_WINDOW {
             get {
                 return ResourceManager.GetString("RTEXT_SHOW_OUTPUT_WINDOW", resourceCulture);
             }
@@ -119,9 +217,29 @@ namespace RTextNppPlugin.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Show auto-complete list.
         /// </summary>
-        internal static string SHOW_AUTO_COMPLETION_LIST_NAME {
+        public static string SHOW_AUTO_COMPLETION_LIST_NAME {
             get {
                 return ResourceManager.GetString("SHOW_AUTO_COMPLETION_LIST_NAME", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        public static System.Drawing.Bitmap snippet {
+            get {
+                object obj = ResourceManager.GetObject("snippet", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        public static System.Drawing.Bitmap unresolved {
+            get {
+                object obj = ResourceManager.GetObject("unresolved", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
             }
         }
     }

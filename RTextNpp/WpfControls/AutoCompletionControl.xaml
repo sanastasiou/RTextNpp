@@ -20,19 +20,30 @@
         <DockPanel HorizontalAlignment="Stretch"
                    VerticalAlignment="Stretch"
                    Background="Transparent">
-            <Label DockPanel.Dock="Top" Background="Red" >Some stupid stuff</Label>
+            <StackPanel x:Name="StatisticsPanel" Orientation="Horizontal" HorizontalAlignment="Stretch" DockPanel.Dock="Bottom" Visibility="Collapsed">
+                <Label Content="Total options : "></Label>
+            </StackPanel>
             <ListView Margin="0"                  
                       Name="AutoCompletionList"
                       DockPanel.Dock="Top"
                       MouseDoubleClick="OnAutoCompletionListDoubleClick"
+                      ItemsSource="{Binding CompletionList}"
                       VirtualizingPanel.IsVirtualizing="True">
-                <ListView.View>
-                    <GridView>
-                        <GridViewColumn Header="Text" Width="120"/>
-                        <GridViewColumn Header="Type" Width="50"/>
-                    </GridView>
-                </ListView.View>
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <Border BorderThickness="1" BorderBrush="Blue">
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch">
+                                <Image>
+                                    <Image.Source>
+                                        <BitmapImage UriSource="/RTextNpp;Component/Resources/constructor.png"/>
+                                    </Image.Source>
+                                </Image>
+                                <Label Content="{Binding DisplayText}"/>
+                            </StackPanel>
+                        </Border>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
             </ListView>
-        </DockPanel>        
+        </DockPanel>
     </Grid>
 </UserControl>

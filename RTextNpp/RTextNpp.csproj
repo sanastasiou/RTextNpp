@@ -182,7 +182,7 @@
       <DependentUpon>Options.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
+      <Generator>PublicResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
@@ -220,6 +220,18 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="FodyWeavers.xml" />
+    <None Include="Resources\unresolved.png" />
+    <None Include="Resources\snippet.png" />
+    <None Include="Resources\property.png" />
+    <None Include="Resources\namespace_add.png" />
+    <None Include="Resources\namespace.png" />
+    <None Include="Resources\method.png" />
+    <None Include="Resources\field.png" />
+    <None Include="Resources\extension_method.png" />
+    <None Include="Resources\event.png" />
+    <Resource Include="Resources\constructor.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
   </ItemGroup>
   <ItemGroup />
   <Import Project="../packages/UnmanagedExports.1.2.6/tools/RGiesecke.DllExport.targets" Condition="Exists('../packages/UnmanagedExports.1.2.6/tools/RGiesecke.DllExport.targets')" />
