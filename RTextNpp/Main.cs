@@ -1,3 +1,9 @@
+using RTextNppPlugin.Automate;
+using RTextNppPlugin.Forms;
+using RTextNppPlugin.Parsing;
+using RTextNppPlugin.Utilities;
+using RTextNppPlugin.Utilities.WpfControlHost;
+using RTextNppPlugin.WpfControls;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -5,32 +11,26 @@ using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using RTextNppPlugin.Automate;
-using RTextNppPlugin.Forms;
-using RTextNppPlugin.Utilities;
-using RTextNppPlugin.Utilities.WpfControlHost;
-using RTextNppPlugin.Parsing;
 
 namespace RTextNppPlugin
 {
     partial class Plugin
     {
         #region [Fields]
-        private static PersistentWpfControlHost<ConsoleOutputForm> _consoleOutput = new PersistentWpfControlHost<ConsoleOutputForm>(Settings.RTextNppSettings.ConsoleWindowActive);
-        private static ConnectorManager _connectorManager = Automate.ConnectorManager.Instance;
-        private static Options _options = new Forms.Options();
-        private static FileModificationObserver _fileObserver = new FileModificationObserver();
+        private static PersistentWpfControlHost<ConsoleOutputForm> _consoleOutput       = new PersistentWpfControlHost<ConsoleOutputForm>(Settings.RTextNppSettings.ConsoleWindowActive);
+        private static ConnectorManager _connectorManager                               = Automate.ConnectorManager.Instance;
+        private static Options _options                                                 = new Forms.Options();
+        private static FileModificationObserver _fileObserver                           = new FileModificationObserver();
         private static Dictionary<ShortcutKey, Tuple<string, Action>> internalShortcuts = new Dictionary<ShortcutKey, Tuple<string, Action>>();
-        private static WpfControlHostBase<AutoCompletionForm> _autoCompletionForm = new WpfControlHostBase<AutoCompletionForm>();
-        private static Point _triggerPoint = new Point();
-
-        public const string PluginName = "RTextNpp";
-        static Bitmap tbBmp = Properties.Resources.ConsoleIcon;
-        static Bitmap tbBmp_tbTab = Properties.Resources.ConsoleIcon;
-        static Icon tbIcon = null;
-        static bool _consoleInitialized = false;
-        static bool _invokeInProgress = false;
-        static bool _requestAutoCompletion = false;
+        private static Point _triggerPoint                                              = new Point();
+        private static AutoCompletionWindow _autoCompletionForm                         = new AutoCompletionWindow(); //!< The link targets window instance
+        public const string PluginName                                                  = "RTextNpp";
+        static Bitmap tbBmp                                                             = Properties.Resources.ConsoleIcon;
+        static Bitmap tbBmp_tbTab                                                       = Properties.Resources.ConsoleIcon;
+        static Icon tbIcon                                                              = null;
+        static bool _consoleInitialized                                                 = false;
+        static bool _invokeInProgress                                                   = false;
+        static bool _requestAutoCompletion                                              = false;
         #endregion
 
         #region [Startup/CleanUp]
@@ -54,7 +54,7 @@ namespace RTextNppPlugin
             {
                 CSScriptIntellisense.KeyInterceptor.Instance.Add((Keys)key);
             }            
-
+            
             System.Diagnostics.Debugger.Launch();
         }
 
@@ -70,8 +70,8 @@ namespace RTextNppPlugin
                         if (modifiers.IsCtrl == shortcut.IsCtrl && modifiers.IsShift == shortcut.IsShift && modifiers.IsAlt == shortcut.IsAlt)
                         {
                             var handler = internalShortcuts[shortcut];
-                            handled = !_autoCompletionForm.ElementHost.Visible;
-                            if (!_autoCompletionForm.ElementHost.Visible)
+                            handled = !_autoCompletionForm.IsVisible;
+                            if (!_autoCompletionForm.IsVisible)
                             {
                                 _requestAutoCompletion = true;
                                 var res = AsyncInvoke(handler.Item2);
@@ -99,7 +99,7 @@ namespace RTextNppPlugin
                     case Keys.U:case Keys.V:case Keys.W:case Keys.X:case Keys.Y:case Keys.Z:
                         //character needs to be entered
                         handled = false;
-                        if (!_autoCompletionForm.ElementHost.Visible)
+                        if (!_autoCompletionForm.IsVisible)
                         {                        
                             var res = AsyncInvoke(StartAutoCompleteSession);                            
                         }
@@ -135,7 +135,7 @@ namespace RTextNppPlugin
             else
             {
                 //just close auto completion session and do nothing
-                _autoCompletionForm.ElementHost.Hide();
+                _autoCompletionForm.Hide();
             }
         }
 
@@ -169,7 +169,7 @@ namespace RTextNppPlugin
             {
                 if (FileUtilities.IsAutomateFile())
                 {
-                    if (!_autoCompletionForm.Visible)
+                    if (!_autoCompletionForm.IsVisible)
                     {          
                         int aLineNumber = CSScriptIntellisense.Npp.GetLineNumber();                                          
                         //if auto completion is inside comment, notation, name, string jusr return
@@ -207,17 +207,15 @@ namespace RTextNppPlugin
                                 aCaretPoint = CSScriptIntellisense.Npp.GetCaretScreenLocationRelativeToPosition(aCurrentToken.Value.BufferPosition);
                             }
                             
-                            _autoCompletionForm.ElementHost.Left = aCaretPoint.X;
-                            _autoCompletionForm.ElementHost.Top  = aCaretPoint.Y;
-
+                            _autoCompletionForm.Left = aCaretPoint.X;
+                            _autoCompletionForm.Top  = aCaretPoint.Y;
+                            Utilities.Visual.SetOwnerFromNppPlugin(_autoCompletionForm);
                             //get text from start till current line end
                             string aContextBlock = CSScriptIntellisense.Npp.GetTextBetween(0, CSScriptIntellisense.Npp.GetLineEnd(aLineNumber));
                             ContextExtractor aExtractor = new ContextExtractor(aContextBlock, CSScriptIntellisense.Npp.GetLengthToEndOfLine());
-
-                            _autoCompletionForm.ElementHost.AutoCompletionViewModel.AugmentAutoCompletion(aExtractor, aCaretPoint, aCurrentToken, ref _requestAutoCompletion);
+                            _autoCompletionForm.AugmentAutoCompletion(aExtractor, aCaretPoint, aCurrentToken, ref _requestAutoCompletion);
+                            _autoCompletionForm.Show();
                             //todo - handle text insertion
-
-                            _autoCompletionForm.ElementHost.Show(Control.FromHandle(nppData._nppHandle));
                         }
                     }
                 }

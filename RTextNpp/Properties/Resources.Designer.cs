@@ -129,6 +129,42 @@ namespace RTextNppPlugin.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to RText backend service auto completion request failed..
+        /// </summary>
+        internal static string ERR_AUTO_COMPLETION_INVOKATION {
+            get {
+                return ResourceManager.GetString("ERR_AUTO_COMPLETION_INVOKATION", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Wrong invocation id return from backend! Please take a screenshot and contact support..
+        /// </summary>
+        internal static string ERR_AUTO_COMPLETION_INVOKATION_DESC {
+            get {
+                return ResourceManager.GetString("ERR_AUTO_COMPLETION_INVOKATION_DESC", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Please take a screenshot and contact support..
+        /// </summary>
+        internal static string ERR_AUTO_COMPLETION_NULL_DESC {
+            get {
+                return ResourceManager.GetString("ERR_AUTO_COMPLETION_NULL_DESC", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to RText backend service auto completion request failed..
+        /// </summary>
+        internal static string ERR_AUTO_COMPLETION_NULL_RESP {
+            get {
+                return ResourceManager.GetString("ERR_AUTO_COMPLETION_NULL_RESP", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to RText backend is currently busy..
         /// </summary>
         internal static string ERR_BACKEND_BUSY {

@@ -1,11 +1,14 @@
 ﻿using RTextNppPlugin.Parsing;
 using RTextNppPlugin.WpfControls;
-using RTextNppPlugin.Utilities.Protocol;
+using RTextNppPlugin.Utilities;
+using RTextNppPlugin.Automate.Protocol;
 using System;
 using System.Collections.ObjectModel;
 using System.Drawing;
 using RTextNppPlugin.Automate;
 using RTextNppPlugin.Forms;
+using RTextNppPlugin.Logging;
+using CSScriptIntellisense;
 
 namespace RTextNppPlugin.ViewModels
 {
@@ -58,6 +61,22 @@ namespace RTextNppPlugin.ViewModels
         }
 
         #region [Interface]
+        public double ZoomLevel
+        {
+            get
+            {
+                return _zoomLevel;
+            }
+            set
+            {
+                if (value != _zoomLevel)
+                {
+                    _zoomLevel = value;
+                    base.RaisePropertyChanged("ZoomLevel");
+                }
+            }
+        }
+
         public AutoCompletionViewModel()
         {
         }
@@ -67,7 +86,7 @@ namespace RTextNppPlugin.ViewModels
             //throw new NotImplementedException();
         }
 
-        public AutoCompletionForm Host { get; set; }
+        public AutoCompletionWindow Host { get; set; }
 
         public void Filter(Tokenizer.TokenTag? token)
         {
@@ -132,13 +151,57 @@ namespace RTextNppPlugin.ViewModels
                     case Automate.StateEngine.ProcessState.Connected:
                         if (request)
                         {
+                            _completionList.Clear();
                             request = false;
+                            AutoCompleteResponse aResponse = _currentConnector.execute<AutoCompleteAndReferenceRequest>(aRequest, ref _currentInvocationId, Constants.SYNCHRONOUS_COMMANDS_TIMEOUT) as AutoCompleteResponse;
 
-                        }
-                        _completionList.Add(CreateWarningCompletion(Properties.Resources.ERR_BACKEND_BUSY, Properties.Resources.ERR_BACKEND_BUSY_DESC));
-                        _completionList.Add(CreateWarningCompletion(Properties.Resources.ERR_BACKEND_BUSY, Properties.Resources.ERR_BACKEND_BUSY_DESC));
-                        _completionList.Add(CreateWarningCompletion(Properties.Resources.ERR_BACKEND_BUSY, Properties.Resources.ERR_BACKEND_BUSY_DESC));
-                        _completionList.Add(CreateWarningCompletion(Properties.Resources.ERR_BACKEND_BUSY, Properties.Resources.ERR_BACKEND_BUSY_DESC));
+                            if (aResponse == null)
+                            {
+                                _completionList.Add(CreateWarningCompletion(Properties.Resources.ERR_AUTO_COMPLETION_NULL_RESP, Properties.Resources.ERR_AUTO_COMPLETION_NULL_DESC));
+                            }
+                            else
+                            {
+                                try
+                                {
+                                    //check invocation id
+                                    if (_currentInvocationId != aResponse.invocation_id)
+                                    {
+                                        _completionList.Add(CreateWarningCompletion(Properties.Resources.ERR_AUTO_COMPLETION_INVOKATION, Properties.Resources.ERR_AUTO_COMPLETION_INVOKATION_DESC));
+                                        Logger.Instance.Append(  Logger.MessageType.Error, 
+                                                                 _currentConnector.Workspace,
+                                                                 String.Format("Auto complete for file {0} failed. Wrong invocation id return from backend! Expected: {1} - Receoved: {2}",
+                                                                                                                                                                     Npp.GetCurrentFile(),
+                                                                                                                                                                     _currentInvocationId,
+                                                                                                                                                                     aResponse.invocation_id));
+                                    }
+                                    else
+                                    {
+                                        if (aResponse.options.Count != 0)
+                                        {
+                                            if (aResponse.options.Count == 1)
+                                            {
+                                                //auto insert
+                                            }
+                                            else
+                                            {
+                                                //if we are here, it means that the response is succcesful
+                                                foreach (var option in aResponse.options)
+                                                {
+                                                    _completionList.Add(new Completion(option.display, option.insert, option.desc, Completion.AutoCompletionType.Label));
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                catch (Exception ex)
+                                {
+                                    Logger.Instance.Append(Logger.MessageType.Error,
+                                                           _currentConnector.Workspace,
+                                                           String.Format("Auto complete for file {0} failed. Exception {1}.", Npp.GetCurrentFile(), ex.Message));
+                                }
+
+                            }
+                        }                        
                         break;
                     default:
                         Logging.Logger.Instance.Append(Logging.Logger.MessageType.FatalError, _currentConnector.Workspace, "Undefined connector state reached. Please notify support.");
@@ -157,7 +220,7 @@ namespace RTextNppPlugin.ViewModels
             ////    _completionList.Add(o);
             ////}
             //_currentToken = token;
-            Host.ResizeToWpfSize();
+            //Host.ResizeToWpfSize();
         }
         #endregion
 
@@ -175,6 +238,7 @@ namespace RTextNppPlugin.ViewModels
         private Connector _currentConnector = null;
         private int _currentInvocationId = -1;
         private int _count = 0;
+        private double _zoomLevel = 1.0;
         #endregion
     }
 }

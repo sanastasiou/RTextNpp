@@ -7,7 +7,7 @@ using System.Text.RegularExpressions;
 
 namespace RTextNppPlugin.Parsing
 {
-    class Tokenizer
+    public class Tokenizer
     {
         public struct TokenTag
         {

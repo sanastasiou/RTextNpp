@@ -71,12 +71,6 @@
     <Compile Include="Automate\Protocol\ProgressResponse.cs" />
     <Compile Include="Automate\Protocol\SerializerFactory.cs" />
     <Compile Include="Automate\StateEngine\StateMachine.cs" />
-    <Compile Include="Forms\AutoCompletionForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Forms\AutoCompletionForm.Designer.cs">
-      <DependentUpon>AutoCompletionForm.cs</DependentUpon>
-    </Compile>
     <Compile Include="Logging\ILoggingObserver.cs" />
     <Compile Include="Logging\ISubscriber.cs" />
     <Compile Include="Logging\Logger.cs" />
@@ -127,9 +121,6 @@
     <Compile Include="ViewModels\WorkspaceViewModelBase.cs" />
     <Compile Include="ViewModels\IConsoleViewModel.cs" />
     <Compile Include="ViewModels\WorkspaceViewModel.cs" />
-    <Compile Include="WpfControls\AutoCompletionControl.xaml.cs">
-      <DependentUpon>AutoCompletionControl.xaml</DependentUpon>
-    </Compile>
     <Compile Include="WpfControls\BindableObject.cs" />
     <Compile Include="WpfControls\CircularProgressBar.xaml.cs">
       <DependentUpon>CircularProgressBar.xaml</DependentUpon>
@@ -142,6 +133,9 @@
     </Compile>
     <Compile Include="WpfControls\ConsoleOutputHost.cs" />
     <Compile Include="WpfControls\Converters.cs" />
+    <Compile Include="WpfControls\LinkTargetsWindow.xaml.cs">
+      <DependentUpon>LinkTargetsWindow.xaml</DependentUpon>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <Reference Include="FileSystemWatcherCLRWrapper, Version=1.0.5458.21429, Culture=neutral, processorArchitecture=x86">
@@ -172,9 +166,6 @@
     <Reference Include="WindowsFormsIntegration" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Forms\AutoCompletionForm.resx">
-      <DependentUpon>AutoCompletionForm.cs</DependentUpon>
-    </EmbeddedResource>
     <EmbeddedResource Include="Forms\ConsoleOutput.resx">
       <DependentUpon>ConsoleOutput.cs</DependentUpon>
     </EmbeddedResource>
@@ -191,10 +182,6 @@
     <None Include="RTextNpp.dll.config" />
   </ItemGroup>
   <ItemGroup>
-    <Page Include="WpfControls\AutoCompletionControl.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
     <Page Include="WpfControls\CircularProgressBar.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -204,6 +191,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="WpfControls\ConsoleOutput.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="WpfControls\LinkTargetsWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

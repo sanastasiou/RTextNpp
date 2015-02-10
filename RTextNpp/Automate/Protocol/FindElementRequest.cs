@@ -1,6 +1,6 @@
 ﻿using System.Runtime.Serialization;
 
-namespace RTextNppPlugin.Utilities.Protocol
+namespace RTextNppPlugin.Automate.Protocol
 {  
     [DataContract]
     public class FindElementRequest : RequestBase

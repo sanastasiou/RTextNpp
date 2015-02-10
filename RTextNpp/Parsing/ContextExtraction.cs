@@ -7,7 +7,7 @@ using System.Text.RegularExpressions;
 
 namespace RTextNppPlugin.Parsing
 {
-    class ContextExtractor
+    public class ContextExtractor
     {
         #region [Interface]
 

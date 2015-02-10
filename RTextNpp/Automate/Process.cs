@@ -10,6 +10,7 @@ using Microsoft.Win32;
 using RTextNppPlugin.Utilities;
 using System.Text;
 using RTextNppPlugin.Automate;
+using RTextNppPlugin.Automate.Protocol;
 
 namespace RTextNppPlugin.Utilities
 {
@@ -871,7 +872,7 @@ namespace RTextNppPlugin.Utilities
             }
             else
             {
-                Protocol.RequestBase aLoadCommand = new Protocol.RequestBase { command = Constants.Commands.LOAD_MODEL, invocation_id = -1, type = "request" };
+                RequestBase aLoadCommand = new RequestBase { command = Constants.Commands.LOAD_MODEL, invocation_id = -1, type = "request" };
                 this.mConnector.execute(aLoadCommand, ref mInvocationId);
                 this.mTimer.Stop();
                 this.mIsMessageDisplayed = false;

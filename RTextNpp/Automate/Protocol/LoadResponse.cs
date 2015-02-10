@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 
-namespace RTextNppPlugin.Utilities.Protocol
+namespace RTextNppPlugin.Automate.Protocol
 {   
     [Serializable]
     [DataContract]

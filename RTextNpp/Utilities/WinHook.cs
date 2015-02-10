@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 
@@ -82,13 +81,21 @@ namespace CSScriptIntellisense
 
         private enum MouseMessages
         {
-            WM_LBUTTONDOWN = 0x0201,
-            WM_LBUTTONUP   = 0x0202,
-            WM_MOUSEMOVE   = 0x0200,
-            WM_MOUSEWHEEL  = 0x020A,
-            WM_RBUTTONDOWN = 0x0204,
-            WM_RBUTTONUP   = 0x0205,
-            WM_NCMOUSEMOVE = 0x00A0
+            WM_LBUTTONDOWN     = 0x0201,
+            WM_LBUTTONUP       = 0x0202,
+            WM_MOUSEMOVE       = 0x0200,
+            WM_MOUSEWHEEL      = 0x020A,
+            WM_RBUTTONDOWN     = 0x0204,
+            WM_RBUTTONUP       = 0x0205,
+            WM_NCMOUSEMOVE     = 0x00A0,
+            WM_NCLBUTTONDOWN   = 0x00A1,
+            WM_NCLBUTTONDBLCLK = 0x00A3,
+            WM_NCRBUTTONDOWN   = 0x00A4,
+            WM_NCRBUTTONDBLCLK = 0x00A6,
+            WM_NCMBUTTONDOWN   = 0x00A7,
+            WM_NCMBUTTONDBLCLK = 0x00A9,
+            WM_NCXBUTTONDOWN   = 0x00AB,
+            WM_NCXBUTTONDBLCLK = 0x00AD
         }
 
         override protected bool HandleHookEvent(IntPtr wParam, IntPtr lParam)
@@ -98,6 +105,14 @@ namespace CSScriptIntellisense
             {
                 case MouseMessages.WM_LBUTTONDOWN:
                 case MouseMessages.WM_RBUTTONDOWN:
+                case MouseMessages.WM_NCXBUTTONDBLCLK:
+                case MouseMessages.WM_NCXBUTTONDOWN:
+                case MouseMessages.WM_NCMBUTTONDBLCLK:
+                case MouseMessages.WM_NCMBUTTONDOWN:
+                case MouseMessages.WM_NCRBUTTONDBLCLK:
+                case MouseMessages.WM_NCRBUTTONDOWN:
+                case MouseMessages.WM_NCLBUTTONDBLCLK:
+                case MouseMessages.WM_NCLBUTTONDOWN:
                     if(MouseClicked != null)
                     {
                         MouseClicked();

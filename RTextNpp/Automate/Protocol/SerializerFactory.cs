@@ -1,6 +1,6 @@
 ﻿using System.Runtime.Serialization.Json;
 
-namespace RTextNppPlugin.Utilities.Protocol
+namespace RTextNppPlugin.Automate.Protocol
 {
     public class SerializerFactory<T>
     {        

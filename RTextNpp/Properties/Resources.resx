@@ -204,4 +204,16 @@
   <data name="warning" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\warning.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
+  <data name="ERR_AUTO_COMPLETION_INVOKATION" xml:space="preserve">
+    <value>RText backend service auto completion request failed.</value>
+  </data>
+  <data name="ERR_AUTO_COMPLETION_INVOKATION_DESC" xml:space="preserve">
+    <value>Wrong invocation id return from backend! Please take a screenshot and contact support.</value>
+  </data>
+  <data name="ERR_AUTO_COMPLETION_NULL_DESC" xml:space="preserve">
+    <value>Please take a screenshot and contact support.</value>
+  </data>
+  <data name="ERR_AUTO_COMPLETION_NULL_RESP" xml:space="preserve">
+    <value>RText backend service auto completion request failed.</value>
+  </data>
 </root>

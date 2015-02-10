@@ -1,4 +1,4 @@
-﻿using RTextNppPlugin.Utilities.Protocol;
+﻿using RTextNppPlugin.Automate.Protocol;
 using RTextNppPlugin.Automate.StateEngine;
 using System;
 using System.Collections.Concurrent;
@@ -309,8 +309,8 @@ namespace RTextNppPlugin.Automate
                 return;
             }
             //send asynchronous command since load model may take a long time to complete depending on the workspace
-            Utilities.Protocol.RequestBase aTempCommand = new Utilities.Protocol.RequestBase { command = Constants.Commands.LOAD_MODEL, type = "request" };
-            this.beginSend<Utilities.Protocol.RequestBase>(ref aTempCommand, ref invocationId);
+            RequestBase aTempCommand = new RequestBase { command = Constants.Commands.LOAD_MODEL, type = "request" };
+            this.beginSend<RequestBase>(ref aTempCommand, ref invocationId);
             OnFsmTransition(ProcessState.Loading);
         }
 

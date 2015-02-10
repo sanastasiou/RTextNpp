@@ -117,11 +117,14 @@ namespace CSScriptIntellisense
 		// Install the hook
 		public void Install()
 		{
-			m_hhook = SetWindowsHookEx(
-				m_hookType, 
-				m_filterFunc, 
-				IntPtr.Zero, 
-				(int) AppDomain.GetCurrentThreadId());
+            if (!IsInstalled)
+            {
+                m_hhook = SetWindowsHookEx(
+                    m_hookType,
+                    m_filterFunc,
+                    IntPtr.Zero,
+                    (int)AppDomain.GetCurrentThreadId());
+            }
 		}
 		// ************************************************************************
 
@@ -129,8 +132,11 @@ namespace CSScriptIntellisense
 		// Uninstall the hook
 		public void Uninstall()
 		{
-			UnhookWindowsHookEx(m_hhook); 
-			m_hhook = IntPtr.Zero;
+            if (IsInstalled)
+            {
+                UnhookWindowsHookEx(m_hhook);
+                m_hhook = IntPtr.Zero;
+            }
 		}
 		// ************************************************************************
 

@@ -2,11 +2,18 @@
 using System.Linq;
 using System.Windows;
 using System.Windows.Media;
+using System.Windows.Interop;
 
 namespace RTextNppPlugin.Utilities
 {
     public class Visual
     {
+        public static void SetOwnerFromNppPlugin(System.Windows.Window window)
+        {
+            WindowInteropHelper helper = new WindowInteropHelper(window);
+            helper.Owner = Plugin.nppData._nppHandle;
+        }
+
         /**
          *
          * \brief   Finds the parent of this item.
