@@ -76,9 +76,12 @@ namespace RTextNppPlugin.ViewModels
                 }
             }
         }
-
+        
         public AutoCompletionViewModel()
         {
+            _completionList.Add(CreateWarningCompletion(Properties.Resources.ERR_BACKEND_CONNECTING, Properties.Resources.ERR_BACKEND_CONNECTING_DESC));
+            _completionList.Add(CreateWarningCompletion(Properties.Resources.ERR_BACKEND_CONNECTING, Properties.Resources.ERR_BACKEND_CONNECTING_DESC));
+            _completionList.Add(CreateWarningCompletion(Properties.Resources.ERR_BACKEND_CONNECTING, Properties.Resources.ERR_BACKEND_CONNECTING_DESC));
         }
 
         public void Dispose()
@@ -115,12 +118,6 @@ namespace RTextNppPlugin.ViewModels
             {
                 return _completionList;
             }
-        }
-
-        public void foo()
-        {
-            _completionList.Add(CreateWarningCompletion(Properties.Resources.ERR_BACKEND_BUSY, Properties.Resources.ERR_BACKEND_BUSY_DESC));
-            Count = _completionList.Count;
         }
 
         public void AugmentAutoCompletion(ContextExtractor extractor, Point caretPoint, Tokenizer.TokenTag ? token, ref bool request)
