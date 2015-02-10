@@ -121,4 +121,60 @@ namespace RTextNppPlugin.Parsing
         int           _lineNumber;  //!< Line number.
         #endregion
     }
+
+    /**
+     * \brief   An automatic completion tokenizer. This class finds the token for which autocompletion is invoked.
+     */
+    public class AutoCompletionTokenizer : Tokenizer
+    {
+        public AutoCompletionTokenizer(int line, int currentCaretPosition) : base(line)
+        {
+            _currentPos = currentCaretPosition;
+            FindTriggerToken();
+        }
+
+        public Tokenizer.TokenTag ? TriggerToken
+        {
+            get
+            {
+                return _triggerToken;
+            }
+        }
+
+        #region [Helpers]
+        void FindTriggerToken()
+        {
+            foreach (var t in base.Tokenize(RTextTokenTypes.Boolean, RTextTokenTypes.Comma,
+                                            RTextTokenTypes.Command, RTextTokenTypes.Float,
+                                            RTextTokenTypes.Integer, RTextTokenTypes.Label,
+                                            RTextTokenTypes.LeftAngleBrakcet, RTextTokenTypes.LeftBracket,
+                                            RTextTokenTypes.Reference, RTextTokenTypes.RightAngleBracket,
+                                            RTextTokenTypes.RightBrakcet, RTextTokenTypes.RTextName,
+                                            RTextTokenTypes.Template))
+            {
+                if (_currentPos >= t.BufferPosition && _currentPos <= t.BufferPosition + (t.EndColumn - t.StartColumn))
+                {
+                    _triggerToken = t;
+                    break;
+                }
+            }
+            #if DEBUG
+            if (_triggerToken.HasValue)
+            {
+                System.Diagnostics.Trace.WriteLine(String.Format("Autocompletion Token line : {0}\nsc : {1}\nec : {2}\npos : {3}\ncontext : {4}",
+                                                    _triggerToken.Value.Line,
+                                                    _triggerToken.Value.StartColumn,
+                                                    _triggerToken.Value.EndColumn,
+                                                    _triggerToken.Value.BufferPosition,
+                                                    _triggerToken.Value.Context));
+            }
+            #endif
+        }
+        #endregion
+
+        #region [Data Members]
+        private readonly int _currentPos;
+        private Tokenizer.TokenTag? _triggerToken = null;
+        #endregion
+    }
 }

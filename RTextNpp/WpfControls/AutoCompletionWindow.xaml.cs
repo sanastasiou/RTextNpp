@@ -2,6 +2,7 @@
 using System;
 using System.Windows;
 using System.Windows.Input;
+using RTextNppPlugin.ViewModels;
 
 namespace RTextNppPlugin.WpfControls
 {
@@ -23,7 +24,7 @@ namespace RTextNppPlugin.WpfControls
 
         public void AugmentAutoCompletion(ContextExtractor extractor, System.Drawing.Point caretPoint, Tokenizer.TokenTag? token, ref bool request)
         {
-            ((ViewModels.AutoCompletionViewModel)this.DataContext).AugmentAutoCompletion(extractor, caretPoint, token, ref request);
+            GetModel().AugmentAutoCompletion(extractor, caretPoint, token, ref request);
         }
 
         /**
@@ -31,11 +32,22 @@ namespace RTextNppPlugin.WpfControls
          */
         public void SetZoomLevel(double level)
         {
-            ((ViewModels.AutoCompletionViewModel)this.DataContext).ZoomLevel = level;
+            GetModel().ZoomLevel = level;
         }        
+
+        public void OnKeyPressed(System.Windows.Forms.Keys key)
+        {
+            //reparse line and find new trigger token
+            GetModel().OnKeyPressed(key);
+        }
         #endregion
 
         #region [Helpers]
+        private AutoCompletionViewModel GetModel()
+        {
+            return ((AutoCompletionViewModel)this.DataContext);
+        }
+
         /**
          * @return  true if mouse inside window, false if not.
          */
@@ -63,6 +75,11 @@ namespace RTextNppPlugin.WpfControls
         #endregion
 
         #region EventHandlers
+        void OnKeyIntercepterKeyDown(System.Windows.Forms.Keys key, int repeatCount, ref bool handled)
+        {
+            handled = false;
+        }
+
 
         void OnMouseMonitorMouseClicked()
         {

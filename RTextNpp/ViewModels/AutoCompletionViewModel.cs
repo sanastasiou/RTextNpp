@@ -8,6 +8,7 @@ using System.Drawing;
 using RTextNppPlugin.Automate;
 using RTextNppPlugin.Forms;
 using RTextNppPlugin.Logging;
+using RTextNppPlugin.Parsing;
 using CSScriptIntellisense;
 
 namespace RTextNppPlugin.ViewModels
@@ -61,6 +62,15 @@ namespace RTextNppPlugin.ViewModels
         }
 
         #region [Interface]
+        public void OnKeyPressed(System.Windows.Forms.Keys key)
+        {
+            //need to find different strategy here - we need cursor position inside token
+            int aCurrentPosition = CSScriptIntellisense.Npp.GetCaretPosition();
+            int aLineNumber = CSScriptIntellisense.Npp.GetLineNumber();
+            var tokenizer = new AutoCompletionTokenizer(aLineNumber, aCurrentPosition);
+            _triggerToken = tokenizer.TriggerToken;
+        }
+
         public double ZoomLevel
         {
             get
@@ -90,11 +100,6 @@ namespace RTextNppPlugin.ViewModels
         }
 
         public AutoCompletionWindow Host { get; set; }
-
-        public void Filter(Tokenizer.TokenTag? token)
-        {
-            _currentToken = token;             
-        }
 
         public int Count
         {
@@ -186,6 +191,7 @@ namespace RTextNppPlugin.ViewModels
                                                 {
                                                     _completionList.Add(new Completion(option.display, option.insert, option.desc, Completion.AutoCompletionType.Label));
                                                 }
+
                                             }
                                         }
                                     }
@@ -196,7 +202,7 @@ namespace RTextNppPlugin.ViewModels
                                                            _currentConnector.Workspace,
                                                            String.Format("Auto complete for file {0} failed. Exception {1}.", Npp.GetCurrentFile(), ex.Message));
                                 }
-
+                                Filter();
                             }
                         }                        
                         break;
@@ -211,13 +217,6 @@ namespace RTextNppPlugin.ViewModels
                 _completionList.Clear();
                 _completionList.Add(CreateWarningCompletion(Properties.Resources.CONNECTOR_INSTANCE_NULL, Properties.Resources.CONNECTOR_INSTANCE_NULL_DESC));
             }
-            ////_completionList.Clear();
-            ////foreach(var o in options)
-            ////{
-            ////    _completionList.Add(o);
-            ////}
-            //_currentToken = token;
-            //Host.ResizeToWpfSize();
         }
         #endregion
 
@@ -227,11 +226,14 @@ namespace RTextNppPlugin.ViewModels
             return new Completion(warning, null, desc, Completion.AutoCompletionType.Warning);
         }
 
+        private void Filter()
+        {
+        }
         #endregion
 
         #region [Data Members]
         private readonly ObservableCollection<Completion> _completionList = new ObservableCollection<Completion>();
-        private Tokenizer.TokenTag? _currentToken = null;
+        private Tokenizer.TokenTag? _triggerToken = null;
         private Connector _currentConnector = null;
         private int _currentInvocationId = -1;
         private int _count = 0;

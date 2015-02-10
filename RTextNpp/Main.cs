@@ -76,6 +76,7 @@ namespace RTextNppPlugin
                                 _requestAutoCompletion = true;
                                 var res = AsyncInvoke(handler.Item2);
                             }
+                            //do nothing if form is already visible
                             return;
                         }
                     }
@@ -103,6 +104,7 @@ namespace RTextNppPlugin
                         {                        
                             var res = AsyncInvoke(StartAutoCompleteSession);                            
                         }
+                        _autoCompletionForm.OnKeyPressed(key);
                         break;
                     case Keys.Return:
                     case Keys.Tab:
@@ -171,40 +173,17 @@ namespace RTextNppPlugin
                 {
                     if (!_autoCompletionForm.IsVisible)
                     {          
-                        int aLineNumber = CSScriptIntellisense.Npp.GetLineNumber();                                          
-                        //if auto completion is inside comment, notation, name, string jusr return
-                        Tokenizer aTokenizer = new Tokenizer(aLineNumber);
                         int aCurrentPosition = CSScriptIntellisense.Npp.GetCaretPosition();
                         if (aCurrentPosition >= 0)
                         {
-                            Tokenizer.TokenTag? aCurrentToken = null;
-                            foreach (var t in aTokenizer.Tokenize(RTextTokenTypes.Boolean, RTextTokenTypes.Comma,
-                                                                  RTextTokenTypes.Command, RTextTokenTypes.Float,
-                                                                  RTextTokenTypes.Integer, RTextTokenTypes.Label,
-                                                                  RTextTokenTypes.LeftAngleBrakcet, RTextTokenTypes.LeftBracket,
-                                                                  RTextTokenTypes.Reference, RTextTokenTypes.RightAngleBracket,
-                                                                  RTextTokenTypes.RightBrakcet, RTextTokenTypes.RTextName,
-                                                                  RTextTokenTypes.Template))
-                            {
-                                if (aCurrentPosition >= t.BufferPosition && aCurrentPosition <= t.BufferPosition + (t.EndColumn - t.StartColumn))
-                                {
-                                    aCurrentToken = t;
-                                    break;
-                                }
-                            }
-                            if (aCurrentToken.HasValue)
-                            {
-                                System.Diagnostics.Trace.WriteLine( String.Format("Autocompletion Token line : {0}\nsc : {1}\nec : {2}\npos : {3}",
-                                                                    aCurrentToken.Value.Line,
-                                                                    aCurrentToken.Value.StartColumn,
-                                                                    aCurrentToken.Value.EndColumn,
-                                                                    aCurrentToken.Value.BufferPosition));
-                            }
+                            int aLineNumber = CSScriptIntellisense.Npp.GetLineNumber();
+                            //if auto completion is inside comment, notation, name, string jusr return
+                            AutoCompletionTokenizer aTokenizer = new AutoCompletionTokenizer(aLineNumber, aCurrentPosition);                            
                             //if a token is found then the window should appear at the start of it, else it should appear at the caret
                             Point aCaretPoint = CSScriptIntellisense.Npp.GetCaretScreenLocationForForm();
-                            if(aCurrentToken.HasValue)
+                            if (aTokenizer.TriggerToken.HasValue)
                             {
-                                aCaretPoint = CSScriptIntellisense.Npp.GetCaretScreenLocationRelativeToPosition(aCurrentToken.Value.BufferPosition);
+                                aCaretPoint = CSScriptIntellisense.Npp.GetCaretScreenLocationRelativeToPosition(aTokenizer.TriggerToken.Value.BufferPosition);
                             }
                             
                             _autoCompletionForm.Left = aCaretPoint.X;
@@ -213,7 +192,7 @@ namespace RTextNppPlugin
                             //get text from start till current line end
                             string aContextBlock = CSScriptIntellisense.Npp.GetTextBetween(0, CSScriptIntellisense.Npp.GetLineEnd(aLineNumber));
                             ContextExtractor aExtractor = new ContextExtractor(aContextBlock, CSScriptIntellisense.Npp.GetLengthToEndOfLine());
-                            _autoCompletionForm.AugmentAutoCompletion(aExtractor, aCaretPoint, aCurrentToken, ref _requestAutoCompletion);
+                            _autoCompletionForm.AugmentAutoCompletion(aExtractor, aCaretPoint, aTokenizer.TriggerToken, ref _requestAutoCompletion);
                             _autoCompletionForm.Show();
                             //todo - handle text insertion
                         }
