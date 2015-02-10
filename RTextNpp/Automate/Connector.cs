@@ -53,6 +53,14 @@ namespace RTextNppPlugin.Automate
             public String Command;
         }
 
+        public string Workspace
+        {
+            get
+            {
+                return mBackendProcess.ProcKey;
+            }
+        }
+
         /**
          *
          * \brief   Delegate for the CommandCompleted event.

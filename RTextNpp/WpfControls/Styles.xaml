@@ -1,6 +1,61 @@
 ﻿<ResourceDictionary  
 	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    xmlns:v="clr-namespace:RTextNppPlugin.ViewModels"
+    xmlns:s="clr-namespace:System;assembly=mscorlib"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">    
+    <ControlTemplate x:Key="ListViewBorderless" 
+                     TargetType="ListBox">
+        <Border BorderThickness="{TemplateBinding Border.BorderThickness}" Padding="0" BorderBrush="{TemplateBinding Border.BorderBrush}" Background="{TemplateBinding Panel.Background}" Name="Bd" SnapsToDevicePixels="True">
+            <ScrollViewer Padding="{TemplateBinding Control.Padding}" Focusable="False">
+                <ItemsPresenter SnapsToDevicePixels="{TemplateBinding UIElement.SnapsToDevicePixels}" />
+            </ScrollViewer>
+        </Border>
+        <ControlTemplate.Triggers>
+            <Trigger Property="UIElement.IsEnabled">
+                <Setter TargetName="Bd" Property="Panel.Background" Value="{DynamicResource {x:Static SystemColors.ControlBrushKey}}" />
+                <Trigger.Value>
+                    <s:Boolean>False</s:Boolean>
+                </Trigger.Value>
+            </Trigger>
+            <Trigger Property="ItemsControl.IsGrouping">
+                <Setter Property="ScrollViewer.CanContentScroll">
+                    <Setter.Value>
+                        <s:Boolean>False</s:Boolean>
+                    </Setter.Value>
+                </Setter>
+                <Trigger.Value>
+                    <s:Boolean>True</s:Boolean>
+                </Trigger.Value>
+            </Trigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
+    <Style x:Key="AutoCompletionListViewStyle" TargetType="{x:Type ListView}">
+        <Setter Property="VirtualizingPanel.VirtualizationMode" Value="Recycling"/>
+    </Style>
+    <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+    <Style x:Key="AutoCompletionImageStyle" TargetType="{x:Type Image}">
+        <Setter Property="Source" Value="/RTextNpp;Component/Resources/method.png" />
+        <Style.Triggers>
+            <DataTrigger Value="Label" Binding="{Binding ImageType}">
+                <Setter Property="Source" Value="/RTextNpp;Component/Resources/property.png"/>
+            </DataTrigger>
+            <DataTrigger Value="Reference" Binding="{Binding ImageType}">
+                <Setter Property="Source" Value="/RTextNpp;Component/Resources/extension_method.png"/>
+            </DataTrigger>
+            <DataTrigger Value="Event" Binding="{Binding ImageType}">
+                <Setter Property="Source" Value="/RTextNpp;Component/Resources/event.png"/>
+            </DataTrigger>
+            <DataTrigger Value="Value" Binding="{Binding ImageType}">
+                <Setter Property="Source" Value="/RTextNpp;Component/Resources/field.png"/>
+            </DataTrigger>
+            <DataTrigger Value="String" Binding="{Binding ImageType}">
+                <Setter Property="Source" Value="/RTextNpp;Component/Resources/property.png"/>
+            </DataTrigger>
+            <DataTrigger Value="Warning" Binding="{Binding ImageType}">
+                <Setter Property="Source" Value="/RTextNpp;Component/Resources/warning.png"/>
+            </DataTrigger>            
+        </Style.Triggers>
+    </Style>
     <Style x:Key="Workspace_FadeInFadeOutStyle">                
         <Style.Triggers>
             <DataTrigger Binding="{Binding IsAutomateWorkspace}" Value="False">

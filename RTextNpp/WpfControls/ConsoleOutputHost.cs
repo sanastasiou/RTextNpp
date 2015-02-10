@@ -23,6 +23,22 @@ namespace RTextNppPlugin.WpfControls
             base.Child = _wpfControl;
             _viewModel = (U)_wpfControl.DataContext;
         }
+
+        public U ViewModel
+        {
+            get
+            {
+                return _viewModel;
+            }
+        }
+
+        public T WpfControl
+        {
+            get
+            {
+                return _wpfControl;
+            }
+        }
     } 
 
 }

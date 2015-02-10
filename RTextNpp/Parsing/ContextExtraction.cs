@@ -22,7 +22,7 @@ namespace RTextNppPlugin.Parsing
             _reversedLines = new List<string>(JoinLines(ref contextLines).Reverse());
             _contextLines  = new List<string>(_reversedLines.Count);
             Analyze();
-            ContextColumn  = _contextLines.Last().Length - lengthToEnd;
+            ContextColumn  = _contextLines.Last().Length - lengthToEnd + 1; //compensate for backend
         }
 
         /**
@@ -37,13 +37,13 @@ namespace RTextNppPlugin.Parsing
             _reversedLines = new List<string>(JoinLines(ref aContextLines).Reverse());
             _contextLines = new List<string>(_reversedLines.Count);
             Analyze();
-            ContextColumn = _contextLines.Last().Length - lengthToEnd;
+            ContextColumn = _contextLines.Last().Length - lengthToEnd + 1; //compensate for backend
         }
 
         /**
          * Gets or sets a list of context lines.
          */
-        public IEnumerable<string> ContextList
+        public List<string> ContextList
         {
             get
             {

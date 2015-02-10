@@ -1,5 +1,9 @@
 ﻿using RTextNppPlugin.WpfControls;
 using RTextNppPlugin.ViewModels;
+using System.Windows;
+using System.Windows.Media;
+using System.Windows.Interop;
+using System;
 
 namespace RTextNppPlugin.Forms
 {
@@ -31,7 +35,7 @@ namespace RTextNppPlugin.Forms
         /// </summary>
         private void InitializeComponent()
         {
-            this._autoCompletionControlHost = new ElementHost<AutoCompletionControl, AutoCompletionViewModel>();// new System.Windows.Forms.Integration.ElementHost();
+            //this._autoCompletionControlHost = new ElementHost<AutoCompletionControl, AutoCompletionViewModel>();// new System.Windows.Forms.Integration.ElementHost();
             this.SuspendLayout();
             // 
             // _autoCompletionControlHost
@@ -39,17 +43,18 @@ namespace RTextNppPlugin.Forms
             this._autoCompletionControlHost.Dock = System.Windows.Forms.DockStyle.Fill;
             this._autoCompletionControlHost.Location = new System.Drawing.Point(0, 0);
             this._autoCompletionControlHost.Name = "_autoCompletionControlHost";
-            this._autoCompletionControlHost.Size = new System.Drawing.Size(549, 304);
+            this._autoCompletionControlHost.Size = new System.Drawing.Size(0, 0);
+            this._autoCompletionControlHost.AutoSize = true;
             this._autoCompletionControlHost.TabIndex = 0;
             this._autoCompletionControlHost.Text = "elementHost1";
-            this._autoCompletionControlHost.Child = null;
+            this._autoCompletionControlHost.ViewModel.Host = this;
             // 
             // AutoCompletionForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
-            this.ClientSize = new System.Drawing.Size(549, 304);
+            this.ClientSize = new System.Drawing.Size(0, 0);
             this.ControlBox = false;
             this.Controls.Add(this._autoCompletionControlHost);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
@@ -64,12 +69,65 @@ namespace RTextNppPlugin.Forms
             this.Load += new System.EventHandler(this.AutoCompletionForm_Load);
             this.Click += AutoCompletionForm_OnClick;
             this.ResumeLayout(false);
-
         }
 
         #endregion
 
-        private ElementHost<AutoCompletionControl, AutoCompletionViewModel> _autoCompletionControlHost;
+        #region [Interface]
+        internal AutoCompletionViewModel AutoCompletionViewModel
+        {
+            get
+            {
+                return _autoCompletionControlHost.ViewModel;
+            }
+        }
 
+        internal AutoCompletionControl AutoCompletionWpfControl
+        {
+            get
+            {
+                return _autoCompletionControlHost.WpfControl;
+            }
+        }
+
+        public void ResizeToWpfSize()
+        {
+            var wpfSize     = GetElementPixelSize(_autoCompletionControlHost.Child);
+            int pixelWidth  = (int)Math.Max(int.MinValue, Math.Min(int.MaxValue, wpfSize.Width));
+            int pixelHeight = (int)Math.Max(int.MinValue, Math.Min(int.MaxValue, wpfSize.Height));
+            this.ClientSize = new System.Drawing.Size(pixelWidth, pixelHeight);
+        }
+
+        #endregion
+
+
+        #region [Helprs]
+        private System.Windows.Size GetElementPixelSize(UIElement element)
+        {
+            Matrix transformToDevice;
+            var source = PresentationSource.FromVisual(element);
+            if (source != null)
+            {
+                transformToDevice = source.CompositionTarget.TransformToDevice;
+            }
+            else
+            {
+                using (var Hwndsource = new HwndSource(new HwndSourceParameters()))
+                {
+                    transformToDevice = Hwndsource.CompositionTarget.TransformToDevice;
+                }
+            }
+
+            if (element.DesiredSize == new System.Windows.Size())
+            {
+                element.Measure(new System.Windows.Size(double.PositiveInfinity, double.PositiveInfinity));
+            }
+            return (System.Windows.Size)transformToDevice.Transform((Vector)element.DesiredSize);
+        }
+        #endregion
+
+        #region [Data Members]
+        private ElementHost<AutoCompletionControl, AutoCompletionViewModel> _autoCompletionControlHost = new ElementHost<AutoCompletionControl, AutoCompletionViewModel>();
+        #endregion        
     }
 }

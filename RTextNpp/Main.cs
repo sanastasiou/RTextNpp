@@ -29,7 +29,8 @@ namespace RTextNppPlugin
         static Bitmap tbBmp_tbTab = Properties.Resources.ConsoleIcon;
         static Icon tbIcon = null;
         static bool _consoleInitialized = false;
-        static bool _invokeInProgress = false;        
+        static bool _invokeInProgress = false;
+        static bool _requestAutoCompletion = false;
         #endregion
 
         #region [Startup/CleanUp]
@@ -72,6 +73,7 @@ namespace RTextNppPlugin
                             handled = !_autoCompletionForm.ElementHost.Visible;
                             if (!_autoCompletionForm.ElementHost.Visible)
                             {
+                                _requestAutoCompletion = true;
                                 var res = AsyncInvoke(handler.Item2);
                             }
                             return;
@@ -211,9 +213,8 @@ namespace RTextNppPlugin
                             //get text from start till current line end
                             string aContextBlock = CSScriptIntellisense.Npp.GetTextBetween(0, CSScriptIntellisense.Npp.GetLineEnd(aLineNumber));
                             ContextExtractor aExtractor = new ContextExtractor(aContextBlock, CSScriptIntellisense.Npp.GetLengthToEndOfLine());
-                            //_connectorManager.Connector.execute
 
-                            //todo - get response from backend
+                            _autoCompletionForm.ElementHost.AutoCompletionViewModel.AugmentAutoCompletion(aExtractor, aCaretPoint, aCurrentToken, ref _requestAutoCompletion);
                             //todo - handle text insertion
 
                             _autoCompletionForm.ElementHost.Show(Control.FromHandle(nppData._nppHandle));

@@ -6,44 +6,56 @@
              xmlns:viewModels="clr-namespace:RTextNppPlugin.ViewModels"
              xmlns:wpfControls="clr-namespace:RTextNppPlugin.WpfControls"
              mc:Ignorable="d"
+             d:DesignHeight="300"
+             d:DesignWidth="300"
+             SnapsToDevicePixels="True"
              IsHitTestVisible="True"
-             d:DesignHeight="300" d:DesignWidth="300">
+             BorderBrush="Transparent"
+             Background="Transparent">
     <UserControl.Resources>
-        <Style TargetType="{x:Type ListView}">
-            <Setter Property="VirtualizingPanel.VirtualizationMode" Value="Recycling"/>
-        </Style>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Styles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
     </UserControl.Resources>
     <UserControl.DataContext>
         <viewModels:AutoCompletionViewModel/>
     </UserControl.DataContext>
-    <Grid>
-        <DockPanel HorizontalAlignment="Stretch"
-                   VerticalAlignment="Stretch"
+    <DockPanel HorizontalAlignment="Stretch"
+                   VerticalAlignment="Stretch"                   
+                   Margin="0"                   
                    Background="Transparent">
-            <StackPanel x:Name="StatisticsPanel" Orientation="Horizontal" HorizontalAlignment="Stretch" DockPanel.Dock="Bottom" Visibility="Collapsed">
-                <Label Content="Total options : "></Label>
-            </StackPanel>
-            <ListView Margin="0"                  
+        <StackPanel x:Name="StatisticsPanel" Orientation="Horizontal" HorizontalAlignment="Stretch" DockPanel.Dock="Bottom" Margin="0">
+            <Label Content="Total options : "/>
+            <Label Content="{Binding Count}"/>
+        </StackPanel>
+        <ListView     Template="{StaticResource ListViewBorderless}"
+                      Background="Transparent"
+                      BorderThickness="0"
+                      DataContext="{Binding}"
                       Name="AutoCompletionList"
                       DockPanel.Dock="Top"
+                      MaxHeight="300"
+                      MaxWidth="600"
+                      Height="200"
+                      Width="200"
+                      HorizontalContentAlignment="Stretch"
+                      ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                       MouseDoubleClick="OnAutoCompletionListDoubleClick"
                       ItemsSource="{Binding CompletionList}"
+                      Style="{StaticResource AutoCompletionListViewStyle}"                    
                       VirtualizingPanel.IsVirtualizing="True">
-                <ListView.ItemTemplate>
-                    <DataTemplate>
-                        <Border BorderThickness="1" BorderBrush="Blue">
-                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch">
-                                <Image>
-                                    <Image.Source>
-                                        <BitmapImage UriSource="/RTextNpp;Component/Resources/constructor.png"/>
-                                    </Image.Source>
-                                </Image>
-                                <Label Content="{Binding DisplayText}"/>
-                            </StackPanel>
-                        </Border>
-                    </DataTemplate>
-                </ListView.ItemTemplate>
-            </ListView>
-        </DockPanel>
-    </Grid>
+            <ListView.ItemTemplate>
+                <DataTemplate>
+                    <Border BorderThickness="1" BorderBrush="Blue" Margin="0" Padding="0,1,0,0" ClipToBounds="True" SnapsToDevicePixels="True">
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch" Margin="0">
+                            <Image Height="16" Width="16" Style="{StaticResource AutoCompletionImageStyle}"/>
+                            <Label Content="{Binding DisplayText}"/>
+                        </StackPanel>
+                    </Border>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
+    </DockPanel>
 </UserControl>

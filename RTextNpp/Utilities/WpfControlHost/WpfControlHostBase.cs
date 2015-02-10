@@ -21,7 +21,7 @@ namespace RTextNppPlugin.Utilities.WpfControlHost
          *
          * \return  The element host.
          */
-        public System.Windows.Forms.Form ElementHost { get { return _elementHost; } }
+        public T ElementHost { get { return _elementHost; } }
        
         /**
          * Constructor.
@@ -256,7 +256,7 @@ namespace RTextNppPlugin.Utilities.WpfControlHost
         #region [Data Members]
 
         private IntPtr NPP_HANDLE = IntPtr.Zero;                                  //!< Notepad++ main window handle.
-        private System.Windows.Forms.Form _elementHost;                           //!< The element host to be redrawed.
+        private T _elementHost;                                                   //!< The element host to be redrawed.
         private Timer _refreshTimer = new Timer(Constants.FORM_INTERVAL_REFRESH); //!< The timer, which if expired, shall refresh the element host window.
         private bool disposed = false;                                            //!< Has the disposed method already been called.
         private bool _isCreated = false;                                          //!< Indicates if windows was created.

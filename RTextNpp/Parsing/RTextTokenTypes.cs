@@ -31,6 +31,6 @@ namespace RTextNppPlugin.Parsing
         Space,
         Template,
         Error,
-        NewLine
+        NewLine        
     }
 }

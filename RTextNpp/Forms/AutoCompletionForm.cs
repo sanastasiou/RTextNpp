@@ -49,7 +49,6 @@ namespace RTextNppPlugin.Forms
         private void AutoCompletionForm_Load(object sender, EventArgs e)
         {
             //needed otherwise element host stays empty - wpf / forms bug
-            this._autoCompletionControlHost.Child = new AutoCompletionControl();
             var g = this._autoCompletionControlHost.CreateGraphics();
             g.Dispose();
         }

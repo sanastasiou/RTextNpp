@@ -134,7 +134,7 @@ namespace RTextNppPlugin.Automate
                 if (FileUtilities.IsAutomateFile(aCurrentFile))
                 {
                     //find root of file
-                    string aProcKey = FileUtilities.FindWorkspaceRoot(aCurrentFile);
+                    string aProcKey = FileUtilities.FindWorkspaceRoot(aCurrentFile) + Path.GetExtension(aCurrentFile);
                     if(_processList.ContainsKey(aProcKey) && !_processList[aProcKey].HasExited)
                     {
                         return _processList[aProcKey].Connector;

@@ -838,35 +838,16 @@ namespace RTextNppPlugin.Utilities
          */
         private void OnWorkspaceModified(string pathOfModifiedFile)
         {
-            //mFileSystemWatcher.StopWatching();
             if (Settings.Instance.Get<bool>(Settings.RTextNppSettings.AutoSaveFiles))
             {
                 //find .rtext file of this document 
                 string aRTextFilePath = FileUtilities.FindWorkspaceRoot(pathOfModifiedFile);
                 Plugin.GetFileObserver().SaveWorkspaceFiles(aRTextFilePath);
-
-                //StringBuilder aTempCurrentFile = new StringBuilder(Win32.MAX_PATH);
-                //Win32.SendMessage(Plugin.nppData._nppHandle, NppMsg.NPPM_GETFULLCURRENTPATH, 0, aTempCurrentFile);
-                ////cycle through all open documents and save them before reloading model
-                //foreach (var file in FileUtilities.GetListOfOpenFiles(ref Plugin.nppData))
-                //{
-                //    if (FileUtilities.IsAutomateFile(file))
-                //    {
-                //        //save only unsaved files - infinite recursion is otherwise possible
-                //        if ((aRTextFilePath == FileUtilities.FindWorkspaceRoot(file)) && !file.Equals(aTempCurrentFile))
-                //        {
-                //            Win32.SendMessage(Plugin.nppData._nppHandle, NppMsg.NPPM_SWITCHTOFILE, 0, file);
-                //            Win32.SendMessage(Plugin.nppData._nppHandle, NppMsg.NPPM_SAVECURRENTFILE, 0, 0);
-                //        }
-                //    }
-                //}
-                //Win32.SendMessage(Plugin.nppData._nppHandle, NppMsg.NPPM_SWITCHTOFILE, 0, aTempCurrentFile);
             }
             if (this.mConnector != null)
             {
                 RestartLoadModelTimer();
             }
-            //mFileSystemWatcher.RestartWatching();
         }
 
         /**
