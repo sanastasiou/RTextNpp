@@ -36,6 +36,7 @@ namespace RTextNppPlugin
         public const string GENERAL_CHANNEL = "General";                        //!< General output channel.
         public const string DEBUG_CHANNEL = "Debug";                            //!< Debug channel - disabled on release mode.
         public const string NPP_BACKUP_DIR = @"\Notepad++\backup";              //!< Notepad ++ back up directory.
+        public const char BACKSPACE = '\b';                                     //!< Backspace char.
 
         #region NppMenuCommand
         public enum NppMenuCommands : int

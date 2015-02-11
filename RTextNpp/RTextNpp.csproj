@@ -102,6 +102,7 @@
     </Compile>
     <Compile Include="Utilities\ConfigurationSetter.cs" />
     <Compile Include="Utilities\Constants.cs" />
+    <Compile Include="Utilities\DelayedEventHandler.cs" />
     <Compile Include="Utilities\FileModificationObserver.cs" />
     <Compile Include="Utilities\FileUtilities.cs" />
     <Compile Include="Utilities\FuzzyMatching.cs" />

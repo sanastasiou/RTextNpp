@@ -82,36 +82,21 @@ namespace RTextNppPlugin
                     }
                 }
                 //if any modifier key is pressed - ignore this key press
-                if (modifiers.IsCtrl || modifiers.IsShift || modifiers.IsAlt)
+                if (modifiers.IsCtrl || modifiers.IsAlt)
                 {
                     return;
                 }
 
-                //auto complete Ctrl+Space is handled above - here we handle single characters
+                //auto complete Ctrl+Space is handled above - here we handle other special cases
                 switch (key)
                 {
-                    case Keys.A:case Keys.B:case Keys.C:case Keys.D:case Keys.D0:case Keys.D1:case Keys.D2:case Keys.D3:case Keys.D4:
-                    case Keys.D5:case Keys.D6:case Keys.D7:case Keys.D8:case Keys.D9:case Keys.Decimal:case Keys.E:case Keys.F:case Keys.G:
-                    case Keys.H:case Keys.I:case Keys.J:case Keys.K:case Keys.L:case Keys.M:case Keys.N:case Keys.NumPad0:case Keys.NumPad1:
-                    case Keys.NumPad2:case Keys.NumPad3:case Keys.NumPad4:case Keys.NumPad5:case Keys.NumPad6:case Keys.NumPad7:case Keys.NumPad8:
-                    case Keys.NumPad9:case Keys.O:case Keys.OemBackslash:case Keys.OemCloseBrackets:case Keys.OemMinus:case Keys.OemOpenBrackets:
-                    case Keys.OemPeriod:case Keys.OemPipe:case Keys.OemQuestion:case Keys.OemQuotes:case Keys.OemSemicolon:case Keys.Oemcomma:
-                    case Keys.Oemplus:case Keys.Oemtilde:case Keys.P:case Keys.Q:case Keys.R:case Keys.S:case Keys.Space:case Keys.Subtract:case Keys.T:
-                    case Keys.U:case Keys.V:case Keys.W:case Keys.X:case Keys.Y:case Keys.Z:
-                        //character needs to be entered
-                        handled = false;
-                        if (!_autoCompletionForm.IsVisible)
-                        {                        
-                            var res = AsyncInvoke(StartAutoCompleteSession);                            
-                        }
-                        _autoCompletionForm.OnKeyPressed(key);
+                    case Keys.Back:
+                        //in case of empty trigger token form needs to close
+                        _autoCompletionForm.OnKeyPressed(Constants.BACKSPACE);                        
                         break;
                     case Keys.Return:
                     case Keys.Tab:
                         CommitAutoCompletion(true);
-                        break;
-                    case Keys.Back:
-                        //move auto completion one char to the left and refilter it without requesting new set of options
                         break;
                     case Keys.Escape:
                     case Keys.Cancel:
@@ -125,6 +110,22 @@ namespace RTextNppPlugin
             {
                 //allow event to fall through
                 handled = false;
+            }
+        }
+
+        public static void OnCharTyped(char c)
+        {
+            if (!Char.IsControl(c))
+            {
+                if (!_autoCompletionForm.IsVisible)
+                {
+                    //do not start auto completion with whitespace char...
+                    if (!Char.IsWhiteSpace(c))
+                    {
+                        var res = AsyncInvoke(StartAutoCompleteSession);
+                    }
+                }
+                _autoCompletionForm.OnKeyPressed(c);
             }
         }
 
@@ -177,8 +178,11 @@ namespace RTextNppPlugin
                         if (aCurrentPosition >= 0)
                         {
                             int aLineNumber = CSScriptIntellisense.Npp.GetLineNumber();
+                            //get text from start till current line end
+                            string aContextBlock = CSScriptIntellisense.Npp.GetTextBetween(0, CSScriptIntellisense.Npp.GetLineEnd(aLineNumber));
+                            ContextExtractor aExtractor = new ContextExtractor(aContextBlock, CSScriptIntellisense.Npp.GetLengthToEndOfLine());
                             //if auto completion is inside comment, notation, name, string jusr return
-                            AutoCompletionTokenizer aTokenizer = new AutoCompletionTokenizer(aLineNumber, aCurrentPosition);                            
+                            AutoCompletionTokenizer aTokenizer = new AutoCompletionTokenizer(aLineNumber, aCurrentPosition, aExtractor.ContextColumn);                            
                             //if a token is found then the window should appear at the start of it, else it should appear at the caret
                             Point aCaretPoint = CSScriptIntellisense.Npp.GetCaretScreenLocationForForm();
                             if (aTokenizer.TriggerToken.HasValue)
@@ -189,9 +193,6 @@ namespace RTextNppPlugin
                             _autoCompletionForm.Left = aCaretPoint.X;
                             _autoCompletionForm.Top  = aCaretPoint.Y;
                             Utilities.Visual.SetOwnerFromNppPlugin(_autoCompletionForm);
-                            //get text from start till current line end
-                            string aContextBlock = CSScriptIntellisense.Npp.GetTextBetween(0, CSScriptIntellisense.Npp.GetLineEnd(aLineNumber));
-                            ContextExtractor aExtractor = new ContextExtractor(aContextBlock, CSScriptIntellisense.Npp.GetLengthToEndOfLine());
                             _autoCompletionForm.AugmentAutoCompletion(aExtractor, aCaretPoint, aTokenizer.TriggerToken, ref _requestAutoCompletion);
                             _autoCompletionForm.Show();
                             //todo - handle text insertion

@@ -3,6 +3,8 @@ using System;
 using System.Windows;
 using System.Windows.Input;
 using RTextNppPlugin.ViewModels;
+using RTextNppPlugin.Utilities;
+using CSScriptIntellisense;
 
 namespace RTextNppPlugin.WpfControls
 {
@@ -10,7 +12,9 @@ namespace RTextNppPlugin.WpfControls
     {
         #region [DataMembers]
 
-        CSScriptIntellisense.MouseMonitor _mouseMonitor = new CSScriptIntellisense.MouseMonitor();
+        CSScriptIntellisense.MouseMonitor _mouseMonitor             = new CSScriptIntellisense.MouseMonitor();
+        DelayedKeyEventHandler _delayedFilterEventHandler           = null;
+        DelayedKeyEventHandler<char> _delayedKeyPressedEventHandler = null;
 
         #endregion
 
@@ -20,6 +24,9 @@ namespace RTextNppPlugin.WpfControls
             InitializeComponent();
             _mouseMonitor.Install();
             _mouseMonitor.MouseClicked += OnMouseMonitorMouseClicked;
+            _delayedFilterEventHandler = new DelayedKeyEventHandler(this.PostProcessKeyPressed, 500);
+            _delayedKeyPressedEventHandler = new DelayedKeyEventHandler<char>(GetModel().OnKeyPressed, 50);
+
         }
 
         public void AugmentAutoCompletion(ContextExtractor extractor, System.Drawing.Point caretPoint, Tokenizer.TokenTag? token, ref bool request)
@@ -33,12 +40,37 @@ namespace RTextNppPlugin.WpfControls
         public void SetZoomLevel(double level)
         {
             GetModel().ZoomLevel = level;
-        }        
+        }
 
-        public void OnKeyPressed(System.Windows.Forms.Keys key)
+        public void PostProcessKeyPressed()
         {
-            //reparse line and find new trigger token
-            GetModel().OnKeyPressed(key);
+            //handle this on UI thread since it will alter UI
+            Dispatcher.BeginInvoke(new Action(GetModel().Filter));
+        }
+
+        //add delay.. we need buffer with new position...
+        public void OnKeyPressed(char c)
+        {
+            if (IsVisible)
+            {
+                _delayedFilterEventHandler.Cancel();
+                //reparse line and find new trigger token
+                GetModel().OnKeyPressed(c);
+
+                if (GetModel().MoveLeft)
+                {
+                    //int newPosition = Npp.GetCaretScreenLocationRelativeToPosition(Npp.GetCaretPosition())                    
+                }
+                else if (GetModel().MoveRight)
+                {
+                    var aPos = Npp.GetCaretScreenLocationForForm(Npp.GetCaretPosition() + 1);
+                    this.Top = aPos.Y;
+                    this.Left = aPos.X;
+                }
+
+                //do heavy lifting in here -> debounce many subsequent calls
+                _delayedFilterEventHandler.TriggerHandler();
+            }
         }
         #endregion
 
@@ -85,7 +117,7 @@ namespace RTextNppPlugin.WpfControls
         {
             if (!IsMouseInsideWindow())
             {
-                this.Hide(); 
+                this.Hide();
             }
         }
 
@@ -99,9 +131,10 @@ namespace RTextNppPlugin.WpfControls
             else
             {
                 _mouseMonitor.Install();
+                _delayedFilterEventHandler.Cancel();
             }
         }
-        #endregion               
+        #endregion
 
         #region IDisposable Members
 

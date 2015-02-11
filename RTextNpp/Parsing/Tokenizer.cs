@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Text.RegularExpressions;
+using CSScriptIntellisense;
 
 namespace RTextNppPlugin.Parsing
 {
@@ -17,6 +18,20 @@ namespace RTextNppPlugin.Parsing
             public int StartColumn { get; set; }
             public int EndColumn { get; set; }
             public int BufferPosition { get; set; }
+            public int CaretColumn { get; set; }
+
+            public override string ToString()
+            {
+                return String.Format("Token\nline : {0}\nsc : {1}\nec : {2}\npos : {3}\ncontext : {4}\ncc : {5}\ntype : {6}",
+                                      this.Line,
+                                      this.StartColumn,
+                                      this.EndColumn,
+                                      this.BufferPosition,
+                                      this.Context,
+                                      this.CaretColumn,
+                                      this.Type
+                                    );
+            }
         }
 
         #region[Interface]
@@ -39,23 +54,23 @@ namespace RTextNppPlugin.Parsing
                     Match aMatch = RTextRegexMap.REGEX_MAP[type].Match(_lineText);
                     if (aMatch.Success)
                     {
-                        if(typesToKeep.Count() == 0 || typesToKeep.Contains(type))
+                        if (typesToKeep.Count() == 0 || typesToKeep.Contains(type))
                         {
                             TokenTag aCurrentTag = new TokenTag
                             {
-                                Line           = _lineNumber,
-                                Context        = aMatch.Value,
-                                StartColumn    = aColumn + aMatch.Index,
-                                EndColumn      = aColumn + aMatch.Length,
+                                Line = _lineNumber,
+                                Context = aMatch.Value,
+                                StartColumn = aColumn + aMatch.Index,
+                                EndColumn = aColumn + aMatch.Length,
                                 BufferPosition = aOffset + aColumn,
-                                Type           = type
+                                Type = type
                             };
                             //special case for identifier
                             if (type == RTextTokenTypes.Label)
                             {
                                 aFirstToken = false;
                             }
-                            else if(type == RTextTokenTypes.RTextName)
+                            else if (type == RTextTokenTypes.RTextName)
                             {
                                 if (aFirstToken && !isLineExtended(_lineNumber))
                                 {
@@ -117,8 +132,8 @@ namespace RTextNppPlugin.Parsing
         #endregion
 
         #region[Data Members]
-        string        _lineText;    //!< Line to tokenize.
-        int           _lineNumber;  //!< Line number.
+        string _lineText;    //!< Line to tokenize.
+        int _lineNumber;  //!< Line number.
         #endregion
     }
 
@@ -127,13 +142,19 @@ namespace RTextNppPlugin.Parsing
      */
     public class AutoCompletionTokenizer : Tokenizer
     {
-        public AutoCompletionTokenizer(int line, int currentCaretPosition) : base(line)
+        public AutoCompletionTokenizer(int line, int currentCaretPosition, int currentCursorColumn)
+            : base(line)
         {
             _currentPos = currentCaretPosition;
-            FindTriggerToken();
+            FindTriggerToken(currentCursorColumn);
         }
 
-        public Tokenizer.TokenTag ? TriggerToken
+        /**
+         * Gets the trigger token.
+         *
+         * \return  The trigger token.
+         */
+        public Tokenizer.TokenTag? TriggerToken
         {
             get
             {
@@ -141,8 +162,15 @@ namespace RTextNppPlugin.Parsing
             }
         }
 
+        /**
+         * Gets or sets the caret position.
+         *
+         * \return  The caret position.
+         */
+        public int CaretColumn { get; set; }
+
         #region [Helpers]
-        void FindTriggerToken()
+        void FindTriggerToken(int currentCursorColumn)
         {
             foreach (var t in base.Tokenize(RTextTokenTypes.Boolean, RTextTokenTypes.Comma,
                                             RTextTokenTypes.Command, RTextTokenTypes.Float,
@@ -150,23 +178,43 @@ namespace RTextNppPlugin.Parsing
                                             RTextTokenTypes.LeftAngleBrakcet, RTextTokenTypes.LeftBracket,
                                             RTextTokenTypes.Reference, RTextTokenTypes.RightAngleBracket,
                                             RTextTokenTypes.RightBrakcet, RTextTokenTypes.RTextName,
-                                            RTextTokenTypes.Template))
+                                            RTextTokenTypes.Template, RTextTokenTypes.Space))
             {
                 if (_currentPos >= t.BufferPosition && _currentPos <= t.BufferPosition + (t.EndColumn - t.StartColumn))
                 {
-                    _triggerToken = t;
+                    _triggerToken = new TokenTag
+                    {
+                        BufferPosition = t.BufferPosition,
+                        CaretColumn    = currentCursorColumn,
+                        Context        = t.Context,
+                        EndColumn      = t.EndColumn,
+                        Line           = t.Line,
+                        StartColumn    = t.StartColumn,
+                        Type           = t.Type
+                    };
                     break;
                 }
             }
+            //special case when token is a space - auto completion needs to start
+            if (_triggerToken.HasValue && (_triggerToken.Value.Type == RTextTokenTypes.Space))
+            {
+                //move buffer position, start column, end column, at the end of the token
+                _triggerToken = new TokenTag
+                {
+                    BufferPosition = Npp.GetCaretPosition(),
+                    CaretColumn    = Npp.GetCaretPosition(),
+                    Context        = String.Empty,
+                    EndColumn      = Npp.GetCaretPosition(),
+                    Line           = _triggerToken.Value.Line,
+                    StartColumn    = Npp.GetCaretPosition(),
+                    Type           = _triggerToken.Value.Type
+                };
+            }
+
             #if DEBUG
             if (_triggerToken.HasValue)
             {
-                System.Diagnostics.Trace.WriteLine(String.Format("Autocompletion Token line : {0}\nsc : {1}\nec : {2}\npos : {3}\ncontext : {4}",
-                                                    _triggerToken.Value.Line,
-                                                    _triggerToken.Value.StartColumn,
-                                                    _triggerToken.Value.EndColumn,
-                                                    _triggerToken.Value.BufferPosition,
-                                                    _triggerToken.Value.Context));
+                System.Diagnostics.Trace.WriteLine(_triggerToken.Value);
             }
             #endif
         }

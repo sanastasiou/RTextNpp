@@ -71,6 +71,10 @@ namespace RTextNppPlugin
                     Plugin.OnFileConsideredUnmodified();
                     Logging.Logger.Instance.Append("Catching SCN_SAVEPOINTREACHED for file : {0}", FileUtilities.GetCurrentFilePath());
                     break;
+                case (uint)SciMsg.SCN_CHARADDED:
+                    Plugin.OnCharTyped((char)nc.ch);
+                    break;
+                
             }
         }
     }
