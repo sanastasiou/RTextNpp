@@ -680,9 +680,6 @@ namespace RTextNppPlugin.Automate
         private void analyzeResponse(ref string response, ref StateObject state)
         {
             int aResponseInvocationId = -1;
-            System.Diagnostics.Stopwatch stopwatch = new System.Diagnostics.Stopwatch();
-            // Begin timing
-            stopwatch.Start();
             using (System.IO.MemoryStream aStream = new System.IO.MemoryStream(System.Text.Encoding.ASCII.GetBytes(response)))
             {
                 switch (mActiveCommand)
@@ -715,10 +712,6 @@ namespace RTextNppPlugin.Automate
                         break;
                     case Constants.Commands.CONTENT_COMPLETION:
                         mLastResponse = SerializerFactory<AutoCompleteResponse>.getSerializer().ReadObject(aStream) as IResponseBase;
-                        // Stop timing
-                        stopwatch.Stop();
-                        // Write result
-                        System.Diagnostics.Trace.WriteLine(String.Format("[{0}] : Auto completion response transformed to object in : {1}", DateTime.Now, stopwatch.Elapsed));
                         if (updateProgress(mLastResponse))
                         {
                             aResponseInvocationId = mLastResponse.invocation_id;

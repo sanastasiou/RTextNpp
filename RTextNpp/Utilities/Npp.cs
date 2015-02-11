@@ -21,6 +21,19 @@ namespace CSScriptIntellisense
     {
         public const int DocEnd = -1;
 
+        static public void DeleteBack(int length)
+        {
+            for (int i = 0; i < length; ++i)
+            {
+                Win32.SendMessage(Npp.CurrentScintilla, SciMsg.SCI_DELETEBACK, 0, 0);
+            }
+        }
+
+        static public void AddText(string s)
+        {
+            Win32.SendMessage(Npp.CurrentScintilla, SciMsg.SCI_ADDTEXT, s.GetByteCount(), s);
+        }
+
         static public string GetCurrentFile()
         {
             var path = new StringBuilder(Win32.MAX_PATH);
@@ -263,7 +276,6 @@ namespace CSScriptIntellisense
         {
             IntPtr sci = Plugin.GetCurrentScintilla();
             int pos = (int)Win32.SendMessage(sci, SciMsg.SCI_GETCURRENTPOS, 0, 0);
-            Trace.WriteLine(String.Format("Position from caret : {0}", pos));
             int x = (int)Win32.SendMessage(sci, SciMsg.SCI_POINTXFROMPOSITION, 0, pos);
             int y = (int)Win32.SendMessage(sci, SciMsg.SCI_POINTYFROMPOSITION, 0, pos);
 

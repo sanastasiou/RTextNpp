@@ -6,6 +6,7 @@
 
 using System;
 using System.Linq;
+using System.Text;
 
 /**
  * \namespace   RTextNppPlugin.RTextEditor.Utilities
@@ -23,6 +24,11 @@ namespace RTextNppPlugin.Utilities
         public static string RemoveNewLine(this string input)
         {
             return input.Replace("\r", "").Replace("\n", "");
+        }
+
+        public static int GetByteCount(this string text)
+        {
+            return Encoding.Default.GetByteCount(text);
         }
     }
 

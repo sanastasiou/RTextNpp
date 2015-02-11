@@ -14,7 +14,6 @@ namespace RTextNppPlugin.WpfControls
 
         CSScriptIntellisense.MouseMonitor _mouseMonitor             = new CSScriptIntellisense.MouseMonitor();
         DelayedKeyEventHandler _delayedFilterEventHandler           = null;
-        DelayedKeyEventHandler<char> _delayedKeyPressedEventHandler = null;
 
         #endregion
 
@@ -24,8 +23,7 @@ namespace RTextNppPlugin.WpfControls
             InitializeComponent();
             _mouseMonitor.Install();
             _mouseMonitor.MouseClicked += OnMouseMonitorMouseClicked;
-            _delayedFilterEventHandler = new DelayedKeyEventHandler(this.PostProcessKeyPressed, 500);
-            _delayedKeyPressedEventHandler = new DelayedKeyEventHandler<char>(GetModel().OnKeyPressed, 50);
+            _delayedFilterEventHandler = new DelayedKeyEventHandler(this.PostProcessKeyPressed, 200);
 
         }
 
@@ -48,24 +46,22 @@ namespace RTextNppPlugin.WpfControls
             Dispatcher.BeginInvoke(new Action(GetModel().Filter));
         }
 
-        //add delay.. we need buffer with new position...
+        internal AutoCompletionViewModel.CharProcessResult CharProcessAction { get; private set; }
+
         public void OnKeyPressed(char c)
         {
+            CharProcessAction = AutoCompletionViewModel.CharProcessResult.NoAction;
             if (IsVisible)
-            {
+            {                
                 _delayedFilterEventHandler.Cancel();
                 //reparse line and find new trigger token
                 GetModel().OnKeyPressed(c);
 
-                if (GetModel().MoveLeft)
+                CharProcessAction = GetModel().CharProcessAction;
+                if(CharProcessAction == AutoCompletionViewModel.CharProcessResult.MoveToRight)
                 {
-                    //int newPosition = Npp.GetCaretScreenLocationRelativeToPosition(Npp.GetCaretPosition())                    
-                }
-                else if (GetModel().MoveRight)
-                {
-                    var aPos = Npp.GetCaretScreenLocationForForm(Npp.GetCaretPosition() + 1);
-                    this.Top = aPos.Y;
-                    this.Left = aPos.X;
+                    this.Left = Npp.GetCaretScreenLocationForForm(Npp.GetCaretPosition()).X;
+                    CharProcessAction = AutoCompletionViewModel.CharProcessResult.NoAction;
                 }
 
                 //do heavy lifting in here -> debounce many subsequent calls

@@ -63,6 +63,14 @@ namespace RTextNppPlugin.ViewModels
 
         #region [Interface]
 
+        public enum CharProcessResult
+        {
+            ForceClose,
+            ForceCommit,
+            NoAction,
+            MoveToRight
+        }
+
         /**
          * Executes the key pressed action.
          *          
@@ -74,24 +82,11 @@ namespace RTextNppPlugin.ViewModels
          */
         public void OnKeyPressed(char c)
         {
-            MoveLeft  = false;
-            MoveRight = false;            
-            switch(c)
-            {
-                case Constants.BACKSPACE:
-                    //special treatment here..
-                    break;          
-                default:                    
-                    //just add/insert character 
-                    AddCharToTriggerPoint(c);
-                    break;
-            }
-            Trace.WriteLine(String.Format("OnKeyPressed token \n{0}", _triggerToken.Value));
+            CharProcessAction = CharProcessResult.NoAction;
+            AddCharToTriggerPoint(c);
         }
 
-        public bool MoveLeft { get; private set; }
-
-        public bool MoveRight { get; private set; }
+        public CharProcessResult CharProcessAction { get; private set; }
 
         public bool IsSelected { get; private set; }
 
@@ -115,10 +110,9 @@ namespace RTextNppPlugin.ViewModels
         
         public AutoCompletionViewModel()
         {
-            MoveLeft   = false;
-            MoveRight  = false;
-            IsSelected = false;
-            IsUnique   = false;
+            CharProcessAction = CharProcessResult.NoAction;
+            IsSelected        = false;
+            IsUnique          = false;
             _completionList.Add(CreateWarningCompletion(Properties.Resources.ERR_BACKEND_CONNECTING, Properties.Resources.ERR_BACKEND_CONNECTING_DESC));
             _completionList.Add(CreateWarningCompletion(Properties.Resources.ERR_BACKEND_CONNECTING, Properties.Resources.ERR_BACKEND_CONNECTING_DESC));
             _completionList.Add(CreateWarningCompletion(Properties.Resources.ERR_BACKEND_CONNECTING, Properties.Resources.ERR_BACKEND_CONNECTING_DESC));            
@@ -262,46 +256,78 @@ namespace RTextNppPlugin.ViewModels
 
         private void AddCharToTriggerPoint(char c)
         {
-            //char need to be inserted at previous caret column - token needs to be updated
-            if(_triggerToken.HasValue)
+            Tokenizer.TokenTag t = _triggerToken.Value;
+            string aContext = t.Context;
+            bool wasEmpty = (aContext.Length == 0);
+            if (wasEmpty && Char.IsWhiteSpace(c))
             {
-                Tokenizer.TokenTag t = _triggerToken.Value;
-                string aContext = t.Context;
-                bool wasEmpty = (aContext.Length == 0);
-                if (wasEmpty && Char.IsWhiteSpace(c))
+                CharProcessAction = CharProcessResult.MoveToRight;
+                return;
+            }
+            if(wasEmpty && c == Constants.BACKSPACE)
+            {
+                CharProcessAction = CharProcessResult.ForceClose;
+                return;
+            }
+
+            int aCurrentPosition = CSScriptIntellisense.Npp.GetCaretPosition();
+            if (aCurrentPosition >= 0)
+            {
+                int aLineNumber = CSScriptIntellisense.Npp.GetLineNumber();
+                //if auto completion is inside comment, notation, name, string jusr return
+                AutoCompletionTokenizer aTokenizer = new AutoCompletionTokenizer(aLineNumber, aCurrentPosition, Npp.GetColumn());
+                _triggerToken = aTokenizer.TriggerToken;
+                if(!_triggerToken.HasValue)
                 {
-                    MoveRight = true;                    
+                    CharProcessAction = CharProcessResult.ForceClose;
                 }
-                else
-                {
-                    if (t.CaretColumn == t.EndColumn)
-                    {
-                        //caret at end of token - just add char at the end
-                        aContext += Char.ToString(c);
-                    }
-                    else
-                    {
-                        //care is someone inside the token -> insert character
-                        int aInsertColumn = t.EndColumn - t.CaretColumn;
-                        aContext.Insert(aInsertColumn, Char.ToString(c));
-                    }
-                }
-                //move columns etc one to the right
-                _triggerToken = new Tokenizer.TokenTag
-                {
-                    EndColumn = t.EndColumn + 1,
-                    StartColumn = wasEmpty ? t.EndColumn : t.StartColumn,
-                    Type = t.Type,
-                    Line = t.Line,
-                    BufferPosition = wasEmpty ? t.EndColumn : t.BufferPosition,
-                    Context = aContext,
-                    CaretColumn = t.CaretColumn + 1
-                };
             }
             else
             {
-                Trace.WriteLine("\n\n#######\n\nERROR : Trigger point has no value \n\n#######\n\n");
+                CharProcessAction = CharProcessResult.ForceClose;
             }
+
+
+            //char need to be inserted at previous caret column - token needs to be updated
+            //if(_triggerToken.HasValue)
+            //{
+            //    Tokenizer.TokenTag t = _triggerToken.Value;
+            //    string aContext = t.Context;
+            //    bool wasEmpty = (aContext.Length == 0);
+            //    if (wasEmpty && Char.IsWhiteSpace(c))
+            //    {
+            //        MoveRight = true;
+            //    }
+            //    //else
+            //    //{
+            //    //    if (t.CaretColumn == t.EndColumn)
+            //    //    {
+            //    //        //caret at end of token - just add char at the end
+            //    //        aContext += Char.ToString(c);
+            //    //    }
+            //    //    else
+            //    //    {
+            //    //        //care is someone inside the token -> insert character
+            //    //        int aInsertColumn = t.EndColumn - t.CaretColumn;
+            //    //        aContext.Insert(aInsertColumn, Char.ToString(c));
+            //    //    }
+            //    //}
+            //    ////move columns etc one to the right
+            //    //_triggerToken = new Tokenizer.TokenTag
+            //    //{
+            //    //    EndColumn = t.EndColumn + 1,
+            //    //    StartColumn = wasEmpty ? t.EndColumn : t.StartColumn,
+            //    //    Type = t.Type,
+            //    //    Line = t.Line,
+            //    //    BufferPosition = wasEmpty ? t.EndColumn : t.BufferPosition,
+            //    //    Context = aContext,
+            //    //    CaretColumn = t.CaretColumn + 1
+            //    //};
+            //}
+            //else
+            //{
+            //    Trace.WriteLine("\n\n#######\n\nERROR : Trigger point has no value \n\n#######\n\n");
+            //}
         }
 
         #endregion

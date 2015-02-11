@@ -11,6 +11,8 @@ using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using CSScriptIntellisense;
+using System.Diagnostics;
 
 namespace RTextNppPlugin
 {
@@ -22,7 +24,6 @@ namespace RTextNppPlugin
         private static Options _options                                                 = new Forms.Options();
         private static FileModificationObserver _fileObserver                           = new FileModificationObserver();
         private static Dictionary<ShortcutKey, Tuple<string, Action>> internalShortcuts = new Dictionary<ShortcutKey, Tuple<string, Action>>();
-        private static Point _triggerPoint                                              = new Point();
         private static AutoCompletionWindow _autoCompletionForm                         = new AutoCompletionWindow(); //!< The link targets window instance
         public const string PluginName                                                  = "RTextNpp";
         static Bitmap tbBmp                                                             = Properties.Resources.ConsoleIcon;
@@ -91,11 +92,23 @@ namespace RTextNppPlugin
                 switch (key)
                 {
                     case Keys.Back:
+                        handled = true;
+                        Npp.DeleteBack(1);
                         //in case of empty trigger token form needs to close
-                        _autoCompletionForm.OnKeyPressed(Constants.BACKSPACE);                        
+                        _autoCompletionForm.OnKeyPressed(Constants.BACKSPACE);
+                        if(_autoCompletionForm.CharProcessAction == ViewModels.AutoCompletionViewModel.CharProcessResult.ForceClose)
+                        {
+                            CommitAutoCompletion(false);
+                        }
+                        break;
+                    case Keys.Space:
+                        handled = true;
+                        Npp.AddText(Constants.SPACE.ToString());
+                        _autoCompletionForm.OnKeyPressed(Constants.SPACE);
                         break;
                     case Keys.Return:
                     case Keys.Tab:
+                        //special case when trigger point is empty -> move auto completion form after inserting tab char..
                         CommitAutoCompletion(true);
                         break;
                     case Keys.Escape:
@@ -115,7 +128,7 @@ namespace RTextNppPlugin
 
         public static void OnCharTyped(char c)
         {
-            if (!Char.IsControl(c))
+            if (!Char.IsControl(c) && !Char.IsWhiteSpace(c))
             {
                 if (!_autoCompletionForm.IsVisible)
                 {
@@ -125,7 +138,10 @@ namespace RTextNppPlugin
                         var res = AsyncInvoke(StartAutoCompleteSession);
                     }
                 }
-                _autoCompletionForm.OnKeyPressed(c);
+                else
+                {
+                    _autoCompletionForm.OnKeyPressed(c);
+                }
             }
         }
 
