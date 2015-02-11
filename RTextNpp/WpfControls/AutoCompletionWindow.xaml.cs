@@ -48,7 +48,7 @@ namespace RTextNppPlugin.WpfControls
 
         internal AutoCompletionViewModel.CharProcessResult CharProcessAction { get; private set; }
 
-        public void OnKeyPressed(char c)
+        public void OnKeyPressed(char c = '\0')
         {
             CharProcessAction = AutoCompletionViewModel.CharProcessResult.NoAction;
             if (IsVisible)

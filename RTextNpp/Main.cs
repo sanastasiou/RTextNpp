@@ -1,3 +1,4 @@
+using CSScriptIntellisense;
 using RTextNppPlugin.Automate;
 using RTextNppPlugin.Forms;
 using RTextNppPlugin.Parsing;
@@ -11,8 +12,6 @@ using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using CSScriptIntellisense;
-using System.Diagnostics;
 
 namespace RTextNppPlugin
 {
@@ -100,6 +99,11 @@ namespace RTextNppPlugin
                         {
                             CommitAutoCompletion(false);
                         }
+                        break;
+                    case Keys.Delete:
+                        handled = true;
+                        Npp.DeleteFront(1);
+                        _autoCompletionForm.OnKeyPressed();
                         break;
                     case Keys.Space:
                         handled = true;

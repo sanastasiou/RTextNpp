@@ -21,6 +21,15 @@ namespace CSScriptIntellisense
     {
         public const int DocEnd = -1;
 
+        static public void DeleteFront(int length)
+        {
+            while (length-- > 0)
+            {
+                SetCaretPosition(GetCaretPosition() + 1);
+                DeleteBack(1);
+            }
+        }
+
         static public void DeleteBack(int length)
         {
             for (int i = 0; i < length; ++i)
