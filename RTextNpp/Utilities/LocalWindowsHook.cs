@@ -19,8 +19,55 @@ using System.Runtime.InteropServices;
 
 namespace CSScriptIntellisense
 {
-	#region Class HookEventArgs
-	public class HookEventArgs : EventArgs
+    #region [Mouse Wheel Helper]
+    [StructLayout(LayoutKind.Sequential)]
+    public struct POINT
+    {
+        public int X;
+        public int Y;
+
+        public POINT(int x, int y)
+        {
+            this.X = x;
+            this.Y = y;
+        }
+
+        public POINT(System.Drawing.Point pt) : this(pt.X, pt.Y) { }
+
+        public static implicit operator System.Drawing.Point(POINT p)
+        {
+            return new System.Drawing.Point(p.X, p.Y);
+        }
+
+        public static implicit operator POINT(System.Drawing.Point p)
+        {
+            return new POINT(p.X, p.Y);
+        }
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public class MouseHookStruct
+    {
+        public POINT pt;
+        public int hwnd;
+        public int wHitTestCode;
+        public int dwExtraInfo;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public class MSLLHOOKSTRUCT
+    {
+        public POINT pt;
+        public uint mouseData;
+        public uint flags;
+        public uint time;
+        public UIntPtr dwExtraInfo;
+    }
+
+    #endregion
+
+    #region Class HookEventArgs
+    public class HookEventArgs : EventArgs
 	{
 		public int HookCode;	// Hook code
 		public IntPtr wParam;	// WPARAM argument

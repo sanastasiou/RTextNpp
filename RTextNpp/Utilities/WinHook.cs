@@ -78,6 +78,7 @@ namespace CSScriptIntellisense
         public event Action MouseMove;
         public event Action MouseClicked;
         public event Action MouseReleased;
+        public event Func<int, bool> MouseWheelMoved;
 
         private enum MouseMessages
         {
@@ -133,6 +134,15 @@ namespace CSScriptIntellisense
                     }
                     break;
                 case MouseMessages.WM_MOUSEWHEEL:
+                    //calculate mouse delta... LAWL
+                    MSLLHOOKSTRUCT aMouseData = (MSLLHOOKSTRUCT)Marshal.PtrToStructure(lParam, typeof(MSLLHOOKSTRUCT));
+                    int wheelMovement          = GetWheelDeltaWParam(aMouseData.mouseData);
+
+                    if(MouseWheelMoved != null)
+                    {
+                        return MouseWheelMoved(wheelMovement);
+                    }
+                    break;
                 default:
                     break;
             }
@@ -144,6 +154,8 @@ namespace CSScriptIntellisense
         {
             base.Install(HookType.WH_MOUSE);
         }
+
+        private int GetWheelDeltaWParam(uint mouseData) { return (int)(mouseData >> 16); }
     }
 
     public struct Modifiers

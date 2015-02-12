@@ -1,15 +1,13 @@
-﻿using RTextNppPlugin.Parsing;
-using RTextNppPlugin.WpfControls;
-using RTextNppPlugin.Utilities;
-using RTextNppPlugin.Automate.Protocol;
-using System;
+﻿using System;
 using System.Collections.ObjectModel;
-using System.Drawing;
-using RTextNppPlugin.Automate;
-using RTextNppPlugin.Forms;
-using RTextNppPlugin.Logging;
 using System.Diagnostics;
+using System.Drawing;
 using CSScriptIntellisense;
+using RTextNppPlugin.Automate;
+using RTextNppPlugin.Automate.Protocol;
+using RTextNppPlugin.Logging;
+using RTextNppPlugin.Parsing;
+using RTextNppPlugin.WpfControls;
 
 namespace RTextNppPlugin.ViewModels
 {
@@ -88,9 +86,19 @@ namespace RTextNppPlugin.ViewModels
 
         public CharProcessResult CharProcessAction { get; private set; }
 
+        public Tokenizer.TokenTag? TriggerPoint { get; private set; }
+
         public bool IsSelected { get; private set; }
 
         public bool IsUnique { get; private set; }
+
+        public void OnZoomLevelChanged(int newZoomLevel)
+        {
+            //calculate actual zoom level , based on Scintilla zoom factors...
+            
+            //try 8% increments / decrements
+            ZoomLevel = (1 + (0.08 * newZoomLevel));            
+        }
 
         public double ZoomLevel
         {

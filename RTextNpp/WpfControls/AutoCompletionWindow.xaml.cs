@@ -1,10 +1,11 @@
-﻿using RTextNppPlugin.Parsing;
-using System;
+﻿using System;
+using System.Diagnostics;
 using System.Windows;
 using System.Windows.Input;
-using RTextNppPlugin.ViewModels;
-using RTextNppPlugin.Utilities;
 using CSScriptIntellisense;
+using RTextNppPlugin.Parsing;
+using RTextNppPlugin.Utilities;
+using RTextNppPlugin.ViewModels;		
 
 namespace RTextNppPlugin.WpfControls
 {
@@ -21,8 +22,8 @@ namespace RTextNppPlugin.WpfControls
         public AutoCompletionWindow()
         {
             InitializeComponent();
-            _mouseMonitor.Install();
             _mouseMonitor.MouseClicked += OnMouseMonitorMouseClicked;
+            _mouseMonitor.MouseWheelMoved += OnMouseMonitorMouseWheelMoved;
             _delayedFilterEventHandler = new DelayedKeyEventHandler(this.PostProcessKeyPressed, 200);
 
         }
@@ -30,14 +31,7 @@ namespace RTextNppPlugin.WpfControls
         public void AugmentAutoCompletion(ContextExtractor extractor, System.Drawing.Point caretPoint, Tokenizer.TokenTag? token, ref bool request)
         {
             GetModel().AugmentAutoCompletion(extractor, caretPoint, token, ref request);
-        }
-
-        /**
-         * @param   level   The zoom level. Updates auto completion form zoom level via databinding.
-         */
-        public void SetZoomLevel(double level)
-        {
-            GetModel().ZoomLevel = level;
+            CharProcessAction = GetModel().CharProcessAction;
         }
 
         public void PostProcessKeyPressed()
@@ -47,6 +41,22 @@ namespace RTextNppPlugin.WpfControls
         }
 
         internal AutoCompletionViewModel.CharProcessResult CharProcessAction { get; private set; }
+
+        public void OnZoomLevelChanged(int newZoomLevel)
+        {
+            if (IsVisible)
+            {
+                //in case the form is visible - move it to the new place...
+                var aCaretPoint = Npp.GetCaretScreenLocationForForm();
+                if (GetModel().TriggerPoint.HasValue)
+                {
+                    aCaretPoint = CSScriptIntellisense.Npp.GetCaretScreenLocationRelativeToPosition(GetModel().TriggerPoint.Value.BufferPosition);
+                }
+                this.Left = aCaretPoint.X;
+                this.Top  = aCaretPoint.Y;
+            }
+            Dispatcher.BeginInvoke(new Action<int>(GetModel().OnZoomLevelChanged), newZoomLevel);
+        }
 
         public void OnKeyPressed(char c = '\0')
         {
@@ -106,6 +116,13 @@ namespace RTextNppPlugin.WpfControls
         #endregion
 
         #region EventHandlers
+        bool OnMouseMonitorMouseWheelMoved(int movement)
+        {
+            Trace.WriteLine(String.Format("Mouse wheel moved... {0}", movement));
+            //do now allow event to propage, therefore not allowing text to scroll...
+            return true;
+        }
+
         void OnKeyIntercepterKeyDown(System.Windows.Forms.Keys key, int repeatCount, ref bool handled)
         {
             handled = false;

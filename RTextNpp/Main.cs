@@ -12,6 +12,7 @@ using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Diagnostics;
 
 namespace RTextNppPlugin
 {
@@ -31,6 +32,7 @@ namespace RTextNppPlugin
         static bool _consoleInitialized                                                 = false;
         static bool _invokeInProgress                                                   = false;
         static bool _requestAutoCompletion                                              = false;
+        static int _currentZoomLevel                                                    = 0;
         #endregion
 
         #region [Startup/CleanUp]
@@ -53,9 +55,12 @@ namespace RTextNppPlugin
             foreach(var key in Enum.GetValues(typeof(Keys)))
             {
                 CSScriptIntellisense.KeyInterceptor.Instance.Add((Keys)key);
-            }            
-            
-            System.Diagnostics.Debugger.Launch();
+            }
+
+            _currentZoomLevel = Npp.GetZoomLevel();
+            _autoCompletionForm.OnZoomLevelChanged(_currentZoomLevel);
+
+            Debugger.Launch();
         }
 
         static void OnKeyInterceptorKeyDown(Keys key, int repeatCount, ref bool handled)
@@ -102,7 +107,6 @@ namespace RTextNppPlugin
                         break;
                     case Keys.Delete:
                         handled = true;
-                        System.Diagnostics.Trace.WriteLine(String.Format("Selection length : {0}", Npp.GetSelectionLength()));
                         Npp.DeleteFront();
                         _autoCompletionForm.OnKeyPressed();
                         break;
@@ -137,6 +141,7 @@ namespace RTextNppPlugin
             {
                 if (!_autoCompletionForm.IsVisible)
                 {
+                    _requestAutoCompletion = true;
                     //do not start auto completion with whitespace char...
                     if (!Char.IsWhiteSpace(c))
                     {
@@ -211,8 +216,7 @@ namespace RTextNppPlugin
                             if (aTokenizer.TriggerToken.HasValue)
                             {
                                 aCaretPoint = CSScriptIntellisense.Npp.GetCaretScreenLocationRelativeToPosition(aTokenizer.TriggerToken.Value.BufferPosition);
-                            }
-                            
+                            }                            
                             _autoCompletionForm.Left = aCaretPoint.X;
                             _autoCompletionForm.Top  = aCaretPoint.Y;
                             Utilities.Visual.SetOwnerFromNppPlugin(_autoCompletionForm);
@@ -368,6 +372,20 @@ namespace RTextNppPlugin
         public static FileModificationObserver GetFileObserver()
         {
             return _fileObserver;
+        }
+
+        /**
+         * Scintilla notification that the zomm level has been changed.
+         *
+         */
+        internal static void OnZoomLevelModified()
+        {
+            int aNewZoomLevel = Npp.GetZoomLevel();
+            if(aNewZoomLevel != _currentZoomLevel)
+            {
+                _currentZoomLevel = aNewZoomLevel;
+                _autoCompletionForm.OnZoomLevelChanged(_currentZoomLevel);
+            }
         }
 
         #endregion

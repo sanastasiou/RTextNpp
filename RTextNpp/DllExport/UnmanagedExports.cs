@@ -74,6 +74,9 @@ namespace RTextNppPlugin
                 case (uint)SciMsg.SCN_CHARADDED:
                     Plugin.OnCharTyped((char)nc.ch);
                     break;
+                case (uint)SciMsg.SCN_ZOOM:
+                    Plugin.OnZoomLevelModified();
+                    break;
                 
             }
         }

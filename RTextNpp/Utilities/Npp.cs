@@ -21,6 +21,11 @@ namespace CSScriptIntellisense
     {
         public const int DocEnd = -1;
 
+        static public int GetZoomLevel()
+        {
+            return (int)Win32.SendMessage(Npp.CurrentScintilla, SciMsg.SCI_GETZOOM, 0, 0);
+        }
+
         static public int GetSelectionLength()
         {
             int aSelStart = (int)Win32.SendMessage(Npp.CurrentScintilla, SciMsg.SCI_GETSELECTIONNSTART, 0, 0);
