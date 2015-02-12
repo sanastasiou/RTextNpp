@@ -17,13 +17,13 @@ namespace RTextNppPlugin.Parsing
          * \param   contextLines    The context lines.
          * \param   lengthToEnd     The length to end of line from current column.
          */
-        public ContextExtractor(string[] contextLines, int lengthToEnd)
-        {
-            _reversedLines = new List<string>(JoinLines(ref contextLines).Reverse());
-            _contextLines  = new List<string>(_reversedLines.Count);
-            Analyze();
-            ContextColumn  = _contextLines.Last().Length - lengthToEnd + 1; //compensate for backend
-        }
+        //public ContextExtractor(string[] contextLines, int lengthToEnd)
+        //{
+        //    _reversedLines = new List<string>(JoinLines(ref contextLines).Reverse());
+        //    _contextLines  = new List<string>(_reversedLines.Count);
+        //    Analyze();
+        //    ContextColumn  = _contextLines.Last().Length - lengthToEnd;
+        //}
 
         /**
          * \brief   Constructor.
@@ -34,10 +34,10 @@ namespace RTextNppPlugin.Parsing
         public ContextExtractor(string contextBlock, int lengthToEnd)
         {
             var aContextLines = contextBlock.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries);
-            _reversedLines = new List<string>(JoinLines(ref aContextLines).Reverse());
-            _contextLines = new List<string>(_reversedLines.Count);
+            _reversedLines    = new List<string>(JoinLines(ref aContextLines).Reverse());
+            _contextLines     = new List<string>(_reversedLines.Count);
             Analyze();
-            ContextColumn = _contextLines.Last().Length - lengthToEnd;
+            ContextColumn     = _contextLines.Last().Length - lengthToEnd;
         }
 
         /**
@@ -124,13 +124,31 @@ namespace RTextNppPlugin.Parsing
          *
          * \return  An enumerator that allows foreach to be used to process the joined lines.
          */
-        
+
+        private IEnumerable<string> JoinLinesStraight(ref string[] originalLines)
+        {
+            List<string> aJoinedLines = new List<string>(originalLines.Count());
+             IEnumerator<string> it = (IEnumerator<string>)originalLines.GetEnumerator();
+
+             while (it.MoveNext())
+             {
+                 var trimmed = it.Current.Trim();
+                 if (trimmed.StartsWith("@") || trimmed.StartsWith("#"))
+                 {
+                     continue;
+                 }
+             }
+
+            return aJoinedLines;
+        }
+
         private IEnumerable<string> JoinLines(ref string [] originalLines)
         {
             List<string> aJoinedLines = new List<string>(originalLines.Count());
+            
             for (int i = 0; i < originalLines.Count(); ++i)
-            {
-                //skip whitespaces etc.
+            {                
+                //skip whitespaces, empty lines, comments and notations
                 if(_IGNORE_LINE_REGEX.IsMatch(originalLines[i]))continue;
 
                 string aCurrentLine = null;

@@ -102,7 +102,8 @@ namespace RTextNppPlugin
                         break;
                     case Keys.Delete:
                         handled = true;
-                        Npp.DeleteFront(1);
+                        System.Diagnostics.Trace.WriteLine(String.Format("Selection length : {0}", Npp.GetSelectionLength()));
+                        Npp.DeleteFront();
                         _autoCompletionForm.OnKeyPressed();
                         break;
                     case Keys.Space:
@@ -149,6 +150,8 @@ namespace RTextNppPlugin
             }
         }
 
+
+        //todo - handle text insertion
         private static void CommitAutoCompletion(bool replace)
         {
             if(replace)
@@ -214,8 +217,17 @@ namespace RTextNppPlugin
                             _autoCompletionForm.Top  = aCaretPoint.Y;
                             Utilities.Visual.SetOwnerFromNppPlugin(_autoCompletionForm);
                             _autoCompletionForm.AugmentAutoCompletion(aExtractor, aCaretPoint, aTokenizer.TriggerToken, ref _requestAutoCompletion);
-                            _autoCompletionForm.Show();
-                            //todo - handle text insertion
+                            switch (_autoCompletionForm.CharProcessAction)
+                            {
+                                case ViewModels.AutoCompletionViewModel.CharProcessResult.ForceClose:
+                                    return;
+                                case ViewModels.AutoCompletionViewModel.CharProcessResult.ForceCommit:
+                                    CommitAutoCompletion(true);
+                                    break;
+                                default:
+                                    _autoCompletionForm.Show();
+                                    break;
+                            }
                         }
                     }
                 }

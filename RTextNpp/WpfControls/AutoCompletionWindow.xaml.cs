@@ -63,9 +63,12 @@ namespace RTextNppPlugin.WpfControls
                     this.Left = Npp.GetCaretScreenLocationForForm(Npp.GetCaretPosition()).X;
                     CharProcessAction = AutoCompletionViewModel.CharProcessResult.NoAction;
                 }
-
-                //do heavy lifting in here -> debounce many subsequent calls
-                _delayedFilterEventHandler.TriggerHandler();
+                //only filter if auto completion form can still remain open
+                if(CharProcessAction != AutoCompletionViewModel.CharProcessResult.ForceClose)
+                {
+                    //do heavy lifting in here -> debounce many subsequent calls
+                    _delayedFilterEventHandler.TriggerHandler();
+                }
             }
         }
         #endregion

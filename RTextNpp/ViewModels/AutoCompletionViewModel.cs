@@ -150,6 +150,11 @@ namespace RTextNppPlugin.ViewModels
         public void AugmentAutoCompletion(ContextExtractor extractor, Point caretPoint, Tokenizer.TokenTag ? token, ref bool request)
         {
             _triggerToken = token;
+            if(!token.HasValue)
+            {
+                CharProcessAction = CharProcessResult.ForceClose;
+                return;
+            }
             AutoCompleteAndReferenceRequest aRequest = new AutoCompleteAndReferenceRequest
             {
                 column        = extractor.ContextColumn + 1,//compensate for backend
@@ -230,7 +235,7 @@ namespace RTextNppPlugin.ViewModels
                         }                        
                         break;
                     default:
-                        Logging.Logger.Instance.Append(Logging.Logger.MessageType.FatalError, _currentConnector.Workspace, "Undefined connector state reached. Please notify support.");
+                        Logger.Instance.Append(Logger.MessageType.FatalError, _currentConnector.Workspace, "Undefined connector state reached. Please notify support.");
                         break;
 
                 }
@@ -255,7 +260,12 @@ namespace RTextNppPlugin.ViewModels
         }
 
         private void AddCharToTriggerPoint(char c)
-        {
+        {            
+            if(!_triggerToken.HasValue)
+            {
+                CharProcessAction = CharProcessResult.ForceClose;
+                return;
+            }
             Tokenizer.TokenTag t = _triggerToken.Value;
             string aContext = t.Context;
             bool wasEmpty = (aContext.Length == 0);
@@ -285,49 +295,7 @@ namespace RTextNppPlugin.ViewModels
             else
             {
                 CharProcessAction = CharProcessResult.ForceClose;
-            }
-
-
-            //char need to be inserted at previous caret column - token needs to be updated
-            //if(_triggerToken.HasValue)
-            //{
-            //    Tokenizer.TokenTag t = _triggerToken.Value;
-            //    string aContext = t.Context;
-            //    bool wasEmpty = (aContext.Length == 0);
-            //    if (wasEmpty && Char.IsWhiteSpace(c))
-            //    {
-            //        MoveRight = true;
-            //    }
-            //    //else
-            //    //{
-            //    //    if (t.CaretColumn == t.EndColumn)
-            //    //    {
-            //    //        //caret at end of token - just add char at the end
-            //    //        aContext += Char.ToString(c);
-            //    //    }
-            //    //    else
-            //    //    {
-            //    //        //care is someone inside the token -> insert character
-            //    //        int aInsertColumn = t.EndColumn - t.CaretColumn;
-            //    //        aContext.Insert(aInsertColumn, Char.ToString(c));
-            //    //    }
-            //    //}
-            //    ////move columns etc one to the right
-            //    //_triggerToken = new Tokenizer.TokenTag
-            //    //{
-            //    //    EndColumn = t.EndColumn + 1,
-            //    //    StartColumn = wasEmpty ? t.EndColumn : t.StartColumn,
-            //    //    Type = t.Type,
-            //    //    Line = t.Line,
-            //    //    BufferPosition = wasEmpty ? t.EndColumn : t.BufferPosition,
-            //    //    Context = aContext,
-            //    //    CaretColumn = t.CaretColumn + 1
-            //    //};
-            //}
-            //else
-            //{
-            //    Trace.WriteLine("\n\n#######\n\nERROR : Trigger point has no value \n\n#######\n\n");
-            //}
+            }            
         }
 
         #endregion

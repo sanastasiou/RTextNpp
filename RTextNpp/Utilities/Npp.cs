@@ -21,9 +21,30 @@ namespace CSScriptIntellisense
     {
         public const int DocEnd = -1;
 
-        static public void DeleteFront(int length)
+        static public int GetSelectionLength()
         {
-            while (length-- > 0)
+            int aSelStart = (int)Win32.SendMessage(Npp.CurrentScintilla, SciMsg.SCI_GETSELECTIONNSTART, 0, 0);
+            int aSelEnd = (int)Win32.SendMessage(Npp.CurrentScintilla, SciMsg.SCI_GETSELECTIONNEND, 0, 0);
+            if (aSelStart == aSelEnd)
+            {
+                return 1;
+            }
+            return aSelEnd - aSelStart;
+        }
+
+        static public void DeleteFront()
+        {
+            int aSelStart = (int)Win32.SendMessage(Npp.CurrentScintilla, SciMsg.SCI_GETSELECTIONNSTART, 0, 0);
+            int aSelEnd = (int)Win32.SendMessage(Npp.CurrentScintilla, SciMsg.SCI_GETSELECTIONNEND, 0, 0);
+            int aMin = Math.Min(aSelStart, aSelEnd);
+
+            int aSelectionLength = GetSelectionLength();
+
+            if(aSelectionLength > 1)
+            {
+                DeleteBack(1);
+            }
+            else
             {
                 SetCaretPosition(GetCaretPosition() + 1);
                 DeleteBack(1);
@@ -183,7 +204,7 @@ namespace CSScriptIntellisense
             IntPtr sci = Plugin.GetCurrentScintilla();
             return (int)Win32.SendMessage(sci, SciMsg.SCI_LINEFROMPOSITION, position, 0);
         }
-     
+
         static public int GetLengthToEndOfLine()
         {
             return CSScriptIntellisense.Npp.GetLine().RemoveNewLine().Length - CSScriptIntellisense.Npp.GetColumn();
@@ -237,7 +258,7 @@ namespace CSScriptIntellisense
 
         [DllImport("user32.dll")]
         public static extern long GetWindowRect(IntPtr hWnd, ref Rectangle lpRect);
-                    
+
 
         /**
          * Gets caret screen location relative to buffer position.
@@ -629,7 +650,7 @@ namespace CSScriptIntellisense
                 var buffer = new StringBuilder(size);
                 Win32.SendMessage(statusBarHandle, (NppMsg)SB_GETTEXT, 0, buffer);
                 retval = buffer.ToString();
-                
+
                 // set text for the existing part with index 0
                 IntPtr text = Marshal.StringToHGlobalAuto(labelText);
                 SendMessage(statusBarHandle, SB_SETTEXT, 0, text);
