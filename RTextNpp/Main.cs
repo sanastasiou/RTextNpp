@@ -124,7 +124,15 @@ namespace RTextNppPlugin
                     case Keys.Cancel:
                         CommitAutoCompletion(false);
                         break;
-                    default:
+                    default:                        
+                        int nonVirtualKey = Npp.MapVirtualKey((uint)key, 2);
+                        char mappedChar   = Npp.GetAsciiCharacter((int)key, nonVirtualKey);
+                        if (mappedChar != default(char))
+                        {
+                            handled = true;
+                            Npp.AddText(new string(mappedChar, 1));
+                            OnCharTyped(mappedChar);
+                        }
                         break;
                 }
             }

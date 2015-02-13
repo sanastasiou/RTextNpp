@@ -158,6 +158,7 @@ namespace RTextNppPlugin.ViewModels
         public void AugmentAutoCompletion(ContextExtractor extractor, Point caretPoint, Tokenizer.TokenTag ? token, ref bool request)
         {
             _triggerToken = token;
+            CharProcessAction = CharProcessResult.NoAction;
             if(!token.HasValue)
             {
                 CharProcessAction = CharProcessResult.ForceClose;

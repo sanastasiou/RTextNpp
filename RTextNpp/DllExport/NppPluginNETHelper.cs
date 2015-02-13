@@ -2115,6 +2115,14 @@ namespace RTextNppPlugin
         [DllImport("user32")]
         public static extern IntPtr SendMessage(IntPtr hWnd, SciMsg Msg, int wParam, int lParam);
 
+        [DllImport("user32")]
+        public static extern IntPtr SendMessage(IntPtr hWnd, int Msg, int wParam, int lParam);
+
+        public static IntPtr SendMenuCmd(IntPtr hWnd, NppMenuCmd wParam, int lParam)
+        {
+            return Win32.SendMessage(hWnd, (int)WinMsg.WM_COMMAND, (int)wParam, lParam);
+        }
+
         public static IntPtr SendMessage(IntPtr hWnd, SciMsg Msg, string text)
         {
             byte[] bites = Encoding.UTF8.GetBytes(text);

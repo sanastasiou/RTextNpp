@@ -21,6 +21,11 @@ namespace CSScriptIntellisense
     {
         public const int DocEnd = -1;
 
+        static public void CancelNppAutoCompletion()
+        {
+            Win32.SendMessage(Npp.CurrentScintilla, SciMsg.SCI_AUTOCCANCEL, 0, 0);
+        }
+
         static public int GetZoomLevel()
         {
             return (int)Win32.SendMessage(Npp.CurrentScintilla, SciMsg.SCI_GETZOOM, 0, 0);
@@ -617,6 +622,26 @@ namespace CSScriptIntellisense
         static public int GetTextHeight(int line)
         {
             return (int)Win32.SendMessage(CurrentScintilla, SciMsg.SCI_TEXTHEIGHT, line, 0);
+        }
+
+        [DllImport("user32.dll")]
+        public static extern int MapVirtualKey(uint uCode, uint uMapType);
+
+        [DllImportAttribute("user32.dll")]
+        public static extern int ToAscii(int uVirtKey, int uScanCode, byte[] lpbKeyState, byte[] lpChar, int uFlags);
+
+        [DllImportAttribute("user32.dll")]
+        public static extern int GetKeyboardState(byte[] pbKeyState);
+
+        public static char GetAsciiCharacter(int uVirtKey, int uScanCode)
+        {
+            byte[] lpKeyState = new byte[256];
+            GetKeyboardState(lpKeyState);
+            byte[] lpChar = new byte[2];
+            if (ToAscii(uVirtKey, uScanCode, lpKeyState, lpChar, 0) == 1)
+                return (char)lpChar[0];
+            else
+                return new char();
         }
 
         [DllImport("user32.dll", SetLastError = true)]

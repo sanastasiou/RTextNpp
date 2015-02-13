@@ -94,7 +94,7 @@
     <Compile Include="Parsing\RTextTokenTypes.cs" />
     <Compile Include="Parsing\Tokenizer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="DllExport\UnmanagedExports.cs" />
+    <Compile Include="ViewModels\UnmanagedExports.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>

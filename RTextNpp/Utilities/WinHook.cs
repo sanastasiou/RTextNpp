@@ -132,7 +132,7 @@ namespace CSScriptIntellisense
                     {
                         MouseMove();
                     }
-                    break;
+                    break;                    
                 case MouseMessages.WM_MOUSEWHEEL:
                     //calculate mouse delta... LAWL
                     MSLLHOOKSTRUCT aMouseData = (MSLLHOOKSTRUCT)Marshal.PtrToStructure(lParam, typeof(MSLLHOOKSTRUCT));

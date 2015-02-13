@@ -1,6 +1,6 @@
-﻿using RGiesecke.DllExport;
-using System;
+﻿using System;
 using System.Runtime.InteropServices;
+using RGiesecke.DllExport;
 using RTextNppPlugin.Utilities;
 
 namespace RTextNppPlugin
@@ -70,9 +70,6 @@ namespace RTextNppPlugin
                 case (uint)SciMsg.SCN_SAVEPOINTREACHED:
                     Plugin.OnFileConsideredUnmodified();
                     Logging.Logger.Instance.Append("Catching SCN_SAVEPOINTREACHED for file : {0}", FileUtilities.GetCurrentFilePath());
-                    break;
-                case (uint)SciMsg.SCN_CHARADDED:
-                    Plugin.OnCharTyped((char)nc.ch);
                     break;
                 case (uint)SciMsg.SCN_ZOOM:
                     Plugin.OnZoomLevelModified();
