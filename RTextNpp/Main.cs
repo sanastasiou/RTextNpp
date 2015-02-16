@@ -1,3 +1,11 @@
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Drawing;
+using System.Drawing.Imaging;
+using System.Runtime.InteropServices;
+using System.Threading.Tasks;
+using System.Windows.Forms;
 using CSScriptIntellisense;
 using RTextNppPlugin.Automate;
 using RTextNppPlugin.Forms;
@@ -5,14 +13,6 @@ using RTextNppPlugin.Parsing;
 using RTextNppPlugin.Utilities;
 using RTextNppPlugin.Utilities.WpfControlHost;
 using RTextNppPlugin.WpfControls;
-using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Drawing.Imaging;
-using System.Runtime.InteropServices;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-using System.Diagnostics;
 
 namespace RTextNppPlugin
 {
@@ -60,7 +60,7 @@ namespace RTextNppPlugin
             _currentZoomLevel = Npp.GetZoomLevel();
             _autoCompletionForm.OnZoomLevelChanged(_currentZoomLevel);
 
-            Debugger.Launch();
+            Debugger.Launch();            
         }
 
         static void OnKeyInterceptorKeyDown(Keys key, int repeatCount, ref bool handled)
@@ -74,6 +74,7 @@ namespace RTextNppPlugin
                     {                       
                         if (modifiers.IsCtrl == shortcut.IsCtrl && modifiers.IsShift == shortcut.IsShift && modifiers.IsAlt == shortcut.IsAlt)
                         {
+                            handled = true;
                             var handler = internalShortcuts[shortcut];
                             handled = !_autoCompletionForm.IsVisible;
                             if (!_autoCompletionForm.IsVisible)
@@ -90,7 +91,7 @@ namespace RTextNppPlugin
                 if (modifiers.IsCtrl || modifiers.IsAlt)
                 {
                     return;
-                }
+                }                
 
                 //auto complete Ctrl+Space is handled above - here we handle other special cases
                 switch (key)
@@ -117,8 +118,12 @@ namespace RTextNppPlugin
                         break;
                     case Keys.Return:
                     case Keys.Tab:
-                        //special case when trigger point is empty -> move auto completion form after inserting tab char..
-                        CommitAutoCompletion(true);
+                        if (_autoCompletionForm.IsVisible)
+                        {
+                            handled = true;
+                            //special case when trigger point is empty -> move auto completion form after inserting tab char..
+                            CommitAutoCompletion(true);
+                        }
                         break;
                     case Keys.Escape:
                     case Keys.Cancel:
@@ -170,12 +175,12 @@ namespace RTextNppPlugin
             if(replace)
             {
                 //use current selected item to replace token
+                if (_autoCompletionForm.Completion != null)
+                {
+                    Npp.ReplaceWordFromToken(_autoCompletionForm.TriggerPoint, _autoCompletionForm.Completion.InsertionText);
+                }
             }
-            else
-            {
-                //just close auto completion session and do nothing
-                _autoCompletionForm.Hide();
-            }
+            _autoCompletionForm.Hide();
         }
 
         private static async Task AsyncInvoke(Action action)

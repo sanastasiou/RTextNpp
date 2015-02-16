@@ -146,6 +146,7 @@
     <Reference Include="LedControl">
       <HintPath>..\ThirdParty\WpfLedControl\LedControl.dll</HintPath>
     </Reference>
+    <Reference Include="Microsoft.VisualStudio.Language.Intellisense, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
     <Reference Include="RGiesecke.DllExport.Metadata">

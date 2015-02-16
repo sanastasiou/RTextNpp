@@ -32,15 +32,20 @@ namespace RTextNppPlugin.WpfControls
         {
             GetModel().AugmentAutoCompletion(extractor, caretPoint, token, ref request);
             CharProcessAction = GetModel().CharProcessAction;
+            Completion        = GetModel().SelectedCompletion;
+            TriggerPoint      = GetModel().TriggerPoint;
         }
 
         public void PostProcessKeyPressed()
         {
             //handle this on UI thread since it will alter UI
-            Dispatcher.BeginInvoke(new Action(GetModel().Filter));
+            Dispatcher.Invoke(new Action(GetModel().Filter));
+            Completion = GetModel().SelectedCompletion;
         }
 
         internal AutoCompletionViewModel.CharProcessResult CharProcessAction { get; private set; }
+
+        public Tokenizer.TokenTag ? TriggerPoint {get;private set;}
 
         public void OnZoomLevelChanged(int newZoomLevel)
         {
@@ -58,6 +63,8 @@ namespace RTextNppPlugin.WpfControls
             Dispatcher.BeginInvoke(new Action<int>(GetModel().OnZoomLevelChanged), newZoomLevel);
         }
 
+        internal AutoCompletionViewModel.Completion Completion { get; private set; }
+
         public void OnKeyPressed(char c = '\0')
         {
             CharProcessAction = AutoCompletionViewModel.CharProcessResult.NoAction;
@@ -66,6 +73,7 @@ namespace RTextNppPlugin.WpfControls
                 _delayedFilterEventHandler.Cancel();
                 //reparse line and find new trigger token
                 GetModel().OnKeyPressed(c);
+                TriggerPoint = GetModel().TriggerPoint;
 
                 CharProcessAction = GetModel().CharProcessAction;
                 if(CharProcessAction == AutoCompletionViewModel.CharProcessResult.MoveToRight)

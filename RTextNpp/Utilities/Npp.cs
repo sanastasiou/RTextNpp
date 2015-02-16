@@ -14,6 +14,7 @@ using System.Text;
 using System.Windows.Forms;
 using RTextNppPlugin;
 using RTextNppPlugin.Utilities;
+using RTextNppPlugin.Parsing;
 
 namespace CSScriptIntellisense
 {
@@ -408,96 +409,21 @@ namespace CSScriptIntellisense
                 return null;
         }
 
-        /**
-         * Replace word at caret.
-         *
-         * \param   text    The text.
-         * \todo    Fix this one..                  
-         */
-        static public void ReplaceWordAtCaret(string text)
+        static public void ReplaceWordFromToken(Tokenizer.TokenTag ? token, string insertionText)
         {
             IntPtr sci = Plugin.GetCurrentScintilla();
-
-            Point p;
-            //string word = Npp.GetWordAtCursor(out p, SimpleCodeCompletion.Delimiters);
-
-            //Win32.SendMessage(sci, SciMsg.SCI_SETSELECTION, p.X, p.Y);
-            ////Win32.SendMessage(sci, SciMsg.SCI_REPLACESEL, 0, text);
-            //Win32.SendMessage(sci, SciMsg.SCI_REPLACESEL, text);
-        }
-
-        static public string GetWordAtCursor(char[] wordDelimiters = null)
-        {
-            Point point;
-            return GetWordAtCursor(out point, wordDelimiters);
-        }
-
-
-        static public string GetWordAtCursor(out Point point, char[] wordDelimiters = null)
-        {
-            IntPtr sci = Plugin.GetCurrentScintilla();
-            int currentPos = (int)Win32.SendMessage(sci, SciMsg.SCI_GETCURRENTPOS, 0, 0);
-            return GetWordAtPosition(currentPos, out point, wordDelimiters);
-        }
-
-        static public string GetWordAtPosition(int position, char[] wordDelimiters = null)
-        {
-            Point point;
-            return GetWordAtPosition(position, out point, wordDelimiters);
-        }
-
-        static char[] statementDelimiters = " ,:;'\"[]{}()".ToCharArray();
-        static public string GetStatementAtPosition(int position = -1)
-        {
-            Point point;
-            if (position == -1)
-                position = Npp.GetCaretPosition();
-
-            var retval = GetWordAtPosition(position, out point, statementDelimiters);
-
-            return retval;
-        }
-
-        static public string GetWordAtPosition(int position, out Point point, char[] wordDelimiters = null)
-        {
-            IntPtr sci = Plugin.GetCurrentScintilla();
-
-            int currentPos = position;
-            int fullLength = (int)Win32.SendMessage(sci, SciMsg.SCI_GETLENGTH, 0, 0);
-
-            string leftText = Npp.TextBeforePosition(currentPos, 512);
-            string rightText = Npp.TextAfterPosition(currentPos, 512);
-
-            //if updating do not forger to update SimpleCodeCompletion.Delimiters
-            var delimiters = "\\·\t\n\r .,:;'\"[]{}()-/!?@$%^&*«»><#|~`".ToCharArray();
-
-            if (wordDelimiters != null)
-                delimiters = wordDelimiters;
-
-            string wordLeftPart = "";
-            int startPos = currentPos;
-
-            if (leftText != null)
+            int aCaretPos = GetCaretPosition();
+            if (token.HasValue)
             {
-                bool startOfDoc = leftText.Length == currentPos;
-                startPos = leftText.LastIndexOfAny(delimiters);
-                wordLeftPart = (startPos != -1) ? leftText.Substring(startPos + 1) : (startOfDoc ? leftText : "");
-                int relativeStartPos = leftText.Length - startPos;
-                startPos = (startPos != -1) ? (currentPos - relativeStartPos) + 1 : 0;
+                Win32.SendMessage(sci, SciMsg.SCI_SETSELECTION, token.Value.BufferPosition, token.Value.BufferPosition + token.Value.Context.Length);
             }
-
-            string wordRightPart = "";
-            int endPos = currentPos;
-            if (rightText != null)
+            else
             {
-                endPos = rightText.IndexOfAny(delimiters);
-                wordRightPart = (endPos != -1) ? rightText.Substring(0, endPos) : "";
-                endPos = (endPos != -1) ? currentPos + endPos : fullLength;
+                Win32.SendMessage(sci, SciMsg.SCI_SETSELECTION, aCaretPos, aCaretPos);
+                Win32.SendMessage(sci, SciMsg.SCI_REPLACESEL, insertionText);
             }
-
-            point = new Point(startPos, endPos);
-            return wordLeftPart + wordRightPart;
-        }
+            Win32.SendMessage(sci, SciMsg.SCI_REPLACESEL, insertionText);
+        }                      
 
         static public IntPtr CurrentScintilla
         {

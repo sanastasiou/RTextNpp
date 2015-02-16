@@ -1,12 +1,13 @@
 ﻿using System;
-using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.Drawing;
+using System.Linq;
 using CSScriptIntellisense;
+using Microsoft.VisualStudio.Language.Intellisense;
 using RTextNppPlugin.Automate;
 using RTextNppPlugin.Automate.Protocol;
 using RTextNppPlugin.Logging;
 using RTextNppPlugin.Parsing;
+using RTextNppPlugin.Utilities;
 using RTextNppPlugin.WpfControls;
 
 namespace RTextNppPlugin.ViewModels
@@ -61,6 +62,14 @@ namespace RTextNppPlugin.ViewModels
 
         #region [Interface]
 
+        public enum MatchingType
+        {
+            STARTS_WITH,
+            CONTAINS,
+            FUZZY,
+            NONE
+        };
+
         public enum CharProcessResult
         {
             ForceClose,
@@ -86,7 +95,18 @@ namespace RTextNppPlugin.ViewModels
 
         public CharProcessResult CharProcessAction { get; private set; }
 
-        public Tokenizer.TokenTag? TriggerPoint { get; private set; }
+        public Tokenizer.TokenTag? TriggerPoint 
+        { 
+            get
+            {
+                return _triggerToken;
+            }
+
+            private set
+            {
+                _triggerToken = value;
+            }
+        }
 
         public bool IsSelected { get; private set; }
 
@@ -118,9 +138,11 @@ namespace RTextNppPlugin.ViewModels
         
         public AutoCompletionViewModel()
         {
-            CharProcessAction = CharProcessResult.NoAction;
-            IsSelected        = false;
-            IsUnique          = false;
+            _filteredList      = new FilteredObservableCollection<Completion>(_completionList);
+            CharProcessAction  = CharProcessResult.NoAction;
+            IsSelected         = false;
+            IsUnique           = false;
+            SelectedCompletion = null;
             _completionList.Add(CreateWarningCompletion(Properties.Resources.ERR_BACKEND_CONNECTING, Properties.Resources.ERR_BACKEND_CONNECTING_DESC));
             _completionList.Add(CreateWarningCompletion(Properties.Resources.ERR_BACKEND_CONNECTING, Properties.Resources.ERR_BACKEND_CONNECTING_DESC));
             _completionList.Add(CreateWarningCompletion(Properties.Resources.ERR_BACKEND_CONNECTING, Properties.Resources.ERR_BACKEND_CONNECTING_DESC));            
@@ -147,17 +169,35 @@ namespace RTextNppPlugin.ViewModels
             }
         }
 
-        public ObservableCollection<Completion> CompletionList
+        public Completion SelectedCompletion {get; private set;}
+
+        public int SelectedIndex
         {
             get
             {
-                return _completionList;
+                return _selectedIndex;
+            }
+            set
+            {
+                if(value != _selectedIndex)
+                {
+                    _selectedIndex = value;
+                    base.RaisePropertyChanged("SelectedIndex");
+                }
+            }
+        }
+
+        public FilteredObservableCollection<Completion> CompletionList
+        {
+            get
+            {
+                return _filteredList;
             }
         }
 
         public void AugmentAutoCompletion(ContextExtractor extractor, Point caretPoint, Tokenizer.TokenTag ? token, ref bool request)
         {
-            _triggerToken = token;
+            TriggerPoint = token;
             CharProcessAction = CharProcessResult.NoAction;
             if(!token.HasValue)
             {
@@ -200,44 +240,30 @@ namespace RTextNppPlugin.ViewModels
                             }
                             else
                             {
-                                try
+                                //check invocation id
+                                if (_currentInvocationId != aResponse.invocation_id)
                                 {
-                                    //check invocation id
-                                    if (_currentInvocationId != aResponse.invocation_id)
+                                    _completionList.Add(CreateWarningCompletion(Properties.Resources.ERR_AUTO_COMPLETION_INVOKATION, Properties.Resources.ERR_AUTO_COMPLETION_INVOKATION_DESC));
+                                    Logger.Instance.Append(Logger.MessageType.Error,
+                                                             _currentConnector.Workspace,
+                                                             String.Format("Auto complete for file {0} failed. Wrong invocation id return from backend! Expected: {1} - Receoved: {2}",
+                                                                                                                                                                 Npp.GetCurrentFile(),
+                                                                                                                                                                 _currentInvocationId,
+                                                                                                                                                                 aResponse.invocation_id));
+                                }
+                                else
+                                {
+                                    if (aResponse.options.Count != 0)
                                     {
-                                        _completionList.Add(CreateWarningCompletion(Properties.Resources.ERR_AUTO_COMPLETION_INVOKATION, Properties.Resources.ERR_AUTO_COMPLETION_INVOKATION_DESC));
-                                        Logger.Instance.Append(  Logger.MessageType.Error, 
-                                                                 _currentConnector.Workspace,
-                                                                 String.Format("Auto complete for file {0} failed. Wrong invocation id return from backend! Expected: {1} - Receoved: {2}",
-                                                                                                                                                                     Npp.GetCurrentFile(),
-                                                                                                                                                                     _currentInvocationId,
-                                                                                                                                                                     aResponse.invocation_id));
-                                    }
-                                    else
-                                    {
-                                        if (aResponse.options.Count != 0)
+                                        if (aResponse.options.Count == 1)
                                         {
-                                            if (aResponse.options.Count == 1)
-                                            {
-                                                //auto insert
-                                            }
-                                            else
-                                            {
-                                                //if we are here, it means that the response is succcesful
-                                                foreach (var option in aResponse.options)
-                                                {
-                                                    _completionList.Add(new Completion(option.display, option.insert, option.desc, Completion.AutoCompletionType.Label));
-                                                }
-
-                                            }
+                                            //auto insert
+                                        }
+                                        else
+                                        {
+                                            _completionList.AddRange(aResponse.options.Select(x => new Completion(x.display, x.insert, x.desc, Completion.AutoCompletionType.Label)).OrderBy(x => x.InsertionText));
                                         }
                                     }
-                                }
-                                catch (Exception ex)
-                                {
-                                    Logger.Instance.Append(Logger.MessageType.Error,
-                                                           _currentConnector.Workspace,
-                                                           String.Format("Auto complete for file {0} failed. Exception {1}.", Npp.GetCurrentFile(), ex.Message));
                                 }
                                 Filter();
                             }
@@ -258,14 +284,112 @@ namespace RTextNppPlugin.ViewModels
 
         public void Filter()
         {
-            Trace.WriteLine("Filtering...");
+            if(TriggerPoint.HasValue && TriggerPoint.Value.Context != null)
+            {
+                string aHint = TriggerPoint.Value.Context;
+                _filteredList.Filter(x => x.InsertionText.StartsWith(aHint, StringComparison.OrdinalIgnoreCase));
+                               
+                
+                if(_filteredList.Count == 0)
+                {
+                    _filteredList.Filter(x => x.InsertionText.Contains(aHint, StringComparison.OrdinalIgnoreCase));
+                    if(_filteredList.Count == 0)
+                    {
+                        //fuzzy matching
+                        _filteredList.StopFiltering();
+                    }
+                }
+                else
+                {
+                    //select the entry with minimum length
+                    var bestMatch = _filteredList.Aggregate((curMin, x) => (x.InsertionText.Length < curMin.InsertionText.Length ? x : curMin));
+                    SelectedIndex = _filteredList.IndexOf(bestMatch);
+                    SelectedCompletion = bestMatch;
+                }
+            }
+            else
+            {
+                _filteredList.StopFiltering();
+                _selectedIndex = -1;
+            }
+            //ITextSnapshot currentSnapshot = ApplicableTo.TextBuffer.CurrentSnapshot;
+            //this.mfilterBufferText = ApplicableTo.GetText(currentSnapshot).TrimEnd();
+            //((FilteredObservableCollection<Completion>)Completions).StopFiltering();
+
+            //IsAutoCompletionOptionLast = Completions.Count == 1;
+            //if (this.mfilterBufferText == null || mOriginalList.Count == 1 && mOriginalList.First().InsertionText == null)
+            //{
+            //    _lastMatchingType = MatchingType.NONE;
+            //    _lastStringWhichMatched = String.Empty;
+            //    return;
+            //}
+            //else
+            //{
+            //    if (this.mfilterBufferText.Length > 0 && this.mfilterBufferText.Last() == ',')
+            //    {
+            //        this.mfilterBufferText = this.mfilterBufferText.Substring(0, this.mfilterBufferText.Length - 1);
+            //    }
+            //    //prefix match
+            //    WritableCompletions.Clear();
+            //    WritableCompletions.AddRange(mOriginalList.AsParallel().Where(x => x.InsertionText.StartsWith(this.mfilterBufferText, StringComparison.OrdinalIgnoreCase)));
+            //    //if nothing is found.. 
+            //    if (WritableCompletions.Count == 0)
+            //    {
+            //        WritableCompletions.AddRange(mOriginalList.AsParallel().Where(x => x.InsertionText.Contains(this.mfilterBufferText, StringComparison.OrdinalIgnoreCase)));
+            //        if (WritableCompletions.Count == 0)
+            //        {
+            //            if (mOriginalList.Count > 5000)
+            //            {
+            //                return;
+            //            }
+            //            fuzzyMatching();
+            //            if (WritableCompletions.Count == 0)
+            //            {
+            //                //display last matches                       
+            //                this.mfilterBufferText = _lastStringWhichMatched;
+
+            //                switch (_lastMatchingType)
+            //                {
+            //                    case MatchingType.STARTS_WITH:
+            //                        WritableCompletions.AddRange(mOriginalList.AsParallel().Where(x => x.InsertionText.StartsWith(this.mfilterBufferText, StringComparison.OrdinalIgnoreCase)));
+            //                        return;
+            //                    case MatchingType.CONTAINS:
+            //                        WritableCompletions.AddRange(mOriginalList.AsParallel().Where(x => x.InsertionText.Contains(this.mfilterBufferText, StringComparison.OrdinalIgnoreCase)));
+            //                        return;
+            //                    case MatchingType.FUZZY:
+            //                        fuzzyMatching();
+            //                        return;
+            //                    default:
+            //                        WritableCompletions.AddRange(mOriginalList);
+            //                        return;
+            //                }
+            //            }
+            //            else
+            //            {
+            //                _lastStringWhichMatched = mfilterBufferText;
+            //                _lastMatchingType = MatchingType.FUZZY;
+            //            }
+            //        }
+            //        else
+            //        {
+            //            _lastStringWhichMatched = mfilterBufferText;
+            //            _lastMatchingType = MatchingType.CONTAINS;
+            //        }
+            //    }
+            //    else
+            //    {
+            //        _lastStringWhichMatched = mfilterBufferText;
+            //        _lastMatchingType = MatchingType.STARTS_WITH;
+            //    }
+            //    Trace.WriteLine(String.Format("Found : {0} completions that match prefix.", WritableCompletions.Count));
+            //}
         }
         #endregion
 
         #region [Helpers]
         Completion CreateWarningCompletion(string warning, string desc)
         {
-            return new Completion(warning, null, desc, Completion.AutoCompletionType.Warning);
+            return new Completion(warning, String.Empty, desc, Completion.AutoCompletionType.Warning);
         }
 
         private void AddCharToTriggerPoint(char c)
@@ -295,8 +419,8 @@ namespace RTextNppPlugin.ViewModels
                 int aLineNumber = CSScriptIntellisense.Npp.GetLineNumber();
                 //if auto completion is inside comment, notation, name, string jusr return
                 AutoCompletionTokenizer aTokenizer = new AutoCompletionTokenizer(aLineNumber, aCurrentPosition, Npp.GetColumn());
-                _triggerToken = aTokenizer.TriggerToken;
-                if(!_triggerToken.HasValue)
+                TriggerPoint = aTokenizer.TriggerToken;
+                if (!TriggerPoint.HasValue)
                 {
                     CharProcessAction = CharProcessResult.ForceClose;
                 }
@@ -310,12 +434,16 @@ namespace RTextNppPlugin.ViewModels
         #endregion
 
         #region [Data Members]
-        private readonly ObservableCollection<Completion> _completionList = new ObservableCollection<Completion>();
+        private readonly BulkObservableCollection<Completion> _completionList = new BulkObservableCollection<Completion>();
+        private readonly FilteredObservableCollection<Completion> _filteredList = null;
         private Tokenizer.TokenTag? _triggerToken = null;
+        private string _lastStringWhichMatched = String.Empty;
         private Connector _currentConnector = null;
+        private MatchingType _lastMatchingType = MatchingType.NONE;
         private int _currentInvocationId = -1;
         private int _count = 0;
         private double _zoomLevel = 1.0;
+        private int _selectedIndex = 0;
         #endregion
     }
 }
