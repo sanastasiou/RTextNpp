@@ -32,6 +32,27 @@ namespace RTextNppPlugin.Parsing
                                       this.Type
                                     );
             }
+
+            public static bool operator ==(TokenTag lhs, TokenTag rhs)
+            {
+                return (lhs.Type == lhs.Type && lhs.Line == rhs.Line && lhs.StartColumn == rhs.StartColumn);
+
+            }
+
+            public static bool operator != (TokenTag lhs, TokenTag rhs)
+            {
+                return !(lhs == rhs);
+            }
+
+            public override bool Equals(object obj)
+            {
+                return base.Equals(obj);
+            }
+
+            public override int GetHashCode()
+            {
+                return base.GetHashCode();
+            }
         }
 
         #region[Interface]

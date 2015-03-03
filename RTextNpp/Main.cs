@@ -67,7 +67,7 @@ namespace RTextNppPlugin
         {            
             if (FileUtilities.IsAutomateFile())
             {
-                CSScriptIntellisense.Modifiers modifiers = CSScriptIntellisense.KeyInterceptor.GetModifiers();
+                CSScriptIntellisense.Modifiers modifiers = CSScriptIntellisense.KeyInterceptor.GetModifiers();                
                 foreach (var shortcut in internalShortcuts.Keys)
                 {
                     if ((byte)key == shortcut._key)
@@ -104,7 +104,7 @@ namespace RTextNppPlugin
                         if(_autoCompletionForm.CharProcessAction == ViewModels.AutoCompletionViewModel.CharProcessResult.ForceClose)
                         {
                             CommitAutoCompletion(false);
-                        }
+                        }                        
                         break;
                     case Keys.Delete:
                         handled = true;
@@ -123,10 +123,12 @@ namespace RTextNppPlugin
                             handled = true;
                             //special case when trigger point is empty -> move auto completion form after inserting tab char..
                             CommitAutoCompletion(true);
-                        }
+                        }                                                
                         break;
                     case Keys.Escape:
                     case Keys.Cancel:
+                    case Keys.Left:
+                    case Keys.Right:
                         CommitAutoCompletion(false);
                         break;
                     default:                        
@@ -175,7 +177,7 @@ namespace RTextNppPlugin
             if(replace)
             {
                 //use current selected item to replace token
-                if (_autoCompletionForm.Completion != null)
+                if (_autoCompletionForm.Completion != null && !_autoCompletionForm.Completion.IsFuzzy)
                 {
                     Npp.ReplaceWordFromToken(_autoCompletionForm.TriggerPoint, _autoCompletionForm.Completion.InsertionText);
                 }
@@ -243,7 +245,6 @@ namespace RTextNppPlugin
                                     break;
                                 default:
                                     _autoCompletionForm.Show();
-                                    System.Diagnostics.Trace.WriteLine("Auto completion window active...");
                                     break;
                             }
                         }

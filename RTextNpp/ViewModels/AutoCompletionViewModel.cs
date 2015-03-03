@@ -10,6 +10,7 @@ using RTextNppPlugin.Parsing;
 using RTextNppPlugin.Utilities;
 using RTextNppPlugin.WpfControls;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace RTextNppPlugin.ViewModels
 {
@@ -229,8 +230,14 @@ namespace RTextNppPlugin.ViewModels
 
         public void AugmentAutoCompletion(ContextExtractor extractor, Point caretPoint, Tokenizer.TokenTag ? token, ref bool request)
         {
-            _filteredList.StopFiltering();
-            _completionList.Clear();            
+            _completionList.Clear();
+            if(TriggerPoint.HasValue && token.HasValue && TriggerPoint.Value == token.Value && _cachedOptions != null)
+            {
+                _completionList.AddRange(_cachedOptions);
+                Filter();
+                return;
+            }
+            
             TriggerPoint      = token;
             CharProcessAction = CharProcessResult.NoAction;
             if(!token.HasValue)
