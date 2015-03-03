@@ -30,22 +30,14 @@ namespace RTextNppPlugin.WpfControls.Converters
         }
     }
 
-    internal class SelectedCellBackgroundBrushConverter : IMultiValueConverter
+    internal class SelectedCellBackgroundBrushConverter : IValueConverter
     {
-        public object Convert(object[] values, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+        public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
         {
-            AutoCompletionViewModel.Completion current = values[0] as AutoCompletionViewModel.Completion;
-            AutoCompletionViewModel model              = values[1] as AutoCompletionViewModel;
-            if (current != null && model.SelectedCompletion != null)
+            AutoCompletionViewModel model              = value as AutoCompletionViewModel;
+            if (model.SelectedCompletion != null)
             {
-                if(current.DisplayText.Equals(model.SelectedCompletion.DisplayText))
-                {
-                    return model.SelectedCompletion.IsFuzzy ? Brushes.Transparent : Brushes.LimeGreen;
-                }
-                else
-                {
-                    return Brushes.Transparent;
-                }
+                return model.SelectedCompletion.IsFuzzy ? Brushes.Transparent : Brushes.LimeGreen;
             }
             else
             {
@@ -53,7 +45,7 @@ namespace RTextNppPlugin.WpfControls.Converters
             }
         }
 
-        public object[] ConvertBack(object value, Type[] targetTypes, object parameter, System.Globalization.CultureInfo culture)
+        public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
         {
             throw new NotImplementedException();
         }

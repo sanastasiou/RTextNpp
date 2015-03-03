@@ -49,6 +49,7 @@
                       SelectionMode="Single"                      
                       SelectedIndex="{Binding SelectedIndex, Mode=TwoWay}"
                       MaxHeight="400"
+                      IsSynchronizedWithCurrentItem="True"
                       AllowDrop="False"
                       SelectionUnit="FullRow"
                       MaxWidth="800"
@@ -60,14 +61,17 @@
                 <DataGrid.Resources>
                     <Style TargetType="DataGridCell">
                         <Setter Property="BorderThickness" Value="0"/>
-                        <Setter Property="Background">
-                            <Setter.Value>
-                                <MultiBinding Converter="{StaticResource SelectedCellBackgroundBrushConverter}">
-                                    <Binding/>
-                                    <Binding Path="DataContext" RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType={x:Type Window}}"/>
-                                </MultiBinding>
-                            </Setter.Value>
-                        </Setter>
+                        <Setter Property="Background" Value="Transparent"/>
+                        <Style.Triggers>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter Property="Background" Value="{Binding Converter={StaticResource SelectedCellBackgroundBrushConverter},
+                                                                                                        RelativeSource={RelativeSource FindAncestor, 
+                                                                                                        AncestorType={x:Type Window}}, Path=DataContext}"/>
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="False">
+                                <Setter Property="Background" Value="Transparent"/>
+                            </Trigger>
+                        </Style.Triggers>
                     </Style>
                 </DataGrid.Resources>
                 <DataGrid.Columns>

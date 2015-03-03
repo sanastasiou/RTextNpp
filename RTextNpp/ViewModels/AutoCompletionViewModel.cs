@@ -153,7 +153,7 @@ namespace RTextNppPlugin.ViewModels
         
         public AutoCompletionViewModel()
         {
-            _filteredList      = new FilteredObservableCollection<Completion>(_completionList);
+            _filteredList      = new FilteredObservableCollection<Completion>(_completionList);            
             CharProcessAction  = CharProcessResult.NoAction;
             IsHint             = false;
             SelectedCompletion = null;
@@ -214,8 +214,12 @@ namespace RTextNppPlugin.ViewModels
             {
                 if(value != _selectedIndex)
                 {
-                    _selectedIndex = value;
+                    _selectedIndex = value;                    
                     base.RaisePropertyChanged("SelectedIndex");
+                    if (_selectedIndex != -1)
+                    {
+                        SelectedCompletion = _filteredList[_selectedIndex];
+                    }
                 }                
             }
         }

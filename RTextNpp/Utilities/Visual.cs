@@ -6,7 +6,7 @@ using System.Windows.Interop;
 
 namespace RTextNppPlugin.Utilities
 {
-    public class Visual
+    public class VisualUtilities
     {
         public static void SetOwnerFromNppPlugin(System.Windows.Window window)
         {
@@ -50,8 +50,7 @@ namespace RTextNppPlugin.Utilities
             var values = (from val in (Enum.GetValues(typeof(T)) as T[])
                           where !skipEnums.Contains(val)
                           select val.ToString()).ToList<string>();
-            //List<string> values = new List<string>((Enum.GetValues(typeof(T)) as T[]).Select( t => t.ToString()));
-
+            
             if (includeBlank)
             {
                 values.Insert(0, string.Empty);
@@ -59,5 +58,25 @@ namespace RTextNppPlugin.Utilities
 
             return values.ToArray();
         }
+
+        public static T GetVisualChild<T>(Visual parent) where T : Visual
+        {
+            T child = default(T);
+            int numVisuals = VisualTreeHelper.GetChildrenCount(parent);
+            for (int i = 0; i < numVisuals; i++)
+            {
+                Visual v = (Visual)VisualTreeHelper.GetChild(parent, i);
+                child = v as T;
+                if (child == null)
+                {
+                    child = GetVisualChild<T>(v);
+                }
+                if (child != null)
+                {
+                    break;
+                }
+            }
+            return child;
+        } 
     }
 }

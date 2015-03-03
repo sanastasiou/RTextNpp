@@ -130,7 +130,7 @@ namespace RTextNppPlugin
                     case Keys.Left:
                     case Keys.Right:
                         CommitAutoCompletion(false);
-                        break;
+                        break;                        
                     default:                        
                         int nonVirtualKey = Npp.MapVirtualKey((uint)key, 2);
                         char mappedChar   = Npp.GetAsciiCharacter((int)key, nonVirtualKey);
@@ -234,7 +234,7 @@ namespace RTextNppPlugin
                             }                            
                             _autoCompletionForm.Left = aCaretPoint.X;
                             _autoCompletionForm.Top  = aCaretPoint.Y;
-                            Utilities.Visual.SetOwnerFromNppPlugin(_autoCompletionForm);
+                            Utilities.VisualUtilities.SetOwnerFromNppPlugin(_autoCompletionForm);
                             _autoCompletionForm.AugmentAutoCompletion(aExtractor, aCaretPoint, aTokenizer.TriggerToken, ref _requestAutoCompletion);
                             switch (_autoCompletionForm.CharProcessAction)
                             {

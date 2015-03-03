@@ -5,7 +5,10 @@ using System.Windows.Input;
 using CSScriptIntellisense;
 using RTextNppPlugin.Parsing;
 using RTextNppPlugin.Utilities;
-using RTextNppPlugin.ViewModels;		
+using RTextNppPlugin.ViewModels;
+using System.Windows.Controls;
+using System.ComponentModel;
+using System.Windows.Data;
 
 namespace RTextNppPlugin.WpfControls
 {
@@ -13,8 +16,9 @@ namespace RTextNppPlugin.WpfControls
     {
         #region [DataMembers]
 
-        CSScriptIntellisense.MouseMonitor _mouseMonitor             = new CSScriptIntellisense.MouseMonitor();
+        MouseMonitor _mouseMonitor                                  = new MouseMonitor();
         DelayedKeyEventHandler _delayedFilterEventHandler           = null;
+        KeyInterceptor _keyMonitor                                  = new KeyInterceptor();
 
         #endregion
 
@@ -24,15 +28,37 @@ namespace RTextNppPlugin.WpfControls
             InitializeComponent();
             _mouseMonitor.MouseClicked += OnMouseMonitorMouseClicked;
             _mouseMonitor.MouseWheelMoved += OnMouseMonitorMouseWheelMoved;
+            _keyMonitor.KeysToIntercept.Add((int)System.Windows.Forms.Keys.Down);
+            _keyMonitor.KeysToIntercept.Add((int)System.Windows.Forms.Keys.Up);
+            _keyMonitor.KeysToIntercept.Add((int)System.Windows.Forms.Keys.PageUp);
+            _keyMonitor.KeysToIntercept.Add((int)System.Windows.Forms.Keys.PageDown);
+            _keyMonitor.KeyDown += OnKeyMonitorKeyDown;
             _delayedFilterEventHandler = new DelayedKeyEventHandler(this.PostProcessKeyPressed, 100);
+        }
 
+        void OnKeyMonitorKeyDown(System.Windows.Forms.Keys key, int repeatCount, ref bool handled)
+        {
+            switch (key)
+            {
+                case System.Windows.Forms.Keys.Up:
+                case System.Windows.Forms.Keys.Down:
+                    handled = true;
+                    NavigateList(key);
+                    break;
+                case System.Windows.Forms.Keys.PageDown:
+                case System.Windows.Forms.Keys.PageUp:
+                    ScrollList(key);
+                    handled = true;
+                    break;
+                default:
+                    return;
+            }
         }
 
         public void AugmentAutoCompletion(ContextExtractor extractor, System.Drawing.Point caretPoint, Tokenizer.TokenTag? token, ref bool request)
         {
             GetModel().AugmentAutoCompletion(extractor, caretPoint, token, ref request);
             CharProcessAction = GetModel().CharProcessAction;
-            Completion        = GetModel().SelectedCompletion;
             TriggerPoint      = GetModel().TriggerPoint;
         }
 
@@ -40,7 +66,6 @@ namespace RTextNppPlugin.WpfControls
         {
             //handle this on UI thread since it will alter UI
             Dispatcher.Invoke(new Action(GetModel().Filter));
-            Completion = GetModel().SelectedCompletion;
         }
 
         internal AutoCompletionViewModel.CharProcessResult CharProcessAction { get; private set; }
@@ -63,7 +88,7 @@ namespace RTextNppPlugin.WpfControls
             Dispatcher.BeginInvoke(new Action<int>(GetModel().OnZoomLevelChanged), newZoomLevel);
         }
 
-        internal AutoCompletionViewModel.Completion Completion { get; private set; }
+        internal AutoCompletionViewModel.Completion Completion { get { return GetModel().SelectedCompletion; } }
 
         public void OnKeyPressed(char c = '\0')
         {
@@ -150,15 +175,107 @@ namespace RTextNppPlugin.WpfControls
             if (!IsVisible)
             {
                 _mouseMonitor.Uninstall();
+                _keyMonitor.Uninstall();
                 this.AutoCompletionDatagrid.SelectedIndex = -1;
                 GetModel().OnAutoCompletionWindowCollapsing();
             }
             else
             {
+                _keyMonitor.Install();
                 _mouseMonitor.Install();
                 _delayedFilterEventHandler.Cancel();               
             }
         }
+
+        #endregion
+
+        #region [Helpers]
+
+        /**
+         * \brief   Navigate list when pressing up/down arrows.
+         *
+         * \param   key The key.
+         */
+        private void NavigateList(System.Windows.Forms.Keys key)
+        {
+            var aTargets = GetModel().CompletionList;
+            if (aTargets.Count > 0)
+            {
+                var aIndex = this.AutoCompletionDatagrid.SelectedIndex;                
+                switch (key)
+                {
+                    case System.Windows.Forms.Keys.Up:
+                        if (aIndex > 0)
+                        {
+                            GetModel().SelectedIndex  = this.AutoCompletionDatagrid.SelectedIndex - 1;
+                        }
+                        break;
+                    case System.Windows.Forms.Keys.Down:
+                        if (aIndex < (aTargets.Count - 1))
+                        {
+                            GetModel().SelectedIndex = this.AutoCompletionDatagrid.SelectedIndex + 1;
+                        }
+                        break;
+                    default:
+                        return;
+                }
+                this.AutoCompletionDatagrid.ScrollIntoView(this.AutoCompletionDatagrid.SelectedItem);
+            }
+        }
+
+        private void ScrollList(System.Windows.Forms.Keys key)
+        {
+            ICollectionView view = CollectionViewSource.GetDefaultView(GetModel().CompletionList);
+            int offset = 25;
+            switch (key)
+            {
+                case System.Windows.Forms.Keys.PageDown:
+                    if (view.CurrentPosition + offset < AutoCompletionDatagrid.Items.Count)
+                    {
+                        view.MoveCurrentToPosition(view.CurrentPosition + offset);
+                    }
+                    else
+                    {
+                        view.MoveCurrentToLast();
+                    }
+                    break;
+                case System.Windows.Forms.Keys.PageUp:
+                    if (view.CurrentPosition - offset >= 0)
+                    {
+                        view.MoveCurrentToPosition(view.CurrentPosition - offset);
+                    }
+                    else
+                    {
+                        view.MoveCurrentToFirst();
+                    }
+                    break;
+            }
+            this.AutoCompletionDatagrid.ScrollIntoView(view.CurrentItem);
+        }
+
+        private void SelectRowByIndex(DataGrid dataGrid, int rowIndex)
+        {
+            if (!dataGrid.SelectionUnit.Equals(DataGridSelectionUnit.FullRow))
+                throw new ArgumentException("The SelectionUnit of the DataGrid must be set to FullRow.");
+
+            if (rowIndex < 0 || rowIndex > (dataGrid.Items.Count - 1))
+                throw new ArgumentException(string.Format("{0} is an invalid row index.", rowIndex));
+
+            dataGrid.SelectedItems.Clear();
+            /* set the SelectedItem property */
+            object item = dataGrid.Items[rowIndex]; // = Product X
+            dataGrid.SelectedItem = item;
+
+            DataGridRow row = dataGrid.ItemContainerGenerator.ContainerFromIndex(rowIndex) as DataGridRow;
+            if (row == null)
+            {
+                /* bring the data item (Product object) into view
+                 * in case it has been virtualized away */
+                dataGrid.ScrollIntoView(item);
+                row = dataGrid.ItemContainerGenerator.ContainerFromIndex(rowIndex) as DataGridRow;
+            }            
+        }
+
         #endregion
 
         #region IDisposable Members
