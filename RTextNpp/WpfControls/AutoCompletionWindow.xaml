@@ -5,6 +5,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:sys="clr-namespace:System;assembly=mscorlib"
         xmlns:viewModels="clr-namespace:RTextNppPlugin.ViewModels"
+        xmlns:converters="clr-namespace:RTextNppPlugin.WpfControls.Converters"
         mc:Ignorable="d"
         WindowStyle="None"
         ResizeMode="NoResize"
@@ -21,12 +22,14 @@
     <Window.DataContext>
         <viewModels:AutoCompletionViewModel/>
     </Window.DataContext>
-    <Window.Resources>
+    <Window.Resources>        
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="Styles.xaml"/>
+                <ResourceDictionary Source="Styles.xaml"/>                
             </ResourceDictionary.MergedDictionaries>
-        </ResourceDictionary>
+            <converters:AutoCompletionBorderBrushConverter x:Key="AutoCompletionCellBorderConverter"/>
+            <converters:SelectedCellBackgroundBrushConverter x:Key="SelectedCellBackgroundBrushConverter"/>
+        </ResourceDictionary>        
     </Window.Resources>
     <Border BorderBrush="Black" Name="LinkBorder">
         <DockPanel LastChildFill="True" Name="AutoCompletionDockPanel">        
@@ -57,19 +60,29 @@
                 <DataGrid.Resources>
                     <Style TargetType="DataGridCell">
                         <Setter Property="BorderThickness" Value="0"/>
-                        <Style.Triggers>
-                            <Trigger Property="IsSelected" Value="True">
-                                <Setter Property="Background" Value="Yellow" />
-                                <Setter Property="BorderBrush" Value="Yellow" />
-                            </Trigger>
-                        </Style.Triggers>
+                        <Setter Property="Background">
+                            <Setter.Value>
+                                <MultiBinding Converter="{StaticResource SelectedCellBackgroundBrushConverter}">
+                                    <Binding/>
+                                    <Binding Path="DataContext" RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType={x:Type Window}}"/>
+                                </MultiBinding>
+                            </Setter.Value>
+                        </Setter>
                     </Style>
                 </DataGrid.Resources>
                 <DataGrid.Columns>
                     <DataGridTemplateColumn Header="Options" Width="SizeToCells" IsReadOnly="True">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
-                                <Border BorderThickness="1" BorderBrush="Blue" Margin="0" Padding="0,0,0,0">
+                                <Border>
+                                    <Border.Style>
+                                        <Style>
+                                            <Setter Property="Border.BorderThickness" Value="1"/>
+                                            <Setter Property="Border.BorderBrush" Value="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type DataGridCell}}, Path=DataContext, Converter={StaticResource AutoCompletionCellBorderConverter}}"/>
+                                            <Setter Property="Border.Padding" Value="0"/>
+                                            <Setter Property="Border.Margin" Value="0"/>
+                                        </Style>                                        
+                                    </Border.Style>
                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch" Margin="0">
                                         <Image Height="16" Width="16" Style="{StaticResource AutoCompletionImageStyle}" Margin="0"/>
                                         <Label Content="{Binding DisplayText}" Margin="0" Padding="0"/>

@@ -1,3 +1,10 @@
+using CSScriptIntellisense;
+using RTextNppPlugin.Automate;
+using RTextNppPlugin.Forms;
+using RTextNppPlugin.Parsing;
+using RTextNppPlugin.Utilities;
+using RTextNppPlugin.Utilities.WpfControlHost;
+using RTextNppPlugin.WpfControls;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -6,13 +13,6 @@ using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using CSScriptIntellisense;
-using RTextNppPlugin.Automate;
-using RTextNppPlugin.Forms;
-using RTextNppPlugin.Parsing;
-using RTextNppPlugin.Utilities;
-using RTextNppPlugin.Utilities.WpfControlHost;
-using RTextNppPlugin.WpfControls;
 
 namespace RTextNppPlugin
 {
@@ -243,6 +243,7 @@ namespace RTextNppPlugin
                                     break;
                                 default:
                                     _autoCompletionForm.Show();
+                                    System.Diagnostics.Trace.WriteLine("Auto completion window active...");
                                     break;
                             }
                         }

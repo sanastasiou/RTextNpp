@@ -9,6 +9,7 @@ using RTextNppPlugin.Logging;
 using RTextNppPlugin.Parsing;
 using RTextNppPlugin.Utilities;
 using RTextNppPlugin.WpfControls;
+using System.Collections.Generic;
 
 namespace RTextNppPlugin.ViewModels
 {
@@ -28,12 +29,22 @@ namespace RTextNppPlugin.ViewModels
                 Warning
             }
 
-            public Completion(string displayText, string insertionText, string description, AutoCompletionType glyph)
+            public Completion(string displayText, string insertionText, string description, AutoCompletionType glyph, bool isFuzzy = false)
             {
                 _displayText   = displayText;
                 _insertionText = insertionText;
                 _description   = description;
                 _glyph         = glyph;
+                _isFuzzy       = isFuzzy;
+            }
+
+            public Completion(Completion completion, bool isFuzzy)
+            {
+                _displayText   = completion.DisplayText;
+                _insertionText = completion.InsertionText;
+                _description   = completion.Description;
+                _glyph         = completion.ImageType;
+                _isFuzzy       = isFuzzy;
             }
 
             public string DisplayText { get { return _displayText; } }
@@ -43,6 +54,8 @@ namespace RTextNppPlugin.ViewModels
             public string InsertionText { get { return _insertionText; } }
 
             public AutoCompletionType ImageType { get { return _glyph; } }
+
+            public bool IsFuzzy { get { return _isFuzzy; } }
 
             #endregion
 
@@ -56,6 +69,7 @@ namespace RTextNppPlugin.ViewModels
             private readonly string _insertionText;
             private readonly string _description;
             private readonly AutoCompletionType _glyph;
+            private readonly bool _isFuzzy;
 
             #endregion
         }
@@ -108,9 +122,9 @@ namespace RTextNppPlugin.ViewModels
             }
         }
 
-        public bool IsSelected { get; private set; }
+        public bool IsHint { get; private set; }
 
-        public bool IsUnique { get; private set; }
+        public bool IsSelected { get; private set; }
 
         public void OnZoomLevelChanged(int newZoomLevel)
         {
@@ -140,12 +154,16 @@ namespace RTextNppPlugin.ViewModels
         {
             _filteredList      = new FilteredObservableCollection<Completion>(_completionList);
             CharProcessAction  = CharProcessResult.NoAction;
-            IsSelected         = false;
-            IsUnique           = false;
+            IsHint             = false;
             SelectedCompletion = null;
-            _completionList.Add(CreateWarningCompletion(Properties.Resources.ERR_BACKEND_CONNECTING, Properties.Resources.ERR_BACKEND_CONNECTING_DESC));
-            _completionList.Add(CreateWarningCompletion(Properties.Resources.ERR_BACKEND_CONNECTING, Properties.Resources.ERR_BACKEND_CONNECTING_DESC));
-            _completionList.Add(CreateWarningCompletion(Properties.Resources.ERR_BACKEND_CONNECTING, Properties.Resources.ERR_BACKEND_CONNECTING_DESC));            
+            _completionList.Add(CreateWarningCompletion(Properties.Resources.ERR_BACKEND_CONNECTING, Properties.Resources.ERR_BACKEND_CONNECTING_DESC));       
+        }
+
+        public void OnAutoCompletionWindowCollapsing()
+        {
+            _cachedOptions = new List<Completion>(_completionList);
+            _completionList.Clear();
+            _filteredList.StopFiltering();
         }
 
         public void Dispose()
@@ -169,7 +187,21 @@ namespace RTextNppPlugin.ViewModels
             }
         }
 
-        public Completion SelectedCompletion {get; private set;}
+        public Completion SelectedCompletion 
+        {
+            get
+            {
+                return _selectedCompletion;
+            }
+            private set
+            {
+                if(value != _selectedCompletion)
+                {
+                    _selectedCompletion = value;
+                    base.RaisePropertyChanged("SelectedCompletion");
+                }
+            }
+        }
 
         public int SelectedIndex
         {
@@ -183,7 +215,7 @@ namespace RTextNppPlugin.ViewModels
                 {
                     _selectedIndex = value;
                     base.RaisePropertyChanged("SelectedIndex");
-                }
+                }                
             }
         }
 
@@ -197,7 +229,9 @@ namespace RTextNppPlugin.ViewModels
 
         public void AugmentAutoCompletion(ContextExtractor extractor, Point caretPoint, Tokenizer.TokenTag ? token, ref bool request)
         {
-            TriggerPoint = token;
+            _filteredList.StopFiltering();
+            _completionList.Clear();            
+            TriggerPoint      = token;
             CharProcessAction = CharProcessResult.NoAction;
             if(!token.HasValue)
             {
@@ -218,19 +252,17 @@ namespace RTextNppPlugin.ViewModels
                 switch (_currentConnector.ConnectorState)
                 {
                     case Automate.StateEngine.ProcessState.Closed:
-                        _completionList.Clear();
+                        
                         _completionList.Add(CreateWarningCompletion(Properties.Resources.ERR_BACKEND_CONNECTING, Properties.Resources.ERR_BACKEND_CONNECTING_DESC));
                         _currentConnector.execute<AutoCompleteAndReferenceRequest>(aRequest, ref _currentInvocationId);
                         break;
                     case Automate.StateEngine.ProcessState.Busy:
                     case Automate.StateEngine.ProcessState.Loading:
-                        _completionList.Clear();
                         _completionList.Add(CreateWarningCompletion(Properties.Resources.ERR_BACKEND_BUSY, Properties.Resources.ERR_BACKEND_BUSY_DESC));
                         break;
                     case Automate.StateEngine.ProcessState.Connected:
                         if (request)
                         {
-                            _completionList.Clear();
                             request = false;
                             AutoCompleteResponse aResponse = _currentConnector.execute<AutoCompleteAndReferenceRequest>(aRequest, ref _currentInvocationId, Constants.SYNCHRONOUS_COMMANDS_TIMEOUT) as AutoCompleteResponse;
 
@@ -257,7 +289,10 @@ namespace RTextNppPlugin.ViewModels
                                     {
                                         if (aResponse.options.Count == 1)
                                         {
+                                            var option = aResponse.options.First(); 
                                             //auto insert
+                                            SelectedCompletion = new Completion(option.display, option.insert, option.desc, Completion.AutoCompletionType.Label);
+                                            CharProcessAction  = CharProcessResult.ForceCommit;
                                         }
                                         else
                                         {
@@ -277,112 +312,45 @@ namespace RTextNppPlugin.ViewModels
             }
             else
             {
-                _completionList.Clear();
                 _completionList.Add(CreateWarningCompletion(Properties.Resources.CONNECTOR_INSTANCE_NULL, Properties.Resources.CONNECTOR_INSTANCE_NULL_DESC));
             }
         }
 
         public void Filter()
         {
+            int fallBackIndex    = _selectedIndex;
+            string fallBackHint  = _previousHint;
+            
             if(TriggerPoint.HasValue && TriggerPoint.Value.Context != null)
             {
-                string aHint = TriggerPoint.Value.Context;
-                _filteredList.Filter(x => x.InsertionText.StartsWith(aHint, StringComparison.OrdinalIgnoreCase));
+                _previousHint = TriggerPoint.Value.Context;
+                _filteredList.Filter(x => x.InsertionText.StartsWith(_previousHint, StringComparison.OrdinalIgnoreCase));
                                
                 
                 if(_filteredList.Count == 0)
                 {
-                    _filteredList.Filter(x => x.InsertionText.Contains(aHint, StringComparison.OrdinalIgnoreCase));
+                    _filteredList.Filter(x => x.InsertionText.Contains(_previousHint, StringComparison.OrdinalIgnoreCase));
                     if(_filteredList.Count == 0)
                     {
                         //fuzzy matching
                         _filteredList.StopFiltering();
+                        //just externally highlight this one but do not select it
                     }
                 }
                 else
                 {
                     //select the entry with minimum length
-                    var bestMatch = _filteredList.Aggregate((curMin, x) => (x.InsertionText.Length < curMin.InsertionText.Length ? x : curMin));
-                    SelectedIndex = _filteredList.IndexOf(bestMatch);
-                    SelectedCompletion = bestMatch;
+                    var bestMatch      = _filteredList.Aggregate((curMin, x) => (x.InsertionText.Length < curMin.InsertionText.Length ? x : curMin));
+                    SelectedIndex      = _filteredList.IndexOf(bestMatch);
+                    SelectedCompletion = new Completion(bestMatch, false);
                 }
             }
             else
             {
                 _filteredList.StopFiltering();
-                _selectedIndex = -1;
-            }
-            //ITextSnapshot currentSnapshot = ApplicableTo.TextBuffer.CurrentSnapshot;
-            //this.mfilterBufferText = ApplicableTo.GetText(currentSnapshot).TrimEnd();
-            //((FilteredObservableCollection<Completion>)Completions).StopFiltering();
-
-            //IsAutoCompletionOptionLast = Completions.Count == 1;
-            //if (this.mfilterBufferText == null || mOriginalList.Count == 1 && mOriginalList.First().InsertionText == null)
-            //{
-            //    _lastMatchingType = MatchingType.NONE;
-            //    _lastStringWhichMatched = String.Empty;
-            //    return;
-            //}
-            //else
-            //{
-            //    if (this.mfilterBufferText.Length > 0 && this.mfilterBufferText.Last() == ',')
-            //    {
-            //        this.mfilterBufferText = this.mfilterBufferText.Substring(0, this.mfilterBufferText.Length - 1);
-            //    }
-            //    //prefix match
-            //    WritableCompletions.Clear();
-            //    WritableCompletions.AddRange(mOriginalList.AsParallel().Where(x => x.InsertionText.StartsWith(this.mfilterBufferText, StringComparison.OrdinalIgnoreCase)));
-            //    //if nothing is found.. 
-            //    if (WritableCompletions.Count == 0)
-            //    {
-            //        WritableCompletions.AddRange(mOriginalList.AsParallel().Where(x => x.InsertionText.Contains(this.mfilterBufferText, StringComparison.OrdinalIgnoreCase)));
-            //        if (WritableCompletions.Count == 0)
-            //        {
-            //            if (mOriginalList.Count > 5000)
-            //            {
-            //                return;
-            //            }
-            //            fuzzyMatching();
-            //            if (WritableCompletions.Count == 0)
-            //            {
-            //                //display last matches                       
-            //                this.mfilterBufferText = _lastStringWhichMatched;
-
-            //                switch (_lastMatchingType)
-            //                {
-            //                    case MatchingType.STARTS_WITH:
-            //                        WritableCompletions.AddRange(mOriginalList.AsParallel().Where(x => x.InsertionText.StartsWith(this.mfilterBufferText, StringComparison.OrdinalIgnoreCase)));
-            //                        return;
-            //                    case MatchingType.CONTAINS:
-            //                        WritableCompletions.AddRange(mOriginalList.AsParallel().Where(x => x.InsertionText.Contains(this.mfilterBufferText, StringComparison.OrdinalIgnoreCase)));
-            //                        return;
-            //                    case MatchingType.FUZZY:
-            //                        fuzzyMatching();
-            //                        return;
-            //                    default:
-            //                        WritableCompletions.AddRange(mOriginalList);
-            //                        return;
-            //                }
-            //            }
-            //            else
-            //            {
-            //                _lastStringWhichMatched = mfilterBufferText;
-            //                _lastMatchingType = MatchingType.FUZZY;
-            //            }
-            //        }
-            //        else
-            //        {
-            //            _lastStringWhichMatched = mfilterBufferText;
-            //            _lastMatchingType = MatchingType.CONTAINS;
-            //        }
-            //    }
-            //    else
-            //    {
-            //        _lastStringWhichMatched = mfilterBufferText;
-            //        _lastMatchingType = MatchingType.STARTS_WITH;
-            //    }
-            //    Trace.WriteLine(String.Format("Found : {0} completions that match prefix.", WritableCompletions.Count));
-            //}
+                _selectedIndex     = 0;
+                SelectedCompletion = new Completion(_filteredList.First(), true);
+            }            
         }
         #endregion
 
@@ -444,6 +412,9 @@ namespace RTextNppPlugin.ViewModels
         private int _count = 0;
         private double _zoomLevel = 1.0;
         private int _selectedIndex = 0;
+        private Completion _selectedCompletion = null;
+        private string _previousHint = String.Empty;
+        private List<Completion> _cachedOptions = null;
         #endregion
     }
 }

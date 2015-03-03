@@ -24,7 +24,7 @@ namespace RTextNppPlugin.WpfControls
             InitializeComponent();
             _mouseMonitor.MouseClicked += OnMouseMonitorMouseClicked;
             _mouseMonitor.MouseWheelMoved += OnMouseMonitorMouseWheelMoved;
-            _delayedFilterEventHandler = new DelayedKeyEventHandler(this.PostProcessKeyPressed, 200);
+            _delayedFilterEventHandler = new DelayedKeyEventHandler(this.PostProcessKeyPressed, 100);
 
         }
 
@@ -127,7 +127,7 @@ namespace RTextNppPlugin.WpfControls
         bool OnMouseMonitorMouseWheelMoved(int movement)
         {
             Trace.WriteLine(String.Format("Mouse wheel moved... {0}", movement));
-            //do now allow event to propage, therefore not allowing text to scroll...
+            //do now allow event to propagate, therefore not allowing text to scroll...
             return true;
         }
 
@@ -151,11 +151,12 @@ namespace RTextNppPlugin.WpfControls
             {
                 _mouseMonitor.Uninstall();
                 this.AutoCompletionDatagrid.SelectedIndex = -1;
+                GetModel().OnAutoCompletionWindowCollapsing();
             }
             else
             {
                 _mouseMonitor.Install();
-                _delayedFilterEventHandler.Cancel();
+                _delayedFilterEventHandler.Cancel();               
             }
         }
         #endregion

@@ -29,6 +29,7 @@
             </Trigger>
         </ControlTemplate.Triggers>
     </ControlTemplate>
+    
     <Style x:Key="AutoCompletionListViewStyle" TargetType="{x:Type ListView}">
         <Setter Property="VirtualizingPanel.VirtualizationMode" Value="Recycling"/>
     </Style>
