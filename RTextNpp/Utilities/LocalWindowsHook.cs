@@ -49,10 +49,19 @@ namespace CSScriptIntellisense
     public class MouseHookStruct
     {
         public POINT pt;
-        public int hwnd;
-        public int wHitTestCode;
-        public int dwExtraInfo;
+        public IntPtr hwnd;
+        public uint wHitTestCode;
+        public IntPtr dwExtraInfo;
     }
+
+    [StructLayout(LayoutKind.Sequential)]
+    struct MouseHookStructEx
+    {
+        public MouseHookStruct mouseHookStruct;
+        public int MouseData;
+    }
+
+
 
     [StructLayout(LayoutKind.Sequential)]
     public class MSLLHOOKSTRUCT

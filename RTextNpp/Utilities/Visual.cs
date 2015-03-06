@@ -10,7 +10,7 @@ namespace RTextNppPlugin.Utilities
     {
         public static void SetOwnerFromNppPlugin(System.Windows.Window window)
         {
-            WindowInteropHelper helper = new WindowInteropHelper(window);
+            WindowInteropHelper helper = new WindowInteropHelper(window);            
             helper.Owner = Plugin.nppData._nppHandle;
         }
 
