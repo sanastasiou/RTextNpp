@@ -112,16 +112,16 @@ namespace RTextNppPlugin
                         Npp.DeleteFront();
                         _autoCompletionForm.OnKeyPressed();
                         break;
-                    case Keys.Space:
+                    case Keys.Space:                        
                         handled = true;
-                        //if completion list is visible, and there is a trigger token other than comma or space 
-                        //if(_autoCompletionForm.Completion != null && _autoCompletionForm.Completion.IsSelected || _autoCompletionForm.Completion.IsFuzzy )
-                        //{
-                        //    if(_autoCompletionForm.TriggerPoint.HasValue && _autoCompletionForm.TriggerPoint.Value.Type != RTextTokenTypes.Space)
-                        //    {
-                        //        CommitAutoCompletion(true);
-                        //    }                                
-                        //}
+                        //if completion list is visible, and there is a trigger token other than comma or space and there is some selected option
+                        if (_autoCompletionForm.Completion != null && _autoCompletionForm.Completion.IsSelected)
+                        {
+                            CommitAutoCompletion(true);
+                            Npp.AddText(Constants.SPACE.ToString());
+                            return;
+
+                        }
                         Npp.AddText(Constants.SPACE.ToString());
                         _autoCompletionForm.OnKeyPressed(Constants.SPACE);                        
                         break;
@@ -150,6 +150,8 @@ namespace RTextNppPlugin
                             CommitAutoCompletion(true);
                             Npp.AddText(Constants.COMMA.ToString());
                             handled = true;
+                            //enable daisy chaining on comma
+                            OnCharTyped(Constants.COMMA);
                         }
                         else
                         {

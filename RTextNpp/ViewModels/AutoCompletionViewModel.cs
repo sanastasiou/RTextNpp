@@ -476,7 +476,7 @@ namespace RTextNppPlugin.ViewModels
             }
             if(wasEmpty && c == Constants.BACKSPACE)
             {
-                CharProcessAction = CharProcessResult.ForceClose;
+                CharProcessAction = CharProcessResult.ForceClose;                
                 return;
             }
 
@@ -485,7 +485,7 @@ namespace RTextNppPlugin.ViewModels
                 //if auto completion is inside comment, notation, name, string jusr return
                 AutoCompletionTokenizer aTokenizer = new AutoCompletionTokenizer(aLineNumber, aCurrentPosition, Npp.GetColumn());
                 TriggerPoint = aTokenizer.TriggerToken;
-                if (!TriggerPoint.HasValue)
+                if (!TriggerPoint.HasValue || TriggerPoint.Value.StartColumn != t.StartColumn)
                 {
                     CharProcessAction = CharProcessResult.ForceClose;
                 }
