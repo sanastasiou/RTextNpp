@@ -413,7 +413,7 @@ namespace CSScriptIntellisense
         {
             IntPtr sci = Plugin.GetCurrentScintilla();
             int aCaretPos = GetCaretPosition();
-            if (token.HasValue)
+            if (token.HasValue && token.Value.Type != RTextTokenTypes.Space) //if token is space, add the new text after it!
             {
                 Win32.SendMessage(sci, SciMsg.SCI_SETSELECTION, token.Value.BufferPosition, token.Value.BufferPosition + token.Value.Context.Length);
             }

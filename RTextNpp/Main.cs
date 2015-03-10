@@ -114,6 +114,7 @@ namespace RTextNppPlugin
                         break;
                     case Keys.Space:
                         handled = true;
+                        //commit auto completion if selected, and put a space afterwards
                         Npp.AddText(Constants.SPACE.ToString());
                         _autoCompletionForm.OnKeyPressed(Constants.SPACE);
                         break;
@@ -122,10 +123,12 @@ namespace RTextNppPlugin
                         if (_autoCompletionForm.IsVisible )
                         {
                             handled = true;
-                            if (_autoCompletionForm.TriggerPoint.HasValue && String.IsNullOrWhiteSpace(_autoCompletionForm.TriggerPoint.Value.Context))
+                            if ( _autoCompletionForm.TriggerPoint.HasValue && String.IsNullOrWhiteSpace(_autoCompletionForm.TriggerPoint.Value.Context) && 
+                                (_autoCompletionForm.Completion == null || (_autoCompletionForm.Completion != null && !_autoCompletionForm.Completion.IsSelected))
+                               )
                             {
                                 Npp.AddText(Constants.TAB.ToString());
-                                _autoCompletionForm.OnKeyPressed(Constants.TAB);
+                                _autoCompletionForm.OnKeyPressed(Constants.TAB);                                
                             }
                             else
                             {

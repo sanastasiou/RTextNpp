@@ -347,10 +347,14 @@ namespace RTextNppPlugin.ViewModels
                                         else
                                         {
                                             _completionList.AddRange(aResponse.options.Select(x => new Completion(x.display, x.insert, x.desc, Completion.AutoCompletionType.Label)).OrderBy(x => x.InsertionText));
+                                            Filter();
                                         }
                                     }
+                                    else
+                                    {
+                                        CharProcessAction = CharProcessResult.ForceClose;
+                                    }
                                 }
-                                Filter();
                                 _isWarningCompletionActive = false;
                             }
                         }                        
@@ -423,8 +427,6 @@ namespace RTextNppPlugin.ViewModels
                     }
                     SelectedIndex = _filteredList.IndexOf(SelectedCompletion);
 
-                    //select the entry with minimum length                    
-                    //SelectedCompletion = _filteredList.Aggregate((curMin, x) => (x.InsertionText.Length > curMin.InsertionText.Length ? x : curMin));
                     SelectedCompletion.IsSelected = SelectedCompletion.IsFuzzy = true;
                 }
             }
@@ -448,7 +450,9 @@ namespace RTextNppPlugin.ViewModels
         }
 
         private void AddCharToTriggerPoint(char c)
-        {            
+        {
+            int aCurrentPosition = CSScriptIntellisense.Npp.GetCaretPosition();
+            int aLineNumber      = CSScriptIntellisense.Npp.GetLineNumber();
             if(!_triggerToken.HasValue)
             {
                 CharProcessAction = CharProcessResult.ForceClose;
@@ -459,7 +463,10 @@ namespace RTextNppPlugin.ViewModels
             bool wasEmpty = (aContext.Length == 0);
             if (wasEmpty && Char.IsWhiteSpace(c))
             {
-                CharProcessAction = CharProcessResult.MoveToRight;
+                CharProcessAction = CharProcessResult.MoveToRight;                
+                //if auto completion is inside comment, notation, name, string jusr return
+                AutoCompletionTokenizer aTokenizer = new AutoCompletionTokenizer(aLineNumber, aCurrentPosition, Npp.GetColumn());
+                TriggerPoint = aTokenizer.TriggerToken;
                 return;
             }
             if(wasEmpty && c == Constants.BACKSPACE)
@@ -468,10 +475,8 @@ namespace RTextNppPlugin.ViewModels
                 return;
             }
 
-            int aCurrentPosition = CSScriptIntellisense.Npp.GetCaretPosition();
             if (aCurrentPosition >= 0)
             {
-                int aLineNumber = CSScriptIntellisense.Npp.GetLineNumber();
                 //if auto completion is inside comment, notation, name, string jusr return
                 AutoCompletionTokenizer aTokenizer = new AutoCompletionTokenizer(aLineNumber, aCurrentPosition, Npp.GetColumn());
                 TriggerPoint = aTokenizer.TriggerToken;
