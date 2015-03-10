@@ -188,7 +188,8 @@ namespace RTextNppPlugin.ViewModels
         
         public AutoCompletionViewModel()
         {
-            _filteredList      = new FilteredObservableCollection<Completion>(_completionList);            
+            _filteredList      = new FilteredObservableCollection<Completion>(_completionList);
+            FilteredCount      = 0;            
             CharProcessAction  = CharProcessResult.NoAction;
             SelectedCompletion = null;
             _completionList.Add(CreateWarningCompletion(Properties.Resources.ERR_BACKEND_CONNECTING, Properties.Resources.ERR_BACKEND_CONNECTING_DESC));       
@@ -201,7 +202,12 @@ namespace RTextNppPlugin.ViewModels
             _filteredList.StopFiltering();
         }
 
-        public int Count
+        public BulkObservableCollection<Completion> UnderlyingList
+        {
+            get { return _completionList; } 
+        }
+
+        public int FilteredCount
         {
             get
             {
@@ -212,15 +218,15 @@ namespace RTextNppPlugin.ViewModels
                 if(value != _count)
                 {
                     _count = value;
-                    base.RaisePropertyChanged("Count");
+                    base.RaisePropertyChanged("FilteredCount");
                 }
             }
         }
 
         public void SelectPosition(int newPosition)
         {
-            //fix for initial not selected item
-            if(newPosition == - 1)
+            //fix for initial not selected item, when filtering ignore index change events
+            if(newPosition == - 1 || _isFiltering)
             {
                 return;
             }
@@ -362,64 +368,76 @@ namespace RTextNppPlugin.ViewModels
             }
         }
 
+        public int SelectedIndex
+        {
+            get
+            {
+                return _selectedIndex;
+            }
+            set
+            {
+                if(value != _selectedIndex)
+                {
+                    _selectedIndex = value;
+                    base.RaisePropertyChanged("SelectedIndex");
+                }
+            }
+        }
+
         public void Filter()
         {
+            _isFiltering = true;
             string fallBackHint  = _previousHint;
             var previousSelection = SelectedCompletion;
+            if (previousSelection != null)
+            {
+                previousSelection.IsSelected = previousSelection.IsFuzzy = false;
+            }
             
             if(TriggerPoint.HasValue && !String.IsNullOrWhiteSpace(TriggerPoint.Value.Context))
             {
                 _previousHint = TriggerPoint.Value.Context;
-                _filteredList.Filter(x => x.InsertionText.StartsWith(_previousHint, StringComparison.OrdinalIgnoreCase));
-                               
-                
-                if(_filteredList.Count == 0)
-                {
-                    _filteredList.Filter(x => x.InsertionText.Contains(_previousHint, StringComparison.OrdinalIgnoreCase));
-                    if(_filteredList.Count == 0)
-                    {
-                        //if count is null - previous selection is no longer valid!
+                _filteredList.Filter(x => x.InsertionText.StartsWith(_previousHint, StringComparison.OrdinalIgnoreCase) || x.InsertionText.Contains(_previousHint, StringComparison.OrdinalIgnoreCase));
 
-                        //fuzzy matching
-                        _filteredList.StopFiltering();
-                        if (previousSelection != null)
-                        {
-                            previousSelection.IsFuzzy = true;
-                            previousSelection.IsSelected = false;
-                        }
-                    }
-                    else
+                if ((FilteredCount = _filteredList.Count) == 0)
+                {
+                    //if count is null - previous selection is no longer valid!
+                    //fuzzy matching
+                    _filteredList.StopFiltering();
+                    if (previousSelection != null)
                     {
-                        if (previousSelection != null)
-                        {
-                            previousSelection.IsFuzzy = previousSelection.IsSelected = false;
-                        }
-                        SelectedCompletion = _filteredList.Aggregate((curMin, x) => (x.InsertionText.Length > curMin.InsertionText.Length ? x : curMin));
-                        SelectedCompletion.IsSelected = SelectedCompletion.IsFuzzy = true;
+                        previousSelection.IsFuzzy = true;
+                        previousSelection.IsSelected = false;
                     }
+                    FilteredCount = _completionList.Count;
+                    SelectedIndex = _filteredList.IndexOf(previousSelection);
                 }
                 else
                 {
-                    if (previousSelection != null)
+                    //select with priority to prefix
+                    SelectedCompletion = _filteredList.Where(x => x.InsertionText.StartsWith(_previousHint, StringComparison.OrdinalIgnoreCase)).OrderByDescending( x=> x.InsertionText.Length).FirstOrDefault();
+                    if(SelectedCompletion == null)
                     {
-                        previousSelection.IsFuzzy = previousSelection.IsSelected = false;
+                        //match is contained
+                        SelectedCompletion = _filteredList.Where(x => x.InsertionText.Contains(_previousHint, StringComparison.OrdinalIgnoreCase)).OrderByDescending(x => x.InsertionText.Length).First();
                     }
+                    SelectedIndex = _filteredList.IndexOf(SelectedCompletion);
+
                     //select the entry with minimum length                    
-                    SelectedCompletion = _filteredList.Aggregate((curMin, x) => (x.InsertionText.Length > curMin.InsertionText.Length ? x : curMin));                
+                    //SelectedCompletion = _filteredList.Aggregate((curMin, x) => (x.InsertionText.Length > curMin.InsertionText.Length ? x : curMin));
                     SelectedCompletion.IsSelected = SelectedCompletion.IsFuzzy = true;
                 }
             }
             else
             {
                 _filteredList.StopFiltering();
-                if(previousSelection != null)
-                {
-                    previousSelection.IsSelected = previousSelection.IsFuzzy = false;
-                }
                 SelectedCompletion            = _filteredList.First();
                 SelectedCompletion.IsFuzzy    = true;
                 SelectedCompletion.IsSelected = false;
-            }            
+                FilteredCount = _completionList.Count;
+                SelectedIndex = -1;
+            }
+            _isFiltering = false;
         }
         #endregion
 
@@ -483,6 +501,8 @@ namespace RTextNppPlugin.ViewModels
         private string _previousHint                                            = String.Empty;                               //!< Last string which matched an auto completion option.
         private List<Completion> _cachedOptions                                 = null;                                       //!< Last set of options.
         private bool _isWarningCompletionActive                                 = false;                                      //!< Indicates if a warning option was active.
+        private int _selectedIndex                                              = 0;                                          //!< Indicates the selected index of the filtered option list.
+        private bool _isFiltering                                               = false;                                      //!< Indicates if filtering function is currently active.
         #endregion
     }
 }

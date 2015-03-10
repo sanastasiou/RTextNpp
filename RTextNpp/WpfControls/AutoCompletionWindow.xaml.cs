@@ -260,6 +260,7 @@ namespace RTextNppPlugin.WpfControls
         private void OnAutoCompletionDatagridSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             GetModel().SelectPosition(((DataGrid)sender).SelectedIndex);
+            this.AutoCompletionDatagrid.ScrollIntoView(GetModel().SelectedCompletion);
         }
 
     }

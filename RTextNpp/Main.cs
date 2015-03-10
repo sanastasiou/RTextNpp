@@ -61,7 +61,7 @@ namespace RTextNppPlugin
             _currentZoomLevel = Npp.GetZoomLevel();
             _autoCompletionForm.OnZoomLevelChanged(_currentZoomLevel);
 
-            Debugger.Launch();            
+            Debugger.Launch();
         }
 
         static void OnKeyInterceptorKeyDown(Keys key, int repeatCount, ref bool handled)
@@ -174,19 +174,17 @@ namespace RTextNppPlugin
                 }
                 else
                 {
-                    _autoCompletionForm.OnKeyPressed(c);
+                    _autoCompletionForm.OnKeyPressed(c);                    
                 }
             }
         }
 
-
-        //todo - handle text insertion
         private static void CommitAutoCompletion(bool replace)
         {
             if(replace)
             {
                 //use current selected item to replace token
-                if (_autoCompletionForm.Completion != null && !_autoCompletionForm.Completion.IsFuzzy)
+                if (_autoCompletionForm.Completion != null)
                 {
                     Npp.ReplaceWordFromToken(_autoCompletionForm.TriggerPoint, _autoCompletionForm.Completion.InsertionText);
                 }

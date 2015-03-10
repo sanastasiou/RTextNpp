@@ -33,6 +33,10 @@
     <Style x:Key="AutoCompletionListViewStyle" TargetType="{x:Type ListView}">
         <Setter Property="VirtualizingPanel.VirtualizationMode" Value="Recycling"/>
     </Style>
+    <Style x:Key="LabelNoPaddingStyle" TargetType="{x:Type Label}">
+        <Setter Property="Padding" Value="0"/>
+        <Setter Property="Margin" Value="0"/>
+    </Style>
     <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
     <Style x:Key="AutoCompletionImageStyle" TargetType="{x:Type Image}">
         <Setter Property="Source" Value="/RTextNpp;Component/Resources/method.png" />

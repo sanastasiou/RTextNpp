@@ -39,6 +39,14 @@
                                 ScaleX="{Binding ZoomLevel}"
                                 ScaleY="{Binding ZoomLevel}"/>
             </DockPanel.LayoutTransform>
+            <Border DockPanel.Dock="Bottom" BorderBrush="Black" BorderThickness="1 0 1 1">
+                <StackPanel Orientation="Horizontal">                    
+                    <Label Style="{StaticResource LabelNoPaddingStyle}">Total options : </Label>
+                    <Label Style="{StaticResource LabelNoPaddingStyle}" Content="{Binding UnderlyingList.Count}"/>
+                    <Label HorizontalAlignment="Right" Style="{StaticResource LabelNoPaddingStyle}" Padding="40 0 0 0">Filtered options : </Label>
+                    <Label HorizontalAlignment="Right" Style="{StaticResource LabelNoPaddingStyle}" Content="{Binding FilteredCount}"/>
+                </StackPanel>
+            </Border>
             <DataGrid DockPanel.Dock="Bottom"
                       ItemsSource="{Binding CompletionList}"                      
                       Name="AutoCompletionDatagrid"
@@ -46,7 +54,10 @@
                       ScrollViewer.HorizontalScrollBarVisibility="Auto" 
                       ScrollViewer.VerticalScrollBarVisibility="Auto"                      
                       AlternationCount="2"
+                      SelectedIndex="{Binding SelectedIndex}"
                       SelectionMode="Single"                                            
+                      BorderThickness="1"
+                      BorderBrush="Black"
                       MaxHeight="400"
                       IsSynchronizedWithCurrentItem="True"
                       AllowDrop="False"
