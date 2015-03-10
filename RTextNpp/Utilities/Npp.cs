@@ -420,7 +420,6 @@ namespace CSScriptIntellisense
             else
             {
                 Win32.SendMessage(sci, SciMsg.SCI_SETSELECTION, aCaretPos, aCaretPos);
-                Win32.SendMessage(sci, SciMsg.SCI_REPLACESEL, insertionText);
             }
             Win32.SendMessage(sci, SciMsg.SCI_REPLACESEL, insertionText);
         }                      

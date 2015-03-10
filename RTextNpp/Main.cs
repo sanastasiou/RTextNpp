@@ -52,6 +52,7 @@ namespace RTextNppPlugin
             }
 
             CSScriptIntellisense.KeyInterceptor.Instance.KeyDown += OnKeyInterceptorKeyDown;
+            
             foreach(var key in Enum.GetValues(typeof(Keys)))
             {
                 CSScriptIntellisense.KeyInterceptor.Instance.Add((Keys)key);
@@ -118,11 +119,19 @@ namespace RTextNppPlugin
                         break;
                     case Keys.Return:
                     case Keys.Tab:
-                        if (_autoCompletionForm.IsVisible)
+                        if (_autoCompletionForm.IsVisible )
                         {
                             handled = true;
-                            //special case when trigger point is empty -> move auto completion form after inserting tab char..
-                            CommitAutoCompletion(true);
+                            if (_autoCompletionForm.TriggerPoint.HasValue && String.IsNullOrWhiteSpace(_autoCompletionForm.TriggerPoint.Value.Context))
+                            {
+                                Npp.AddText(Constants.TAB.ToString());
+                                _autoCompletionForm.OnKeyPressed(Constants.TAB);
+                            }
+                            else
+                            {
+                                //special case when trigger point is empty -> move auto completion form after inserting tab char..
+                                CommitAutoCompletion(true);
+                            }
                         }                                                
                         break;
                     case Keys.Escape:

@@ -43,11 +43,11 @@ namespace RTextNppPlugin.WpfControls
                 case System.Windows.Forms.Keys.Up:
                 case System.Windows.Forms.Keys.Down:
                     handled = true;
-                    NavigateList(key);
+                    ScrollList(key);
                     break;
                 case System.Windows.Forms.Keys.PageDown:
                 case System.Windows.Forms.Keys.PageUp:
-                    ScrollList(key);
+                    ScrollList(key, 25);
                     handled = true;
                     break;
                 default:
@@ -151,9 +151,10 @@ namespace RTextNppPlugin.WpfControls
         #region EventHandlers
         bool OnMouseMonitorMouseWheelMoved(int movement)
         {
-            Trace.WriteLine(String.Format("Mouse wheel moved... {0}", movement));
-            //do now allow event to propagate, therefore not allowing text to scroll...
+            //do now allow event to propagate, therefore not allowing text to scroll by it's own
+            ScrollList(movement > 0 ? System.Windows.Forms.Keys.Up : System.Windows.Forms.Keys.Down, 3);
             return true;
+
         }
 
         void OnKeyIntercepterKeyDown(System.Windows.Forms.Keys key, int repeatCount, ref bool handled)
@@ -192,44 +193,18 @@ namespace RTextNppPlugin.WpfControls
         #region [Helpers]
 
         /**
-         * \brief   Navigate list when pressing up/down arrows.
+         * Scroll list.
          *
-         * \param   key The key.
+         * \param   key     The key.
+         * \param   offset  (Optional) the offset.
          */
-        private void NavigateList(System.Windows.Forms.Keys key)
-        {
-            var aTargets = GetModel().CompletionList;
-            if (aTargets.Count > 0)
-            {
-                var aIndex = this.AutoCompletionDatagrid.SelectedIndex;                
-                switch (key)
-                {
-                    case System.Windows.Forms.Keys.Up:
-                        if (aIndex > 0)
-                        {
-                            GetModel().SelectedIndex  = this.AutoCompletionDatagrid.SelectedIndex - 1;
-                        }
-                        break;
-                    case System.Windows.Forms.Keys.Down:
-                        if (aIndex < (aTargets.Count - 1))
-                        {
-                            GetModel().SelectedIndex = this.AutoCompletionDatagrid.SelectedIndex + 1;
-                        }
-                        break;
-                    default:
-                        return;
-                }
-                this.AutoCompletionDatagrid.ScrollIntoView(this.AutoCompletionDatagrid.SelectedItem);
-            }
-        }
-
-        private void ScrollList(System.Windows.Forms.Keys key)
+        private void ScrollList(System.Windows.Forms.Keys key, int offset = 1)
         {
             ICollectionView view = CollectionViewSource.GetDefaultView(GetModel().CompletionList);
-            int offset = 25;
             switch (key)
             {
                 case System.Windows.Forms.Keys.PageDown:
+                case System.Windows.Forms.Keys.Down:
                     if (view.CurrentPosition + offset < AutoCompletionDatagrid.Items.Count)
                     {
                         view.MoveCurrentToPosition(view.CurrentPosition + offset);
@@ -240,6 +215,7 @@ namespace RTextNppPlugin.WpfControls
                     }
                     break;
                 case System.Windows.Forms.Keys.PageUp:
+                case System.Windows.Forms.Keys.Up:
                     if (view.CurrentPosition - offset >= 0)
                     {
                         view.MoveCurrentToPosition(view.CurrentPosition - offset);
@@ -251,29 +227,6 @@ namespace RTextNppPlugin.WpfControls
                     break;
             }
             this.AutoCompletionDatagrid.ScrollIntoView(view.CurrentItem);
-        }
-
-        private void SelectRowByIndex(DataGrid dataGrid, int rowIndex)
-        {
-            if (!dataGrid.SelectionUnit.Equals(DataGridSelectionUnit.FullRow))
-                throw new ArgumentException("The SelectionUnit of the DataGrid must be set to FullRow.");
-
-            if (rowIndex < 0 || rowIndex > (dataGrid.Items.Count - 1))
-                throw new ArgumentException(string.Format("{0} is an invalid row index.", rowIndex));
-
-            dataGrid.SelectedItems.Clear();
-            /* set the SelectedItem property */
-            object item = dataGrid.Items[rowIndex]; // = Product X
-            dataGrid.SelectedItem = item;
-
-            DataGridRow row = dataGrid.ItemContainerGenerator.ContainerFromIndex(rowIndex) as DataGridRow;
-            if (row == null)
-            {
-                /* bring the data item (Product object) into view
-                 * in case it has been virtualized away */
-                dataGrid.ScrollIntoView(item);
-                row = dataGrid.ItemContainerGenerator.ContainerFromIndex(rowIndex) as DataGridRow;
-            }            
         }
 
         #endregion
@@ -296,6 +249,11 @@ namespace RTextNppPlugin.WpfControls
             _mouseMonitor.Uninstall();
         }
         #endregion
+
+        private void OnAutoCompletionDatagridSelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            GetModel().SelectedCompletion = ((DataGrid)sender).SelectedItem as AutoCompletionViewModel.Completion;
+        }
 
     }
 }

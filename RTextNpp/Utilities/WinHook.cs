@@ -135,8 +135,6 @@ namespace CSScriptIntellisense
                     }
                     break;                    
                 case MouseMessages.WM_MOUSEWHEEL:
-                    //calculate mouse delta... LAWL
-
                     MouseHookStructEx aMouseData = (MouseHookStructEx)Marshal.PtrToStructure(lParam, typeof(MouseHookStructEx));
                     var wheelMovement            = GetWheelDeltaWParam(aMouseData.MouseData);
 

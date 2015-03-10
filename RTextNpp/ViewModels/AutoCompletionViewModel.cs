@@ -14,7 +14,7 @@ using System.Diagnostics;
 
 namespace RTextNppPlugin.ViewModels
 {
-    internal class AutoCompletionViewModel : BindableObject, IDisposable
+    internal class AutoCompletionViewModel : BindableObject
     {
         internal class Completion
         {
@@ -167,11 +167,6 @@ namespace RTextNppPlugin.ViewModels
             _filteredList.StopFiltering();
         }
 
-        public void Dispose()
-        {
-            //throw new NotImplementedException();
-        }
-
         public int Count
         {
             get
@@ -194,7 +189,7 @@ namespace RTextNppPlugin.ViewModels
             {
                 return _selectedCompletion;
             }
-            private set
+            set
             {
                 if(value != _selectedCompletion)
                 {
@@ -235,8 +230,9 @@ namespace RTextNppPlugin.ViewModels
         public void AugmentAutoCompletion(ContextExtractor extractor, Point caretPoint, Tokenizer.TokenTag ? token, ref bool request)
         {
             _completionList.Clear();
-            if(TriggerPoint.HasValue && token.HasValue && TriggerPoint.Value == token.Value && _cachedOptions != null)
+            if((TriggerPoint.HasValue && token.HasValue && TriggerPoint.Value == token.Value && _cachedOptions != null) && !_isWarningCompletionActive)
             {
+                TriggerPoint = token;
                 _completionList.AddRange(_cachedOptions);
                 Filter();
                 return;
@@ -266,10 +262,12 @@ namespace RTextNppPlugin.ViewModels
                         
                         _completionList.Add(CreateWarningCompletion(Properties.Resources.ERR_BACKEND_CONNECTING, Properties.Resources.ERR_BACKEND_CONNECTING_DESC));
                         _currentConnector.execute<AutoCompleteAndReferenceRequest>(aRequest, ref _currentInvocationId);
+                        _isWarningCompletionActive = true;
                         break;
                     case Automate.StateEngine.ProcessState.Busy:
                     case Automate.StateEngine.ProcessState.Loading:
                         _completionList.Add(CreateWarningCompletion(Properties.Resources.ERR_BACKEND_BUSY, Properties.Resources.ERR_BACKEND_BUSY_DESC));
+                        _isWarningCompletionActive = true;
                         break;
                     case Automate.StateEngine.ProcessState.Connected:
                         if (request)
@@ -280,6 +278,7 @@ namespace RTextNppPlugin.ViewModels
                             if (aResponse == null)
                             {
                                 _completionList.Add(CreateWarningCompletion(Properties.Resources.ERR_AUTO_COMPLETION_NULL_RESP, Properties.Resources.ERR_AUTO_COMPLETION_NULL_DESC));
+                                _isWarningCompletionActive = true;
                             }
                             else
                             {
@@ -312,11 +311,13 @@ namespace RTextNppPlugin.ViewModels
                                     }
                                 }
                                 Filter();
+                                _isWarningCompletionActive = false;
                             }
                         }                        
                         break;
                     default:
                         Logger.Instance.Append(Logger.MessageType.FatalError, _currentConnector.Workspace, "Undefined connector state reached. Please notify support.");
+                        _isWarningCompletionActive = true;
                         break;
 
                 }
@@ -332,7 +333,7 @@ namespace RTextNppPlugin.ViewModels
             int fallBackIndex    = _selectedIndex;
             string fallBackHint  = _previousHint;
             
-            if(TriggerPoint.HasValue && TriggerPoint.Value.Context != null)
+            if(TriggerPoint.HasValue && !String.IsNullOrWhiteSpace(TriggerPoint.Value.Context))
             {
                 _previousHint = TriggerPoint.Value.Context;
                 _filteredList.Filter(x => x.InsertionText.StartsWith(_previousHint, StringComparison.OrdinalIgnoreCase));
@@ -350,7 +351,7 @@ namespace RTextNppPlugin.ViewModels
                 }
                 else
                 {
-                    //select the entry with minimum length
+                    //select the entry with minimum length                    
                     var bestMatch      = _filteredList.Aggregate((curMin, x) => (x.InsertionText.Length < curMin.InsertionText.Length ? x : curMin));
                     SelectedIndex      = _filteredList.IndexOf(bestMatch);
                     SelectedCompletion = new Completion(bestMatch, false);
@@ -360,7 +361,7 @@ namespace RTextNppPlugin.ViewModels
             {
                 _filteredList.StopFiltering();
                 _selectedIndex     = 0;
-                SelectedCompletion = new Completion(_filteredList.First(), true);
+                SelectedCompletion = new Completion(_filteredList.First(), true);                
             }            
         }
         #endregion
@@ -413,19 +414,19 @@ namespace RTextNppPlugin.ViewModels
         #endregion
 
         #region [Data Members]
-        private readonly BulkObservableCollection<Completion> _completionList = new BulkObservableCollection<Completion>();
-        private readonly FilteredObservableCollection<Completion> _filteredList = null;
-        private Tokenizer.TokenTag? _triggerToken = null;
-        private string _lastStringWhichMatched = String.Empty;
-        private Connector _currentConnector = null;
-        private MatchingType _lastMatchingType = MatchingType.NONE;
-        private int _currentInvocationId = -1;
-        private int _count = 0;
-        private double _zoomLevel = 1.0;
-        private int _selectedIndex = 0;
-        private Completion _selectedCompletion = null;
-        private string _previousHint = String.Empty;
-        private List<Completion> _cachedOptions = null;
+        private readonly BulkObservableCollection<Completion> _completionList   = new BulkObservableCollection<Completion>(); //!< Underlying completion list.
+        private readonly FilteredObservableCollection<Completion> _filteredList = null;                                       //!< UI completion list based on underlying list.
+        private Tokenizer.TokenTag? _triggerToken                               = null;                                       //!< Current completion list trigger token.
+        private Connector _currentConnector                                     = null;                                       //!< Connector for current document.
+        private MatchingType _lastMatchingType                                  = MatchingType.NONE;                          //!< Last matching completion type.
+        private int _currentInvocationId                                        = -1;                                         //!< Auto completion invocation id.
+        private int _count                                                      = 0;                                          //!< Options count.
+        private double _zoomLevel                                               = 1.0;                                        //!< Auto completion window zoom level.
+        private int _selectedIndex                                              = 0;                                          //!< Currently selected index.
+        private Completion _selectedCompletion                                  = null;                                       //!< Currently selected option.
+        private string _previousHint                                            = String.Empty;                               //!< Last string which matched an auto completion option.
+        private List<Completion> _cachedOptions                                 = null;                                       //!< Last set of options.
+        private bool _isWarningCompletionActive                                 = false;                                      //!< Indicates if a warning option was active.
         #endregion
     }
 }

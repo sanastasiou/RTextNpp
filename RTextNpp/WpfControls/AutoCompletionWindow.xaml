@@ -44,20 +44,22 @@
                       Name="AutoCompletionDatagrid"
                       ScrollViewer.CanContentScroll="True" 
                       ScrollViewer.HorizontalScrollBarVisibility="Auto" 
-                      ScrollViewer.VerticalScrollBarVisibility="Auto"
+                      ScrollViewer.VerticalScrollBarVisibility="Auto"                      
                       AlternationCount="2"
-                      SelectionMode="Single"                      
-                      SelectedIndex="{Binding SelectedIndex, Mode=TwoWay}"
+                      SelectionMode="Single"                                            
+                      SelectedIndex="{Binding SelectedIndex, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                       MaxHeight="400"
                       IsSynchronizedWithCurrentItem="True"
                       AllowDrop="False"
                       SelectionUnit="FullRow"
+                      SelectionChanged="OnAutoCompletionDatagridSelectionChanged"
                       MaxWidth="800"
                       AutoGenerateColumns="false"
                       HeadersVisibility="None"
                       GridLinesVisibility="None"
                       VirtualizingStackPanel.IsVirtualizing="True"
-                      IsReadOnly="True">                
+                      IsReadOnly="True">
+                <!--SelectedIndex="{Binding SelectedIndex, Mode=TwoWay}"-->
                 <DataGrid.Resources>
                     <Style TargetType="DataGridCell">
                         <Setter Property="BorderThickness" Value="0"/>

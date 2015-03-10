@@ -9,6 +9,7 @@ using RTextNppPlugin.ViewModels;
 
 namespace RTextNppPlugin.WpfControls.Converters
 {
+    //called once for every new item on list..
     internal class AutoCompletionBorderBrushConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
@@ -16,7 +17,7 @@ namespace RTextNppPlugin.WpfControls.Converters
             AutoCompletionViewModel.Completion c = value as AutoCompletionViewModel.Completion;
             if (c != null)
             {
-                return Brushes.Transparent; //c.DisplayText.Equals( Brushes.Transparent;
+                return c.IsFuzzy ? Brushes.LimeGreen : Brushes.Transparent;
             }
             else
             {
@@ -30,6 +31,7 @@ namespace RTextNppPlugin.WpfControls.Converters
         }
     }
 
+    //called when index changes
     internal class SelectedCellBackgroundBrushConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
