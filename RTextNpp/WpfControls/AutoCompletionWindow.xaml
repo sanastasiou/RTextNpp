@@ -27,8 +27,6 @@
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="Styles.xaml"/>                
             </ResourceDictionary.MergedDictionaries>
-            <converters:AutoCompletionBorderBrushConverter x:Key="AutoCompletionCellBorderConverter"/>
-            <converters:SelectedCellBackgroundBrushConverter x:Key="SelectedCellBackgroundBrushConverter"/>
         </ResourceDictionary>        
     </Window.Resources>
     <Border BorderBrush="Black" Name="LinkBorder">

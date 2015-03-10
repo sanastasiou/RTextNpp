@@ -179,12 +179,13 @@ namespace RTextNppPlugin.WpfControls
                 _keyMonitor.Uninstall();
                 this.AutoCompletionDatagrid.SelectedIndex = -1;
                 GetModel().OnAutoCompletionWindowCollapsing();
+                GetModel().ClearSelectedCompletion();
             }
             else
             {
                 _keyMonitor.Install();
                 _mouseMonitor.Install();
-                _delayedFilterEventHandler.Cancel();               
+                _delayedFilterEventHandler.Cancel();                
             }
         }
 

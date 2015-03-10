@@ -39,6 +39,7 @@ namespace RTextNppPlugin
         public const char BACKSPACE = '\b';                                     //!< Backspace char.
         public const char SPACE = ' ';                                          //!< Space char.
         public const char TAB = '\t';                                           //!< Tab char.
+        public const char COMMA = ',';                                          //!< Comma char.
 
         #region NppMenuCommand
         public enum NppMenuCommands : int

@@ -259,6 +259,11 @@ namespace RTextNppPlugin.ViewModels
             }
         }
 
+        public void ClearSelectedCompletion()
+        {
+            SelectedCompletion.IsSelected = SelectedCompletion.IsFuzzy = false;
+        }
+
         public FilteredObservableCollection<Completion> CompletionList
         {
             get
@@ -458,10 +463,10 @@ namespace RTextNppPlugin.ViewModels
                 CharProcessAction = CharProcessResult.ForceClose;
                 return;
             }
-            Tokenizer.TokenTag t = _triggerToken.Value;
+            Tokenizer.TokenTag t = TriggerPoint.Value;
             string aContext = t.Context;
             bool wasEmpty = (aContext.Length == 0);
-            if (wasEmpty && Char.IsWhiteSpace(c))
+            if (char.IsWhiteSpace(c) && (wasEmpty || t.Type == RTextTokenTypes.Comma ))
             {
                 CharProcessAction = CharProcessResult.MoveToRight;                
                 //if auto completion is inside comment, notation, name, string jusr return

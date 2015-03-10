@@ -114,9 +114,16 @@ namespace RTextNppPlugin
                         break;
                     case Keys.Space:
                         handled = true;
-                        //commit auto completion if selected, and put a space afterwards
+                        //if completion list is visible, and there is a trigger token other than comma or space 
+                        //if(_autoCompletionForm.Completion != null && _autoCompletionForm.Completion.IsSelected || _autoCompletionForm.Completion.IsFuzzy )
+                        //{
+                        //    if(_autoCompletionForm.TriggerPoint.HasValue && _autoCompletionForm.TriggerPoint.Value.Type != RTextTokenTypes.Space)
+                        //    {
+                        //        CommitAutoCompletion(true);
+                        //    }                                
+                        //}
                         Npp.AddText(Constants.SPACE.ToString());
-                        _autoCompletionForm.OnKeyPressed(Constants.SPACE);
+                        _autoCompletionForm.OnKeyPressed(Constants.SPACE);                        
                         break;
                     case Keys.Return:
                     case Keys.Tab:
@@ -137,13 +144,27 @@ namespace RTextNppPlugin
                             }
                         }                                                
                         break;
+                    case Keys.Oemcomma:
+                        if(_autoCompletionForm.IsVisible)
+                        {
+                            CommitAutoCompletion(true);
+                            Npp.AddText(Constants.COMMA.ToString());
+                            handled = true;
+                        }
+                        else
+                        {
+                            //start auto completion fix window position - handle insertion when token is comma i.e. do not replace comma
+                            OnCharTyped(Constants.COMMA);
+                        }
+                        break;
                     case Keys.Escape:
                     case Keys.Cancel:
                     case Keys.Left:
                     case Keys.Right:
                         CommitAutoCompletion(false);
                         break;                        
-                    default:                        
+                    default:
+                        //convert virtual key to ASCII
                         int nonVirtualKey = Npp.MapVirtualKey((uint)key, 2);
                         char mappedChar   = Npp.GetAsciiCharacter((int)key, nonVirtualKey);
                         if (mappedChar != default(char))
@@ -238,7 +259,7 @@ namespace RTextNppPlugin
                             AutoCompletionTokenizer aTokenizer = new AutoCompletionTokenizer(aLineNumber, aCurrentPosition, aExtractor.ContextColumn);                            
                             //if a token is found then the window should appear at the start of it, else it should appear at the caret
                             Point aCaretPoint = CSScriptIntellisense.Npp.GetCaretScreenLocationForForm();
-                            if (aTokenizer.TriggerToken.HasValue)
+                            if (aTokenizer.TriggerToken.HasValue && aTokenizer.TriggerToken.Value.Type != RTextTokenTypes.Comma)
                             {
                                 aCaretPoint = CSScriptIntellisense.Npp.GetCaretScreenLocationRelativeToPosition(aTokenizer.TriggerToken.Value.BufferPosition);
                             }                            

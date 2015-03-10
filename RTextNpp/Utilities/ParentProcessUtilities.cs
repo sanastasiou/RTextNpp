@@ -90,7 +90,7 @@ namespace RTextNppPlugin.Utilities
             try
             {
                 System.Diagnostics.Process process = System.Diagnostics.Process.GetProcessById(id);
-                var handle = OpenProcess(ProcessAccessFlags.PROCESS_QUERY_LIMITED_INFORMATION, false, process.Id);
+                var handle = OpenProcess(ProcessAccessFlags.PROCESS_QUERY_LIMITED_INFORMATION, false, process.Id);                
                 return GetParentProcess(handle);
             }
             catch(Exception ex)
