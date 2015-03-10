@@ -1,7 +1,4 @@
-﻿using System;
-using System.Drawing;
-using System.Linq;
-using CSScriptIntellisense;
+﻿using CSScriptIntellisense;
 using Microsoft.VisualStudio.Language.Intellisense;
 using RTextNppPlugin.Automate;
 using RTextNppPlugin.Automate.Protocol;
@@ -9,14 +6,16 @@ using RTextNppPlugin.Logging;
 using RTextNppPlugin.Parsing;
 using RTextNppPlugin.Utilities;
 using RTextNppPlugin.WpfControls;
+using System;
 using System.Collections.Generic;
-using System.Diagnostics;
+using System.Drawing;
+using System.Linq;
 
 namespace RTextNppPlugin.ViewModels
 {
     internal class AutoCompletionViewModel : BindableObject
     {
-        internal class Completion
+        internal class Completion : BindableObject
         {
             #region [Interface]
             public enum AutoCompletionType
@@ -48,6 +47,15 @@ namespace RTextNppPlugin.ViewModels
                 _isFuzzy       = isFuzzy;
             }
 
+            public Completion(Completion completion)
+            {
+                _displayText = completion.DisplayText;
+                _insertionText = completion.InsertionText;
+                _description = completion.Description;
+                _glyph = completion.ImageType;
+                IsFuzzy = IsSelected = false;
+            }
+
             public string DisplayText { get { return _displayText; } }
 
             public string Description { get { return _description; } }
@@ -56,7 +64,37 @@ namespace RTextNppPlugin.ViewModels
 
             public AutoCompletionType ImageType { get { return _glyph; } }
 
-            public bool IsFuzzy { get { return _isFuzzy; } }
+            public bool IsFuzzy
+            { 
+                get
+                { 
+                    return _isFuzzy;
+                }
+                set
+                {
+                    if( value != _isFuzzy)
+                    {
+                        _isFuzzy = value;
+                        base.RaisePropertyChanged("IsFuzzy");
+                    }
+                }
+            }
+
+            public bool IsSelected
+            {
+                get
+                {
+                    return _isSelected;
+                }
+                set
+                {
+                    if (value != _isSelected)
+                    {
+                        _isSelected = value;
+                        base.RaisePropertyChanged("IsSelected");
+                    }
+                }
+            }
 
             #endregion
 
@@ -70,7 +108,8 @@ namespace RTextNppPlugin.ViewModels
             private readonly string _insertionText;
             private readonly string _description;
             private readonly AutoCompletionType _glyph;
-            private readonly bool _isFuzzy;
+            private bool _isFuzzy;
+            private bool _isSelected;
 
             #endregion
         }
@@ -123,10 +162,6 @@ namespace RTextNppPlugin.ViewModels
             }
         }
 
-        public bool IsHint { get; private set; }
-
-        public bool IsSelected { get; private set; }
-
         public void OnZoomLevelChanged(int newZoomLevel)
         {
             //calculate actual zoom level , based on Scintilla zoom factors...
@@ -155,7 +190,6 @@ namespace RTextNppPlugin.ViewModels
         {
             _filteredList      = new FilteredObservableCollection<Completion>(_completionList);            
             CharProcessAction  = CharProcessResult.NoAction;
-            IsHint             = false;
             SelectedCompletion = null;
             _completionList.Add(CreateWarningCompletion(Properties.Resources.ERR_BACKEND_CONNECTING, Properties.Resources.ERR_BACKEND_CONNECTING_DESC));       
         }
@@ -183,39 +217,39 @@ namespace RTextNppPlugin.ViewModels
             }
         }
 
+        public void SelectPosition(int newPosition)
+        {
+            //fix for initial not selected item
+            if(newPosition == - 1)
+            {
+                return;
+            }
+            if(newPosition < 0 || newPosition > _filteredList.Count)
+            {
+                throw new ArgumentException(String.Format("newPosition is out of range : {0}", newPosition));
+            }
+            var previousSelection = SelectedCompletion;
+            if (previousSelection != null)
+            {
+                previousSelection.IsFuzzy = previousSelection.IsSelected = false;
+            }
+            SelectedCompletion         = _filteredList[newPosition];
+            SelectedCompletion.IsFuzzy = SelectedCompletion.IsSelected = true;
+        }
+
         public Completion SelectedCompletion 
         {
             get
             {
                 return _selectedCompletion;
             }
-            set
+            private set
             {
                 if(value != _selectedCompletion)
                 {
                     _selectedCompletion = value;
                     base.RaisePropertyChanged("SelectedCompletion");
                 }
-            }
-        }
-
-        public int SelectedIndex
-        {
-            get
-            {
-                return _selectedIndex;
-            }
-            set
-            {
-                if(value != _selectedIndex)
-                {
-                    _selectedIndex = value;                    
-                    base.RaisePropertyChanged("SelectedIndex");
-                    if (_selectedIndex != -1)
-                    {
-                        SelectedCompletion = _filteredList[_selectedIndex];
-                    }
-                }                
             }
         }
 
@@ -330,8 +364,8 @@ namespace RTextNppPlugin.ViewModels
 
         public void Filter()
         {
-            int fallBackIndex    = _selectedIndex;
             string fallBackHint  = _previousHint;
+            var previousSelection = SelectedCompletion;
             
             if(TriggerPoint.HasValue && !String.IsNullOrWhiteSpace(TriggerPoint.Value.Context))
             {
@@ -344,24 +378,47 @@ namespace RTextNppPlugin.ViewModels
                     _filteredList.Filter(x => x.InsertionText.Contains(_previousHint, StringComparison.OrdinalIgnoreCase));
                     if(_filteredList.Count == 0)
                     {
+                        //if count is null - previous selection is no longer valid!
+
                         //fuzzy matching
                         _filteredList.StopFiltering();
-                        //just externally highlight this one but do not select it
+                        if (previousSelection != null)
+                        {
+                            previousSelection.IsFuzzy = true;
+                            previousSelection.IsSelected = false;
+                        }
+                    }
+                    else
+                    {
+                        if (previousSelection != null)
+                        {
+                            previousSelection.IsFuzzy = previousSelection.IsSelected = false;
+                        }
+                        SelectedCompletion = _filteredList.Aggregate((curMin, x) => (x.InsertionText.Length > curMin.InsertionText.Length ? x : curMin));
+                        SelectedCompletion.IsSelected = SelectedCompletion.IsFuzzy = true;
                     }
                 }
                 else
                 {
+                    if (previousSelection != null)
+                    {
+                        previousSelection.IsFuzzy = previousSelection.IsSelected = false;
+                    }
                     //select the entry with minimum length                    
-                    var bestMatch      = _filteredList.Aggregate((curMin, x) => (x.InsertionText.Length < curMin.InsertionText.Length ? x : curMin));
-                    SelectedIndex      = _filteredList.IndexOf(bestMatch);
-                    SelectedCompletion = new Completion(bestMatch, false);
+                    SelectedCompletion = _filteredList.Aggregate((curMin, x) => (x.InsertionText.Length > curMin.InsertionText.Length ? x : curMin));                
+                    SelectedCompletion.IsSelected = SelectedCompletion.IsFuzzy = true;
                 }
             }
             else
             {
                 _filteredList.StopFiltering();
-                _selectedIndex     = 0;
-                SelectedCompletion = new Completion(_filteredList.First(), true);                
+                if(previousSelection != null)
+                {
+                    previousSelection.IsSelected = previousSelection.IsFuzzy = false;
+                }
+                SelectedCompletion            = _filteredList.First();
+                SelectedCompletion.IsFuzzy    = true;
+                SelectedCompletion.IsSelected = false;
             }            
         }
         #endregion
@@ -422,7 +479,6 @@ namespace RTextNppPlugin.ViewModels
         private int _currentInvocationId                                        = -1;                                         //!< Auto completion invocation id.
         private int _count                                                      = 0;                                          //!< Options count.
         private double _zoomLevel                                               = 1.0;                                        //!< Auto completion window zoom level.
-        private int _selectedIndex                                              = 0;                                          //!< Currently selected index.
         private Completion _selectedCompletion                                  = null;                                       //!< Currently selected option.
         private string _previousHint                                            = String.Empty;                               //!< Last string which matched an auto completion option.
         private List<Completion> _cachedOptions                                 = null;                                       //!< Last set of options.

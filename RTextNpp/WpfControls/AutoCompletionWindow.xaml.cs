@@ -201,16 +201,19 @@ namespace RTextNppPlugin.WpfControls
         private void ScrollList(System.Windows.Forms.Keys key, int offset = 1)
         {
             ICollectionView view = CollectionViewSource.GetDefaultView(GetModel().CompletionList);
+            int aNewPosition = 0;
             switch (key)
             {
                 case System.Windows.Forms.Keys.PageDown:
                 case System.Windows.Forms.Keys.Down:
                     if (view.CurrentPosition + offset < AutoCompletionDatagrid.Items.Count)
                     {
-                        view.MoveCurrentToPosition(view.CurrentPosition + offset);
+                        aNewPosition = view.CurrentPosition + offset;
+                        view.MoveCurrentToPosition(aNewPosition);                       
                     }
                     else
                     {
+                        aNewPosition = AutoCompletionDatagrid.Items.Count - 1;
                         view.MoveCurrentToLast();
                     }
                     break;
@@ -218,14 +221,18 @@ namespace RTextNppPlugin.WpfControls
                 case System.Windows.Forms.Keys.Up:
                     if (view.CurrentPosition - offset >= 0)
                     {
+                        aNewPosition = view.CurrentPosition - offset;
                         view.MoveCurrentToPosition(view.CurrentPosition - offset);
+
                     }
                     else
                     {
+                        aNewPosition = 0;
                         view.MoveCurrentToFirst();
                     }
                     break;
             }
+            GetModel().SelectPosition(aNewPosition);
             this.AutoCompletionDatagrid.ScrollIntoView(view.CurrentItem);
         }
 
@@ -252,7 +259,7 @@ namespace RTextNppPlugin.WpfControls
 
         private void OnAutoCompletionDatagridSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            GetModel().SelectedCompletion = ((DataGrid)sender).SelectedItem as AutoCompletionViewModel.Completion;
+            GetModel().SelectPosition(((DataGrid)sender).SelectedIndex);
         }
 
     }

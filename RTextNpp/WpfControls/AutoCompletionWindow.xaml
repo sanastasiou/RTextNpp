@@ -47,7 +47,6 @@
                       ScrollViewer.VerticalScrollBarVisibility="Auto"                      
                       AlternationCount="2"
                       SelectionMode="Single"                                            
-                      SelectedIndex="{Binding SelectedIndex, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                       MaxHeight="400"
                       IsSynchronizedWithCurrentItem="True"
                       AllowDrop="False"
@@ -59,21 +58,10 @@
                       GridLinesVisibility="None"
                       VirtualizingStackPanel.IsVirtualizing="True"
                       IsReadOnly="True">
-                <!--SelectedIndex="{Binding SelectedIndex, Mode=TwoWay}"-->
                 <DataGrid.Resources>
                     <Style TargetType="DataGridCell">
                         <Setter Property="BorderThickness" Value="0"/>
                         <Setter Property="Background" Value="Transparent"/>
-                        <Style.Triggers>
-                            <Trigger Property="IsSelected" Value="True">
-                                <Setter Property="Background" Value="{Binding Converter={StaticResource SelectedCellBackgroundBrushConverter},
-                                                                                                        RelativeSource={RelativeSource FindAncestor, 
-                                                                                                        AncestorType={x:Type Window}}, Path=DataContext}"/>
-                            </Trigger>
-                            <Trigger Property="IsSelected" Value="False">
-                                <Setter Property="Background" Value="Transparent"/>
-                            </Trigger>
-                        </Style.Triggers>
                     </Style>
                 </DataGrid.Resources>
                 <DataGrid.Columns>
@@ -84,9 +72,24 @@
                                     <Border.Style>
                                         <Style>
                                             <Setter Property="Border.BorderThickness" Value="1"/>
-                                            <Setter Property="Border.BorderBrush" Value="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type DataGridCell}}, Path=DataContext, Converter={StaticResource AutoCompletionCellBorderConverter}}"/>
+                                            <Setter Property="Border.BorderBrush" Value="Transparent"/>
                                             <Setter Property="Border.Padding" Value="0"/>
                                             <Setter Property="Border.Margin" Value="0"/>
+                                            <Setter Property="Border.Background" Value="Red"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                                                    <Setter Property="Border.Background" Value="LimeGreen"/>
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding IsSelected}" Value="False">
+                                                    <Setter Property="Border.Background" Value="Transparent"/>
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding IsFuzzy}" Value="True">
+                                                    <Setter Property="Border.BorderBrush" Value="LimeGreen"/>
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding IsFuzzy}" Value="False">
+                                                    <Setter Property="Border.BorderBrush" Value="Transparent"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
                                         </Style>                                        
                                     </Border.Style>
                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch" Margin="0">
