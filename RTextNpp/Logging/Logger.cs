@@ -68,7 +68,7 @@ namespace RTextNppPlugin.Logging
 
         public void Append(MessageType type, string channel, string msg, params object[] args)
         {
-            Append(type, channel, String.Format(msg, args));
+            Append(type, channel, String.Format(msg.Replace("{", "{{").Replace("}", "}}"), args));
         }
 
         /**

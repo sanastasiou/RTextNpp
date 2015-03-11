@@ -251,6 +251,9 @@ namespace RTextNppPlugin
                     if (!_autoCompletionForm.IsVisible)
                     {          
                         int aCurrentPosition = CSScriptIntellisense.Npp.GetCaretPosition();
+                        int aStartPosition   = CSScriptIntellisense.Npp.GetLineStart(CSScriptIntellisense.Npp.GetLineNumber());
+                        int aColumn = (aCurrentPosition - aStartPosition) + 1;
+                        //fix extractor column bug...
                         if (aCurrentPosition >= 0)
                         {
                             int aLineNumber = CSScriptIntellisense.Npp.GetLineNumber();
