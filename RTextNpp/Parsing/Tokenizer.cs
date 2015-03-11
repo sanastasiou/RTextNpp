@@ -190,17 +190,28 @@ namespace RTextNppPlugin.Parsing
          */
         public int CaretColumn { get; set; }
 
+        /**
+         * Gets the line tokens up until the trigger point has been found.
+         *
+         * \return  The line tokens.
+         */
+        public IEnumerable<string> LineTokens
+        {
+            get
+            {
+                return _tokenList;
+            }
+        }
+
         #region [Helpers]
         void FindTriggerToken(int currentCursorColumn)
         {
-            foreach (var t in base.Tokenize(RTextTokenTypes.Boolean, RTextTokenTypes.Comma,
-                                            RTextTokenTypes.Command, RTextTokenTypes.Float,
-                                            RTextTokenTypes.Integer, RTextTokenTypes.Label,
-                                            RTextTokenTypes.LeftAngleBrakcet, RTextTokenTypes.LeftBracket,
-                                            RTextTokenTypes.Reference, RTextTokenTypes.RightAngleBracket,
-                                            RTextTokenTypes.RightBrakcet, RTextTokenTypes.RTextName,
-                                            RTextTokenTypes.Template, RTextTokenTypes.Space))
+            foreach (var t in base.Tokenize())
             {
+                if (t.Type == RTextTokenTypes.Label)
+                {
+                    _tokenList.Add(t.Context);
+                }
                 if (_currentPos >= t.BufferPosition && _currentPos <= t.BufferPosition + (t.EndColumn - t.StartColumn))
                 {
                     _triggerToken = new TokenTag
@@ -232,18 +243,31 @@ namespace RTextNppPlugin.Parsing
                 };
             }
 
-            #if DEBUG
             if (_triggerToken.HasValue)
             {
-                System.Diagnostics.Trace.WriteLine(_triggerToken.Value);
+                var aTokenType = _triggerToken.Value.Type;
+                if(aTokenType == RTextTokenTypes.QuotedString || 
+                   aTokenType == RTextTokenTypes.Comment || 
+                   aTokenType == RTextTokenTypes.Error || 
+                   aTokenType == RTextTokenTypes.LeftAngleBrakcet ||
+                   aTokenType == RTextTokenTypes.NewLine ||
+                   aTokenType == RTextTokenTypes.Notation ||
+                   aTokenType == RTextTokenTypes.RightAngleBracket ||
+                   aTokenType == RTextTokenTypes.RightBrakcet ||
+                   aTokenType == RTextTokenTypes.Template
+                  )
+                {
+                    //no auto completion for above types
+                    _triggerToken = null;
+                }
             }
-            #endif
         }
         #endregion
 
         #region [Data Members]
         private readonly int _currentPos;
         private Tokenizer.TokenTag? _triggerToken = null;
+        private List<string> _tokenList = new List<string>(50);
         #endregion
     }
 }

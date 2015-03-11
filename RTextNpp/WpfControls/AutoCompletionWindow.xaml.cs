@@ -55,9 +55,9 @@ namespace RTextNppPlugin.WpfControls
             }
         }
 
-        public void AugmentAutoCompletion(ContextExtractor extractor, System.Drawing.Point caretPoint, Tokenizer.TokenTag? token, ref bool request)
+        public void AugmentAutoCompletion(ContextExtractor extractor, System.Drawing.Point caretPoint, AutoCompletionTokenizer tokenizer, ref bool request)
         {
-            GetModel().AugmentAutoCompletion(extractor, caretPoint, token, ref request);
+            GetModel().AugmentAutoCompletion(extractor, caretPoint, tokenizer, ref request);
             CharProcessAction = GetModel().CharProcessAction;
             TriggerPoint      = GetModel().TriggerPoint;
         }
@@ -86,6 +86,14 @@ namespace RTextNppPlugin.WpfControls
                 this.Top  = aCaretPoint.Y;
             }
             Dispatcher.BeginInvoke(new Action<int>(GetModel().OnZoomLevelChanged), newZoomLevel);
+        }
+
+        /**
+         * Clears the completion.
+         */
+        internal void ClearCompletion()
+        {
+            GetModel().ClearSelectedCompletion();
         }
 
         internal AutoCompletionViewModel.Completion Completion { get { return GetModel().SelectedCompletion; } }
@@ -125,7 +133,7 @@ namespace RTextNppPlugin.WpfControls
         /**
          * @return  true if mouse inside window, false if not.
          */
-        public bool IsMouseInsideWindow()
+        private bool IsMouseInsideWindow()
         {
             double dWidth = -1;
             double dHeight = -1;
@@ -263,6 +271,5 @@ namespace RTextNppPlugin.WpfControls
             GetModel().SelectPosition(((DataGrid)sender).SelectedIndex);
             this.AutoCompletionDatagrid.ScrollIntoView(GetModel().SelectedCompletion);
         }
-
     }
 }

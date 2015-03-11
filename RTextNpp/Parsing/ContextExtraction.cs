@@ -14,20 +14,6 @@ namespace RTextNppPlugin.Parsing
         /**
          * \brief   Constructor.
          *
-         * \param   contextLines    The context lines.
-         * \param   lengthToEnd     The length to end of line from current column.
-         */
-        //public ContextExtractor(string[] contextLines, int lengthToEnd)
-        //{
-        //    _reversedLines = new List<string>(JoinLines(ref contextLines).Reverse());
-        //    _contextLines  = new List<string>(_reversedLines.Count);
-        //    Analyze();
-        //    ContextColumn  = _contextLines.Last().Length - lengthToEnd;
-        //}
-
-        /**
-         * \brief   Constructor.
-         *
          * \param   contextBlock    The context block of text.
          * \param   lengthToEnd     The length to end.
          */

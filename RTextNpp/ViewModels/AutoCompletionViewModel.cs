@@ -200,6 +200,7 @@ namespace RTextNppPlugin.ViewModels
             _cachedOptions = new List<Completion>(_completionList);
             _completionList.Clear();
             _filteredList.StopFiltering();
+            SelectedCompletion = null;
         }
 
         public BulkObservableCollection<Completion> UnderlyingList
@@ -261,7 +262,7 @@ namespace RTextNppPlugin.ViewModels
 
         public void ClearSelectedCompletion()
         {
-            SelectedCompletion.IsSelected = SelectedCompletion.IsFuzzy = false;
+            SelectedCompletion = null;
         }
 
         public FilteredObservableCollection<Completion> CompletionList
@@ -272,20 +273,20 @@ namespace RTextNppPlugin.ViewModels
             }
         }
 
-        public void AugmentAutoCompletion(ContextExtractor extractor, Point caretPoint, Tokenizer.TokenTag ? token, ref bool request)
+        public void AugmentAutoCompletion(ContextExtractor extractor, Point caretPoint, AutoCompletionTokenizer tokenizer, ref bool request)
         {
+            CharProcessAction = CharProcessResult.NoAction;
             _completionList.Clear();
-            if((TriggerPoint.HasValue && token.HasValue && TriggerPoint.Value == token.Value && _cachedOptions != null) && !_isWarningCompletionActive)
+            if ((TriggerPoint.HasValue && tokenizer.TriggerToken.HasValue && TriggerPoint.Value == tokenizer.TriggerToken.Value && _cachedOptions != null) && !_isWarningCompletionActive && !request)
             {
-                TriggerPoint = token;
+                TriggerPoint = tokenizer.TriggerToken;
                 _completionList.AddRange(_cachedOptions);
                 Filter();
                 return;
             }
-            
-            TriggerPoint      = token;
-            CharProcessAction = CharProcessResult.NoAction;
-            if(!token.HasValue)
+
+            TriggerPoint = tokenizer.TriggerToken;            
+            if (!tokenizer.TriggerToken.HasValue)
             {
                 CharProcessAction = CharProcessResult.ForceClose;
                 return;
@@ -297,7 +298,7 @@ namespace RTextNppPlugin.ViewModels
                 context       = extractor.ContextList,
                 type          = Constants.Commands.REQUEST,
                 invocation_id = -1
-            };
+            };            
             _currentConnector = ConnectorManager.Instance.Connector;
             if (_currentConnector != null)
             {
@@ -315,54 +316,59 @@ namespace RTextNppPlugin.ViewModels
                         _isWarningCompletionActive = true;
                         break;
                     case Automate.StateEngine.ProcessState.Connected:
-                        if (request)
-                        {
-                            request = false;
-                            AutoCompleteResponse aResponse = _currentConnector.execute<AutoCompleteAndReferenceRequest>(aRequest, ref _currentInvocationId, Constants.SYNCHRONOUS_COMMANDS_TIMEOUT) as AutoCompleteResponse;
+                        AutoCompleteResponse aResponse = _currentConnector.execute<AutoCompleteAndReferenceRequest>(aRequest, ref _currentInvocationId, Constants.SYNCHRONOUS_COMMANDS_TIMEOUT) as AutoCompleteResponse;
 
-                            if (aResponse == null)
+                        if (aResponse == null)
+                        {
+                            _completionList.Add(CreateWarningCompletion(Properties.Resources.ERR_AUTO_COMPLETION_NULL_RESP, Properties.Resources.ERR_AUTO_COMPLETION_NULL_DESC));
+                            _isWarningCompletionActive = true;
+                        }
+                        else
+                        {
+                            //check invocation id
+                            if (_currentInvocationId != aResponse.invocation_id)
                             {
-                                _completionList.Add(CreateWarningCompletion(Properties.Resources.ERR_AUTO_COMPLETION_NULL_RESP, Properties.Resources.ERR_AUTO_COMPLETION_NULL_DESC));
-                                _isWarningCompletionActive = true;
+                                _completionList.Add(CreateWarningCompletion(Properties.Resources.ERR_AUTO_COMPLETION_INVOKATION, Properties.Resources.ERR_AUTO_COMPLETION_INVOKATION_DESC));
+                                Logger.Instance.Append(Logger.MessageType.Error,
+                                                            _currentConnector.Workspace,
+                                                            String.Format("Auto complete for file {0} failed. Wrong invocation id return from backend! Expected: {1} - Receoved: {2}",
+                                                                                                                                                                Npp.GetCurrentFile(),
+                                                                                                                                                                _currentInvocationId,
+                                                                                                                                                                aResponse.invocation_id));
                             }
                             else
                             {
-                                //check invocation id
-                                if (_currentInvocationId != aResponse.invocation_id)
+                                //add pics, remove existins options
+                                var filteredList = aResponse.options.AsParallel().Where(x => !tokenizer.LineTokens.Contains(x.insert));
+                                var labeledList = filteredList.Select(x => new Completion(
+                                    x.display,
+                                    x.insert,
+                                    x.desc,
+                                    x.insert.Contains("event", StringComparison.InvariantCultureIgnoreCase) ? Completion.AutoCompletionType.Event : Completion.AutoCompletionType.Label));
+
+                                if (labeledList.Count() != 0)
                                 {
-                                    _completionList.Add(CreateWarningCompletion(Properties.Resources.ERR_AUTO_COMPLETION_INVOKATION, Properties.Resources.ERR_AUTO_COMPLETION_INVOKATION_DESC));
-                                    Logger.Instance.Append(Logger.MessageType.Error,
-                                                             _currentConnector.Workspace,
-                                                             String.Format("Auto complete for file {0} failed. Wrong invocation id return from backend! Expected: {1} - Receoved: {2}",
-                                                                                                                                                                 Npp.GetCurrentFile(),
-                                                                                                                                                                 _currentInvocationId,
-                                                                                                                                                                 aResponse.invocation_id));
-                                }
-                                else
-                                {
-                                    if (aResponse.options.Count != 0)
+                                    if (labeledList.Count() == 1)
                                     {
-                                        if (aResponse.options.Count == 1)
-                                        {
-                                            var option = aResponse.options.First(); 
-                                            //auto insert
-                                            SelectedCompletion = new Completion(option.display, option.insert, option.desc, Completion.AutoCompletionType.Label);
-                                            CharProcessAction  = CharProcessResult.ForceCommit;
-                                        }
-                                        else
-                                        {
-                                            _completionList.AddRange(aResponse.options.Select(x => new Completion(x.display, x.insert, x.desc, Completion.AutoCompletionType.Label)).OrderBy(x => x.InsertionText));
-                                            Filter();
-                                        }
+                                        //auto insert
+                                        SelectedCompletion            = labeledList.First();
+                                        SelectedCompletion.IsSelected = true;
+                                        CharProcessAction             = CharProcessResult.ForceCommit;
                                     }
                                     else
                                     {
-                                        CharProcessAction = CharProcessResult.ForceClose;
+                                        _completionList.AddRange(labeledList.OrderBy(x => x.InsertionText));
+                                        Filter();
                                     }
                                 }
-                                _isWarningCompletionActive = false;
+                                else
+                                {
+                                    CharProcessAction = CharProcessResult.ForceClose;
+                                }
                             }
-                        }                        
+                            _isWarningCompletionActive = false;
+                            request                    = false;
+                        }                                                
                         break;
                     default:
                         Logger.Instance.Append(Logger.MessageType.FatalError, _currentConnector.Workspace, "Undefined connector state reached. Please notify support.");
@@ -415,11 +421,19 @@ namespace RTextNppPlugin.ViewModels
                     _filteredList.StopFiltering();
                     if (previousSelection != null)
                     {
-                        previousSelection.IsFuzzy = true;
-                        previousSelection.IsSelected = false;
+                        SelectedIndex = _filteredList.IndexOf(previousSelection);
                     }
-                    FilteredCount = _completionList.Count;
-                    SelectedIndex = _filteredList.IndexOf(previousSelection);
+
+                    if(SelectedIndex == -1)
+                    {
+                        SelectedCompletion = _filteredList.First();
+                        SelectedIndex      = 0;
+                    }
+
+                    SelectedCompletion.IsFuzzy    = true;
+                    SelectedCompletion.IsSelected = false;
+
+                    FilteredCount = _completionList.Count;                    
                 }
                 else
                 {
@@ -485,7 +499,7 @@ namespace RTextNppPlugin.ViewModels
                 //if auto completion is inside comment, notation, name, string jusr return
                 AutoCompletionTokenizer aTokenizer = new AutoCompletionTokenizer(aLineNumber, aCurrentPosition, Npp.GetColumn());
                 TriggerPoint = aTokenizer.TriggerToken;
-                if (!TriggerPoint.HasValue || TriggerPoint.Value.StartColumn != t.StartColumn)
+                if (!TriggerPoint.HasValue)
                 {
                     CharProcessAction = CharProcessResult.ForceClose;
                 }

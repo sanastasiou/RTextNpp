@@ -150,14 +150,9 @@ namespace RTextNppPlugin
                             CommitAutoCompletion(true);
                             Npp.AddText(Constants.COMMA.ToString());
                             handled = true;
-                            //enable daisy chaining on comma
-                            OnCharTyped(Constants.COMMA);
                         }
-                        else
-                        {
-                            //start auto completion fix window position - handle insertion when token is comma i.e. do not replace comma
-                            OnCharTyped(Constants.COMMA);
-                        }
+                        //start auto completion fix window position - handle insertion when token is comma i.e. do not replace comma
+                        OnCharTyped(Constants.COMMA);
                         break;
                     case Keys.Escape:
                     case Keys.Cancel:
@@ -201,21 +196,26 @@ namespace RTextNppPlugin
                 else
                 {
                     _autoCompletionForm.OnKeyPressed(c);                    
+                    if(_autoCompletionForm.CharProcessAction == ViewModels.AutoCompletionViewModel.CharProcessResult.ForceClose)
+                    {
+                        _autoCompletionForm.Hide();
+                    }
                 }
             }
         }
 
         private static void CommitAutoCompletion(bool replace)
         {
-            if(replace)
+            if(replace && _autoCompletionForm.TriggerPoint != null)
             {
                 //use current selected item to replace token
-                if (_autoCompletionForm.Completion != null)
+                if (_autoCompletionForm.Completion != null && _autoCompletionForm.Completion.IsSelected)
                 {
                     Npp.ReplaceWordFromToken(_autoCompletionForm.TriggerPoint, _autoCompletionForm.Completion.InsertionText);
                 }
             }
             _autoCompletionForm.Hide();
+            _autoCompletionForm.ClearCompletion();
         }
 
         private static async Task AsyncInvoke(Action action)
@@ -264,11 +264,11 @@ namespace RTextNppPlugin
                             if (aTokenizer.TriggerToken.HasValue && aTokenizer.TriggerToken.Value.Type != RTextTokenTypes.Comma)
                             {
                                 aCaretPoint = CSScriptIntellisense.Npp.GetCaretScreenLocationRelativeToPosition(aTokenizer.TriggerToken.Value.BufferPosition);
-                            }                            
+                            }                                                        
                             _autoCompletionForm.Left = aCaretPoint.X;
                             _autoCompletionForm.Top  = aCaretPoint.Y;
                             Utilities.VisualUtilities.SetOwnerFromNppPlugin(_autoCompletionForm);
-                            _autoCompletionForm.AugmentAutoCompletion(aExtractor, aCaretPoint, aTokenizer.TriggerToken, ref _requestAutoCompletion);
+                            _autoCompletionForm.AugmentAutoCompletion(aExtractor, aCaretPoint, aTokenizer, ref _requestAutoCompletion);
                             switch (_autoCompletionForm.CharProcessAction)
                             {
                                 case ViewModels.AutoCompletionViewModel.CharProcessResult.ForceClose:

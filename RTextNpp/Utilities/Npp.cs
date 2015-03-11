@@ -410,11 +410,14 @@ namespace CSScriptIntellisense
         }
 
         static public void ReplaceWordFromToken(Tokenizer.TokenTag ? token, string insertionText)
-        {
+        {            
             IntPtr sci = Plugin.GetCurrentScintilla();
             int aCaretPos = GetCaretPosition();
-            if (token.HasValue && (token.Value.Type != RTextTokenTypes.Space && token.Value.Type != RTextTokenTypes.Comma)) //if token is space or comma, add the new text after it!
+            bool isCaretInsideToken = (aCaretPos >= token.Value.BufferPosition && aCaretPos < (token.Value.BufferPosition + token.Value.Context.Length));
+
+            if (token.HasValue && (token.Value.Type != RTextTokenTypes.Space && token.Value.Type != RTextTokenTypes.Comma && token.Value.Type != RTextTokenTypes.Label) || (token.Value.Type == RTextTokenTypes.Label && isCaretInsideToken))
             {
+                //if token is space or comma or label, add the new text after it!
                 Win32.SendMessage(sci, SciMsg.SCI_SETSELECTION, token.Value.BufferPosition, token.Value.BufferPosition + token.Value.Context.Length);
             }
             else
