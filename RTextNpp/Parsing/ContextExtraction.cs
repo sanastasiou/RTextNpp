@@ -54,9 +54,9 @@ namespace RTextNppPlugin.Parsing
             int last_element_line = 0;
 
             //last line is always a context line
-            _contextLines.Push(joinedLines[_currentIndex - 1].ToString());
+            _contextLines.Push(joinedLines[_currentIndex].ToString());
             //start from second to last line and go up
-            for (int i = _currentIndex - 2; i >= 0; --i)
+            for (int i = _currentIndex - 1; i >= 0; --i)
             {
                 string aStrippedLine = joinedLines[i].ToString().Trim();
                 if (String.IsNullOrEmpty(aStrippedLine)) continue;
@@ -113,8 +113,10 @@ namespace RTextNppPlugin.Parsing
             {                
                 bool aIsBroken = false;
                 _currentIndex = 0;
+                int count = it.Count();
                 while(enumerator.MoveNext())
                 {
+                    --count;
                     bool aWasBroken = aIsBroken;
                     aIsBroken = enumerator.Current.Last() == '[' || enumerator.Current.Last() == ',' || enumerator.Current.Last() == '\\';
                     var trimmed = enumerator.Current.Trim();
@@ -145,7 +147,7 @@ namespace RTextNppPlugin.Parsing
                     {
                         aJoinedLines[_currentIndex] = new StringBuilder(100).Append(enumerator.Current);
                     }
-                    if (!aIsBroken)
+                    if (!aIsBroken && (count > 0))
                     {
                         ++_currentIndex;
                     }

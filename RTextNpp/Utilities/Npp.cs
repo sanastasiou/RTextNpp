@@ -218,7 +218,6 @@ namespace CSScriptIntellisense
 
         static public int GetLengthToEndOfLine(int currentCharacterColumn)
         {
-            var foo = CSScriptIntellisense.Npp.GetLine().RemoveNewLine().Length;
             return CSScriptIntellisense.Npp.GetLine().RemoveNewLine().Length - currentCharacterColumn;
         }
 
