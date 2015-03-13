@@ -1,14 +1,13 @@
 ﻿using System;
-using System.Diagnostics;
+using System.ComponentModel;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Input;
 using CSScriptIntellisense;
 using RTextNppPlugin.Parsing;
 using RTextNppPlugin.Utilities;
 using RTextNppPlugin.ViewModels;
-using System.Windows.Controls;
-using System.ComponentModel;
-using System.Windows.Data;
 
 namespace RTextNppPlugin.WpfControls
 {
@@ -267,9 +266,12 @@ namespace RTextNppPlugin.WpfControls
         #endregion
 
         private void OnAutoCompletionDatagridSelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
+        {            
             GetModel().SelectPosition(((DataGrid)sender).SelectedIndex);
-            this.AutoCompletionDatagrid.ScrollIntoView(GetModel().SelectedCompletion);
+            if (GetModel().SelectedCompletion != null)
+            {
+                this.AutoCompletionDatagrid.ScrollIntoView(GetModel().SelectedCompletion);
+            }
         }
     }
 }

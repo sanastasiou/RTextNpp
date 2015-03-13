@@ -216,9 +216,10 @@ namespace CSScriptIntellisense
             return (int)Win32.SendMessage(sci, SciMsg.SCI_LINEFROMPOSITION, position, 0);
         }
 
-        static public int GetLengthToEndOfLine()
+        static public int GetLengthToEndOfLine(int currentCharacterColumn)
         {
-            return CSScriptIntellisense.Npp.GetLine().RemoveNewLine().Length - CSScriptIntellisense.Npp.GetColumn();
+            var foo = CSScriptIntellisense.Npp.GetLine().RemoveNewLine().Length;
+            return CSScriptIntellisense.Npp.GetLine().RemoveNewLine().Length - currentCharacterColumn;
         }
 
         static public int GetColumn()

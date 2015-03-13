@@ -252,14 +252,14 @@ namespace RTextNppPlugin
                     {          
                         int aCurrentPosition = CSScriptIntellisense.Npp.GetCaretPosition();
                         int aStartPosition   = CSScriptIntellisense.Npp.GetLineStart(CSScriptIntellisense.Npp.GetLineNumber());
-                        int aColumn = (aCurrentPosition - aStartPosition) + 1;
+                        int aColumn = (aCurrentPosition - aStartPosition);
                         //fix extractor column bug...
                         if (aCurrentPosition >= 0)
                         {
                             int aLineNumber = CSScriptIntellisense.Npp.GetLineNumber();
                             //get text from start till current line end
                             string aContextBlock = CSScriptIntellisense.Npp.GetTextBetween(0, CSScriptIntellisense.Npp.GetLineEnd(aLineNumber));
-                            ContextExtractor aExtractor = new ContextExtractor(aContextBlock, CSScriptIntellisense.Npp.GetLengthToEndOfLine());
+                            ContextExtractor aExtractor = new ContextExtractor(aContextBlock, CSScriptIntellisense.Npp.GetLengthToEndOfLine(aColumn));
                             //if auto completion is inside comment, notation, name, string jusr return
                             AutoCompletionTokenizer aTokenizer = new AutoCompletionTokenizer(aLineNumber, aCurrentPosition, aExtractor.ContextColumn);                            
                             //if a token is found then the window should appear at the start of it, else it should appear at the caret

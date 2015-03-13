@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Text.RegularExpressions;
+using AJ.Common;
 
 namespace RTextNppPlugin.Parsing
 {
@@ -19,17 +20,15 @@ namespace RTextNppPlugin.Parsing
          */
         public ContextExtractor(string contextBlock, int lengthToEnd)
         {
-            var aContextLines = contextBlock.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries);
-            _reversedLines    = new List<string>(JoinLines(ref aContextLines).Reverse());
-            _contextLines     = new List<string>(_reversedLines.Count);
-            Analyze();
-            ContextColumn     = _contextLines.Last().Length - lengthToEnd;
+            Analyze(JoinLines(contextBlock.SplitString(new string[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries)));
+            //adjust for backend
+            ContextColumn     = (_contextLines.Last().Length - lengthToEnd) + 1;
         }
 
         /**
          * Gets or sets a list of context lines.
          */
-        public List<string> ContextList
+        public IEnumerable<string> ContextList
         {
             get
             {
@@ -46,17 +45,20 @@ namespace RTextNppPlugin.Parsing
         #endregion
 
         #region [Helpers]
-        private void Analyze()
+        private void Analyze(List<StringBuilder> joinedLines)
         {
+            _contextLines = new Stack<string>(joinedLines.Count());
             int non_ignored_lines = 0;
             int array_nesting     = 0;
             int block_nesting     = 0;
             int last_element_line = 0;
 
-            _contextLines.Add(_reversedLines[0]);
-            for (int i = 1; i < _reversedLines.Count; ++i)
+            //last line is always a context line
+            _contextLines.Push(joinedLines[_currentIndex - 1].ToString());
+            //start from second to last line and go up
+            for (int i = _currentIndex - 2; i >= 0; --i)
             {
-                string aStrippedLine = _reversedLines[i].Trim();
+                string aStrippedLine = joinedLines[i].ToString().Trim();
                 if (String.IsNullOrEmpty(aStrippedLine)) continue;
                 else
                 {
@@ -70,7 +72,7 @@ namespace RTextNppPlugin.Parsing
                             }
                             else if (block_nesting == 0)
                             {
-                                _contextLines.Add(aStrippedLine);
+                                _contextLines.Push(aStrippedLine);
                                 last_element_line = non_ignored_lines;
                             }
                             break;
@@ -84,7 +86,7 @@ namespace RTextNppPlugin.Parsing
                             }
                             else if (array_nesting == 0)
                             {
-                                _contextLines.Add(aStrippedLine);
+                                _contextLines.Push(aStrippedLine);
                             }
                             break;
                         case ']':
@@ -94,99 +96,71 @@ namespace RTextNppPlugin.Parsing
                             //label directly above element
                             if (non_ignored_lines == last_element_line + 1)
                             {
-                                _contextLines.Add(aStrippedLine);
+                                _contextLines.Push(aStrippedLine);
                             }
                             break;
                     }
                 }
-            }
-            _contextLines.Reverse();
-        }
+            }                        
+        }      
 
-        /**
-         * \brief   Join broken lines while preserving whitespace, commas and opening brackets. Line separators are removed.
-         *
-         * \param [in,out]  originalLines   The original lines.
-         *
-         * \return  An enumerator that allows foreach to be used to process the joined lines.
-         */
-
-        private IEnumerable<string> JoinLinesStraight(ref string[] originalLines)
+        private List<StringBuilder> JoinLines(IEnumerable<string> it)
         {
-            List<string> aJoinedLines = new List<string>(originalLines.Count());
-             IEnumerator<string> it = (IEnumerator<string>)originalLines.GetEnumerator();
-
-             while (it.MoveNext())
-             {
-                 var trimmed = it.Current.Trim();
-                 if (trimmed.StartsWith("@") || trimmed.StartsWith("#"))
-                 {
-                     continue;
-                 }
-             }
-
-            return aJoinedLines;
-        }
-
-        private IEnumerable<string> JoinLines(ref string [] originalLines)
-        {
-            List<string> aJoinedLines = new List<string>(originalLines.Count());
-            
-            for (int i = 0; i < originalLines.Count(); ++i)
+            System.Diagnostics.Stopwatch watch = new System.Diagnostics.Stopwatch();
+            watch.Start();
+            List<StringBuilder> aJoinedLines = new List<StringBuilder>(new StringBuilder[it.Count()]);                       
+            using (var enumerator = it.GetEnumerator())
             {                
-                //skip whitespaces, empty lines, comments and notations
-                if(_IGNORE_LINE_REGEX.IsMatch(originalLines[i]))continue;
-
-                string aCurrentLine = null;
-                Match aSepMatch = null;
-                do
+                bool aIsBroken = false;
+                _currentIndex = 0;
+                while(enumerator.MoveNext())
                 {
-                    //concatenate till no more line breaks or end of lines are found
-                    if ((aSepMatch = _LINE_SEP_REGEX.Match(originalLines[i])).Success)
+                    bool aWasBroken = aIsBroken;
+                    aIsBroken = enumerator.Current.Last() == '[' || enumerator.Current.Last() == ',' || enumerator.Current.Last() == '\\';
+                    var trimmed = enumerator.Current.Trim();
+                    if(trimmed.Length > 0 && ( trimmed[0] == '@' || trimmed[0] == '#') )
                     {
-                        if (aCurrentLine == null)
+                        continue;
+                    }
+                    if (aIsBroken)
+                    {
+                        if(enumerator.Current.Last() == '\\')
                         {
-                            aCurrentLine = aSepMatch.Groups[1].Value;
-                            if(aSepMatch.Groups[2].Value == "," || aSepMatch.Groups[2].Value == "[")
-                            {
-                                aCurrentLine += aSepMatch.Groups[2].Value;
-                            }
+                            //remove seperator
+                            aJoinedLines[_currentIndex].Append(enumerator.Current, 0, enumerator.Current.Length - 1); 
                         }
                         else
                         {
-                            aCurrentLine += aSepMatch.Groups[1].Value;
+                            if (aWasBroken)
+                            {
+                                aJoinedLines[_currentIndex].Append(enumerator.Current);
+                            }
+                            else
+                            {
+                                aJoinedLines[_currentIndex] = new StringBuilder(100).Append(enumerator.Current);
+                            }
                         }
-                        ++i;
                     }
                     else
                     {
-                        //we have had no match till now - no broken line
-                        if (aCurrentLine == null)
-                        {
-                            aCurrentLine = originalLines[i];
-                        }
-                        else
-                        {
-                            //we had some match, just append
-                            aCurrentLine += originalLines[i];
-                        }
+                        aJoinedLines[_currentIndex] = new StringBuilder(100).Append(enumerator.Current);
                     }
-
-                } while (aSepMatch.Success && i < originalLines.Count());
-                aJoinedLines.Add(aCurrentLine);
+                    if (!aIsBroken)
+                    {
+                        ++_currentIndex;
+                    }
+                }
             }
+            System.Diagnostics.Trace.WriteLine(String.Format("Elapsed for joining all lines , no match : {0}", watch.Elapsed));
             return aJoinedLines;
         }
-
 
         #endregion
 
         #region [Data Members]
 
-        private List<string> _contextLines;                                                              //! The analyzed context lines.
-        private List<string> _reversedLines;                                                             //!< Original context lines in reversed order.
-        private Regex        _LINE_SEP_REGEX = new Regex(@"(.*?)(\\|,|\[)(\s*)$", RegexOptions.Compiled);//!< Regex to find line breaker.
-        private Regex _IGNORE_LINE_REGEX = new Regex(@"^\s*(@|#)", RegexOptions.Compiled);               //!< Regex to completely discard line if it's a comment or a notation.
+        private Stack<string> _contextLines;   //!< The analyzed context lines.
+        private int _currentIndex;             //!< The maximum index of currently joined lines. 
 
         #endregion
     }

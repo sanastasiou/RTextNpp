@@ -9,7 +9,7 @@ namespace RTextNppPlugin.Automate.Protocol
     class AutoCompleteAndReferenceRequest : RequestBase
     {
         [DataMember]
-        public List<string> context { get; set; }
+        public IEnumerable<string> context { get; set; }
         [DataMember]
         public int column { get; set; }
     }
