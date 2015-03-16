@@ -8,7 +8,7 @@ using AJ.Common;
 
 namespace RTextNppPlugin.Parsing
 {
-    public class ContextExtractor
+    public class ContextExtractor : IContextExtractor
     {
         #region [Interface]
 
@@ -20,9 +20,17 @@ namespace RTextNppPlugin.Parsing
          */
         public ContextExtractor(string contextBlock, int lengthToEnd)
         {
-            Analyze(JoinLines(contextBlock.SplitString(new string[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries)));
-            //adjust for backend
-            ContextColumn     = (_contextLines.Last().Length - lengthToEnd) + 1;
+            if (contextBlock == null || lengthToEnd < 0)
+            {
+                _contextLines = new Stack<string>();
+                ContextColumn = 0;
+            }
+            else
+            {
+                Analyze(JoinLines(contextBlock.SplitString(new string[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries)));
+                //adjust for backend
+                ContextColumn = (_contextLines.Last().Length - lengthToEnd) + 1;
+            }
         }
 
         /**
@@ -106,13 +114,11 @@ namespace RTextNppPlugin.Parsing
 
         private List<StringBuilder> JoinLines(IEnumerable<string> it)
         {
-            System.Diagnostics.Stopwatch watch = new System.Diagnostics.Stopwatch();
-            watch.Start();
             List<StringBuilder> aJoinedLines = new List<StringBuilder>(new StringBuilder[it.Count()]);                       
             using (var enumerator = it.GetEnumerator())
             {                
                 bool aIsBroken = false;
-                _currentIndex = 0;
+                _currentIndex  = 0;
                 int count = it.Count();
                 while(enumerator.MoveNext())
                 {
@@ -153,7 +159,6 @@ namespace RTextNppPlugin.Parsing
                     }
                 }
             }
-            System.Diagnostics.Trace.WriteLine(String.Format("Elapsed for joining all lines , no match : {0}", watch.Elapsed));
             return aJoinedLines;
         }
 
