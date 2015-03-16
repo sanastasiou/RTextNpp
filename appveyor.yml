@@ -21,7 +21,7 @@ branches:
     - master
 
   # blacklist
-  except:
+  #except:
  
 # Do not build on tags (GitHub only)
 skip_tags: true
@@ -52,12 +52,12 @@ shallow_clone: true                 # default is "false"
 clone_depth: 1                      # clone entire repository history if not defined
  
 # setting up etc\hosts file
-hosts:
+#hosts:
 #  queue-server: 127.0.0.1
 #  db.server.com: 127.0.0.2
  
 # environment variables
-environment:
+#environment:
   #my_var1: value1
   #my_var2: value2
   # this is how to set encrypted variable. Go to "Encrypt data" page in account menu to encrypt data.
@@ -120,7 +120,7 @@ assembly_info:
  
  
 # Automatically register private account and/or project AppVeyor NuGet feeds.
-nuget:
+#nuget:
   #account_feed: true
   #project_feed: true
   #disable_publish_on_pr: true     # disable publishing of .nupkg artifacts to
