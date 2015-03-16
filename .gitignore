@@ -11,3 +11,4 @@ Certificate.bat
 *.user
 /RTextNppPlugin/obj
 *.coverage
+packages/
