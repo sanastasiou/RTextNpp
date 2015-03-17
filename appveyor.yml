@@ -83,8 +83,6 @@ matrix:
   fast_finish: true     # set this flag to immediately finish build once one of the jobs fails.
   allow_failures:
     - platform: x86
-      configuration: Debug
-    - platform: x86
       configuration: Release
  
 # enable service required for build/tests
@@ -162,7 +160,8 @@ build:
  
 # scripts to run before build
 before_build:
- 
+  nuget restore
+  nuget restore {APPVEYOR_BUILD_FOLDER}\ContextExtractionTests\packages.config
 # scripts to run after build
 after_build:
  

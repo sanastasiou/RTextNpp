@@ -275,7 +275,7 @@
   <ItemGroup />
   <Import Project="../packages/UnmanagedExports.1.2.6/tools/RGiesecke.DllExport.targets" Condition="Exists('../packages/UnmanagedExports.1.2.6/tools/RGiesecke.DllExport.targets')" />
   <PropertyGroup>
-    <PostBuildEvent>copy /Y "$(ProjectDir)$(OutDir)$(TargetName).dll" "C:\Program Files (x86)\Notepad++\plugins"</PostBuildEvent>
+    <PostBuildEvent>if $(ConfigurationName) == Debug copy /Y "$(ProjectDir)$(OutDir)$(TargetName).dll" "C:\Program Files (x86)\Notepad++\plugins"</PostBuildEvent>
   </PropertyGroup>
   <Import Project="..\packages\Fody.1.26.1\build\Fody.targets" Condition="Exists('..\packages\Fody.1.26.1\build\Fody.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

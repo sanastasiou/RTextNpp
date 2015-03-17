@@ -70,7 +70,7 @@
       </AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>copy /Y "$(OutDir)$(TargetName).dll" "C:\Program Files (x86)\Notepad++\plugins"</Command>
+      <Command>if $(ConfigurationName) == Debug copy /Y "$(OutDir)$(TargetName).dll" "C:\Program Files (x86)\Notepad++\plugins"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
