@@ -159,8 +159,7 @@ build:
  
 # scripts to run before build
 before_build:
-  nuget restore
-  nuget restore {APPVEYOR_BUILD_FOLDER}\ContextExtractionTests\packages.config
+  nuget restore  
 # scripts to run after build
 after_build:
  
