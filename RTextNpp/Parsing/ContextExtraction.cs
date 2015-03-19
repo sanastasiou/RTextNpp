@@ -140,12 +140,12 @@ namespace RTextNppPlugin.Parsing
                 bool aIsBroken = false;
                 _currentIndex  = 0;
                 int count = it.Count();
-                while(enumerator.MoveNext())
+                while (enumerator.MoveNext())
                 {
                     --count;
                     var trimmed = enumerator.Current.Trim();
                     bool aWasBroken = aIsBroken;
-                    if(!string.IsNullOrEmpty(trimmed))
+                    if (!string.IsNullOrEmpty(trimmed))
                     {
                         if (trimmed[0] == '@' || trimmed[0] == '#')
                         {
@@ -153,15 +153,15 @@ namespace RTextNppPlugin.Parsing
                         }
                         aIsBroken = (trimmed.Last() == '[' || trimmed.Last() == ',' || trimmed.Last() == '\\');
                         //handle closing bracket after last element
-                        if(trimmed.First() == ']')
+                        if (trimmed.First() == ']')
                         {
                             aWasBroken = true;
                             --_currentIndex;
                         }
-                    }                                        
+                    }
                     if (aIsBroken)
                     {
-                        if (trimmed.Last() == '\\')
+                        if (!string.IsNullOrEmpty(trimmed) && trimmed.Last() == '\\')
                         {
                             //remove seperator
                             Append(ref aJoinedLines, aWasBroken, enumerator.Current.Substring(0, enumerator.Current.LastIndexOf('\\')));
