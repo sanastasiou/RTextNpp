@@ -32,6 +32,11 @@ namespace CSScriptIntellisense
             return (int)Win32.SendMessage(Npp.CurrentScintilla, SciMsg.SCI_GETZOOM, 0, 0);
         }
 
+        static public int GetSelectionStart()
+        {
+            return (int)Win32.SendMessage(Npp.CurrentScintilla, SciMsg.SCI_GETSELECTIONNSTART, 0, 0);
+        }
+
         static public int GetSelectionLength()
         {
             int aSelStart = (int)Win32.SendMessage(Npp.CurrentScintilla, SciMsg.SCI_GETSELECTIONNSTART, 0, 0);
@@ -43,15 +48,14 @@ namespace CSScriptIntellisense
             return aSelEnd - aSelStart;
         }
 
+        static public int GetSelections()
+        {
+            return (int)Win32.SendMessage(Npp.CurrentScintilla, SciMsg.SCI_GETSELECTIONS, 0, 0);
+        }
+
         static public void DeleteFront()
         {
-            int aSelStart = (int)Win32.SendMessage(Npp.CurrentScintilla, SciMsg.SCI_GETSELECTIONNSTART, 0, 0);
-            int aSelEnd = (int)Win32.SendMessage(Npp.CurrentScintilla, SciMsg.SCI_GETSELECTIONNEND, 0, 0);
-            int aMin = Math.Min(aSelStart, aSelEnd);
-
-            int aSelectionLength = GetSelectionLength();
-
-            if(aSelectionLength > 1)
+            if (GetSelectionLength() > 1)
             {
                 DeleteBack(1);
             }
@@ -70,8 +74,17 @@ namespace CSScriptIntellisense
             }
         }
 
+        static public void DeleteRange(int position, int length)
+        {
+            Win32.SendMessage(Npp.CurrentScintilla, SciMsg.SCI_DELETERANGE, position, length);
+        }
+
         static public void AddText(string s)
         {
+            if (GetSelectionLength() > 1)
+            {
+                DeleteRange(GetSelectionStart(), GetSelectionLength());
+            }
             Win32.SendMessage(Npp.CurrentScintilla, SciMsg.SCI_ADDTEXT, s.GetByteCount(), s);
         }
 

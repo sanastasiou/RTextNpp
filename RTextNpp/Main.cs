@@ -65,8 +65,8 @@ namespace RTextNppPlugin
         }
 
         static void OnKeyInterceptorKeyDown(Keys key, int repeatCount, ref bool handled)
-        {            
-            if (FileUtilities.IsAutomateFile())
+        {
+            if (FileUtilities.IsAutomateFile() && (Npp.GetSelections() == 1))
             {
                 CSScriptIntellisense.Modifiers modifiers = CSScriptIntellisense.KeyInterceptor.GetModifiers();                
                 foreach (var shortcut in internalShortcuts.Keys)
@@ -92,7 +92,7 @@ namespace RTextNppPlugin
                 if (modifiers.IsCtrl || modifiers.IsAlt)
                 {
                     return;
-                }                
+                }
 
                 //auto complete Ctrl+Space is handled above - here we handle other special cases
                 switch (key)
