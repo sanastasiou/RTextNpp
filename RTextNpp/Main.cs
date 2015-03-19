@@ -252,7 +252,7 @@ namespace RTextNppPlugin
                     {          
                         int aCurrentPosition = CSScriptIntellisense.Npp.GetCaretPosition();
                         int aStartPosition   = CSScriptIntellisense.Npp.GetLineStart(CSScriptIntellisense.Npp.GetLineNumber());
-                        int aColumn = (aCurrentPosition - aStartPosition);
+                        int aColumn          = (aCurrentPosition - aStartPosition);
                         //fix extractor column bug...
                         if (aCurrentPosition >= 0)
                         {

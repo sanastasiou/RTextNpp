@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Text.RegularExpressions;
 using AJ.Common;
+using RTextNppPlugin.Logging;
 
 namespace RTextNppPlugin.Parsing
 {
@@ -28,8 +29,21 @@ namespace RTextNppPlugin.Parsing
             else
             {
                 Analyze(JoinLines(contextBlock.SplitString(new string[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries)));
-                //adjust for backend
-                ContextColumn = (_contextLines.Last().Length - lengthToEnd) + 1;
+                //handle extreme case where no context lines could be found
+                if (_contextLines.Count != 0)
+                {
+                    if (lengthToEnd <= _contextLines.Last().Length)
+                    {
+                        //adjust for backend
+                        ContextColumn = (_contextLines.Last().Length - lengthToEnd) + Constants.BACKEND_COLUMN_OFFSET;
+                    }
+                    else
+                    {
+                        Logger.Instance.Append(String.Format("Length till end of line > than context line : {0}, {1}", lengthToEnd, _contextLines.Last().Replace("{", "{{").Replace("}", "}}")));
+                        ContextColumn = 0;
+                        _contextLines = new Stack<string>();                        
+                    }
+                }
             }
         }
 
@@ -56,6 +70,12 @@ namespace RTextNppPlugin.Parsing
         private void Analyze(List<StringBuilder> joinedLines)
         {
             _contextLines = new Stack<string>(joinedLines.Count());
+            //handle case with empty string
+            if(joinedLines.Count == 0)
+            {
+                return;
+            }
+
             int non_ignored_lines = 0;
             int array_nesting     = 0;
             int block_nesting     = 0;
@@ -123,35 +143,37 @@ namespace RTextNppPlugin.Parsing
                 while(enumerator.MoveNext())
                 {
                     --count;
-                    bool aWasBroken = aIsBroken;
-                    aIsBroken = enumerator.Current.Last() == '[' || enumerator.Current.Last() == ',' || enumerator.Current.Last() == '\\';
                     var trimmed = enumerator.Current.Trim();
-                    if(trimmed.Length > 0 && ( trimmed[0] == '@' || trimmed[0] == '#') )
+                    bool aWasBroken = aIsBroken;
+                    if(!string.IsNullOrEmpty(trimmed))
                     {
-                        continue;
-                    }
+                        if (trimmed[0] == '@' || trimmed[0] == '#')
+                        {
+                            continue;
+                        }
+                        aIsBroken = (trimmed.Last() == '[' || trimmed.Last() == ',' || trimmed.Last() == '\\');
+                        //handle closing bracket after last element
+                        if(trimmed.First() == ']')
+                        {
+                            aWasBroken = true;
+                            --_currentIndex;
+                        }
+                    }                                        
                     if (aIsBroken)
                     {
-                        if(enumerator.Current.Last() == '\\')
+                        if (trimmed.Last() == '\\')
                         {
                             //remove seperator
-                            aJoinedLines[_currentIndex].Append(enumerator.Current, 0, enumerator.Current.Length - 1); 
+                            Append(ref aJoinedLines, aWasBroken, enumerator.Current.Substring(0, enumerator.Current.LastIndexOf('\\')));
                         }
                         else
                         {
-                            if (aWasBroken)
-                            {
-                                aJoinedLines[_currentIndex].Append(enumerator.Current);
-                            }
-                            else
-                            {
-                                aJoinedLines[_currentIndex] = new StringBuilder(100).Append(enumerator.Current);
-                            }
+                            Append(ref aJoinedLines, aWasBroken, enumerator.Current);
                         }
                     }
                     else
                     {
-                        aJoinedLines[_currentIndex] = new StringBuilder(100).Append(enumerator.Current);
+                        Append(ref aJoinedLines, aWasBroken, enumerator.Current);
                     }
                     if (!aIsBroken && (count > 0))
                     {
@@ -160,6 +182,18 @@ namespace RTextNppPlugin.Parsing
                 }
             }
             return aJoinedLines;
+        }
+
+        private void Append(ref List<StringBuilder> joinedLines, bool wasBroken, string text )
+        {
+            if (wasBroken)
+            {
+                joinedLines[_currentIndex].Append(text);
+            }
+            else
+            {
+                joinedLines[_currentIndex] = new StringBuilder(100).Append(text);
+            }
         }
 
         #endregion

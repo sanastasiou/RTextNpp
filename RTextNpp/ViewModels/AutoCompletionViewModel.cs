@@ -293,7 +293,7 @@ namespace RTextNppPlugin.ViewModels
             }
             AutoCompleteAndReferenceRequest aRequest = new AutoCompleteAndReferenceRequest
             {
-                column        = extractor.ContextColumn + 1,//compensate for backend
+                column        = extractor.ContextColumn,//compensate for backend
                 command       = Constants.Commands.CONTENT_COMPLETION,
                 context       = extractor.ContextList,
                 type          = Constants.Commands.REQUEST,
@@ -426,8 +426,15 @@ namespace RTextNppPlugin.ViewModels
 
                     if(SelectedIndex == -1)
                     {
-                        SelectedCompletion = _filteredList.First();
-                        SelectedIndex      = 0;
+                        if (_filteredList.Count > 0)
+                        {
+                            SelectedCompletion = _filteredList.First();
+                            SelectedIndex      = 0;
+                        }
+                        else
+                        {
+                            SelectedCompletion = null;
+                        }
                     }
 
                     SelectedCompletion.IsFuzzy    = true;

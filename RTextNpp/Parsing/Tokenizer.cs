@@ -225,8 +225,8 @@ namespace RTextNppPlugin.Parsing
                     break;
                 }
             }
-            //special case when token is a space - auto completion needs to start
-            if (_triggerToken.HasValue && (_triggerToken.Value.Type == RTextTokenTypes.Space))
+            //special case when token is a space or label - auto completion needs to start at the end of the token
+            if (_triggerToken.HasValue && ((_triggerToken.Value.Type == RTextTokenTypes.Space) || (_triggerToken.Value.Type == RTextTokenTypes.Label)))
             {
                 //move buffer position, start column, end column, at the end of the token
                 _triggerToken = new TokenTag
@@ -244,14 +244,14 @@ namespace RTextNppPlugin.Parsing
             if (_triggerToken.HasValue)
             {
                 var aTokenType = _triggerToken.Value.Type;
-                if(aTokenType == RTextTokenTypes.QuotedString || 
-                   aTokenType == RTextTokenTypes.Comment || 
-                   aTokenType == RTextTokenTypes.Error || 
-                   aTokenType == RTextTokenTypes.LeftAngleBrakcet ||
-                   aTokenType == RTextTokenTypes.NewLine ||
-                   aTokenType == RTextTokenTypes.Notation ||
+                if(aTokenType == RTextTokenTypes.QuotedString      || 
+                   aTokenType == RTextTokenTypes.Comment           || 
+                   aTokenType == RTextTokenTypes.Error             || 
+                   aTokenType == RTextTokenTypes.LeftAngleBrakcet  ||
+                   aTokenType == RTextTokenTypes.NewLine           ||
+                   aTokenType == RTextTokenTypes.Notation          ||
                    aTokenType == RTextTokenTypes.RightAngleBracket ||
-                   aTokenType == RTextTokenTypes.RightBrakcet ||
+                   aTokenType == RTextTokenTypes.RightBrakcet      ||
                    aTokenType == RTextTokenTypes.Template
                   )
                 {
