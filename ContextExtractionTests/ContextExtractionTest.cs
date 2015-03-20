@@ -129,5 +129,15 @@ AUTOSAR {
             Assert.AreEqual(true, c.ContextList.SequenceEqual(ContextLines));
         }
 
+
+        [Test, Sequential]
+        public void SingleSeparatorContext([Values("\\", ",", "[", "]", "")] string input,
+                                           [Values(1,2,2,2, 0)] int column,
+                                           [Values(1, 1, 1, 1, 0)] int contextLines)
+        {
+            ContextExtractor c = new ContextExtractor(input, 0);
+            Assert.AreEqual(column, c.ContextColumn);
+            Assert.AreEqual(contextLines, c.ContextList.Count());
+        }
     }
 }

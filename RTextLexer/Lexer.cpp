@@ -215,6 +215,11 @@ namespace RText
 
     bool RTextLexer::isLineExtended(int startPos, char const * const buffer)const
     {
+        //no reason to check previous characters 
+        if (startPos == 0)
+        {
+            return false;
+        }
         //go back till we find \,[
         while (startPos-- >= 0)
         {
@@ -244,6 +249,8 @@ namespace RText
         Accessor styler(pAccess, nullptr);        
         StyleContext context(startPos, length, initStyle, styler);        
         unsigned int aTokenLength = 0;        
+
+        _firstTokenInLine = true;
 
         while(context.More())
         {            

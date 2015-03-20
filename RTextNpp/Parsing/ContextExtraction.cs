@@ -153,7 +153,7 @@ namespace RTextNppPlugin.Parsing
                         }
                         aIsBroken = (trimmed.Last() == '[' || trimmed.Last() == ',' || trimmed.Last() == '\\');
                         //handle closing bracket after last element
-                        if (trimmed.First() == ']')
+                        if (trimmed.First() == ']' && _currentIndex > 0)
                         {
                             aWasBroken = true;
                             --_currentIndex;
