@@ -41,7 +41,7 @@
                 <StackPanel Orientation="Horizontal">                    
                     <Label Style="{StaticResource LabelNoPaddingStyle}">Total options : </Label>
                     <Label Style="{StaticResource LabelNoPaddingStyle}" Content="{Binding UnderlyingList.Count}"/>
-                    <Label HorizontalAlignment="Right" Style="{StaticResource LabelNoPaddingStyle}" Padding="40 0 0 0">Filtered options : </Label>
+                    <Label HorizontalAlignment="Right" Style="{StaticResource LabelNoPaddingStyle}" Padding="10 0 0 0">Filtered options : </Label>
                     <Label HorizontalAlignment="Right" Style="{StaticResource LabelNoPaddingStyle}" Content="{Binding FilteredCount}"/>
                 </StackPanel>
             </Border>

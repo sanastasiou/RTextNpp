@@ -25,20 +25,20 @@ namespace RTextNppPlugin
         {
             //Ctrl+Shift+Alt+Key
             var parts = data.Split('+');
-            _key = Convert.ToByte(Enum.Parse(typeof(Keys), parts.Last()));
-            parts = parts.Take(parts.Length - 1).ToArray();
-            _isCtrl = Convert.ToByte(parts.Contains("Ctrl"));
-            _isShift = Convert.ToByte(parts.Contains("Shift"));
-            _isAlt = Convert.ToByte(parts.Contains("Alt"));
+            _key      = Convert.ToByte(Enum.Parse(typeof(Keys), parts.Last()));
+            parts     = parts.Take(parts.Length - 1).ToArray();
+            _isCtrl   = Convert.ToByte(parts.Contains("Ctrl"));
+            _isShift  = Convert.ToByte(parts.Contains("Shift"));
+            _isAlt    = Convert.ToByte(parts.Contains("Alt"));
         }
 
         public ShortcutKey(bool isCtrl, bool isAlt, bool isShift, Keys key)
         {
             // the types 'bool' and 'char' have a size of 1 byte only!
-            _isCtrl = Convert.ToByte(isCtrl);
-            _isAlt = Convert.ToByte(isAlt);
+            _isCtrl  = Convert.ToByte(isCtrl);
+            _isAlt   = Convert.ToByte(isAlt);
             _isShift = Convert.ToByte(isShift);
-            _key = Convert.ToByte(key);
+            _key     = Convert.ToByte(key);
         }
         public byte _isCtrl;
         public byte _isAlt;

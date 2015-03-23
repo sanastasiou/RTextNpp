@@ -158,7 +158,8 @@ namespace RTextNppPlugin.WpfControls
         #region EventHandlers
         bool OnMouseMonitorMouseWheelMoved(int movement)
         {
-            //do now allow event to propagate, therefore not allowing text to scroll by it's own
+            //do now allow event to propagate, therefore not allowing text to scroll by it's own - this is ok, since we receive this
+            //event only when an auto completion window is currently open
             ScrollList(movement > 0 ? System.Windows.Forms.Keys.Up : System.Windows.Forms.Keys.Down, 3);
             return true;
 
@@ -169,13 +170,20 @@ namespace RTextNppPlugin.WpfControls
             handled = false;
         }
 
-
-        void OnMouseMonitorMouseClicked()
+        /**
+         * Executes the mouse monitor mouse clicked action.
+         *
+         * \param   arg The mouse message type, single click, double click, etc.
+         *
+         * \return  true if the event is handled here, false otherwise.
+         */
+        bool OnMouseMonitorMouseClicked(MouseMonitor.MouseMessages arg)
         {
             if (!IsMouseInsideWindow())
             {
                 this.Hide();
             }
+            return false;
         }
 
         private void OnAutoCompletionFormVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
@@ -262,6 +270,7 @@ namespace RTextNppPlugin.WpfControls
         public void Dispose()
         {
             _mouseMonitor.Uninstall();
+            _keyMonitor.Uninstall();
         }
         #endregion
 

@@ -13,9 +13,31 @@ using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Windows.Interop;
+using WindowsSubclassWrapper;
 
 namespace RTextNppPlugin
 {
+    class MessageInterceptor : WindowSubclassCliWrapper
+    {
+        public MessageInterceptor(IntPtr nppHandle)
+            : base(nppHandle)
+        {
+            //    //get 
+        }
+
+        public override bool OnMessageReceived(uint message)
+        {
+
+            if ((VisualUtilities.WindowsMessage)message == VisualUtilities.WindowsMessage.WM_VSCROLL)
+            {
+                Trace.WriteLine(String.Format("Message received : {0}", (VisualUtilities.WindowsMessage)message));
+                return true;
+            }
+            return false;
+        }
+    }
+
     partial class Plugin
     {
         #region [Fields]
@@ -24,8 +46,7 @@ namespace RTextNppPlugin
         private static Options _options                                                 = new Forms.Options();
         private static FileModificationObserver _fileObserver                           = new FileModificationObserver();
         private static Dictionary<ShortcutKey, Tuple<string, Action>> internalShortcuts = new Dictionary<ShortcutKey, Tuple<string, Action>>();
-        private static AutoCompletionWindow _autoCompletionForm                         = new AutoCompletionWindow(); //!< The link targets window instance
-        public const string PluginName                                                  = "RTextNpp";
+        private static AutoCompletionWindow _autoCompletionForm                         = new AutoCompletionWindow(); //!< The link targets window instance        
         static Bitmap tbBmp                                                             = Properties.Resources.ConsoleIcon;
         static Bitmap tbBmp_tbTab                                                       = Properties.Resources.ConsoleIcon;
         static Icon tbIcon                                                              = null;
@@ -33,6 +54,7 @@ namespace RTextNppPlugin
         static bool _invokeInProgress                                                   = false;
         static bool _requestAutoCompletion                                              = false;
         static int _currentZoomLevel                                                    = 0;
+        static MessageInterceptor _messageInterceptor                                   = null;
         #endregion
 
         #region [Startup/CleanUp]
@@ -60,6 +82,8 @@ namespace RTextNppPlugin
 
             _currentZoomLevel = Npp.GetZoomLevel();
             _autoCompletionForm.OnZoomLevelChanged(_currentZoomLevel);
+
+            _messageInterceptor = new MessageInterceptor(nppData._nppHandle);
 
             Debugger.Launch();
         }
@@ -234,6 +258,7 @@ namespace RTextNppPlugin
             CSScriptIntellisense.KeyInterceptor.Instance.RemoveAll();
             CSScriptIntellisense.KeyInterceptor.Instance.KeyDown -= OnKeyInterceptorKeyDown;
             _fileObserver.CleanBackup();
+            _connectorManager.ReleaseConnectors();
         }
         #endregion
 
@@ -249,7 +274,7 @@ namespace RTextNppPlugin
                 if (FileUtilities.IsAutomateFile())
                 {
                     if (!_autoCompletionForm.IsVisible)
-                    {          
+                    {
                         int aCurrentPosition = CSScriptIntellisense.Npp.GetCaretPosition();
                         int aStartPosition   = CSScriptIntellisense.Npp.GetLineStart(CSScriptIntellisense.Npp.GetLineNumber());
                         int aColumn          = (aCurrentPosition - aStartPosition);
@@ -354,7 +379,7 @@ namespace RTextNppPlugin
                 // define the default docking behaviour
                 _nppTbData.uMask = NppTbMsg.DWS_DF_CONT_RIGHT | NppTbMsg.DWS_ICONTAB | NppTbMsg.DWS_ICONBAR;
                 _nppTbData.hIconTab = (uint)tbIcon.Handle;
-                _nppTbData.pszModuleName = PluginName;
+                _nppTbData.pszModuleName = Constants.PluginName;
                 IntPtr _ptrNppTbData = Marshal.AllocHGlobal(Marshal.SizeOf(_nppTbData));
                 Marshal.StructureToPtr(_nppTbData, _ptrNppTbData, false);
                 _consoleOutput.CmdId = _funcItems.Items[(int)Constants.NppMenuCommands.ConsoleWindow]._cmdID;
@@ -442,6 +467,25 @@ namespace RTextNppPlugin
         #endregion
 
         #region [Helpers]
+
+        static private IntPtr NppWndProc(IntPtr hWnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
+        {
+            Trace.WriteLine(String.Format("Message from npp : {0}", msg));
+            // address the messages you are receiving using msg, wParam, lParam
+            //if (msg == WinMsg.)
+            {
+            //    if (wParam == DROIDS_IM_LOOKING_FOR)
+            //    {
+            //        CaptureDroids(lParam);
+            //        handled = true;
+            //    }
+            //    else
+            //    {
+            //        AskToMoveAlong(lParam);
+            //    }
+            }
+            return IntPtr.Zero;
+        }
 
         /**
          * Enumerates bind interanal shortcuts in this collection.

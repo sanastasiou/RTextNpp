@@ -16,6 +16,7 @@
 
 using System;
 using System.Runtime.InteropServices;
+using System.Reflection;
 
 namespace CSScriptIntellisense
 {
@@ -163,6 +164,7 @@ namespace CSScriptIntellisense
 			e.wParam = wParam;
 			e.lParam = lParam;
 			OnHookInvoked(e);
+            System.Diagnostics.Trace.WriteLine(String.Format("Hook called : code {0}", e.HookCode));
 
 			// Yield to the next hook in the chain
 			return CallNextHookEx(m_hhook, code, wParam, lParam);

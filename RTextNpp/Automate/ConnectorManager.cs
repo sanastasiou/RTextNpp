@@ -1,11 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Xml.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using RTextNppPlugin.Utilities;
 using System.IO;
+using RTextNppPlugin.Utilities;
 
 namespace RTextNppPlugin.Automate
 {
@@ -45,6 +41,15 @@ namespace RTextNppPlugin.Automate
         #endregion
 
         #region Interface
+
+        public void ReleaseConnectors()
+        {
+            var keys = _processList.Keys;
+            foreach(var key in keys)
+            {
+                _processList[key].CleanupProcess();
+            }
+        }
 
         /**
          * \brief   Creates a connector.
@@ -164,6 +169,6 @@ namespace RTextNppPlugin.Automate
         private ConnectorManager()
         {
         }
-        #endregion
+        #endregion        
     }
 }

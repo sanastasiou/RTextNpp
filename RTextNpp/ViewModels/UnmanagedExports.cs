@@ -38,14 +38,14 @@ namespace RTextNppPlugin
         static IntPtr getName()
         {
             if (_ptrPluginName == IntPtr.Zero)
-                _ptrPluginName = Marshal.StringToHGlobalUni(Plugin.PluginName);
+                _ptrPluginName = Marshal.StringToHGlobalUni(RTextNppPlugin.Constants.PluginName);
             return _ptrPluginName;
         }
 
         [DllExport(CallingConvention = CallingConvention.Cdecl)]
         static void beNotified(IntPtr notifyCode)
         {
-            SCNotification nc = (SCNotification)Marshal.PtrToStructure(notifyCode, typeof(SCNotification));
+            SCNotification nc = (SCNotification)Marshal.PtrToStructure(notifyCode, typeof(SCNotification));            
             switch (nc.nmhdr.code)
             {
                 case (uint)NppMsg.NPPN_TBMODIFICATION:
@@ -73,8 +73,7 @@ namespace RTextNppPlugin
                     break;
                 case (uint)SciMsg.SCN_ZOOM:
                     Plugin.OnZoomLevelModified();
-                    break;
-                
+                    break;                
             }
         }
     }

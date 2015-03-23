@@ -3,6 +3,7 @@
     <Costura>
         <Unmanaged32Assemblies>
             FileSystemWatcherCLRWrapper
+            WindowsSubclassCliWrapper
         </Unmanaged32Assemblies>
     </Costura>  
 </Weavers>

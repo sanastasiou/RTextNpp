@@ -40,6 +40,7 @@ namespace RTextNppPlugin
         public const char TAB = '\t';                                           //!< Tab char.
         public const char COMMA = ',';                                          //!< Comma char.
         public const int BACKEND_COLUMN_OFFSET = 1;                             //!< Backend columns start at one, but the tokenizer starts at 0.
+        public const string PluginName = "RTextNpp";                            //!< Plugin name.
 
         #region NppMenuCommand
         public enum NppMenuCommands : int

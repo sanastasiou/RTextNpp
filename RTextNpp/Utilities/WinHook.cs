@@ -77,11 +77,11 @@ namespace CSScriptIntellisense
     public class MouseMonitor : WinHook<MouseMonitor>
     {
         public event Action MouseMove;
-        public event Action MouseClicked;
+        public event Func<MouseMessages, bool> MouseClicked;
         public event Action MouseReleased;
         public event Func<int, bool> MouseWheelMoved;
 
-        private enum MouseMessages
+        public enum MouseMessages
         {
             WM_LBUTTONDOWN     = 0x0201,
             WM_LBUTTONUP       = 0x0202,
@@ -101,7 +101,7 @@ namespace CSScriptIntellisense
         }
 
         override protected bool HandleHookEvent(IntPtr wParam, IntPtr lParam)
-        {
+        {           
             MouseMessages aMsg = (MouseMessages)wParam.ToInt32();
             switch (aMsg)
             {
@@ -117,7 +117,7 @@ namespace CSScriptIntellisense
                 case MouseMessages.WM_NCLBUTTONDOWN:
                     if(MouseClicked != null)
                     {
-                        MouseClicked();
+                        return MouseClicked(aMsg);
                     }
                     break;
                 case MouseMessages.WM_LBUTTONUP:

@@ -7,8 +7,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Threading;
 using Microsoft.Win32;
-using RTextNppPlugin.Utilities;
-using System.Text;
 using RTextNppPlugin.Automate;
 using RTextNppPlugin.Automate.Protocol;
 
@@ -20,7 +18,7 @@ namespace RTextNppPlugin.Utilities
      * \brief   Process wrapper class over the .NET process class. Fixes several bugs regarding IO redirect.
      *
      */
-    public class RTextBackendProcess : IDisposable
+    public class RTextBackendProcess
     {
         #region Fields
 
@@ -322,16 +320,6 @@ namespace RTextNppPlugin.Utilities
 
         /**
          *
-         * \brief   Finaliser.
-         *
-         */
-        ~RTextBackendProcess()
-        {
-            Dispose(false);
-        }
-
-        /**
-         *
          * \brief   Executed when a backend process starts. Use to check if the port number retrieval is completed.
          *
          *
@@ -437,16 +425,6 @@ namespace RTextNppPlugin.Utilities
             }
         }
 
-        /**
-         *
-         * \brief   Performs application-defined tasks associated with freeing, releasing, or resetting
-         *          unmanaged resources.
-         */
-        public void Dispose()
-        {
-            Dispose(true);
-        }
-
         #endregion
 
         #region Implementation Details
@@ -472,42 +450,13 @@ namespace RTextNppPlugin.Utilities
             mTimer.Tick += OnTimerElapsed;
             mExtension = extenstion;
         }
-
-        /**
-         *
-         * \brief   Releases the unmanaged resources used by the ConnectorManager and optionally releases
-         *          the managed resources.
-         *
-         *
-         * \param   disposing   true to release both managed and unmanaged resources; false to release
-         *                      only unmanaged resources.
-         */
-        private void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                // Dispose any disposable fields here
-                GC.SuppressFinalize(this);
-            }
-            ReleaseNativeResources();
-        }
-
-        /**
-         *
-         * \brief   Releases the native resources.
-         *
-         */
-        private void ReleaseNativeResources()
-        {
-            CleanupProcess();
-        }
-
+       
         /**
          *
          * \brief   Cleanup process.
          * \todo    Send shutdown command instead of killing the process.
          */
-        private void CleanupProcess()
+        public void CleanupProcess()
         {
             try
             {
