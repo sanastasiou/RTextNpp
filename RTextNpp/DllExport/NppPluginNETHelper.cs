@@ -4,6 +4,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows.Forms;
 using System.Linq;
+using RTextNppPlugin.Utilities;
 
 namespace RTextNppPlugin
 {
@@ -2087,6 +2088,29 @@ namespace RTextNppPlugin
     #region " Platform "
     public class Win32
     {
+        // ************************************************************************
+        // Filter function delegate
+        public delegate int HookProc(int code, IntPtr wParam, IntPtr lParam);
+
+        #region Win32 Imports
+        // ************************************************************************
+        // Win32: SetWindowsHookEx()
+        [DllImport("user32.dll", CharSet = CharSet.Auto, CallingConvention = CallingConvention.StdCall, SetLastError = true)]
+        protected static extern IntPtr SetWindowsHookEx(VisualUtilities.HookType code, HookProc func, IntPtr hInstance, int threadID);
+        // ************************************************************************
+
+        // ************************************************************************
+        // Win32: UnhookWindowsHookEx()
+        [DllImport("user32.dll", CharSet = CharSet.Auto, CallingConvention = CallingConvention.StdCall, SetLastError = true)]
+        protected static extern int UnhookWindowsHookEx(IntPtr hhook);
+        // ************************************************************************
+
+        // ************************************************************************
+        // Win32: CallNextHookEx()
+        [DllImport("user32.dll", CharSet = CharSet.Auto, CallingConvention = CallingConvention.StdCall)]
+        protected static extern int CallNextHookEx(IntPtr hhook, int code, IntPtr wParam, IntPtr lParam);
+        // ************************************************************************
+
         [DllImport("user32")]
         public static extern IntPtr SendMessage(IntPtr hWnd, NppMsg Msg, int wParam, NppMenuCmd lParam);
         [DllImport("user32")]
@@ -2159,6 +2183,8 @@ namespace RTextNppPlugin
         public static extern IntPtr GetMenu(IntPtr hWnd);
         [DllImport("user32")]
         public static extern int CheckMenuItem(IntPtr hmenu, int uIDCheckItem, int uCheck);
+
+        #endregion
 
         public const int WM_CREATE = 1;
     }

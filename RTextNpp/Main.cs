@@ -20,10 +20,8 @@ namespace RTextNppPlugin
 {
     class MessageInterceptor : WindowSubclassCliWrapper
     {
-        public MessageInterceptor(IntPtr nppHandle)
-            : base(nppHandle)
+        public MessageInterceptor(IntPtr nppHandle) : base(nppHandle)
         {
-            //    //get 
         }
 
         public override bool OnMessageReceived(uint message)

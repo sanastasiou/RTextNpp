@@ -10,6 +10,44 @@ namespace RTextNppPlugin.Utilities
 {
     public class VisualUtilities
     {
+        public enum HookType : int
+        {
+            WH_JOURNALRECORD   = 0,
+            WH_JOURNALPLAYBACK = 1,
+            WH_KEYBOARD        = 2,
+            WH_GETMESSAGE      = 3,
+            WH_CALLWNDPROC     = 4,
+            WH_CBT             = 5,
+            WH_SYSMSGFILTER    = 6,
+            WH_MOUSE           = 7,
+            WH_HARDWARE        = 8,
+            WH_DEBUG           = 9,
+            WH_SHELL           = 10,
+            WH_FOREGROUNDIDLE  = 11,
+            WH_CALLWNDPROCRET  = 12,
+            WH_KEYBOARD_LL     = 13,
+            WH_MOUSE_LL        = 14
+        }
+
+        public enum MouseMessages
+        {
+            WM_LBUTTONDOWN     = 0x0201,
+            WM_LBUTTONUP       = 0x0202,
+            WM_MOUSEMOVE       = 0x0200,
+            WM_MOUSEWHEEL      = 0x020A,
+            WM_RBUTTONDOWN     = 0x0204,
+            WM_RBUTTONUP       = 0x0205,
+            WM_NCMOUSEMOVE     = 0x00A0,
+            WM_NCLBUTTONDOWN   = 0x00A1,
+            WM_NCLBUTTONDBLCLK = 0x00A3,
+            WM_NCRBUTTONDOWN   = 0x00A4,
+            WM_NCRBUTTONDBLCLK = 0x00A6,
+            WM_NCMBUTTONDOWN   = 0x00A7,
+            WM_NCMBUTTONDBLCLK = 0x00A9,
+            WM_NCXBUTTONDOWN   = 0x00AB,
+            WM_NCXBUTTONDBLCLK = 0x00AD
+        }
+
         public enum WindowsMessage
         {
             WM_NULL                        = 0x0000,

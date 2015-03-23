@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using System.Diagnostics;
+using RTextNppPlugin.Utilities;
 
 namespace CSScriptIntellisense
 {
@@ -25,7 +26,7 @@ namespace CSScriptIntellisense
         }
 
         protected WinHook()
-            : base(HookType.WH_DEBUG)
+            : base(VisualUtilities.HookType.WH_DEBUG)
         {
             m_filterFunc = this.Proc;
         }
@@ -44,7 +45,7 @@ namespace CSScriptIntellisense
                 GC.SuppressFinalize(this);
         }
 
-        protected void Install(HookType type)
+        protected void Install(VisualUtilities.HookType type)
         {
             base.m_hookType = type;
             base.Install();
@@ -77,64 +78,45 @@ namespace CSScriptIntellisense
     public class MouseMonitor : WinHook<MouseMonitor>
     {
         public event Action MouseMove;
-        public event Func<MouseMessages, bool> MouseClicked;
+        public event Func<VisualUtilities.MouseMessages, bool> MouseClicked;
         public event Action MouseReleased;
-        public event Func<int, bool> MouseWheelMoved;
-
-        public enum MouseMessages
-        {
-            WM_LBUTTONDOWN     = 0x0201,
-            WM_LBUTTONUP       = 0x0202,
-            WM_MOUSEMOVE       = 0x0200,
-            WM_MOUSEWHEEL      = 0x020A,
-            WM_RBUTTONDOWN     = 0x0204,
-            WM_RBUTTONUP       = 0x0205,
-            WM_NCMOUSEMOVE     = 0x00A0,
-            WM_NCLBUTTONDOWN   = 0x00A1,
-            WM_NCLBUTTONDBLCLK = 0x00A3,
-            WM_NCRBUTTONDOWN   = 0x00A4,
-            WM_NCRBUTTONDBLCLK = 0x00A6,
-            WM_NCMBUTTONDOWN   = 0x00A7,
-            WM_NCMBUTTONDBLCLK = 0x00A9,
-            WM_NCXBUTTONDOWN   = 0x00AB,
-            WM_NCXBUTTONDBLCLK = 0x00AD
-        }
+        public event Func<int, bool> MouseWheelMoved;        
 
         override protected bool HandleHookEvent(IntPtr wParam, IntPtr lParam)
-        {           
-            MouseMessages aMsg = (MouseMessages)wParam.ToInt32();
+        {
+            VisualUtilities.MouseMessages aMsg = (VisualUtilities.MouseMessages)wParam.ToInt32();
             switch (aMsg)
             {
-                case MouseMessages.WM_LBUTTONDOWN:
-                case MouseMessages.WM_RBUTTONDOWN:
-                case MouseMessages.WM_NCXBUTTONDBLCLK:
-                case MouseMessages.WM_NCXBUTTONDOWN:
-                case MouseMessages.WM_NCMBUTTONDBLCLK:
-                case MouseMessages.WM_NCMBUTTONDOWN:
-                case MouseMessages.WM_NCRBUTTONDBLCLK:
-                case MouseMessages.WM_NCRBUTTONDOWN:
-                case MouseMessages.WM_NCLBUTTONDBLCLK:
-                case MouseMessages.WM_NCLBUTTONDOWN:
+                case VisualUtilities.MouseMessages.WM_LBUTTONDOWN:
+                case VisualUtilities.MouseMessages.WM_RBUTTONDOWN:
+                case VisualUtilities.MouseMessages.WM_NCXBUTTONDBLCLK:
+                case VisualUtilities.MouseMessages.WM_NCXBUTTONDOWN:
+                case VisualUtilities.MouseMessages.WM_NCMBUTTONDBLCLK:
+                case VisualUtilities.MouseMessages.WM_NCMBUTTONDOWN:
+                case VisualUtilities.MouseMessages.WM_NCRBUTTONDBLCLK:
+                case VisualUtilities.MouseMessages.WM_NCRBUTTONDOWN:
+                case VisualUtilities.MouseMessages.WM_NCLBUTTONDBLCLK:
+                case VisualUtilities.MouseMessages.WM_NCLBUTTONDOWN:
                     if(MouseClicked != null)
                     {
                         return MouseClicked(aMsg);
                     }
                     break;
-                case MouseMessages.WM_LBUTTONUP:
-                case MouseMessages.WM_RBUTTONUP:
+                case VisualUtilities.MouseMessages.WM_LBUTTONUP:
+                case VisualUtilities.MouseMessages.WM_RBUTTONUP:
                     if(MouseReleased != null)
                     {
                         MouseReleased();
                     }
                     break;
-                case MouseMessages.WM_MOUSEMOVE:
-                case MouseMessages.WM_NCMOUSEMOVE:
+                case VisualUtilities.MouseMessages.WM_MOUSEMOVE:
+                case VisualUtilities.MouseMessages.WM_NCMOUSEMOVE:
                     if(MouseMove != null)
                     {
                         MouseMove();
                     }
-                    break;                    
-                case MouseMessages.WM_MOUSEWHEEL:
+                    break;
+                case VisualUtilities.MouseMessages.WM_MOUSEWHEEL:
                     MouseHookStructEx aMouseData = (MouseHookStructEx)Marshal.PtrToStructure(lParam, typeof(MouseHookStructEx));
                     var wheelMovement            = GetWheelDeltaWParam(aMouseData.MouseData);
 
@@ -152,7 +134,7 @@ namespace CSScriptIntellisense
 
         public new void Install()
         {
-            base.Install(HookType.WH_MOUSE);
+            base.Install(VisualUtilities.HookType.WH_MOUSE);
         }
 
         private int GetWheelDeltaWParam(int mouseData) { return (short)(mouseData >> 16); }
@@ -194,7 +176,7 @@ namespace CSScriptIntellisense
 
         public new void Install()
         {
-            base.Install(HookType.WH_KEYBOARD);
+            base.Install(VisualUtilities.HookType.WH_KEYBOARD);
         }
 
         public event KeyDownHandler KeyDown;

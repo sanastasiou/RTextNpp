@@ -115,6 +115,8 @@
     <Compile Include="Parsing\RTextTokenTypes.cs" />
     <Compile Include="Parsing\Tokenizer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Utilities\GlobalMouseHook.cs" />
+    <Compile Include="Utilities\MouseEventExtArgs.cs" />
     <Compile Include="Utilities\SplitEnumerator.cs" />
     <Compile Include="ViewModels\UnmanagedExports.cs" />
     <Compile Include="Properties\Resources.Designer.cs">

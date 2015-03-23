@@ -17,6 +17,8 @@
 using System;
 using System.Runtime.InteropServices;
 using System.Reflection;
+using RTextNppPlugin.Utilities;
+using RTextNppPlugin;
 
 namespace CSScriptIntellisense
 {
@@ -85,41 +87,51 @@ namespace CSScriptIntellisense
 	}
 	#endregion
 
-	#region Enum HookType
-	// Hook Types
-	public enum HookType : int
-	{
-		WH_JOURNALRECORD = 0,
-		WH_JOURNALPLAYBACK = 1,
-		WH_KEYBOARD = 2,
-		WH_GETMESSAGE = 3,
-		WH_CALLWNDPROC = 4,
-		WH_CBT = 5,
-		WH_SYSMSGFILTER = 6,
-		WH_MOUSE = 7,
-		WH_HARDWARE = 8,
-		WH_DEBUG = 9,
-		WH_SHELL = 10,
-		WH_FOREGROUNDIDLE = 11,
-		WH_CALLWNDPROCRET = 12,		
-		WH_KEYBOARD_LL = 13,
-		WH_MOUSE_LL = 14
-	}
-	#endregion
+    [StructLayout(LayoutKind.Sequential)]
+    struct MouseLLHookStruct
+    {
+        public POINT Point;
+        /// <summary>
+        /// If the message is WM_MOUSEWHEEL, the high-order word of this member is the wheel delta. 
+        /// The low-order word is reserved. A positive value indicates that the wheel was rotated forward, 
+        /// away from the user; a negative value indicates that the wheel was rotated backward, toward the user. 
+        /// One wheel click is defined as WHEEL_DELTA, which is 120. 
+        ///If the message is WM_XBUTTONDOWN, WM_XBUTTONUP, WM_XBUTTONDBLCLK, WM_NCXBUTTONDOWN, WM_NCXBUTTONUP,
+        /// or WM_NCXBUTTONDBLCLK, the high-order word specifies which X button was pressed or released, 
+        /// and the low-order word is reserved. This value can be one or more of the following values. Otherwise, MouseData is not used. 
+        ///XBUTTON1
+        ///The first X button was pressed or released.
+        ///XBUTTON2
+        ///The second X button was pressed or released.
+        /// </summary>
+        public int MouseData;
+        /// <summary>
+        /// Specifies the event-injected flag. An application can use the following value to test the mouse Flags. Value Purpose 
+        ///LLMHF_INJECTED Test the event-injected flag.  
+        ///0
+        ///Specifies whether the event was injected. The value is 1 if the event was injected; otherwise, it is 0.
+        ///1-15
+        ///Reserved.
+        /// </summary>
+        public int Flags;
+        /// <summary>
+        /// Specifies the Time stamp for this message.
+        /// </summary>
+        public int Time;
+        /// <summary>
+        /// Specifies extra information associated with the message. 
+        /// </summary>
+        public int ExtraInfo;
+    }
 
 	#region Class LocalWindowsHook
-	public class LocalWindowsHook
+	public class LocalWindowsHook : Win32
 	{
-		// ************************************************************************
-		// Filter function delegate
-		public delegate int HookProc(int code, IntPtr wParam, IntPtr lParam);
-		// ************************************************************************
-
 		// ************************************************************************
 		// Internal properties
 		protected IntPtr m_hhook = IntPtr.Zero;
 		protected HookProc m_filterFunc = null;
-		protected HookType m_hookType;
+		protected VisualUtilities.HookType m_hookType;
 		// ************************************************************************
 		
 		// ************************************************************************
@@ -139,12 +151,12 @@ namespace CSScriptIntellisense
 
 		// ************************************************************************
 		// Class constructor(s)
-		public LocalWindowsHook(HookType hook)
+        public LocalWindowsHook(VisualUtilities.HookType hook)
 		{
 			m_hookType = hook;
 			m_filterFunc = new HookProc(this.CoreHookProc); 
 		}
-		public LocalWindowsHook(HookType hook, HookProc func)
+        public LocalWindowsHook(VisualUtilities.HookType hook, HookProc func)
 		{
 			m_hookType = hook;
 			m_filterFunc = func; 
@@ -203,29 +215,7 @@ namespace CSScriptIntellisense
 			get{ return m_hhook != IntPtr.Zero; }
 		}
 
-		#region Win32 Imports
-		// ************************************************************************
-		// Win32: SetWindowsHookEx()
-		[DllImport("user32.dll")]
-		protected static extern IntPtr SetWindowsHookEx(HookType code, 
-			HookProc func,
-			IntPtr hInstance,
-			int threadID);
-		// ************************************************************************
-
-		// ************************************************************************
-		// Win32: UnhookWindowsHookEx()
-		[DllImport("user32.dll")]
-		protected static extern int UnhookWindowsHookEx(IntPtr hhook); 
-		// ************************************************************************
-
-		// ************************************************************************
-		// Win32: CallNextHookEx()
-		[DllImport("user32.dll")]
-		protected static extern int CallNextHookEx(IntPtr hhook, 
-			int code, IntPtr wParam, IntPtr lParam);
-		// ************************************************************************
-		#endregion
+		
 	}
 	#endregion
 }
