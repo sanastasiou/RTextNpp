@@ -24,13 +24,16 @@ namespace RTextNppPlugin
         {
         }
 
-        public override bool OnMessageReceived(uint message)
-        {
 
-            if ((VisualUtilities.WindowsMessage)message == VisualUtilities.WindowsMessage.WM_VSCROLL)
+        public override bool OnMessageReceived(uint msg, UIntPtr wParam, IntPtr lParam)
+        {
+            VisualUtilities.WindowsMessage aMsg = (VisualUtilities.WindowsMessage)msg;
+            if (aMsg == VisualUtilities.WindowsMessage.WM_MOUSEWHEEL)
             {
-                Trace.WriteLine(String.Format("Message received : {0}", (VisualUtilities.WindowsMessage)message));
-                return true;
+                if (Plugin.OnMessageReceived(msg, wParam, lParam))
+                {
+                    return true;
+                }
             }
             return false;
         }
@@ -81,7 +84,7 @@ namespace RTextNppPlugin
             _currentZoomLevel = Npp.GetZoomLevel();
             _autoCompletionForm.OnZoomLevelChanged(_currentZoomLevel);
 
-            _messageInterceptor = new MessageInterceptor(nppData._nppHandle);
+            _messageInterceptor = new MessageInterceptor(Plugin.GetCurrentScintilla());
 
             Debugger.Launch();
         }
@@ -402,6 +405,25 @@ namespace RTextNppPlugin
 
         #region [Event Handlers]
 
+        /**
+         * \brief   Executes the message received action.
+         *          This is used to route low level windows events from scintilla to the plugin, 
+         *          which would otherwise be lost. e.g. for scrolling via a touchpad.
+         *
+         * \param   msg     The message.
+         * \param   wParam  The parameter.
+         * \param   lParam  The parameter.
+         *
+         * \return  true if event is handled, false otherwise.
+         * \todo    Handle this for other windows as well, e.g. reference links          
+         */
+        static internal bool OnMessageReceived(uint msg, UIntPtr wParam, IntPtr lParam)
+        {
+            bool aReturn = _autoCompletionForm.OnMessageReceived(msg, wParam, lParam);
+
+            return aReturn;
+        }
+
         static internal void SetToolBarIcon()
         {
             toolbarIcons tbIcons = new toolbarIcons();
@@ -466,25 +488,6 @@ namespace RTextNppPlugin
 
         #region [Helpers]
 
-        static private IntPtr NppWndProc(IntPtr hWnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
-        {
-            Trace.WriteLine(String.Format("Message from npp : {0}", msg));
-            // address the messages you are receiving using msg, wParam, lParam
-            //if (msg == WinMsg.)
-            {
-            //    if (wParam == DROIDS_IM_LOOKING_FOR)
-            //    {
-            //        CaptureDroids(lParam);
-            //        handled = true;
-            //    }
-            //    else
-            //    {
-            //        AskToMoveAlong(lParam);
-            //    }
-            }
-            return IntPtr.Zero;
-        }
-
         /**
          * Enumerates bind interanal shortcuts in this collection.
          *
@@ -534,5 +537,6 @@ namespace RTextNppPlugin
             //Logging.Logger.Instance.Append("User settings loaded.", Logging.Logger.MessageType.Info);
         }
         #endregion
+
     }
 }

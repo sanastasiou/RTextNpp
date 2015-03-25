@@ -132,10 +132,8 @@ namespace RTextNppPlugin.WpfControls
                         clickCount = 2;
                         break;
                     case VisualUtilities.MouseMessages.WM_NCLBUTTONDOWN:
-                        break;
-                    case VisualUtilities.MouseMessages.WM_MOUSEWHEEL:
-                        button = System.Windows.Forms.MouseButtons.Middle;
-                        mouseDelta = (short)((mouseHookStruct.MouseData >> 16) & 0xffff);
+                        button = System.Windows.Forms.MouseButtons.Left;
+                        clickCount = 1;
                         break;
                     default:
                         break;
@@ -147,11 +145,6 @@ namespace RTextNppPlugin.WpfControls
                 if (_MouseClick != null && clickCount != 0)
                 {
                     _MouseClick.Invoke(null, e);
-                }
-
-                if(_MouseWheel != null && mouseDelta != 0)
-                {
-                    _MouseWheel.Invoke(null, e);
                 }
 
                 if(e.Handled)
@@ -175,7 +168,7 @@ namespace RTextNppPlugin.WpfControls
         }
     }
 
-    public partial class AutoCompletionWindow : System.Windows.Window, IDisposable
+    public partial class AutoCompletionWindow : System.Windows.Window, IDisposable, IWin32MessageReceptor
     {
         #region [DataMembers]
 
@@ -442,5 +435,25 @@ namespace RTextNppPlugin.WpfControls
             _autoCompletionMouseMonitor.MouseClick -= OnAutoCompletionMouseMonitorMouseClick;
             _autoCompletionMouseMonitor.MouseWheel -= OnAutoCompletionMouseMonitorMouseWheelMoved;
         }
+
+        #region IWin32MessageReceptor Members
+
+        public bool OnMessageReceived(uint msg, UIntPtr wParam, IntPtr lParam)
+        {
+            if(IsVisible)
+            {
+                if((VisualUtilities.WindowsMessage)msg == VisualUtilities.WindowsMessage.WM_MOUSEWHEEL)
+                {
+                    var wheelMovement = (short)(wParam.ToUInt32() >> 16);
+                    int x = unchecked((short)(long)lParam);
+                    int y = unchecked((short)((long)lParam >> 16));
+                    OnAutoCompletionMouseMonitorMouseWheelMoved(null, new MouseEventExtArgs(System.Windows.Forms.MouseButtons.None, 0, x, y, wheelMovement));
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        #endregion
     }
 }

@@ -8,6 +8,11 @@ using System.Windows.Interop;
 
 namespace RTextNppPlugin.Utilities
 {
+    public interface IWin32MessageReceptor
+    {
+        bool OnMessageReceived(uint msg, UIntPtr wParam, IntPtr lParam);
+    }
+
     public class VisualUtilities
     {
         public enum HookType : int
