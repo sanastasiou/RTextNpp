@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Timers;
+using System.Diagnostics;
 
 namespace RTextNppPlugin.Utilities.WpfControlHost
 {
@@ -30,6 +31,7 @@ namespace RTextNppPlugin.Utilities.WpfControlHost
          */
         public WpfControlHostBase()
         {
+            Trace.WriteLine("WpfControlHostBase()");
             _elementHost = new T();
             _elementHost.VisibleChanged += OnVisibilityChanged;
             _elementHost.Move += OnElementHostMove;

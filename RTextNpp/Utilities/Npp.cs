@@ -15,6 +15,7 @@ using System.Windows.Forms;
 using RTextNppPlugin;
 using RTextNppPlugin.Utilities;
 using RTextNppPlugin.Parsing;
+using System.Windows.Forms;
 
 namespace CSScriptIntellisense
 {
@@ -321,8 +322,9 @@ namespace CSScriptIntellisense
          */
         static public Point GetCaretScreenLocationForForm()
         {
-            Point aPoint = CSScriptIntellisense.Npp.GetCaretScreenLocation();
-            aPoint.Y += CSScriptIntellisense.Npp.GetTextHeight(CSScriptIntellisense.Npp.GetCaretLineNumber());
+            Point aPoint    = CSScriptIntellisense.Npp.GetCaretScreenLocation();
+            int aTextHeight = CSScriptIntellisense.Npp.GetTextHeight(CSScriptIntellisense.Npp.GetCaretLineNumber());
+            aPoint.Y += aTextHeight;
             return aPoint;
         }
 
@@ -332,7 +334,7 @@ namespace CSScriptIntellisense
             int pos = (int)Win32.SendMessage(sci, SciMsg.SCI_GETCURRENTPOS, 0, 0);
             int x = (int)Win32.SendMessage(sci, SciMsg.SCI_POINTXFROMPOSITION, 0, pos);
             int y = (int)Win32.SendMessage(sci, SciMsg.SCI_POINTYFROMPOSITION, 0, pos);
-
+            
             Point point = new Point(x, y);
             ClientToScreen(sci, ref point);
             return point;
@@ -344,7 +346,7 @@ namespace CSScriptIntellisense
 
             Point point = Cursor.Position;
             ScreenToClient(sci, ref point);
-
+            
             int pos = (int)Win32.SendMessage(sci, SciMsg.SCI_CHARPOSITIONFROMPOINTCLOSE, point.X, point.Y);
 
             return pos;
@@ -517,6 +519,18 @@ namespace CSScriptIntellisense
              SCI_GETFIRSTVISIBLELINE = 2152,
         SCI_GETLINE = 2153,
         SCI_GETLINECOUNT = 2154,*/
+        }
+
+        /**
+         * Gets client rectangle from control.
+         *
+         * \param   hwnd    The window handle of the control, e.g. the N++ handle.
+         *
+         * \return  The client rectangle from control.
+         */
+        static public Rectangle GetClientRectFromControl(IntPtr hwnd)
+        {
+            return Screen.FromHandle(hwnd).WorkingArea;
         }
 
         static public Rectangle GetClientRect()

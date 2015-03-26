@@ -168,7 +168,7 @@ namespace RTextNppPlugin.WpfControls
         }
     }
 
-    public partial class AutoCompletionWindow : System.Windows.Window, IDisposable, IWin32MessageReceptor
+    public partial class AutoCompletionWindow : System.Windows.Window, IDisposable, IWin32MessageReceptor, IWindowPosition
     {
         #region [DataMembers]
 
@@ -179,6 +179,20 @@ namespace RTextNppPlugin.WpfControls
         #endregion
 
         #region [Interface]
+        public double ZoomLevel
+        {
+            get
+            {
+                return GetModel().ZoomLevel;
+            }
+        }
+
+        /**
+         * \brief   Gets or sets a value indicating whether this window appears on top of a token.
+         *
+         */
+        public bool IsOnTop { get; set; }               
+
         public AutoCompletionWindow()
         {
             InitializeComponent();
@@ -188,6 +202,7 @@ namespace RTextNppPlugin.WpfControls
             _keyMonitor.KeysToIntercept.Add((int)System.Windows.Forms.Keys.PageDown);
             _keyMonitor.KeyDown += OnKeyMonitorKeyDown;
             _delayedFilterEventHandler = new DelayedKeyEventHandler(this.PostProcessKeyPressed, 100);
+            IsOnTop = false;
         }
 
         void OnAutoCompletionMouseMonitorMouseWheelMoved(object sender, MouseEventExtArgs e)
@@ -327,6 +342,16 @@ namespace RTextNppPlugin.WpfControls
 
         #region EventHandlers
 
+        private void OnAutoCompletionWindowSizeChanged(object sender, System.Windows.SizeChangedEventArgs e)
+        {
+            //recalculate y position in case auto completion window is on top of word and if it is visible ( thus avoding a two X offset being applied )
+            if(IsOnTop && IsVisible)
+            {
+                var aHeightDiff = e.PreviousSize.Height - e.NewSize.Height;
+                Top += aHeightDiff;
+            }
+        }
+
         private void OnAutoCompletionFormVisibleChanged(object sender, System.Windows.DependencyPropertyChangedEventArgs e)
         {
             if (!IsVisible)
@@ -336,15 +361,36 @@ namespace RTextNppPlugin.WpfControls
                 GetModel().OnAutoCompletionWindowCollapsing();
                 GetModel().ClearSelectedCompletion();
                 UninstallMouseMonitorHooks();
+                IsOnTop = false;
             }
             else
             {
                 _keyMonitor.Install();
                 InstallMouseMonitorHooks();
-                _delayedFilterEventHandler.Cancel();                
+                _delayedFilterEventHandler.Cancel();
             }
         }
 
+        #endregion
+
+        #region IDisposable Members
+
+        /**
+         *
+         * @brief   Performs application-defined tasks associated with freeing, releasing, or resetting
+         *          unmanaged resources.
+         *
+         * @author  Stefanos Anastasiou
+         * @date    26.01.2013
+         *
+         * ### summary  Performs application-defined tasks associated with freeing, releasing, or
+         *              resetting unmanaged resources.
+         */
+        public void Dispose()
+        {
+            _keyMonitor.Uninstall();
+            UninstallMouseMonitorHooks();
+        }
         #endregion
 
         #region [Helpers]
@@ -393,30 +439,8 @@ namespace RTextNppPlugin.WpfControls
             this.AutoCompletionDatagrid.ScrollIntoView(view.CurrentItem);
         }
 
-        #endregion
-
-        #region IDisposable Members
-
-        /**
-         *
-         * @brief   Performs application-defined tasks associated with freeing, releasing, or resetting
-         *          unmanaged resources.
-         *
-         * @author  Stefanos Anastasiou
-         * @date    26.01.2013
-         *
-         * ### summary  Performs application-defined tasks associated with freeing, releasing, or
-         *              resetting unmanaged resources.
-         */
-        public void Dispose()
-        {
-            _keyMonitor.Uninstall();
-            UninstallMouseMonitorHooks();
-        }
-        #endregion
-
         private void OnAutoCompletionDatagridSelectionChanged(object sender, SelectionChangedEventArgs e)
-        {            
+        {
             GetModel().SelectPosition(((DataGrid)sender).SelectedIndex);
             if (GetModel().SelectedCompletion != null)
             {
@@ -435,6 +459,8 @@ namespace RTextNppPlugin.WpfControls
             _autoCompletionMouseMonitor.MouseClick -= OnAutoCompletionMouseMonitorMouseClick;
             _autoCompletionMouseMonitor.MouseWheel -= OnAutoCompletionMouseMonitorMouseWheelMoved;
         }
+
+        #endregion        
 
         #region IWin32MessageReceptor Members
 

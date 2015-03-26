@@ -13,6 +13,11 @@ namespace RTextNppPlugin.Utilities
         bool OnMessageReceived(uint msg, UIntPtr wParam, IntPtr lParam);
     }
 
+    public interface IWindowPosition
+    {
+        bool IsOnTop { get; set; }
+    }
+
     public class VisualUtilities
     {
         public enum HookType : int

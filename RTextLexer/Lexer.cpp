@@ -1,7 +1,6 @@
 #include "StdAfx.h"
 #include "Lexer.h"
 #include <string>
-#include <locale>
 
 namespace RText
 { 
@@ -36,7 +35,7 @@ namespace RText
     unsigned int RTextLexer::skipDigitsUntil(Accessor & accessor, char const delimiter, unsigned int & currentPos)const
     {
         unsigned int length = 0;
-        while (::isdigit(accessor[currentPos]))
+        while (::iswdigit(accessor[currentPos]))
         {
             ++currentPos;
             ++length;
@@ -56,21 +55,24 @@ namespace RText
     {
         length = 0;
         unsigned int currentPos = context.currentPos;
+
+        char a = accessor[currentPos];
+
         //regex cannot be used -- thanks Scintilla..
-        if (accessor[currentPos] == '+' || accessor[currentPos] == '-' || ::isdigit(accessor[currentPos]))
+        if (accessor[currentPos] == '+' || accessor[currentPos] == '-' || ::iswdigit(accessor[currentPos]))
         {
             bool const isSignFound = (accessor[currentPos] == '+' || accessor[currentPos] == '-');
             length = 1;
             ++currentPos;
             length += skipDigitsUntil(accessor, '.', currentPos);
-            if ((length == 1) || (isSignFound && (length == 2)) || !(::isdigit(accessor[currentPos])))
+            if ((length == 1) || (isSignFound && (length == 2)) || !(::iswdigit(accessor[currentPos])))
             {
                 return false;
             }
             else
             {
                 //eat all digits
-                while (::isdigit(accessor[currentPos]))
+                while (::iswdigit(accessor[currentPos]))
                 {
                     ++currentPos;
                     ++length;
@@ -90,7 +92,7 @@ namespace RText
         {
             length = 2;
             aCurrentPos += 2;
-            while (::isdigit(accessor[aCurrentPos]) || isHex(accessor[aCurrentPos]))
+            while (::iswdigit(accessor[aCurrentPos]) || isHex(accessor[aCurrentPos]))
             {
                 ++length;
                 ++aCurrentPos;
@@ -100,9 +102,9 @@ namespace RText
                 aRet = true;
             }
         }
-        else if (::isdigit(accessor[aCurrentPos]))
+        else if (::iswdigit(accessor[aCurrentPos]))
         {
-            while (::isdigit(accessor[aCurrentPos++]))
+            while (::iswdigit(accessor[aCurrentPos++]))
             {
                 ++length;                
             }
@@ -146,14 +148,13 @@ namespace RText
     {
         unsigned int aCurrentPos = context.currentPos;
         length                   = 0;
-        while (::isalnum(accessor[aCurrentPos]) || (accessor[aCurrentPos] == '_'))
+        while (::iswalnum(accessor[aCurrentPos]) || (accessor[aCurrentPos] == '_'))
         {
             ++length;
             ++aCurrentPos;
         }
-        std::locale loc;
         //skip whitespace
-        while (std::isspace(accessor[aCurrentPos], loc))
+        while (::iswspace(accessor[aCurrentPos]))
         {
             ++aCurrentPos;
         }
@@ -204,7 +205,7 @@ namespace RText
         length                   = 0;     
         if (::isalpha(context.ch) || (context.ch == '_'))
         {
-            while (::isalnum(accessor[aCurrentPos + 1]) || (accessor[aCurrentPos + 1] == '_'))
+            while (::iswalnum(accessor[aCurrentPos + 1]) || (accessor[aCurrentPos + 1] == '_'))
             {
                 ++length;
                 ++aCurrentPos;                
@@ -223,7 +224,7 @@ namespace RText
         //go back till we find \,[
         while (startPos-- >= 0)
         {
-            if (::isspace(buffer[startPos]))
+            if (::iswspace(buffer[startPos]))
             {
                 continue;
             }
@@ -351,7 +352,7 @@ namespace RText
                 context.SetState(TokenType_Default);
                 break;
             case TokenType_Reference:
-                while (::isalnum(context.ch) || context.Match('/') || context.Match('_'))
+                while (::iswalnum(context.ch) || context.Match('/') || context.Match('_'))
                 {
                     context.Forward();
                 }
@@ -441,12 +442,12 @@ namespace RText
 
     bool RTextLexer::isWhitespace(StyleContext const & context)const
     {
-        return (context.Match(' ') || context.Match('\t'));
+        return (!context.atLineEnd && context.Match(' ') || context.Match('\t'));
     }
 
     bool RTextLexer::isEndOfLineReached(StyleContext const & context)const
     {
-        return (context.Match('\r', '\n') || context.Match('\n'));
+        return (context.atLineEnd);
     }
 
     LexerFactoryFunction SCI_METHOD GetLexerFactory(unsigned int index)

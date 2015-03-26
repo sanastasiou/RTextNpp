@@ -13,7 +13,7 @@ namespace RTextNppPlugin
      * \brief   Constants used throughout RText.NET.
      *
      */
-    internal static class Constants
+    public static class Constants
     {
         public const string EX_LEXER_CONFIG_FILENAME = "RTextLexer.xml";        //!< External RText lexer configuration file.
         public const double FORM_INTERVAL_REFRESH = 500.0;                      //!< Defines an interval in ms, after which a form should be redrawn.
@@ -41,6 +41,7 @@ namespace RTextNppPlugin
         public const char COMMA = ',';                                          //!< Comma char.
         public const int BACKEND_COLUMN_OFFSET = 1;                             //!< Backend columns start at one, but the tokenizer starts at 0.
         public const string PluginName = "RTextNpp";                            //!< Plugin name.
+        public const double MAX_AUXILIARY_WINDOWS_HEIGHT = 400.0;               //!< Max Width of auto completion and link reference windows.
 
         #region NppMenuCommand
         public enum NppMenuCommands : int

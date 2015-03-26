@@ -276,24 +276,25 @@ namespace RTextNppPlugin
                 {
                     if (!_autoCompletionForm.IsVisible)
                     {
-                        int aCurrentPosition = CSScriptIntellisense.Npp.GetCaretPosition();
-                        int aStartPosition   = CSScriptIntellisense.Npp.GetLineStart(CSScriptIntellisense.Npp.GetLineNumber());
+                        int aCurrentPosition = Npp.GetCaretPosition();
+                        int aStartPosition   = Npp.GetLineStart(Npp.GetLineNumber());
                         int aColumn          = (aCurrentPosition - aStartPosition);
                         //fix extractor column bug...
                         if (aCurrentPosition >= 0)
                         {
-                            int aLineNumber = CSScriptIntellisense.Npp.GetLineNumber();
+                            int aLineNumber = Npp.GetLineNumber();
                             //get text from start till current line end
-                            string aContextBlock = CSScriptIntellisense.Npp.GetTextBetween(0, CSScriptIntellisense.Npp.GetLineEnd(aLineNumber));
-                            ContextExtractor aExtractor = new ContextExtractor(aContextBlock, CSScriptIntellisense.Npp.GetLengthToEndOfLine(aColumn));
+                            string aContextBlock = Npp.GetTextBetween(0, Npp.GetLineEnd(aLineNumber));
+                            ContextExtractor aExtractor = new ContextExtractor(aContextBlock, Npp.GetLengthToEndOfLine(aColumn));
                             //if auto completion is inside comment, notation, name, string jusr return
                             AutoCompletionTokenizer aTokenizer = new AutoCompletionTokenizer(aLineNumber, aCurrentPosition, aExtractor.ContextColumn);                            
                             //if a token is found then the window should appear at the start of it, else it should appear at the caret
-                            Point aCaretPoint = CSScriptIntellisense.Npp.GetCaretScreenLocationForForm();
+                            Point aCaretPoint = Npp.GetCaretScreenLocationForForm();
                             if (aTokenizer.TriggerToken.HasValue && aTokenizer.TriggerToken.Value.Type != RTextTokenTypes.Comma)
                             {
-                                aCaretPoint = CSScriptIntellisense.Npp.GetCaretScreenLocationRelativeToPosition(aTokenizer.TriggerToken.Value.BufferPosition);
-                            }                                                        
+                                aCaretPoint = Npp.GetCaretScreenLocationRelativeToPosition(aTokenizer.TriggerToken.Value.BufferPosition);
+                            }
+                            aCaretPoint = DetermineWindowPosition(aCaretPoint, _autoCompletionForm.ZoomLevel, _autoCompletionForm);
                             _autoCompletionForm.Left = aCaretPoint.X;
                             _autoCompletionForm.Top  = aCaretPoint.Y;
                             Utilities.VisualUtilities.SetOwnerFromNppPlugin(_autoCompletionForm);
@@ -317,6 +318,20 @@ namespace RTextNppPlugin
                     Win32.SendMessage(Plugin.nppData._nppHandle, (NppMsg)WinMsg.WM_COMMAND, (int)NppMenuCmd.IDM_EDIT_AUTOCOMPLETE, 0);
                 }
             });
+        }
+
+        static Point DetermineWindowPosition(Point initialPoint, double zoomLevel, IWindowPosition window)
+        {
+            //we do not know before hand the size of the window, so the calculation is done based on max height
+            var bottom = Npp.GetClientRectFromControl(nppData._nppHandle).Bottom;
+            if (!((initialPoint.Y + Constants.MAX_AUXILIARY_WINDOWS_HEIGHT) <= bottom))
+            {
+                //bottom exceeded - put list on top of word
+                initialPoint.Y -= (Npp.GetTextHeight(CSScriptIntellisense.Npp.GetCaretLineNumber()) * 2);
+                initialPoint.Y -= (int)(Constants.MAX_AUXILIARY_WINDOWS_HEIGHT * zoomLevel);
+                window.IsOnTop = true;
+            }
+            return initialPoint;
         }
 
         /**
