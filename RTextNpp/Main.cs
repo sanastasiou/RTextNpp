@@ -294,7 +294,6 @@ namespace RTextNppPlugin
                             {
                                 aCaretPoint = Npp.GetCaretScreenLocationRelativeToPosition(aTokenizer.TriggerToken.Value.BufferPosition);
                             }
-                            aCaretPoint = DetermineWindowPosition(aCaretPoint, _autoCompletionForm.ZoomLevel, _autoCompletionForm);
                             _autoCompletionForm.Left = aCaretPoint.X;
                             _autoCompletionForm.Top  = aCaretPoint.Y;
                             Utilities.VisualUtilities.SetOwnerFromNppPlugin(_autoCompletionForm);
@@ -308,6 +307,9 @@ namespace RTextNppPlugin
                                     break;
                                 default:
                                     _autoCompletionForm.Show();
+                                    aCaretPoint = DetermineWindowPosition(aCaretPoint, _autoCompletionForm.ZoomLevel, _autoCompletionForm);
+                                    _autoCompletionForm.Left = aCaretPoint.X;
+                                    _autoCompletionForm.Top  = aCaretPoint.Y;
                                     break;
                             }
                         }
@@ -327,8 +329,9 @@ namespace RTextNppPlugin
             if (!((initialPoint.Y + Constants.MAX_AUXILIARY_WINDOWS_HEIGHT) <= bottom))
             {
                 //bottom exceeded - put list on top of word
-                initialPoint.Y -= (Npp.GetTextHeight(CSScriptIntellisense.Npp.GetCaretLineNumber()) * 2);
-                initialPoint.Y -= (int)(Constants.MAX_AUXILIARY_WINDOWS_HEIGHT * zoomLevel);
+                initialPoint.Y -= (Npp.GetTextHeight(CSScriptIntellisense.Npp.GetCaretLineNumber()));
+                //problem here - we need to take into account the initial length of the list, otherwise our initial point is wrong if the list is not full
+                initialPoint.Y -= (int)(window.CurrentHeight);
                 window.IsOnTop = true;
             }
             return initialPoint;

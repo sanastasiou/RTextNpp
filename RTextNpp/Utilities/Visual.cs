@@ -16,6 +16,7 @@ namespace RTextNppPlugin.Utilities
     public interface IWindowPosition
     {
         bool IsOnTop { get; set; }
+        double CurrentHeight { get; }
     }
 
     public class VisualUtilities

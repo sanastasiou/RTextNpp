@@ -191,7 +191,9 @@ namespace RTextNppPlugin.WpfControls
          * \brief   Gets or sets a value indicating whether this window appears on top of a token.
          *
          */
-        public bool IsOnTop { get; set; }               
+        public bool IsOnTop { get; set; }
+
+        public double CurrentHeight { get { return Height; } }
 
         public AutoCompletionWindow()
         {
@@ -338,11 +340,76 @@ namespace RTextNppPlugin.WpfControls
             }
             return true;
         }
+
+        /**
+         * Scroll list.
+         *
+         * \param   key     The key.
+         * \param   offset  (Optional) the offset.
+         */
+        private void ScrollList(System.Windows.Forms.Keys key, int offset = 1)
+        {
+            ICollectionView view = CollectionViewSource.GetDefaultView(GetModel().CompletionList);
+            int aNewPosition = 0;
+            switch (key)
+            {
+                case System.Windows.Forms.Keys.PageDown:
+                case System.Windows.Forms.Keys.Down:
+                    if (view.CurrentPosition + offset < AutoCompletionDatagrid.Items.Count)
+                    {
+                        aNewPosition = view.CurrentPosition + offset;
+                        view.MoveCurrentToPosition(aNewPosition);
+                    }
+                    else
+                    {
+                        aNewPosition = AutoCompletionDatagrid.Items.Count - 1;
+                        view.MoveCurrentToLast();
+                    }
+                    break;
+                case System.Windows.Forms.Keys.PageUp:
+                case System.Windows.Forms.Keys.Up:
+                    if (view.CurrentPosition - offset >= 0)
+                    {
+                        aNewPosition = view.CurrentPosition - offset;
+                        view.MoveCurrentToPosition(view.CurrentPosition - offset);
+
+                    }
+                    else
+                    {
+                        aNewPosition = 0;
+                        view.MoveCurrentToFirst();
+                    }
+                    break;
+            }
+            GetModel().SelectPosition(aNewPosition);
+            this.AutoCompletionDatagrid.ScrollIntoView(view.CurrentItem);
+        }
+
+        private void OnAutoCompletionDatagridSelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            GetModel().SelectPosition(((DataGrid)sender).SelectedIndex);
+            if (GetModel().SelectedCompletion != null)
+            {
+                this.AutoCompletionDatagrid.ScrollIntoView(GetModel().SelectedCompletion);
+            }
+        }
+
+        private void InstallMouseMonitorHooks()
+        {
+            _autoCompletionMouseMonitor.MouseClick += OnAutoCompletionMouseMonitorMouseClick;
+            _autoCompletionMouseMonitor.MouseWheel += OnAutoCompletionMouseMonitorMouseWheelMoved;
+        }
+
+        private void UninstallMouseMonitorHooks()
+        {
+            _autoCompletionMouseMonitor.MouseClick -= OnAutoCompletionMouseMonitorMouseClick;
+            _autoCompletionMouseMonitor.MouseWheel -= OnAutoCompletionMouseMonitorMouseWheelMoved;
+        }
         #endregion
 
         #region EventHandlers
 
-        private void OnAutoCompletionWindowSizeChanged(object sender, System.Windows.SizeChangedEventArgs e)
+        public void OnAutoCompletionWindowSizeChanged(object sender, System.Windows.SizeChangedEventArgs e)
         {
             //recalculate y position in case auto completion window is on top of word and if it is visible ( thus avoding a two X offset being applied )
             if(IsOnTop && IsVisible)
@@ -391,76 +458,7 @@ namespace RTextNppPlugin.WpfControls
             _keyMonitor.Uninstall();
             UninstallMouseMonitorHooks();
         }
-        #endregion
-
-        #region [Helpers]
-
-        /**
-         * Scroll list.
-         *
-         * \param   key     The key.
-         * \param   offset  (Optional) the offset.
-         */
-        private void ScrollList(System.Windows.Forms.Keys key, int offset = 1)
-        {
-            ICollectionView view = CollectionViewSource.GetDefaultView(GetModel().CompletionList);
-            int aNewPosition = 0;
-            switch (key)
-            {
-                case System.Windows.Forms.Keys.PageDown:
-                case System.Windows.Forms.Keys.Down:
-                    if (view.CurrentPosition + offset < AutoCompletionDatagrid.Items.Count)
-                    {
-                        aNewPosition = view.CurrentPosition + offset;
-                        view.MoveCurrentToPosition(aNewPosition);                       
-                    }
-                    else
-                    {
-                        aNewPosition = AutoCompletionDatagrid.Items.Count - 1;
-                        view.MoveCurrentToLast();
-                    }
-                    break;
-                case System.Windows.Forms.Keys.PageUp:
-                case System.Windows.Forms.Keys.Up:
-                    if (view.CurrentPosition - offset >= 0)
-                    {
-                        aNewPosition = view.CurrentPosition - offset;
-                        view.MoveCurrentToPosition(view.CurrentPosition - offset);
-
-                    }
-                    else
-                    {
-                        aNewPosition = 0;
-                        view.MoveCurrentToFirst();
-                    }
-                    break;
-            }
-            GetModel().SelectPosition(aNewPosition);
-            this.AutoCompletionDatagrid.ScrollIntoView(view.CurrentItem);
-        }
-
-        private void OnAutoCompletionDatagridSelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            GetModel().SelectPosition(((DataGrid)sender).SelectedIndex);
-            if (GetModel().SelectedCompletion != null)
-            {
-                this.AutoCompletionDatagrid.ScrollIntoView(GetModel().SelectedCompletion);
-            }
-        }
-
-        private void InstallMouseMonitorHooks()
-        {
-            _autoCompletionMouseMonitor.MouseClick += OnAutoCompletionMouseMonitorMouseClick;
-            _autoCompletionMouseMonitor.MouseWheel += OnAutoCompletionMouseMonitorMouseWheelMoved;
-        }
-
-        private void UninstallMouseMonitorHooks()
-        {
-            _autoCompletionMouseMonitor.MouseClick -= OnAutoCompletionMouseMonitorMouseClick;
-            _autoCompletionMouseMonitor.MouseWheel -= OnAutoCompletionMouseMonitorMouseWheelMoved;
-        }
-
-        #endregion        
+        #endregion 
 
         #region IWin32MessageReceptor Members
 
