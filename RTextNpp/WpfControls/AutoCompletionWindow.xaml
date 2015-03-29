@@ -67,6 +67,7 @@
                       AutoGenerateColumns="false"
                       HeadersVisibility="None"
                       GridLinesVisibility="None"
+                      MouseDoubleClick="OnAutoCompletionDatagridMouseDoubleClick"
                       VirtualizingStackPanel.IsVirtualizing="True"
                       IsReadOnly="True">
                 <DataGrid.Resources>

@@ -90,9 +90,8 @@ namespace RTextNppPlugin.WpfControls
 
                 //detect button clicked
                 System.Windows.Forms.MouseButtons button = System.Windows.Forms.MouseButtons.None;
-                short mouseDelta                         = 0;
-                int clickCount                           = 0;
-
+                short mouseDelta = 0;
+                int clickCount = 0;
                 switch (aMsg)
                 {
                     case VisualUtilities.MouseMessages.WM_LBUTTONDOWN:
@@ -136,18 +135,22 @@ namespace RTextNppPlugin.WpfControls
                         clickCount = 1;
                         break;
                     default:
-                        break;
+                        return CallNextHookEx(_MouseHookHandle, nCode, wParam, lParam);
                 }
 
                 //generate event 
-                MouseEventExtArgs e = new MouseEventExtArgs( button, 1, mouseHookStruct.Point.X, mouseHookStruct.Point.Y, mouseDelta);
+                MouseEventExtArgs e = new MouseEventExtArgs(button, 1, mouseHookStruct.Point.X, mouseHookStruct.Point.Y, mouseDelta);
 
-                if (_MouseClick != null && clickCount != 0)
+                if (_MouseClick != null && clickCount == 1)
                 {
                     _MouseClick.Invoke(null, e);
                 }
+                if (_MouseDoubleClick != null && clickCount == 2)
+                {
+                    _MouseDoubleClick.Invoke(null, e);
+                }
 
-                if(e.Handled)
+                if (e.Handled)
                 {
                     return -1;
                 }
@@ -215,11 +218,20 @@ namespace RTextNppPlugin.WpfControls
 
         void OnAutoCompletionMouseMonitorMouseClick(object sender, MouseEventExtArgs e)
         {
+            e.Handled = false;            
             if (!IsMouseInsideWindow())
             {
                 this.Hide();
+            }           
+            else
+            {
+                //if a completion is suggested but not selected, clicking on it should select it
+                //since index is not changed, this cannot be done with index selection changed event 
+                if(GetModel().SelectedCompletion != null)
+                {
+                    GetModel().SelectedCompletion.IsSelected = true;
+                }
             }
-            e.Handled = false;            
         }
 
         void OnKeyMonitorKeyDown(System.Windows.Forms.Keys key, int repeatCount, ref bool handled)
@@ -400,6 +412,7 @@ namespace RTextNppPlugin.WpfControls
             _autoCompletionMouseMonitor.MouseWheel += OnAutoCompletionMouseMonitorMouseWheelMoved;
         }
 
+
         private void UninstallMouseMonitorHooks()
         {
             _autoCompletionMouseMonitor.MouseClick -= OnAutoCompletionMouseMonitorMouseClick;
@@ -466,18 +479,31 @@ namespace RTextNppPlugin.WpfControls
         {
             if(IsVisible)
             {
-                if((VisualUtilities.WindowsMessage)msg == VisualUtilities.WindowsMessage.WM_MOUSEWHEEL)
+                switch((VisualUtilities.WindowsMessage)msg)
                 {
+                    case  VisualUtilities.WindowsMessage.WM_MOUSEWHEEL:
                     var wheelMovement = (short)(wParam.ToUInt32() >> 16);
                     int x = unchecked((short)(long)lParam);
                     int y = unchecked((short)((long)lParam >> 16));
                     OnAutoCompletionMouseMonitorMouseWheelMoved(null, new MouseEventExtArgs(System.Windows.Forms.MouseButtons.None, 0, x, y, wheelMovement));
                     return true;
                 }
+
             }
             return false;
         }
 
         #endregion
+
+        private void OnAutoCompletionDatagridMouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            if (TriggerPoint != null && !String.IsNullOrEmpty(Completion.InsertionText))
+            {
+                //use current selected item to replace token
+                Npp.ReplaceWordFromToken(TriggerPoint, Completion.InsertionText);
+            }
+            Hide();
+            ClearCompletion();
+        }
     }
 }

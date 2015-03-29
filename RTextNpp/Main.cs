@@ -28,12 +28,10 @@ namespace RTextNppPlugin
         public override bool OnMessageReceived(uint msg, UIntPtr wParam, IntPtr lParam)
         {
             VisualUtilities.WindowsMessage aMsg = (VisualUtilities.WindowsMessage)msg;
-            if (aMsg == VisualUtilities.WindowsMessage.WM_MOUSEWHEEL)
+            switch(aMsg)
             {
-                if (Plugin.OnMessageReceived(msg, wParam, lParam))
-                {
-                    return true;
-                }
+                case  VisualUtilities.WindowsMessage.WM_MOUSEWHEEL:                
+                    return Plugin.OnMessageReceived(msg, wParam, lParam);
             }
             return false;
         }
