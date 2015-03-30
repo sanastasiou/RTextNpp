@@ -118,7 +118,7 @@
     <Compile Include="Utilities\GlobalMouseHook.cs" />
     <Compile Include="Utilities\MouseEventExtArgs.cs" />
     <Compile Include="Utilities\SplitEnumerator.cs" />
-    <Compile Include="ViewModels\UnmanagedExports.cs" />
+    <Compile Include="DllExport\UnmanagedExports.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
