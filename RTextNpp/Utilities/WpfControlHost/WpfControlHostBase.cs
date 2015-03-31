@@ -150,6 +150,7 @@ namespace RTextNppPlugin.Utilities.WpfControlHost
 
         private void OnRefreshTimerElapsed(object sender, ElapsedEventArgs e)
         {
+            _refreshTimer.Elapsed -= OnRefreshTimerElapsed;
             //update check box - special case where update box has false value after plugin initialization...
             Win32.SendMessage(NPP_HANDLE, NppMsg.NPPM_SETMENUITEMCHECK, CmdId, _elementHost.Visible ? 1 : 0);
             if (_refreshNeeded)
@@ -164,6 +165,7 @@ namespace RTextNppPlugin.Utilities.WpfControlHost
                 }
                 _refreshNeeded = false;
             }
+            _refreshTimer.Elapsed += OnRefreshTimerElapsed;
         }
 
         void OnElementHostMove(object sender, EventArgs e)

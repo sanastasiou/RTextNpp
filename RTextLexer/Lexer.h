@@ -202,7 +202,7 @@ private:
 
     inline bool isHex(int c)const
     {
-        c = ::tolower(c);
+        c = ::towlower(c);
         switch (c)
         {
         case 'a':
@@ -233,10 +233,5 @@ private:
 };
 
 }	// namespace RText
-
-extern "C" __declspec(dllexport) ILexer* getLexer()
-{
-    return RText::RTextLexer::LexerFactory();
-}
 
 #endif

@@ -414,6 +414,16 @@ namespace RText
         }
     }
 
+    bool RTextLexer::isWhitespace(StyleContext const & context)const
+    {
+        return (!context.atLineEnd && context.Match(' ') || context.Match('\t'));
+    }
+
+    bool RTextLexer::isEndOfLineReached(StyleContext const & context)const
+    {
+        return (context.atLineEnd);
+    }
+
     void* SCI_METHOD RTextLexer::PrivateCall(int operation, void* pointer)
     {
         return nullptr;
@@ -438,16 +448,6 @@ namespace RText
     {
         wcsncpy(desc, L"RText++ Automate file", buflength);
         desc[buflength - 1] = L'\0';
-    }
-
-    bool RTextLexer::isWhitespace(StyleContext const & context)const
-    {
-        return (!context.atLineEnd && context.Match(' ') || context.Match('\t'));
-    }
-
-    bool RTextLexer::isEndOfLineReached(StyleContext const & context)const
-    {
-        return (context.atLineEnd);
     }
 
     LexerFactoryFunction SCI_METHOD GetLexerFactory(unsigned int index)
