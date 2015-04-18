@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Runtime.InteropServices;
+using System.Text;
 using RGiesecke.DllExport;
 using RTextNppPlugin.Utilities;
 
@@ -7,6 +8,32 @@ namespace RTextNppPlugin
 {
     class UnmanagedExports
     {
+        [DllExport(CallingConvention = CallingConvention.StdCall)]
+        static void GetLexerName(uint index, StringBuilder name, int bufLength)
+        {
+            name.Append("RTextNpp");
+        }
+
+        [DllExport(CallingConvention = CallingConvention.StdCall)]
+        static void GetLexerStatusText(uint index, [MarshalAs(UnmanagedType.LPWStr, SizeConst = 32)]StringBuilder desc, int bufLength)
+        {
+            desc.Append("RText file.");
+        }
+
+        [DllExport(CallingConvention = CallingConvention.StdCall)]
+        static int GetLexerCount()
+        {
+            return 1;
+        }
+
+        static RTextLexerCliWrapper _lexerWrapper = new RTextLexerCliWrapper();
+
+        [DllExport(CallingConvention = CallingConvention.StdCall)]
+        static IntPtr GetLexerFactory(uint index)
+        {            
+            return (index == 0) ? _lexerWrapper.GetLexerFactory() : IntPtr.Zero;
+        }
+
         [DllExport(CallingConvention=CallingConvention.Cdecl)]
         static bool isUnicode()
         {

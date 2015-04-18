@@ -15,7 +15,6 @@ using System.Windows.Forms;
 using RTextNppPlugin;
 using RTextNppPlugin.Utilities;
 using RTextNppPlugin.Parsing;
-using System.Windows.Forms;
 
 namespace CSScriptIntellisense
 {

@@ -1,4 +1,0 @@
-#pragma once
-#define RTEXTLEXER_VERSION_RC 0,0,0,1
-#define RTEXTLEXER_VERSION_STRING "0.0.0.1"
-#define RTEXTLEXER_TITLE L"RTextLexer 0.0.0.1"

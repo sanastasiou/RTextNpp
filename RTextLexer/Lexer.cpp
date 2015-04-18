@@ -1,4 +1,3 @@
-#include "StdAfx.h"
 #include "Lexer.h"
 #include <string>
 
@@ -428,31 +427,4 @@ namespace RText
     {
         return nullptr;
     }
-
-    //
-    // Scintilla exports
-    //
-
-    int SCI_METHOD GetLexerCount()
-    {
-        return 1;
-    }
-
-    void SCI_METHOD GetLexerName(unsigned int index, char* name, int buflength)
-    {
-        strncpy(name, "RTextLexer", buflength);
-        name[buflength - 1] = '\0';
-    }
-
-    void SCI_METHOD GetLexerStatusText(unsigned int index, WCHAR* desc, int buflength)
-    {
-        wcsncpy(desc, L"RText++ Automate file", buflength);
-        desc[buflength - 1] = L'\0';
-    }
-
-    LexerFactoryFunction SCI_METHOD GetLexerFactory(unsigned int index)
-    {
-        return (index == 0) ? RTextLexer::LexerFactory : nullptr;
-    }
-
 }	// namespace RText

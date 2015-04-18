@@ -4,6 +4,7 @@
         <Unmanaged32Assemblies>
             FileSystemWatcherCLRWrapper
             WindowsSubclassCliWrapper
+            RTextLexer
         </Unmanaged32Assemblies>
     </Costura>  
 </Weavers>

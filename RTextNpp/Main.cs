@@ -1,10 +1,3 @@
-using CSScriptIntellisense;
-using RTextNppPlugin.Automate;
-using RTextNppPlugin.Forms;
-using RTextNppPlugin.Parsing;
-using RTextNppPlugin.Utilities;
-using RTextNppPlugin.Utilities.WpfControlHost;
-using RTextNppPlugin.WpfControls;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -13,7 +6,13 @@ using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using System.Windows.Interop;
+using CSScriptIntellisense;
+using RTextNppPlugin.Automate;
+using RTextNppPlugin.Forms;
+using RTextNppPlugin.Parsing;
+using RTextNppPlugin.Utilities;
+using RTextNppPlugin.Utilities.WpfControlHost;
+using RTextNppPlugin.WpfControls;
 using WindowsSubclassWrapper;
 
 namespace RTextNppPlugin
@@ -465,7 +464,7 @@ namespace RTextNppPlugin
          */
         public static void OnFileConsideredModified()
         {
-            _fileObserver.OnFileOpened(FileUtilities.GetCurrentFilePath());
+            _fileObserver.OnFilemodified(FileUtilities.GetCurrentFilePath());
         }
 
         /**
@@ -473,7 +472,7 @@ namespace RTextNppPlugin
          */
         public static void OnFileConsideredUnmodified()
         {
-            _fileObserver.OnFileOpened(FileUtilities.GetCurrentFilePath());
+            _fileObserver.OnFileUnmodified(FileUtilities.GetCurrentFilePath());
         }
 
         /**

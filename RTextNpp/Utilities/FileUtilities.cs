@@ -169,32 +169,29 @@ namespace RTextNppPlugin.Utilities
                     fileExt = fileExt.Remove(0, 1);
                 }
                 //list of excluded extensions
-                List<string> aExlusionList = new List<string>(Settings.Instance.Get(Settings.RTextNppSettings.ExcludeExtensions).Split(';'));
+                List<string> aExlusionList = new List<string>(Settings.Instance.Get(Settings.RTextNppSettings.ExcludeExtensions).Split(new char[]{';'}, StringSplitOptions.RemoveEmptyEntries));
 
                 //get npp configuration directory
                 //get list of supported extensions
                 string configDir = GetNppConfigDirectory();
-                if (!String.IsNullOrEmpty(configDir))
+
+                //try to open external lexer configuration file
+                XDocument xmlDom = XDocument.Load(configDir + @"\" + Constants.EX_LEXER_CONFIG_FILENAME);
+                if (fileExt.Equals((xmlDom.Root.Element("Languages").Element("Language").Attribute("ext").Value), StringComparison.InvariantCultureIgnoreCase))
                 {
-                    //try to open external lexer configuration file
-                    XDocument xmlDom = XDocument.Load(configDir + @"\" + Constants.EX_LEXER_CONFIG_FILENAME);
-                    if (fileExt.Equals((xmlDom.Root.Element("Languages").Element("Language").Attribute("ext").Value), StringComparison.InvariantCultureIgnoreCase))
+                    return !aExlusionList.Contains(fileExt);
+                }
+                //check user defined extensions as well
+                string additionalExt = xmlDom.Root.Element("LexerStyles").Element("LexerType").Attribute("ext").Value;
+                if (!String.IsNullOrWhiteSpace(additionalExt))
+                {
+                    foreach (var ext in additionalExt.Split(' '))
                     {
-                        return !aExlusionList.Contains(fileExt);
-                    }
-                    //check user defined extensions as well
-                    string additionalExt = xmlDom.Root.Element("LexerStyles").Element("LexerType").Attribute("ext").Value;
-                    if (!String.IsNullOrWhiteSpace(additionalExt))
-                    {
-                        foreach (var ext in additionalExt.Split(' '))
+                        if (fileExt.Equals(ext, StringComparison.InvariantCultureIgnoreCase))
                         {
-                            if (fileExt.Equals(ext, StringComparison.InvariantCultureIgnoreCase))
-                            {
-                                return !aExlusionList.Contains(fileExt);
-                            }
+                            return !aExlusionList.Contains(fileExt);
                         }
                     }
-
                 }
                 return false;
             }
