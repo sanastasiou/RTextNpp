@@ -1,4 +1,8 @@
-﻿using CSScriptIntellisense;
+﻿using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.Linq;
+using CSScriptIntellisense;
 using Microsoft.VisualStudio.Language.Intellisense;
 using RTextNppPlugin.Automate;
 using RTextNppPlugin.Automate.Protocol;
@@ -6,10 +10,6 @@ using RTextNppPlugin.Logging;
 using RTextNppPlugin.Parsing;
 using RTextNppPlugin.Utilities;
 using RTextNppPlugin.WpfControls;
-using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
 
 namespace RTextNppPlugin.ViewModels
 {
@@ -49,11 +49,11 @@ namespace RTextNppPlugin.ViewModels
 
             public Completion(Completion completion)
             {
-                _displayText = completion.DisplayText;
+                _displayText   = completion.DisplayText;
                 _insertionText = completion.InsertionText;
-                _description = completion.Description;
-                _glyph = completion.ImageType;
-                IsFuzzy = IsSelected = false;
+                _description   = completion.Description;
+                _glyph         = completion.ImageType;
+                IsFuzzy        = IsSelected = false;
             }
 
             public string DisplayText { get { return _displayText; } }
@@ -90,7 +90,7 @@ namespace RTextNppPlugin.ViewModels
                 {
                     if (value != _isSelected)
                     {
-                        _isSelected = value;
+                        _isSelected = value;                        
                         base.RaisePropertyChanged("IsSelected");
                     }
                 }
@@ -343,7 +343,7 @@ namespace RTextNppPlugin.ViewModels
                                 var labeledList = filteredList.Select(x => new Completion(
                                     x.display,
                                     x.insert,
-                                    x.desc,
+                                    string.IsNullOrEmpty(x.desc) ? "No description available." : x.desc,
                                     x.insert.Contains("event", StringComparison.InvariantCultureIgnoreCase) ? Completion.AutoCompletionType.Event : Completion.AutoCompletionType.Label));
 
                                 if (labeledList.Count() != 0)
@@ -536,7 +536,7 @@ namespace RTextNppPlugin.ViewModels
         private List<Completion> _cachedOptions                                 = null;                                       //!< Last set of options.
         private bool _isWarningCompletionActive                                 = false;                                      //!< Indicates if a warning option was active.
         private int _selectedIndex                                              = 0;                                          //!< Indicates the selected index of the filtered option list.
-        private bool _isFiltering                                               = false;                                      //!< Indicates if filtering function is currently active.
+        private bool _isFiltering                                               = false;                                      //!< Indicates if filtering function is currently active.        
         #endregion
     }
 }

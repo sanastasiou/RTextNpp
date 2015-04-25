@@ -4,6 +4,8 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:sys="clr-namespace:System;assembly=mscorlib"
+        xmlns:wpf_controls="clr-namespace:RTextNppPlugin.WpfControls"
+        xmlns:utilities="clr-namespace:RTextNppPlugin.Utilities"
         xmlns:viewModels="clr-namespace:RTextNppPlugin.ViewModels"
         xmlns:converters="clr-namespace:RTextNppPlugin.WpfControls.Converters"
         xmlns:plugin_ns="clr-namespace:RTextNppPlugin"
@@ -29,7 +31,8 @@
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="Styles.xaml"/>                
             </ResourceDictionary.MergedDictionaries>
-        </ResourceDictionary>        
+            <utilities:BindingProxy x:Key="DataContextProxy" Data="{Binding}"/>
+        </ResourceDictionary>                
     </Window.Resources>
     <Border BorderBrush="Black" Name="LinkBorder">
         <DockPanel LastChildFill="True" Name="AutoCompletionDockPanel">        
@@ -79,8 +82,23 @@
                 <DataGrid.Columns>
                     <DataGridTemplateColumn Header="Options" Width="SizeToCells" IsReadOnly="True">
                         <DataGridTemplateColumn.CellTemplate>
-                            <DataTemplate>
-                                <Border>
+                            <DataTemplate>                                
+                                <Border TargetUpdated="OnAutoCompletionBorderBackgroundUpdated">
+                                    <Border.ToolTip>
+                                        <ToolTip IsEnabled="True"
+                                                 x:Name="OptionTooltip"
+                                                 Placement="Right"
+                                                 VerticalOffset="-1">
+                                            <TextBlock Margin="0" Padding="0" TextAlignment="Left" TextWrapping="Wrap" MaxWidth="200" Text="{Binding Description}" FontStyle="Italic">
+                                                <TextBlock.LayoutTransform>
+                                                    <ScaleTransform CenterX="0" 
+                                                                    CenterY="0"                                                                
+                                                                    ScaleX="{Binding Data.ZoomLevel, Source={StaticResource DataContextProxy}}"
+                                                                    ScaleY="{Binding Data.ZoomLevel, Source={StaticResource DataContextProxy}}"/>
+                                                </TextBlock.LayoutTransform>
+                                            </TextBlock>
+                                        </ToolTip>
+                                    </Border.ToolTip>
                                     <Border.Style>
                                         <Style>
                                             <Setter Property="Border.BorderThickness" Value="1"/>
@@ -89,7 +107,7 @@
                                             <Setter Property="Border.Margin" Value="0"/>
                                             <Setter Property="Border.Background" Value="Red"/>
                                             <Style.Triggers>
-                                                <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                                                <DataTrigger Binding="{Binding IsSelected, NotifyOnTargetUpdated=True}" Value="True">
                                                     <Setter Property="Border.Background" Value="LimeGreen"/>
                                                 </DataTrigger>
                                                 <DataTrigger Binding="{Binding IsSelected}" Value="False">

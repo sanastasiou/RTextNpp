@@ -17,6 +17,10 @@ namespace RTextNppPlugin.Utilities
     {
         bool IsOnTop { get; set; }
         double CurrentHeight { get; }
+
+        double Width { get; }
+
+        double Left { get; set; }
     }
 
     public class VisualUtilities

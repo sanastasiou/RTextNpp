@@ -190,6 +190,7 @@ namespace RTextNppPlugin.WpfControls
             }
         }
 
+        #region [IWindowPosition Members]
         /**
          * \brief   Gets or sets a value indicating whether this window appears on top of a token.
          *
@@ -197,6 +198,21 @@ namespace RTextNppPlugin.WpfControls
         public bool IsOnTop { get; set; }
 
         public double CurrentHeight { get { return Height; } }
+
+        new double Width { get { return base.Width; } }
+
+        new double Left
+        {
+            get
+            {
+                return base.Left;
+            }
+            set
+            {
+                base.Left = value;                
+            }
+        }
+        #endregion        
 
         public AutoCompletionWindow()
         {
@@ -504,6 +520,20 @@ namespace RTextNppPlugin.WpfControls
             }
             Hide();
             ClearCompletion();
+        }
+
+        private void OnAutoCompletionBorderBackgroundUpdated(object sender, DataTransferEventArgs e)
+        {
+            var border  = sender as Border;
+            var context = border.DataContext as AutoCompletionViewModel.Completion;
+            if (context.IsSelected)
+            {
+                //((ToolTip)border.ToolTip).IsOpen = true;
+            }
+            else
+            {
+                //((ToolTip)border.ToolTip).IsOpen = false; 
+            }            
         }
     }
 }

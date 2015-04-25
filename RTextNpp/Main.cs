@@ -322,14 +322,20 @@ namespace RTextNppPlugin
         static Point DetermineWindowPosition(Point initialPoint, double zoomLevel, IWindowPosition window)
         {
             //we do not know before hand the size of the window, so the calculation is done based on max height
-            var bottom = Npp.GetClientRectFromControl(nppData._nppHandle).Bottom;
-            if (!((initialPoint.Y + Constants.MAX_AUXILIARY_WINDOWS_HEIGHT) <= bottom))
+            if (!((initialPoint.Y + Constants.MAX_AUXILIARY_WINDOWS_HEIGHT) <= Npp.GetClientRectFromControl(nppData._nppHandle).Bottom))
             {
                 //bottom exceeded - put list on top of word
                 initialPoint.Y -= (Npp.GetTextHeight(CSScriptIntellisense.Npp.GetCaretLineNumber()));
                 //problem here - we need to take into account the initial length of the list, otherwise our initial point is wrong if the list is not full
                 initialPoint.Y -= (int)(window.CurrentHeight);
                 window.IsOnTop = true;
+            }
+            var rectFromPoint = Npp.GetClientRectFromPoint(initialPoint);
+            //if the width of the auto completion window overlaps the right edge of the screen, then move the window at the left until no overlap is present
+            if (rectFromPoint.Right < window.Left + window.Width)
+            {
+                double dif = (window.Left + window.Width) - rectFromPoint.Right;
+                initialPoint.X -= (int)dif;
             }
             return initialPoint;
         }

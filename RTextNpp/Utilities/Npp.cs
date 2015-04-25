@@ -532,6 +532,11 @@ namespace CSScriptIntellisense
             return Screen.FromHandle(hwnd).WorkingArea;
         }
 
+        static public Rectangle GetClientRectFromPoint(Point p)
+        {
+            return Screen.FromPoint(p).WorkingArea;
+        }
+
         static public Rectangle GetClientRect()
         {
             IntPtr sci = Plugin.GetCurrentScintilla();
