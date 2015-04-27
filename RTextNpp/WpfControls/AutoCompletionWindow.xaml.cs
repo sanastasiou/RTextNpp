@@ -180,6 +180,7 @@ namespace RTextNppPlugin.WpfControls
         DelayedKeyEventHandler _delayedFilterEventHandler           = null;
         KeyInterceptor _keyMonitor                                  = new KeyInterceptor();
         AutoCompletionMouseMonitor _autoCompletionMouseMonitor      = new AutoCompletionMouseMonitor();
+        ToolTip _previouslyOpenedToolTip                            = null;
 
         #endregion
 
@@ -363,6 +364,24 @@ namespace RTextNppPlugin.WpfControls
 
         #region [Helpers]
 
+        private void HideActiveTooltip(Border border)
+        {
+            ToolTip tp = border.ToolTip as ToolTip;
+            if (tp != null)
+            {
+                tp.IsOpen = false;
+            }
+        }
+
+        private void HidePreviouslyOpenedTooltip(ToolTip toolTip)
+        {
+            if (_previouslyOpenedToolTip != null)
+            {
+                _previouslyOpenedToolTip.IsOpen = false;
+            }
+            _previouslyOpenedToolTip = toolTip;
+        }
+
         private double CalculateTooltipOffset()
         {
             double aCalculatedOffset = 0.0;
@@ -499,16 +518,7 @@ namespace RTextNppPlugin.WpfControls
             }
             GetModel().SelectPosition(aNewPosition);
             this.AutoCompletionDatagrid.ScrollIntoView(view.CurrentItem);
-        }
-
-        private void OnAutoCompletionDatagridSelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            GetModel().SelectPosition(((DataGrid)sender).SelectedIndex);
-            if (GetModel().SelectedCompletion != null)
-            {
-                this.AutoCompletionDatagrid.ScrollIntoView(GetModel().SelectedCompletion);
-            }
-        }
+        }      
 
         private void InstallMouseMonitorHooks()
         {
@@ -524,7 +534,64 @@ namespace RTextNppPlugin.WpfControls
         }
         #endregion
 
+        private ToolTip FindSelectedItemToolTip()
+        {
+            ToolTip tp = null;
+            var container = AutoCompletionDatagrid.ItemContainerGenerator.ContainerFromItem(AutoCompletionDatagrid.SelectedItem) as FrameworkElement;
+            if (container != null)
+            {
+                var presenter = VisualUtilities.GetVisualChild<ToolTip>(container);
+                //DataTemplate dataTemplate = presenter.ContentTemplate;
+                //Border optionContainer    = (Border)dataTemplate.FindName("OptionContainer", presenter);
+            }
+            return tp;
+        }
+
         #region EventHandlers
+
+        private void OnAutoCompletionDatagridSelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            GetModel().SelectPosition(((DataGrid)sender).SelectedIndex);
+            if (GetModel().SelectedCompletion != null)
+            {
+                this.AutoCompletionDatagrid.ScrollIntoView(GetModel().SelectedCompletion);
+                FindSelectedItemToolTip();
+            }            
+        }
+
+        private void OnOptionBorderDataContextChanged(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void OnAutoCompletionBorderBackgroundUpdated(object sender, DataTransferEventArgs e)
+        {
+            var border  = sender as Border;
+            var context = border.DataContext as AutoCompletionViewModel.Completion;
+            ToolTip tp  = border.ToolTip as ToolTip;
+            if (context.IsSelected)
+            {
+                tp.PlacementTarget = border;
+                tp.Placement       = System.Windows.Controls.Primitives.PlacementMode.Right;
+                tp.VerticalOffset  = -1;
+                HidePreviouslyOpenedTooltip(tp);
+                tp.IsOpen          = true;
+            }
+            else
+            {
+                HideActiveTooltip(border);
+            }
+        }
+
+        private void OnAutoCompletionBorderIsVisibleChanged(object sender, System.Windows.DependencyPropertyChangedEventArgs e)
+        {
+            HideActiveTooltip(sender as Border);
+        }
+
+        private void OnAutoCompletionBorderMouseEnter(object sender, MouseEventArgs e)
+        {
+            HideActiveTooltip(sender as Border);
+        }
 
         private void OnAutoCompletionBorderToolTipOpening(object sender, ToolTipEventArgs e)
         {
@@ -536,11 +603,12 @@ namespace RTextNppPlugin.WpfControls
         private void ToolTipOpenedHandler(object sender, RoutedEventArgs e)
         {
             ToolTip toolTip  = (ToolTip)sender;
-            UIElement target = toolTip.PlacementTarget;
-            var rect = toolTip.PlacementRectangle;
-
+            HidePreviouslyOpenedTooltip(toolTip);
         }
 
+        /**
+         * \brief   Resizes open auto completion list when the container's size change.
+         */
         private void OnAutoCompletionDatagridSizeChanged(object sender, SizeChangedEventArgs e)
         {
             if (IsOnTop && IsVisible)
@@ -552,7 +620,7 @@ namespace RTextNppPlugin.WpfControls
             {
                 if (!((e.NewSize.Height + Top ) <= Npp.GetClientRectFromControl(Npp.NppHandle).Bottom))
                 {
-                    //bottom exceeded - put list on top of word - get two lines up
+                    //bottom exceeded - put list on top of word
                     Top = Npp.GetCaretScreenLocationForFormAboveWord().Y;
                     //problem here - we need to take into account the initial length of the list, otherwise our initial point is wrong if the list is not full
                     Top -= (int)(e.NewSize.Height);
@@ -641,21 +709,12 @@ namespace RTextNppPlugin.WpfControls
             return false;
         }
 
-        #endregion
+        #endregion       
 
-        private void OnAutoCompletionBorderBackgroundUpdated(object sender, DataTransferEventArgs e)
+        private void OptionContainer_GotFocus(object sender, RoutedEventArgs e)
         {
-            var border  = sender as Border;
-            var context = border.DataContext as AutoCompletionViewModel.Completion;            
-            if (context.IsSelected)
-            {
-                //open after closing previous one
-                //((ToolTip)border.ToolTip).IsOpen = true;
-            }
-            else
-            {
-                //((ToolTip)border.ToolTip).IsOpen = false; 
-            }            
-        }       
+            System.Diagnostics.Trace.WriteLine("Got focus...");
+        }
+
     }
 }

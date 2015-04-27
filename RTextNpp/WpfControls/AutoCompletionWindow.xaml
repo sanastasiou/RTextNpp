@@ -84,7 +84,9 @@
                     <DataGridTemplateColumn Header="Options" Width="SizeToCells" IsReadOnly="True">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
-                                <Border ToolTipOpening="OnAutoCompletionBorderToolTipOpening">
+                                <Border ToolTipOpening="OnAutoCompletionBorderToolTipOpening"
+                                        Name="OptionContainer"                                        
+                                        MouseEnter="OnAutoCompletionBorderMouseEnter">
                                     <Border.ToolTip>
                                         <ToolTip>
                                             <ToolTip.Style>
@@ -93,7 +95,6 @@
                                                     <Setter Property="ToolTip.Margin" Value="0"/>
                                                     <Setter Property="ToolTip.Placement" Value="Right" />
                                                     <Setter Property="ToolTip.VerticalOffset" Value="-1"/>
-                                                    <EventSetter Event="ToolTip.Opened" Handler="ToolTipOpenedHandler" />
                                                 </Style>
                                             </ToolTip.Style>
                                             <TextBlock Margin="0" Padding="0" TextAlignment="Left" TextWrapping="Wrap" MaxWidth="{x:Static plugin_ns:Constants.MAX_AUTO_COMPLETION_TOOLTIP_WIDTH}" Text="{Binding Description}" FontStyle="Italic">
@@ -112,7 +113,7 @@
                                             <Setter Property="Border.BorderBrush" Value="Transparent"/>
                                             <Setter Property="Border.Padding" Value="0"/>
                                             <Setter Property="Border.Margin" Value="0"/>
-                                            <Setter Property="Border.Background" Value="Red"/>
+                                            <Setter Property="Border.Background" Value="Transparent"/>
                                             <Style.Triggers>
                                                 <DataTrigger Binding="{Binding IsSelected}" Value="True">
                                                     <Setter Property="Border.Background" Value="LimeGreen"/>
@@ -125,7 +126,7 @@
                                                 </DataTrigger>
                                                 <DataTrigger Binding="{Binding IsFuzzy}" Value="False">
                                                     <Setter Property="Border.BorderBrush" Value="Transparent"/>
-                                                </DataTrigger>
+                                                </DataTrigger>                                               
                                             </Style.Triggers>
                                         </Style>                                        
                                     </Border.Style>
