@@ -82,12 +82,11 @@
                 <DataGrid.Columns>
                     <DataGridTemplateColumn Header="Options" Width="SizeToCells" IsReadOnly="True">
                         <DataGridTemplateColumn.CellTemplate>
-                            <DataTemplate>                                
-                                <Border TargetUpdated="OnAutoCompletionBorderBackgroundUpdated">
+                            <DataTemplate>
+                                <Border ToolTipOpening="OnAutoCompletionBorderToolTipOpening">
                                     <Border.ToolTip>
                                         <ToolTip IsEnabled="True"
-                                                 x:Name="OptionTooltip"
-                                                 Placement="Right"
+                                                 Placement="Right"                                                 
                                                  VerticalOffset="-1">
                                             <TextBlock Margin="0" Padding="0" TextAlignment="Left" TextWrapping="Wrap" MaxWidth="200" Text="{Binding Description}" FontStyle="Italic">
                                                 <TextBlock.LayoutTransform>
@@ -107,7 +106,7 @@
                                             <Setter Property="Border.Margin" Value="0"/>
                                             <Setter Property="Border.Background" Value="Red"/>
                                             <Style.Triggers>
-                                                <DataTrigger Binding="{Binding IsSelected, NotifyOnTargetUpdated=True}" Value="True">
+                                                <DataTrigger Binding="{Binding IsSelected}" Value="True">
                                                     <Setter Property="Border.Background" Value="LimeGreen"/>
                                                 </DataTrigger>
                                                 <DataTrigger Binding="{Binding IsSelected}" Value="False">

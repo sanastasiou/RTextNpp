@@ -8,6 +8,8 @@ using RTextNppPlugin.Parsing;
 using RTextNppPlugin.Utilities;
 using RTextNppPlugin.ViewModels;
 using System.Runtime.InteropServices;
+using System.Windows.Media;
+using System.Windows;
 
 
 namespace RTextNppPlugin.WpfControls
@@ -339,6 +341,31 @@ namespace RTextNppPlugin.WpfControls
         #endregion
 
         #region [Helpers]
+
+        /**
+         * Find the scrollbar out of a wpf control, e.g. DataGrid if it exists.
+         *
+         * \param   dep The dep.
+         *
+         * \return  The scrollbar.
+         */
+        private static ScrollViewer GetScrollbar(DependencyObject dep)
+        {
+            for (int i = 0; i < VisualTreeHelper.GetChildrenCount(dep); i++)
+            {
+                var child =  VisualTreeHelper.GetChild(dep, i);
+                if (child != null && child is ScrollViewer)
+                    return child as ScrollViewer;
+                else
+                {
+                    ScrollViewer sub = GetScrollbar(child);
+                    if (sub != null)
+                        return sub;
+                }
+            }
+            return null;
+        }
+
         private AutoCompletionViewModel GetModel()
         {
             return ((AutoCompletionViewModel)this.DataContext);
@@ -525,15 +552,57 @@ namespace RTextNppPlugin.WpfControls
         private void OnAutoCompletionBorderBackgroundUpdated(object sender, DataTransferEventArgs e)
         {
             var border  = sender as Border;
-            var context = border.DataContext as AutoCompletionViewModel.Completion;
+            var context = border.DataContext as AutoCompletionViewModel.Completion;            
             if (context.IsSelected)
             {
+                //open after closing previous one
                 //((ToolTip)border.ToolTip).IsOpen = true;
             }
             else
             {
                 //((ToolTip)border.ToolTip).IsOpen = false; 
             }            
+        }
+
+        private void OnAutoCompletionBorderToolTipOpening(object sender, ToolTipEventArgs e)
+        {
+            var border          = sender as Border;
+            var Tp              = border.ToolTip as ToolTip;
+            Tp.HorizontalOffset = CalculateTooltipOffset(Left, Width, Tp.PlacementRectangle);
+        }
+
+        private double CalculateTooltipOffset(double mainLeft, double mainWidth, System.Windows.Rect placementRectangle)
+        {
+            double aCalculatedOffset = 0.0;
+            double aRight = mainLeft + mainWidth;
+            var scrollViewer = GetScrollbar(AutoCompletionDatagrid);
+            if(scrollViewer.ComputedVerticalScrollBarVisibility == System.Windows.Visibility.Visible)
+            {
+                aCalculatedOffset += System.Windows.SystemParameters.ScrollWidth;
+            }
+            else if(scrollViewer.ComputedVerticalScrollBarVisibility == System.Windows.Visibility.Collapsed)
+            {
+                //wpf bug - without scrollbar positioning is ok, when a scrollbar gets collapsed due to filtering some leftover remain :s
+                if (Width > scrollViewer.ViewportWidth)
+                {
+                    aCalculatedOffset += (System.Windows.SystemParameters.ScrollWidth - 11.0);   
+                }                
+            }
+            if(scrollViewer.ComputedHorizontalScrollBarVisibility == System.Windows.Visibility.Visible)
+            {
+                //offset here is the amount of pixels that the scrollbar can move to the right
+                double aCurrentOffset = scrollViewer.HorizontalOffset;
+                double aExtendedWidth = scrollViewer.ExtentWidth;
+                double aViewPortWidth = scrollViewer.ViewportWidth;
+                double aMaxOffset     = aExtendedWidth - aViewPortWidth;
+                aCalculatedOffset     -= (aMaxOffset - aCurrentOffset);
+            }
+
+            if(aRight > placementRectangle.Right)
+            {
+                System.Diagnostics.Trace.WriteLine(String.Format("Main right : {0}\nTooltip Right : {1}\n", aRight, placementRectangle.Right));
+            }
+            return aCalculatedOffset;
         }
     }
 }
