@@ -192,6 +192,15 @@ namespace RTextNppPlugin.WpfControls
             }
         }
 
+        public double ViewPortWidth
+        {
+            get
+            {
+                var scrollViewer = GetScrollbar(AutoCompletionDatagrid);
+                return scrollViewer.ViewportWidth;
+            }
+        }
+
         #region [IWindowPosition Members]
         /**
          * \brief   Gets or sets a value indicating whether this window appears on top of a token.
@@ -212,6 +221,18 @@ namespace RTextNppPlugin.WpfControls
             set
             {
                 base.Left = value;                
+            }
+        }
+
+        new double Top
+        {
+            get
+            {
+                return base.Top;
+            }
+            set
+            {
+                base.Top = value;
             }
         }
         #endregion        
@@ -342,6 +363,46 @@ namespace RTextNppPlugin.WpfControls
 
         #region [Helpers]
 
+        private double CalculateTooltipOffset()
+        {
+            double aCalculatedOffset = 0.0;
+            var scrollViewer = GetScrollbar(AutoCompletionDatagrid);
+            if ((Left + Width + Constants.MAX_AUTO_COMPLETION_TOOLTIP_WIDTH) > Npp.GetClientRectFromPoint(new System.Drawing.Point((int)Left, (int)Top)).Right)
+            {
+                if (scrollViewer.ComputedHorizontalScrollBarVisibility == System.Windows.Visibility.Visible)
+                {
+                    //offset here is the amount of pixels that the scrollbar can move to the right for some reason tooltip doesn't work correctly when offset is present...
+                    //fix it by subtracting the current offset
+                    double aCurrentOffset = scrollViewer.HorizontalOffset;
+                    aCalculatedOffset += aCurrentOffset;
+                }
+                return aCalculatedOffset;
+            }
+            if(scrollViewer.ComputedVerticalScrollBarVisibility == System.Windows.Visibility.Visible)
+            {
+                aCalculatedOffset += System.Windows.SystemParameters.ScrollWidth;
+            }
+            else if(scrollViewer.ComputedVerticalScrollBarVisibility == System.Windows.Visibility.Collapsed)
+            {
+                //wpf bug - without scrollbar positioning is ok, when a scrollbar gets collapsed due to filtering some leftover remain :s
+                if (Width > scrollViewer.ViewportWidth)
+                {
+                    aCalculatedOffset += (System.Windows.SystemParameters.ScrollWidth - 11.0);   
+                }                
+            }
+            if(scrollViewer.ComputedHorizontalScrollBarVisibility == System.Windows.Visibility.Visible)
+            {
+                //offset here is the amount of pixels that the scrollbar can move to the right
+                double aCurrentOffset = scrollViewer.HorizontalOffset;
+                double aExtendedWidth = scrollViewer.ExtentWidth;
+                double aViewPortWidth = scrollViewer.ViewportWidth;
+                double aMaxOffset     = aExtendedWidth - aViewPortWidth;
+                aCalculatedOffset     -= (aMaxOffset - aCurrentOffset);
+            }
+
+            return aCalculatedOffset;
+        }
+
         /**
          * Find the scrollbar out of a wpf control, e.g. DataGrid if it exists.
          *
@@ -465,18 +526,51 @@ namespace RTextNppPlugin.WpfControls
 
         #region EventHandlers
 
-        public void OnAutoCompletionWindowSizeChanged(object sender, System.Windows.SizeChangedEventArgs e)
+        private void OnAutoCompletionBorderToolTipOpening(object sender, ToolTipEventArgs e)
         {
-            //recalculate y position in case auto completion window is on top of word and if it is visible ( thus avoding a two X offset being applied )
-            if(IsOnTop && IsVisible)
+            var border = sender as Border;
+            var Tp = border.ToolTip as ToolTip;
+            Tp.HorizontalOffset = CalculateTooltipOffset();
+        }
+
+        private void ToolTipOpenedHandler(object sender, RoutedEventArgs e)
+        {
+            ToolTip toolTip  = (ToolTip)sender;
+            UIElement target = toolTip.PlacementTarget;
+            var rect = toolTip.PlacementRectangle;
+
+        }
+
+        private void OnAutoCompletionDatagridSizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            if (IsOnTop && IsVisible)
             {
                 var aHeightDiff = e.PreviousSize.Height - e.NewSize.Height;
                 Top += aHeightDiff;
             }
+            else if(!IsOnTop && IsVisible)
+            {
+                if (!((e.NewSize.Height + Top ) <= Npp.GetClientRectFromControl(Npp.NppHandle).Bottom))
+                {
+                    //bottom exceeded - put list on top of word - get two lines up
+                    Top = Npp.GetCaretScreenLocationForFormAboveWord().Y;
+                    //problem here - we need to take into account the initial length of the list, otherwise our initial point is wrong if the list is not full
+                    Top -= (int)(e.NewSize.Height);
+                    IsOnTop = true;
+                }
+            }
+            //position list in such a way that it doesn't get split into two monitors
+            var rectFromPoint = Npp.GetClientRectFromPoint(new System.Drawing.Point((int)Left, (int)Top));
+            //if the width of the auto completion window overlaps the right edge of the screen, then move the window at the left until no overlap is present
+            if (rectFromPoint.Right < Left + e.NewSize.Width)
+            {
+                double dif = (Left + e.NewSize.Width) - rectFromPoint.Right;
+                Left -= (int)dif;
+            }
         }
 
         private void OnAutoCompletionFormVisibleChanged(object sender, System.Windows.DependencyPropertyChangedEventArgs e)
-        {
+        {            
             if (!IsVisible)
             {
                 _keyMonitor.Uninstall();
@@ -485,6 +579,7 @@ namespace RTextNppPlugin.WpfControls
                 GetModel().ClearSelectedCompletion();
                 UninstallMouseMonitorHooks();
                 IsOnTop = false;
+                //force resize.. somehow
             }
             else
             {
@@ -494,6 +589,16 @@ namespace RTextNppPlugin.WpfControls
             }
         }
 
+        private void OnAutoCompletionDatagridMouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            if (TriggerPoint != null && !String.IsNullOrEmpty(Completion.InsertionText))
+            {
+                //use current selected item to replace token
+                Npp.ReplaceWordFromToken(TriggerPoint, Completion.InsertionText);
+            }
+            Hide();
+            ClearCompletion();
+        }
         #endregion
 
         #region IDisposable Members
@@ -538,17 +643,6 @@ namespace RTextNppPlugin.WpfControls
 
         #endregion
 
-        private void OnAutoCompletionDatagridMouseDoubleClick(object sender, MouseButtonEventArgs e)
-        {
-            if (TriggerPoint != null && !String.IsNullOrEmpty(Completion.InsertionText))
-            {
-                //use current selected item to replace token
-                Npp.ReplaceWordFromToken(TriggerPoint, Completion.InsertionText);
-            }
-            Hide();
-            ClearCompletion();
-        }
-
         private void OnAutoCompletionBorderBackgroundUpdated(object sender, DataTransferEventArgs e)
         {
             var border  = sender as Border;
@@ -562,47 +656,6 @@ namespace RTextNppPlugin.WpfControls
             {
                 //((ToolTip)border.ToolTip).IsOpen = false; 
             }            
-        }
-
-        private void OnAutoCompletionBorderToolTipOpening(object sender, ToolTipEventArgs e)
-        {
-            var border          = sender as Border;
-            var Tp              = border.ToolTip as ToolTip;
-            Tp.HorizontalOffset = CalculateTooltipOffset(Left, Width, Tp.PlacementRectangle);
-        }
-
-        private double CalculateTooltipOffset(double mainLeft, double mainWidth, System.Windows.Rect placementRectangle)
-        {
-            double aCalculatedOffset = 0.0;
-            double aRight = mainLeft + mainWidth;
-            var scrollViewer = GetScrollbar(AutoCompletionDatagrid);
-            if(scrollViewer.ComputedVerticalScrollBarVisibility == System.Windows.Visibility.Visible)
-            {
-                aCalculatedOffset += System.Windows.SystemParameters.ScrollWidth;
-            }
-            else if(scrollViewer.ComputedVerticalScrollBarVisibility == System.Windows.Visibility.Collapsed)
-            {
-                //wpf bug - without scrollbar positioning is ok, when a scrollbar gets collapsed due to filtering some leftover remain :s
-                if (Width > scrollViewer.ViewportWidth)
-                {
-                    aCalculatedOffset += (System.Windows.SystemParameters.ScrollWidth - 11.0);   
-                }                
-            }
-            if(scrollViewer.ComputedHorizontalScrollBarVisibility == System.Windows.Visibility.Visible)
-            {
-                //offset here is the amount of pixels that the scrollbar can move to the right
-                double aCurrentOffset = scrollViewer.HorizontalOffset;
-                double aExtendedWidth = scrollViewer.ExtentWidth;
-                double aViewPortWidth = scrollViewer.ViewportWidth;
-                double aMaxOffset     = aExtendedWidth - aViewPortWidth;
-                aCalculatedOffset     -= (aMaxOffset - aCurrentOffset);
-            }
-
-            if(aRight > placementRectangle.Right)
-            {
-                System.Diagnostics.Trace.WriteLine(String.Format("Main right : {0}\nTooltip Right : {1}\n", aRight, placementRectangle.Right));
-            }
-            return aCalculatedOffset;
-        }
+        }       
     }
 }

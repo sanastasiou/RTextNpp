@@ -19,9 +19,6 @@
         IsHitTestVisible="True"
         ShowActivated="False"
         Topmost="False"
-        Width="200"
-        Height="200"
-        SizeChanged="OnAutoCompletionWindowSizeChanged"
         SizeToContent="WidthAndHeight">
     <Window.DataContext>
         <viewModels:AutoCompletionViewModel/>
@@ -34,7 +31,11 @@
             <utilities:BindingProxy x:Key="DataContextProxy" Data="{Binding}"/>
         </ResourceDictionary>                
     </Window.Resources>
-    <Border BorderBrush="Black" Name="LinkBorder">
+    <Border BorderBrush="Black"
+            Name="AutoCompletionListBorder"
+            Padding="0"
+            SizeChanged="OnAutoCompletionDatagridSizeChanged"
+            Margin="0">
         <DockPanel LastChildFill="True" Name="AutoCompletionDockPanel">        
             <DockPanel.LayoutTransform>
                 <ScaleTransform CenterX="0" 
@@ -65,7 +66,7 @@
                       AllowDrop="False"
                       SelectionUnit="FullRow"
                       SelectionChanged="OnAutoCompletionDatagridSelectionChanged"
-                      MaxWidth="600"
+                      MaxWidth="{x:Static plugin_ns:Constants.MAX_AUXILIARY_WINDOWS_WIDTH}"
                       MaxHeight="{x:Static plugin_ns:Constants.MAX_AUXILIARY_WINDOWS_HEIGHT}"
                       AutoGenerateColumns="false"
                       HeadersVisibility="None"
@@ -85,10 +86,17 @@
                             <DataTemplate>
                                 <Border ToolTipOpening="OnAutoCompletionBorderToolTipOpening">
                                     <Border.ToolTip>
-                                        <ToolTip IsEnabled="True"
-                                                 Placement="Right"                                                 
-                                                 VerticalOffset="-1">
-                                            <TextBlock Margin="0" Padding="0" TextAlignment="Left" TextWrapping="Wrap" MaxWidth="200" Text="{Binding Description}" FontStyle="Italic">
+                                        <ToolTip>
+                                            <ToolTip.Style>
+                                                <Style>
+                                                    <Setter Property="ToolTip.Padding" Value="0"/>
+                                                    <Setter Property="ToolTip.Margin" Value="0"/>
+                                                    <Setter Property="ToolTip.Placement" Value="Right" />
+                                                    <Setter Property="ToolTip.VerticalOffset" Value="-1"/>
+                                                    <EventSetter Event="ToolTip.Opened" Handler="ToolTipOpenedHandler" />
+                                                </Style>
+                                            </ToolTip.Style>
+                                            <TextBlock Margin="0" Padding="0" TextAlignment="Left" TextWrapping="Wrap" MaxWidth="{x:Static plugin_ns:Constants.MAX_AUTO_COMPLETION_TOOLTIP_WIDTH}" Text="{Binding Description}" FontStyle="Italic">
                                                 <TextBlock.LayoutTransform>
                                                     <ScaleTransform CenterX="0" 
                                                                     CenterY="0"                                                                

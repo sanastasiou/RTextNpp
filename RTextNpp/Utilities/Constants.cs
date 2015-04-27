@@ -41,7 +41,9 @@ namespace RTextNppPlugin
         public const char COMMA = ',';                                          //!< Comma char.
         public const int BACKEND_COLUMN_OFFSET = 1;                             //!< Backend columns start at one, but the tokenizer starts at 0.
         public const string PluginName = "RTextNpp";                            //!< Plugin name.
-        public const double MAX_AUXILIARY_WINDOWS_HEIGHT = 400.0;               //!< Max Width of auto completion and link reference windows.
+        public const double MAX_AUXILIARY_WINDOWS_HEIGHT = 400.0;               //!< Max height of auto completion and link reference windows.
+        public const double MAX_AUXILIARY_WINDOWS_WIDTH  = 600.0;               //!< Max width of auto completion and link reference windows.
+        public const double MAX_AUTO_COMPLETION_TOOLTIP_WIDTH = 300.0;          //!< Max width of auto completion tooltip.
 
         #region NppMenuCommand
         public enum NppMenuCommands : int

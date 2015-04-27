@@ -323,8 +323,18 @@ namespace CSScriptIntellisense
         {
             Point aPoint    = CSScriptIntellisense.Npp.GetCaretScreenLocation();
             int aTextHeight = CSScriptIntellisense.Npp.GetTextHeight(CSScriptIntellisense.Npp.GetCaretLineNumber());
-            aPoint.Y += aTextHeight;
+            aPoint.Y        += aTextHeight;
             return aPoint;
+        }
+
+        /**
+         * Gets caret screen location for form above word.
+         *
+         * \return  The caret screen location for form above word is exactly the position of the cursor.
+         */
+        static public Point GetCaretScreenLocationForFormAboveWord()
+        {
+            return CSScriptIntellisense.Npp.GetCaretScreenLocation();
         }
 
         static public Point GetCaretScreenLocation()

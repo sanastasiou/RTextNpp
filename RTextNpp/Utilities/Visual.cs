@@ -21,6 +21,8 @@ namespace RTextNppPlugin.Utilities
         double Width { get; }
 
         double Left { get; set; }
+
+        double Top { get; set; }
     }
 
     public class VisualUtilities
