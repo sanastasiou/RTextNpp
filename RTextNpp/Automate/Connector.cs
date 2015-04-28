@@ -269,7 +269,7 @@ namespace RTextNppPlugin.Automate
                                 }
                                 else
                                 {
-                                    this.beginSend<Command>(ref command, ref invocationId);
+                                    this.BeginSend<Command>(ref command, ref invocationId);
                                     return null;
                                 }
                             }
@@ -310,7 +310,7 @@ namespace RTextNppPlugin.Automate
             }
             //send asynchronous command since load model may take a long time to complete depending on the workspace
             RequestBase aTempCommand = new RequestBase { command = Constants.Commands.LOAD_MODEL, type = "request" };
-            this.beginSend<RequestBase>(ref aTempCommand, ref invocationId);
+            this.BeginSend<RequestBase>(ref aTempCommand, ref invocationId);
             OnFsmTransition(ProcessState.Loading);
         }
 
@@ -335,7 +335,7 @@ namespace RTextNppPlugin.Automate
          * \param   ref invocationId The current invocation id.
          * \param   command The command.
          */
-        private void beginSend<Command>(ref Command command, ref int invocationId) where Command : RequestBase
+        private void BeginSend<Command>(ref Command command, ref int invocationId) where Command : RequestBase
         {
             try
             {
@@ -358,34 +358,26 @@ namespace RTextNppPlugin.Automate
                 int bytesSent;
                 if (!Utilities.ProcessUtilities.TryExecute(SendRequest, Constants.SEND_TIMEOUT, msg, out bytesSent) || (bytesSent != msg.Length))
                 {
-                    //StatusBarManager.writeToOutputWindow(   String.Format("Could not send request to RTextService. Timeout of {0} has expired. Connector : {1}",
-                    //                                        Constants.SEND_TIMEOUT,
-                    //                                        mBackendProcess.ProcessInfo.RTextFilePath),
-                    //                                        mBackendProcess.ProcessInfo.Guid.Value,
-                    //                                        mBackendProcess.ProcessInfo.ProcKey);
+                    Logging.Logger.Instance.Append( Logging.Logger.MessageType.Error,
+                                                    mBackendProcess.Workspace,
+                                                    "ERROR: void BeginSend<Command>(ref Command command, ref int invocationId) - Could not send request {0 }. Timeout of {1} has expired.", command.command, Constants.SEND_TIMEOUT);
                     this.mFSM.MoveNext(StateEngine.Command.Disconnected);
                     return;
                 }
             }
             catch (ArgumentNullException ex)
             {
-                //StatusBarManager.writeToOutputWindow(   String.Format("ArgumentNullException : {0}. Connector : {1}", ex.ToString(), ProcessInfo.RTextFilePath),
-                //                                        Utilities.HashUtilities.getGUIDfromString(ProcessInfo.ProcKey),
-                //                                        ProcessInfo.ProcKey);
+                Logging.Logger.Instance.Append(Logging.Logger.MessageType.Error, mBackendProcess.Workspace, "ERROR: void BeginSend<Command>(ref Command command, ref int invocationId) - ArgumentNullException : {0}", ex.ToString());
                 this.mFSM.MoveNext(StateEngine.Command.Disconnected);
             }
             catch (SocketException ex)
             {
-                //StatusBarManager.writeToOutputWindow(   String.Format("SocketException : {0}. Connector : {1}", ex.ToString(), ProcessInfo.RTextFilePath),
-                //                                        Utilities.HashUtilities.getGUIDfromString(ProcessInfo.ProcKey),
-                //                                        ProcessInfo.ProcKey);
+                Logging.Logger.Instance.Append(Logging.Logger.MessageType.Error, mBackendProcess.Workspace, "ERROR: void BeginSend<Command>(ref Command command, ref int invocationId) - SocketException : {0}", ex.ToString());
                 this.mFSM.MoveNext(StateEngine.Command.Disconnected);
             }
             catch (Exception ex)
             {
-                //StatusBarManager.writeToOutputWindow(   String.Format("Exception : {0}. Connector : {1}", ex.ToString(), ProcessInfo.RTextFilePath),
-                //                                        Utilities.HashUtilities.getGUIDfromString(ProcessInfo.ProcKey),
-                //                                        ProcessInfo.ProcKey);
+                Logging.Logger.Instance.Append(Logging.Logger.MessageType.Error, mBackendProcess.Workspace, "ERROR: void BeginSend<Command>(ref Command command, ref int invocationId) - Exception : {0}", ex.ToString());
                 this.mFSM.MoveNext(StateEngine.Command.Disconnected);
             }
         }
