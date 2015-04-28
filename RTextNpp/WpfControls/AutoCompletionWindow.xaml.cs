@@ -1,15 +1,15 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Runtime.InteropServices;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
+using System.Windows.Media;
 using CSScriptIntellisense;
 using RTextNppPlugin.Parsing;
 using RTextNppPlugin.Utilities;
 using RTextNppPlugin.ViewModels;
-using System.Runtime.InteropServices;
-using System.Windows.Media;
-using System.Windows;
 
 
 namespace RTextNppPlugin.WpfControls
@@ -177,10 +177,12 @@ namespace RTextNppPlugin.WpfControls
     {
         #region [DataMembers]
 
-        DelayedKeyEventHandler _delayedFilterEventHandler           = null;
+        DelayedEventHandler _delayedFilterEventHandler              = null;
         KeyInterceptor _keyMonitor                                  = new KeyInterceptor();
         AutoCompletionMouseMonitor _autoCompletionMouseMonitor      = new AutoCompletionMouseMonitor();
         ToolTip _previouslyOpenedToolTip                            = null;
+        DelayedEventHandler<ToolTip> _delayedToolTipHandler         = null;
+        
 
         #endregion
 
@@ -197,7 +199,7 @@ namespace RTextNppPlugin.WpfControls
         {
             get
             {
-                var scrollViewer = GetScrollbar(AutoCompletionDatagrid);
+                var scrollViewer = GetScrollViewer(AutoCompletionDatagrid);
                 return scrollViewer.ViewportWidth;
             }
         }
@@ -246,7 +248,8 @@ namespace RTextNppPlugin.WpfControls
             _keyMonitor.KeysToIntercept.Add((int)System.Windows.Forms.Keys.PageUp);
             _keyMonitor.KeysToIntercept.Add((int)System.Windows.Forms.Keys.PageDown);
             _keyMonitor.KeyDown += OnKeyMonitorKeyDown;
-            _delayedFilterEventHandler = new DelayedKeyEventHandler(this.PostProcessKeyPressed, 100);
+            _delayedFilterEventHandler = new DelayedEventHandler(this.PostProcessKeyPressed, 100);
+            _delayedToolTipHandler = new DelayedEventHandler<System.Windows.Controls.ToolTip>(OnToolTipDelayedHandlerExpired, 1000, System.Windows.Threading.DispatcherPriority.ApplicationIdle);
             IsOnTop = false;
         }
 
@@ -274,24 +277,6 @@ namespace RTextNppPlugin.WpfControls
             }
         }
 
-        void OnKeyMonitorKeyDown(System.Windows.Forms.Keys key, int repeatCount, ref bool handled)
-        {
-            switch (key)
-            {
-                case System.Windows.Forms.Keys.Up:
-                case System.Windows.Forms.Keys.Down:
-                    handled = true;
-                    ScrollList(key);
-                    break;
-                case System.Windows.Forms.Keys.PageDown:
-                case System.Windows.Forms.Keys.PageUp:
-                    ScrollList(key, 25);
-                    handled = true;
-                    break;
-                default:
-                    return;
-            }
-        }
 
         public void AugmentAutoCompletion(ContextExtractor extractor, System.Drawing.Point caretPoint, AutoCompletionTokenizer tokenizer, ref bool request)
         {
@@ -304,6 +289,14 @@ namespace RTextNppPlugin.WpfControls
         {
             //handle this on UI thread since it will alter UI
             Dispatcher.Invoke(new Action(GetModel().Filter));
+            if(GetModel().SelectedCompletion != null)
+            {
+                ICollectionView view = CollectionViewSource.GetDefaultView(GetModel().CompletionList);
+                if (view.CurrentItem != null)
+                {
+                    this.AutoCompletionDatagrid.ScrollIntoView(view.CurrentItem);
+                }
+            }
         }
 
         internal AutoCompletionViewModel.CharProcessResult CharProcessAction { get; private set; }
@@ -385,7 +378,8 @@ namespace RTextNppPlugin.WpfControls
         private double CalculateTooltipOffset()
         {
             double aCalculatedOffset = 0.0;
-            var scrollViewer = GetScrollbar(AutoCompletionDatagrid);
+            var scrollViewer = GetScrollViewer(AutoCompletionDatagrid);           
+
             if ((Left + Width + Constants.MAX_AUTO_COMPLETION_TOOLTIP_WIDTH) > Npp.GetClientRectFromPoint(new System.Drawing.Point((int)Left, (int)Top)).Right)
             {
                 if (scrollViewer.ComputedHorizontalScrollBarVisibility == System.Windows.Visibility.Visible)
@@ -401,13 +395,13 @@ namespace RTextNppPlugin.WpfControls
             {
                 aCalculatedOffset += System.Windows.SystemParameters.ScrollWidth;
             }
-            else if(scrollViewer.ComputedVerticalScrollBarVisibility == System.Windows.Visibility.Collapsed)
+            else if (scrollViewer.ComputedVerticalScrollBarVisibility == System.Windows.Visibility.Collapsed)
             {
-                //wpf bug - without scrollbar positioning is ok, when a scrollbar gets collapsed due to filtering some leftover remain :s
-                if (Width > scrollViewer.ViewportWidth)
+                //wpf bug - when a scrollbar gets collapsed due to filtering some leftover remain :s
+                if (AutoCompletionListBorder.ActualWidth > scrollViewer.ViewportWidth)
                 {
-                    aCalculatedOffset += (System.Windows.SystemParameters.ScrollWidth - 11.0);   
-                }                
+                    aCalculatedOffset += (System.Windows.SystemParameters.ScrollWidth - 11.0);
+                }
             }
             if(scrollViewer.ComputedHorizontalScrollBarVisibility == System.Windows.Visibility.Visible)
             {
@@ -429,7 +423,7 @@ namespace RTextNppPlugin.WpfControls
          *
          * \return  The scrollbar.
          */
-        private static ScrollViewer GetScrollbar(DependencyObject dep)
+        private static ScrollViewer GetScrollViewer(DependencyObject dep)
         {
             for (int i = 0; i < VisualTreeHelper.GetChildrenCount(dep); i++)
             {
@@ -438,7 +432,7 @@ namespace RTextNppPlugin.WpfControls
                     return child as ScrollViewer;
                 else
                 {
-                    ScrollViewer sub = GetScrollbar(child);
+                    ScrollViewer sub = GetScrollViewer(child);
                     if (sub != null)
                         return sub;
                 }
@@ -526,28 +520,45 @@ namespace RTextNppPlugin.WpfControls
             _autoCompletionMouseMonitor.MouseWheel += OnAutoCompletionMouseMonitorMouseWheelMoved;
         }
 
-
         private void UninstallMouseMonitorHooks()
         {
             _autoCompletionMouseMonitor.MouseClick -= OnAutoCompletionMouseMonitorMouseClick;
             _autoCompletionMouseMonitor.MouseWheel -= OnAutoCompletionMouseMonitorMouseWheelMoved;
         }
-        #endregion
-
-        private ToolTip FindSelectedItemToolTip()
+        
+        private void ShowDelayedToolTip(ToolTip tp)
         {
-            ToolTip tp = null;
-            var container = AutoCompletionDatagrid.ItemContainerGenerator.ContainerFromItem(AutoCompletionDatagrid.SelectedItem) as FrameworkElement;
-            if (container != null)
-            {
-                var presenter = VisualUtilities.GetVisualChild<ToolTip>(container);
-                //DataTemplate dataTemplate = presenter.ContentTemplate;
-                //Border optionContainer    = (Border)dataTemplate.FindName("OptionContainer", presenter);
-            }
-            return tp;
+            tp.HorizontalOffset = CalculateTooltipOffset();
+            tp.IsOpen           = true;
         }
 
+        #endregion
+
         #region EventHandlers
+
+        private void OnToolTipDelayedHandlerExpired(ToolTip tp)
+        {
+            Dispatcher.Invoke(new Action<ToolTip>(ShowDelayedToolTip), tp);
+        }
+
+        private void OnKeyMonitorKeyDown(System.Windows.Forms.Keys key, int repeatCount, ref bool handled)
+        {
+            switch (key)
+            {
+                case System.Windows.Forms.Keys.Up:
+                case System.Windows.Forms.Keys.Down:
+                    handled = true;
+                    ScrollList(key);
+                    break;
+                case System.Windows.Forms.Keys.PageDown:
+                case System.Windows.Forms.Keys.PageUp:
+                    ScrollList(key, 25);
+                    handled = true;
+                    break;
+                default:
+                    return;
+            }
+        }
 
         private void OnAutoCompletionDatagridSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
@@ -555,13 +566,7 @@ namespace RTextNppPlugin.WpfControls
             if (GetModel().SelectedCompletion != null)
             {
                 this.AutoCompletionDatagrid.ScrollIntoView(GetModel().SelectedCompletion);
-                FindSelectedItemToolTip();
             }            
-        }
-
-        private void OnOptionBorderDataContextChanged(object sender, RoutedEventArgs e)
-        {
-
         }
 
         private void OnAutoCompletionBorderBackgroundUpdated(object sender, DataTransferEventArgs e)
@@ -573,24 +578,16 @@ namespace RTextNppPlugin.WpfControls
             {
                 tp.PlacementTarget = border;
                 tp.Placement       = System.Windows.Controls.Primitives.PlacementMode.Right;
-                tp.VerticalOffset  = -1;
                 HidePreviouslyOpenedTooltip(tp);
-                tp.IsOpen          = true;
+                _delayedToolTipHandler.TriggerHandler(tp);
             }
-            else
-            {
-                HideActiveTooltip(border);
-            }
-        }
-
-        private void OnAutoCompletionBorderIsVisibleChanged(object sender, System.Windows.DependencyPropertyChangedEventArgs e)
-        {
-            HideActiveTooltip(sender as Border);
         }
 
         private void OnAutoCompletionBorderMouseEnter(object sender, MouseEventArgs e)
         {
-            HideActiveTooltip(sender as Border);
+            _delayedToolTipHandler.Cancel();
+            Border border = (Border)sender;
+            HidePreviouslyOpenedTooltip(border.ToolTip as ToolTip);            
         }
 
         private void OnAutoCompletionBorderToolTipOpening(object sender, ToolTipEventArgs e)
@@ -609,7 +606,7 @@ namespace RTextNppPlugin.WpfControls
         /**
          * \brief   Resizes open auto completion list when the container's size change.
          */
-        private void OnAutoCompletionDatagridSizeChanged(object sender, SizeChangedEventArgs e)
+        private void OnAutoCompletionContainerSizeChanged(object sender, SizeChangedEventArgs e)
         {
             if (IsOnTop && IsVisible)
             {
@@ -647,6 +644,8 @@ namespace RTextNppPlugin.WpfControls
                 GetModel().ClearSelectedCompletion();
                 UninstallMouseMonitorHooks();
                 IsOnTop = false;
+                HidePreviouslyOpenedTooltip(null);
+                _delayedToolTipHandler.Cancel();
                 //force resize.. somehow
             }
             else
@@ -711,10 +710,6 @@ namespace RTextNppPlugin.WpfControls
 
         #endregion       
 
-        private void OptionContainer_GotFocus(object sender, RoutedEventArgs e)
-        {
-            System.Diagnostics.Trace.WriteLine("Got focus...");
-        }
 
     }
 }

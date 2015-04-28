@@ -215,6 +215,6 @@ private:
     }
 };
 
-}	// namespace RText
+}    // namespace RText
 
 #endif

@@ -34,7 +34,7 @@
     <Border BorderBrush="Black"
             Name="AutoCompletionListBorder"
             Padding="0"
-            SizeChanged="OnAutoCompletionDatagridSizeChanged"
+            SizeChanged="OnAutoCompletionContainerSizeChanged"
             Margin="0">
         <DockPanel LastChildFill="True" Name="AutoCompletionDockPanel">        
             <DockPanel.LayoutTransform>
@@ -86,6 +86,7 @@
                             <DataTemplate>
                                 <Border ToolTipOpening="OnAutoCompletionBorderToolTipOpening"
                                         Name="OptionContainer"                                        
+                                        TargetUpdated="OnAutoCompletionBorderBackgroundUpdated"                                        
                                         MouseEnter="OnAutoCompletionBorderMouseEnter">
                                     <Border.ToolTip>
                                         <ToolTip>
@@ -115,7 +116,7 @@
                                             <Setter Property="Border.Margin" Value="0"/>
                                             <Setter Property="Border.Background" Value="Transparent"/>
                                             <Style.Triggers>
-                                                <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                                                <DataTrigger Binding="{Binding IsSelected, NotifyOnTargetUpdated=True}" Value="True">
                                                     <Setter Property="Border.Background" Value="LimeGreen"/>
                                                 </DataTrigger>
                                                 <DataTrigger Binding="{Binding IsSelected}" Value="False">

@@ -183,7 +183,7 @@ namespace RTextNppPlugin.Automate
         void ProcessExitedEvent(object source, RTextBackendProcess.ProcessExitedEventArgs e)
         {
             //kill any ongoing commands
-            if (this.isBusy() && mReceivingThreadCancellationSource != null)
+            if (this.IsBusy() && mReceivingThreadCancellationSource != null)
             {
                 mReceivingThreadCancellationSource.Cancel();
             }
@@ -214,7 +214,7 @@ namespace RTextNppPlugin.Automate
          *
          * \return  The current state.
          */
-        public ProcessState getCurrentState()
+        public ProcessState GetCurrentState()
         {
             return mFSM.CurrentState;
         }
@@ -242,7 +242,7 @@ namespace RTextNppPlugin.Automate
          * \return  A Response type instance if the command could be executed succesfully and within the provided timeout, else null.
          * \remarks Users of this function must be prepared to receive null, as indication that something went wrong.
          */
-        public IResponseBase execute<Command>( Command command, ref int invocationId, int timeout = -1 ) where Command : RequestBase                                                                                  
+        public IResponseBase Execute<Command>( Command command, ref int invocationId, int timeout = -1 ) where Command : RequestBase                                                                                  
         {
             //sanity check
             if (command == null) return null;
@@ -265,7 +265,7 @@ namespace RTextNppPlugin.Automate
                                 //mProgressManager.setText(command.command);
                                 if (timeout != -1)
                                 {
-                                    return this.send<Command>(ref command, ref invocationId, timeout);
+                                    return this.Send<Command>(ref command, ref invocationId, timeout);
                                 }
                                 else
                                 {
@@ -321,7 +321,7 @@ namespace RTextNppPlugin.Automate
          *
          * \return  true if busy, false if not.
          */
-        private bool isBusy()
+        private bool IsBusy()
         {
             return this.mFSM.CurrentState == ProcessState.Busy;
         }
@@ -394,7 +394,7 @@ namespace RTextNppPlugin.Automate
          *
          * \return  The response.
          */
-        private IResponseBase send<Command>(ref Command command, ref int invocationId, int timeout) where Command : RequestBase                                                                              
+        private IResponseBase Send<Command>(ref Command command, ref int invocationId, int timeout) where Command : RequestBase                                                                              
         {
             string aExceptionMessage = null;
             invocationId = command.invocation_id = this.mInvocationId++;
@@ -487,9 +487,7 @@ namespace RTextNppPlugin.Automate
             {
                 if (aExceptionMessage != null)
                 {
-                    //StatusBarManager.writeToOutputWindow(   String.Format("Exception : {0}. Connector : {1}", aExceptionMessage, ProcessInfo.RTextFilePath),
-                    //                                        Utilities.HashUtilities.getGUIDfromString(ProcessInfo.ProcKey),
-                    //                                        ProcessInfo.ProcKey);
+                    Logging.Logger.Instance.Append(Logging.Logger.MessageType.Error, mBackendProcess.Workspace, "ERROR: void send<Command>(ref Command command, ref int invocationId, int timeout) - Exception : {0}", aExceptionMessage);
                     this.mFSM.MoveNext(StateEngine.Command.Disconnected);
                 }
             }
@@ -545,10 +543,11 @@ namespace RTextNppPlugin.Automate
                     this.mFSM.MoveNext(StateEngine.Command.Connect);
                 }
                 //start receiving
-                this.mReceiveStatus.Socket.BeginReceive(this.mReceiveStatus.Buffer, 0, this.mReceiveStatus.BufferSize, 0, new AsyncCallback(receiveCallback), this.mReceiveStatus);
+                this.mReceiveStatus.Socket.BeginReceive(this.mReceiveStatus.Buffer, 0, this.mReceiveStatus.BufferSize, 0, new AsyncCallback(ReceiveCallback), this.mReceiveStatus);
             }
             catch (Exception ex)
             {
+                Logging.Logger.Instance.Append(Logging.Logger.MessageType.Error, mBackendProcess.Workspace, "ERROR: void Connect() - Exception : {0}", ex.ToString());
             }
             finally
             {
@@ -583,7 +582,7 @@ namespace RTextNppPlugin.Automate
          *
          * \param   ar  The async result.
          */
-        private void receiveCallback(IAsyncResult ar)
+        private void ReceiveCallback(IAsyncResult ar)
         {
             try
             {
@@ -597,8 +596,8 @@ namespace RTextNppPlugin.Automate
                     // There might be more data, so store the data received so far.
                     state.ReceivedMessage.Append(Encoding.ASCII.GetString(state.Buffer, 0, aBytesRead));
                     // converts string into json objects
-                    tryDeserialize(ref state);
-                    state.Socket.BeginReceive(state.Buffer, 0, state.BufferSize, 0, new AsyncCallback(receiveCallback), state);
+                    TryDeserialize(ref state);
+                    state.Socket.BeginReceive(state.Buffer, 0, state.BufferSize, 0, new AsyncCallback(ReceiveCallback), state);
                 }
             }
             catch (Exception ex)
@@ -619,7 +618,7 @@ namespace RTextNppPlugin.Automate
         * 
         * \return  True if connection is successful, false otherwise.
         */
-        private void tryDeserialize(ref StateObject state)
+        private void TryDeserialize(ref StateObject state)
         {
             if (state.LengthMatched)
             {
@@ -630,10 +629,10 @@ namespace RTextNppPlugin.Automate
                     string aJSONmessage = state.ReceivedMessage.ToString(state.JSONLength.ToString().Length, state.JSONLength);
                     state.ReceivedMessage.Remove(0, state.RequiredLength);
                     //handle various responses
-                    analyzeResponse(ref aJSONmessage, ref state);
+                    AnalyzeResponse(ref aJSONmessage, ref state);
                     if (state.ReceivedMessage.Length > 0)
                     {
-                        tryDeserialize(ref state);
+                        TryDeserialize(ref state);
                     }
                 }
             }
@@ -651,10 +650,10 @@ namespace RTextNppPlugin.Automate
                         string aJSONmessage = state.ReceivedMessage.ToString(state.JSONLength.ToString().Length, state.JSONLength);
                         state.ReceivedMessage.Remove(0, state.RequiredLength);
                         //handle various responses
-                        analyzeResponse(ref aJSONmessage, ref state);
+                        AnalyzeResponse(ref aJSONmessage, ref state);
                         if (state.ReceivedMessage.Length > 0)
                         {
-                            tryDeserialize(ref state);
+                            TryDeserialize(ref state);
                         }
                     }
                 }
@@ -669,7 +668,7 @@ namespace RTextNppPlugin.Automate
          * \param [in,out]  response    The response string.
          * \param [in,out]  state       The state object.
          */
-        private void analyzeResponse(ref string response, ref StateObject state)
+        private void AnalyzeResponse(ref string response, ref StateObject state)
         {
             int aResponseInvocationId = -1;
             using (System.IO.MemoryStream aStream = new System.IO.MemoryStream(System.Text.Encoding.ASCII.GetBytes(response)))
@@ -678,7 +677,7 @@ namespace RTextNppPlugin.Automate
                 {
                     case Constants.Commands.LOAD_MODEL:
                         mLastResponse = SerializerFactory<LoadResponse>.getSerializer().ReadObject(aStream) as IResponseBase;
-                        if (updateProgress(mLastResponse))
+                        if (UpdateProgress(mLastResponse))
                         {
                             mLastResponse = mLastResponse as IResponseBase;
                             //mErrorListManager[mBackendProcess.ProcessInfo.ProcKey] = mLastResponse as LoadResponse;
@@ -688,7 +687,7 @@ namespace RTextNppPlugin.Automate
                         break;
                     case Constants.Commands.LINK_TARGETS:
                         mLastResponse = SerializerFactory<LinkTargetsResponse>.getSerializer().ReadObject(aStream) as IResponseBase;
-                        if (updateProgress(mLastResponse))
+                        if (UpdateProgress(mLastResponse))
                         {
                             aResponseInvocationId = mLastResponse.invocation_id;
                         }
@@ -696,7 +695,7 @@ namespace RTextNppPlugin.Automate
                         break;
                     case Constants.Commands.FIND_ELEMENTS:
                         mLastResponse = SerializerFactory<FindRTextElementsResponse>.getSerializer().ReadObject(aStream) as IResponseBase;
-                        if (updateProgress(mLastResponse))
+                        if (UpdateProgress(mLastResponse))
                         {
                             aResponseInvocationId = mLastResponse.invocation_id;
                         }
@@ -704,14 +703,14 @@ namespace RTextNppPlugin.Automate
                         break;
                     case Constants.Commands.CONTENT_COMPLETION:
                         mLastResponse = SerializerFactory<AutoCompleteResponse>.getSerializer().ReadObject(aStream) as IResponseBase;
-                        if (updateProgress(mLastResponse))
+                        if (UpdateProgress(mLastResponse))
                         {
                             aResponseInvocationId = mLastResponse.invocation_id;
                         }
                         break;
                     case Constants.Commands.CONTEXT_INFO:
                         mLastResponse = SerializerFactory<ContextInfoResponse>.getSerializer().ReadObject(aStream) as IResponseBase;
-                        if (updateProgress(mLastResponse))
+                        if (UpdateProgress(mLastResponse))
                         {
                             aResponseInvocationId = mLastResponse.invocation_id;
                         }
@@ -724,10 +723,11 @@ namespace RTextNppPlugin.Automate
             //mProgressManager.setText(String.Format("Ready"));
             if ( this.mInvocationId - 1 != aResponseInvocationId )
             {
-                //StatusBarManager.writeToOutputWindow(   String.Format("Invocation id mismacth : Expected {0} - Received {1}", this.mInvocationId - 1, aResponseInvocationId),
-                //                                        mBackendProcess.ProcessInfo.Guid.Value,
-                //                                        mBackendProcess.ProcessInfo.ProcKey
-                //                                    );
+                Logging.Logger.Instance.Append( Logging.Logger.MessageType.Error,
+                                                mBackendProcess.Workspace,
+                                                "ERROR: void AnalyzeResponse(ref string response, ref StateObject state) - Invocation id mismacth : Expected {0} - Received {1}",
+                                                this.mInvocationId - 1,
+                                                aResponseInvocationId);
             }
             mLastInvocationId = aResponseInvocationId;
             this.mFSM.MoveNext(StateEngine.Command.ExecuteFinished);     
@@ -742,7 +742,7 @@ namespace RTextNppPlugin.Automate
          *
          * \return  true if this is not a progress message, false otherwise.
          */
-        private bool updateProgress( IResponseBase response )
+        private bool UpdateProgress( IResponseBase response )
         {
             if (response.type == Constants.Commands.PROGRESS)
             {
@@ -752,7 +752,7 @@ namespace RTextNppPlugin.Automate
             }
             else if (response.type == Constants.Commands.ERROR)
             {
-                //StatusBarManager.writeToOutputWindow("Backend reports unknown command error.", mBackendProcess.ProcessInfo.Guid.Value, mBackendProcess.ProcessInfo.ProcKey );
+                Logging.Logger.Instance.Append(Logging.Logger.MessageType.Error, mBackendProcess.Workspace, "ERROR: bool UpdateProgress( IResponseBase response ) - Backend reports unknown command error.");
                 return false;
             }
             return true;
@@ -761,7 +761,6 @@ namespace RTextNppPlugin.Automate
         /**
          *
          * \brief   Sends a request synchronously.
-         *
          *
          * \param   request The request.
          *

@@ -55,7 +55,7 @@ namespace RTextNppPlugin.Utilities
          * \return  Indicates whether asyn caller was successfull.
          */
         public delegate bool AsyncMethodCaller(int timeout, out int portNumber);
-        AsyncMethodCaller mStartProcessDelegate;	                                                                                                           //!< The start process delegate
+        AsyncMethodCaller mStartProcessDelegate;                                                                                                               //!< The start process delegate
         #endregion
 
         #region Interface
@@ -822,7 +822,7 @@ namespace RTextNppPlugin.Utilities
             else
             {
                 RequestBase aLoadCommand = new RequestBase { command = Constants.Commands.LOAD_MODEL, invocation_id = -1, type = "request" };
-                this.mConnector.execute(aLoadCommand, ref mInvocationId);
+                this.mConnector.Execute(aLoadCommand, ref mInvocationId);
                 this.mTimer.Stop();
                 this.mIsMessageDisplayed = false;
             }

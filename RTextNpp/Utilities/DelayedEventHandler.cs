@@ -5,7 +5,7 @@ using System.Windows.Threading;
 
 namespace RTextNppPlugin.Utilities
 {
-    class DelayedKeyEventHandler
+    class DelayedEventHandler
     {
         #region [Data Members]
 
@@ -18,7 +18,7 @@ namespace RTextNppPlugin.Utilities
 
 
 
-        public DelayedKeyEventHandler(Action handler, double milliseconds, DispatcherPriority priority = DispatcherPriority.ApplicationIdle)
+        public DelayedEventHandler(Action handler, double milliseconds, DispatcherPriority priority = DispatcherPriority.ApplicationIdle)
         {
             _handler         = handler;
             _timer           = new DispatcherTimer(priority);
@@ -51,7 +51,7 @@ namespace RTextNppPlugin.Utilities
         #endregion
     }
 
-    class DelayedKeyEventHandler<T>
+    class DelayedEventHandler<T>
     {
         #region [Data Members]
 
@@ -65,7 +65,7 @@ namespace RTextNppPlugin.Utilities
 
 
 
-        public DelayedKeyEventHandler(Action<T> handler, double milliseconds, DispatcherPriority priority = DispatcherPriority.ApplicationIdle)
+        public DelayedEventHandler(Action<T> handler, double milliseconds, DispatcherPriority priority = DispatcherPriority.ApplicationIdle)
         {
             _handler = handler;
             _timer = new DispatcherTimer(priority);

@@ -307,7 +307,7 @@ namespace RTextNppPlugin.ViewModels
                     case Automate.StateEngine.ProcessState.Closed:
                         
                         _completionList.Add(CreateWarningCompletion(Properties.Resources.ERR_BACKEND_CONNECTING, Properties.Resources.ERR_BACKEND_CONNECTING_DESC));
-                        _currentConnector.execute<AutoCompleteAndReferenceRequest>(aRequest, ref _currentInvocationId);
+                        _currentConnector.Execute<AutoCompleteAndReferenceRequest>(aRequest, ref _currentInvocationId);
                         _isWarningCompletionActive = true;
                         break;
                     case Automate.StateEngine.ProcessState.Busy:
@@ -316,7 +316,7 @@ namespace RTextNppPlugin.ViewModels
                         _isWarningCompletionActive = true;
                         break;
                     case Automate.StateEngine.ProcessState.Connected:
-                        AutoCompleteResponse aResponse = _currentConnector.execute<AutoCompleteAndReferenceRequest>(aRequest, ref _currentInvocationId, Constants.SYNCHRONOUS_COMMANDS_TIMEOUT) as AutoCompleteResponse;
+                        AutoCompleteResponse aResponse = _currentConnector.Execute<AutoCompleteAndReferenceRequest>(aRequest, ref _currentInvocationId, Constants.SYNCHRONOUS_COMMANDS_TIMEOUT) as AutoCompleteResponse;
 
                         if (aResponse == null)
                         {

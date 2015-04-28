@@ -110,14 +110,14 @@ AUTOSAR {
         CalprmElementPrototype cpCahEnableTagePassenger, type: /AUTOSAR/DataTypes/Boolean {
           SwDataDefProps swCalibrationAccess: readOnly, swImplPolicy: standard, swVariableAccessImplPolicy: optimized, compuMethod: /Coding/DataTypes/cpCahEnableTagePassenger_Semantic
         }
-		CalprmElementPrototype bla {
-			desc: [2,k [
+        CalprmElementPrototype bla {
+            desc: [2,k [
                 label:
                     [2,3
                   1], label: 23]
-		}
+        }
         foo:
-		CalprmElementPrototype ";
+        CalprmElementPrototype ";
 
         System.Collections.Generic.List<string> ContextLines = new System.Collections.Generic.List<string> { "AUTOSAR {", "ARPackage Coding {", "ARPackage Interfaces {", "CalprmInterface ICafCalprm {", "foo:", "\t\tCalprmElementPrototype " };
 

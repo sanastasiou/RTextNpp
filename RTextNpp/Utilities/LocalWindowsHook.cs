@@ -80,12 +80,12 @@ namespace CSScriptIntellisense
 
     #region Class HookEventArgs
     public class HookEventArgs : EventArgs
-	{
-		public int HookCode;	// Hook code
-		public IntPtr wParam;	// WPARAM argument
-		public IntPtr lParam;	// LPARAM argument
-	}
-	#endregion
+    {
+        public int HookCode;    // Hook code
+        public IntPtr wParam;    // WPARAM argument
+        public IntPtr lParam;    // LPARAM argument
+    }
+    #endregion
 
     [StructLayout(LayoutKind.Sequential)]
     struct MouseLLHookStruct
@@ -124,69 +124,69 @@ namespace CSScriptIntellisense
         public int ExtraInfo;
     }
 
-	#region Class LocalWindowsHook
-	public class LocalWindowsHook : Win32
-	{
-		// ************************************************************************
-		// Internal properties
-		protected IntPtr m_hhook = IntPtr.Zero;
-		protected HookProc m_filterFunc = null;
-		protected VisualUtilities.HookType m_hookType;
-		// ************************************************************************
-		
-		// ************************************************************************
-		// Event delegate
-		public delegate void HookEventHandler(object sender, HookEventArgs e);
-		// ************************************************************************
+    #region Class LocalWindowsHook
+    public class LocalWindowsHook : Win32
+    {
+        // ************************************************************************
+        // Internal properties
+        protected IntPtr m_hhook = IntPtr.Zero;
+        protected HookProc m_filterFunc = null;
+        protected VisualUtilities.HookType m_hookType;
+        // ************************************************************************
+        
+        // ************************************************************************
+        // Event delegate
+        public delegate void HookEventHandler(object sender, HookEventArgs e);
+        // ************************************************************************
 
-		// ************************************************************************
-		// Event: HookInvoked 
-		public event HookEventHandler HookInvoked;
-		protected void OnHookInvoked(HookEventArgs e)
-		{
-			if (HookInvoked != null)
-				HookInvoked(this, e);
-		}
-		// ************************************************************************
+        // ************************************************************************
+        // Event: HookInvoked 
+        public event HookEventHandler HookInvoked;
+        protected void OnHookInvoked(HookEventArgs e)
+        {
+            if (HookInvoked != null)
+                HookInvoked(this, e);
+        }
+        // ************************************************************************
 
-		// ************************************************************************
-		// Class constructor(s)
+        // ************************************************************************
+        // Class constructor(s)
         public LocalWindowsHook(VisualUtilities.HookType hook)
-		{
-			m_hookType = hook;
-			m_filterFunc = new HookProc(this.CoreHookProc); 
-		}
+        {
+            m_hookType = hook;
+            m_filterFunc = new HookProc(this.CoreHookProc); 
+        }
         public LocalWindowsHook(VisualUtilities.HookType hook, HookProc func)
-		{
-			m_hookType = hook;
-			m_filterFunc = func; 
-		}		
-		// ************************************************************************
-	
-		// ************************************************************************
-		// Default filter function
-		protected int CoreHookProc(int code, IntPtr wParam, IntPtr lParam)
-		{
-			if (code < 0)
-				return CallNextHookEx(m_hhook, code, wParam, lParam);
+        {
+            m_hookType = hook;
+            m_filterFunc = func; 
+        }        
+        // ************************************************************************
+    
+        // ************************************************************************
+        // Default filter function
+        protected int CoreHookProc(int code, IntPtr wParam, IntPtr lParam)
+        {
+            if (code < 0)
+                return CallNextHookEx(m_hhook, code, wParam, lParam);
 
-			// Let clients determine what to do
-			HookEventArgs e = new HookEventArgs();
-			e.HookCode = code;
-			e.wParam = wParam;
-			e.lParam = lParam;
-			OnHookInvoked(e);
+            // Let clients determine what to do
+            HookEventArgs e = new HookEventArgs();
+            e.HookCode = code;
+            e.wParam = wParam;
+            e.lParam = lParam;
+            OnHookInvoked(e);
             System.Diagnostics.Trace.WriteLine(String.Format("Hook called : code {0}", e.HookCode));
 
-			// Yield to the next hook in the chain
-			return CallNextHookEx(m_hhook, code, wParam, lParam);
-		}
-		// ************************************************************************
+            // Yield to the next hook in the chain
+            return CallNextHookEx(m_hhook, code, wParam, lParam);
+        }
+        // ************************************************************************
 
-		// ************************************************************************
-		// Install the hook
-		public void Install()
-		{
+        // ************************************************************************
+        // Install the hook
+        public void Install()
+        {
             if (!IsInstalled)
             {
                 m_hhook = SetWindowsHookEx(
@@ -195,27 +195,27 @@ namespace CSScriptIntellisense
                     IntPtr.Zero,
                     (int)AppDomain.GetCurrentThreadId());
             }
-		}
-		// ************************************************************************
+        }
+        // ************************************************************************
 
-		// ************************************************************************
-		// Uninstall the hook
-		public void Uninstall()
-		{
+        // ************************************************************************
+        // Uninstall the hook
+        public void Uninstall()
+        {
             if (IsInstalled)
             {
                 UnhookWindowsHookEx(m_hhook);
                 m_hhook = IntPtr.Zero;
             }
-		}
-		// ************************************************************************
+        }
+        // ************************************************************************
 
-		public bool IsInstalled
-		{
-			get{ return m_hhook != IntPtr.Zero; }
-		}
+        public bool IsInstalled
+        {
+            get{ return m_hhook != IntPtr.Zero; }
+        }
 
-		
-	}
-	#endregion
+        
+    }
+    #endregion
 }

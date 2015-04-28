@@ -427,4 +427,4 @@ namespace RText
     {
         return nullptr;
     }
-}	// namespace RText
+}    // namespace RText
