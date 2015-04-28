@@ -119,7 +119,7 @@ AUTOSAR {
         foo:
         CalprmElementPrototype ";
 
-        System.Collections.Generic.List<string> ContextLines = new System.Collections.Generic.List<string> { "AUTOSAR {", "ARPackage Coding {", "ARPackage Interfaces {", "CalprmInterface ICafCalprm {", "foo:", "\t\tCalprmElementPrototype " };
+        System.Collections.Generic.List<string> ContextLines = new System.Collections.Generic.List<string> { "AUTOSAR {", "ARPackage Coding {", "ARPackage Interfaces {", "CalprmInterface ICafCalprm {", "foo:", "        CalprmElementPrototype " };
 
         [Test]
         public void ValidArguments_ComplexAnalysis()
