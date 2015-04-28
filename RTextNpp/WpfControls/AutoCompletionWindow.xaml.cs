@@ -378,8 +378,8 @@ namespace RTextNppPlugin.WpfControls
         private double CalculateTooltipOffset()
         {
             double aCalculatedOffset = 0.0;
-            var scrollViewer = GetScrollViewer(AutoCompletionDatagrid);           
-
+            var scrollViewer = GetScrollViewer(AutoCompletionDatagrid);
+            System.Diagnostics.Trace.WriteLine(String.Format("Window width : {0}\nBorder width : {1}\nViewport width : {2}", Width, AutoCompletionListBorder.ActualWidth, scrollViewer.ViewportWidth));
             if ((Left + Width + Constants.MAX_AUTO_COMPLETION_TOOLTIP_WIDTH) > Npp.GetClientRectFromPoint(new System.Drawing.Point((int)Left, (int)Top)).Right)
             {
                 if (scrollViewer.ComputedHorizontalScrollBarVisibility == System.Windows.Visibility.Visible)
@@ -399,10 +399,11 @@ namespace RTextNppPlugin.WpfControls
             {
                 //wpf bug - when a scrollbar gets collapsed due to filtering some leftover remain :s
                 if (AutoCompletionListBorder.ActualWidth > scrollViewer.ViewportWidth)
-                {
+                {                    
                     aCalculatedOffset += (System.Windows.SystemParameters.ScrollWidth - 11.0);
                 }
             }
+            
             if(scrollViewer.ComputedHorizontalScrollBarVisibility == System.Windows.Visibility.Visible)
             {
                 //offset here is the amount of pixels that the scrollbar can move to the right
