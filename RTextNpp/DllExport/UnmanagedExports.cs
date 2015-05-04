@@ -100,7 +100,7 @@ namespace RTextNppPlugin
                     break;
                 case (uint)SciMsg.SCN_ZOOM:
                     Plugin.OnZoomLevelModified();
-                    break;                
+                    break;
             }
         }
     }

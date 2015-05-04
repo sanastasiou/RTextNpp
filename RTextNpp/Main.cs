@@ -17,9 +17,9 @@ using WindowsSubclassWrapper;
 
 namespace RTextNppPlugin
 {
-    class MessageInterceptor : WindowSubclassCliWrapper
+    class ScintillaMessageInterceptor : WindowSubclassCliWrapper
     {
-        public MessageInterceptor(IntPtr nppHandle) : base(nppHandle)
+        public ScintillaMessageInterceptor(IntPtr nppHandle) : base(nppHandle)
         {
         }
 
@@ -29,8 +29,34 @@ namespace RTextNppPlugin
             VisualUtilities.WindowsMessage aMsg = (VisualUtilities.WindowsMessage)msg;
             switch(aMsg)
             {
-                case  VisualUtilities.WindowsMessage.WM_MOUSEWHEEL:                
-                    return Plugin.OnMessageReceived(msg, wParam, lParam);
+                case VisualUtilities.WindowsMessage.WM_MOUSEWHEEL:
+                    return Plugin.OnMouseWheelDetected(msg, wParam, lParam);
+                case VisualUtilities.WindowsMessage.WM_KILLFOCUS:
+                    return Plugin.OnScintillaFocusChanged(false);
+                case VisualUtilities.WindowsMessage.WM_SETFOCUS:
+                    return Plugin.OnScintillaFocusChanged(true);
+            }            
+            return false;
+        }
+    }
+
+    class NppMessageInterceptor : WindowSubclassCliWrapper
+    {
+        public NppMessageInterceptor(IntPtr nppHandle)
+            : base(nppHandle)
+        {
+        }
+
+
+        public override bool OnMessageReceived(uint msg, UIntPtr wParam, IntPtr lParam)
+        {
+            VisualUtilities.WindowsMessage aMsg = (VisualUtilities.WindowsMessage)msg;
+            switch (aMsg)
+            {
+                case VisualUtilities.WindowsMessage.WM_ENTERMENULOOP:
+                    return Plugin.OnMenuLoopStateChanged(false);
+                case VisualUtilities.WindowsMessage.WM_EXITMENULOOP:
+                    return Plugin.OnMenuLoopStateChanged(true);
             }
             return false;
         }
@@ -52,7 +78,10 @@ namespace RTextNppPlugin
         static bool _invokeInProgress                                                   = false;
         static bool _requestAutoCompletion                                              = false;
         static int _currentZoomLevel                                                    = 0;
-        static MessageInterceptor _messageInterceptor                                   = null;
+        static ScintillaMessageInterceptor _scintillaMsgInterceptor                     = null;  //!< Intercepts scintilla messages.
+        static NppMessageInterceptor _nppMsgInterceptpr                                 = null;  //!< Intercepts notepad ++ messages.
+        static bool _hasScintillaFocus                                                  = true;  //!< Indicates if the editor has focus.
+        static bool _isMenuLoopInactive                                                 = true;  //!< Indicates that npp menu loop is active.
         #endregion
 
         #region [Startup/CleanUp]
@@ -81,14 +110,12 @@ namespace RTextNppPlugin
             _currentZoomLevel = Npp.GetZoomLevel();
             _autoCompletionForm.OnZoomLevelChanged(_currentZoomLevel);
 
-            _messageInterceptor = new MessageInterceptor(Plugin.GetCurrentScintilla());
-
             Debugger.Launch();
         }
 
         static void OnKeyInterceptorKeyDown(Keys key, int repeatCount, ref bool handled)
         {
-            if (FileUtilities.IsAutomateFile() && (Npp.GetSelections() == 1))
+            if (FileUtilities.IsAutomateFile() && (Npp.GetSelections() == 1) && _hasScintillaFocus && _isMenuLoopInactive)
             {
                 CSScriptIntellisense.Modifiers modifiers = CSScriptIntellisense.KeyInterceptor.GetModifiers();                
                 foreach (var shortcut in internalShortcuts.Keys)
@@ -385,8 +412,20 @@ namespace RTextNppPlugin
 
         #region [Event Handlers]
 
+        internal static bool OnScintillaFocusChanged(bool p)
+        {
+            _hasScintillaFocus = p;
+            return false;
+        }
+
+        internal static bool OnMenuLoopStateChanged(bool p)
+        {
+            _isMenuLoopInactive = p;
+            return false;
+        }
+
         /**
-         * \brief   Executes the message received action.
+         * \brief   Executes action when mouse wheel movement is detected.
          *          This is used to route low level windows events from scintilla to the plugin, 
          *          which would otherwise be lost. e.g. for scrolling via a touchpad.
          *
@@ -397,7 +436,7 @@ namespace RTextNppPlugin
          * \return  true if event is handled, false otherwise.
          * \todo    Handle this for other windows as well, e.g. reference links          
          */
-        static internal bool OnMessageReceived(uint msg, UIntPtr wParam, IntPtr lParam)
+        static internal bool OnMouseWheelDetected(uint msg, UIntPtr wParam, IntPtr lParam)
         {
             bool aReturn = _autoCompletionForm.OnMessageReceived(msg, wParam, lParam);
 
@@ -515,6 +554,9 @@ namespace RTextNppPlugin
                 Win32.SendMessage(nppData._nppHandle, NppMsg.NPPM_SETMENUITEMCHECK, _funcItems.Items[0]._cmdID, 1);
             }
             //Logging.Logger.Instance.Append("User settings loaded.", Logging.Logger.MessageType.Info);
+
+            _nppMsgInterceptpr       = new NppMessageInterceptor(nppData._nppHandle);
+            _scintillaMsgInterceptor = new ScintillaMessageInterceptor(Plugin.GetCurrentScintilla());            
         }
 
         /**
