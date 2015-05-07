@@ -81,14 +81,15 @@ namespace RTextNppPlugin.WpfControls.Behaviors
         {
             //foreach (var column in AssociatedObject.Columns)
             //{
-            //    column.MinWidth = 10;
-            //    column.Width = new DataGridLength(1, DataGridLengthUnitType.SizeToCells);
+            //    //column.MinWidth = 1.0;
+            //    column.Width = new DataGridLength(1, DataGridLengthUnitType.Star);
+            //    //column.Width = new DataGridLength(1, DataGridLengthUnitType.SizeToCells);
             //}
 
             //caclulate min possible width which fits all displayed objects
-            var columnsWidth = AssociatedObject.Columns.Sum(c => c.ActualWidth);
-            AssociatedObject.MaxWidth = columnsWidth + 2;
-            AssociatedObject.InvalidateMeasure();
+            //var columnsWidth = AssociatedObject.Columns.Sum(c => c.ActualWidth);
+            //AssociatedObject.MinWidth = columnsWidth + 2;
+            //AssociatedObject.InvalidateMeasure();
         }
     }
 

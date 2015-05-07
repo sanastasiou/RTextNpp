@@ -22,10 +22,12 @@ namespace CSScriptIntellisense
     {
         public const int DocEnd = -1;
 
-        static public void CancelNppAutoCompletion()
+        static public void ForceGetFocus()
         {
-            Win32.SendMessage(Npp.CurrentScintilla, SciMsg.SCI_AUTOCCANCEL, 0, 0);
+            Win32.SendMessage(Npp.CurrentScintilla, SciMsg.SCI_SETFOCUS, 1, 0);
         }
+
+
 
         static public int GetZoomLevel()
         {

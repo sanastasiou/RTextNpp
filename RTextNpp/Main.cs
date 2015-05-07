@@ -14,6 +14,7 @@ using RTextNppPlugin.Utilities;
 using RTextNppPlugin.Utilities.WpfControlHost;
 using RTextNppPlugin.WpfControls;
 using WindowsSubclassWrapper;
+using System.Windows.Input;
 
 namespace RTextNppPlugin
 {
@@ -70,18 +71,18 @@ namespace RTextNppPlugin
         private static Options _options                                                 = new Forms.Options();
         private static FileModificationObserver _fileObserver                           = new FileModificationObserver();
         private static Dictionary<ShortcutKey, Tuple<string, Action>> internalShortcuts = new Dictionary<ShortcutKey, Tuple<string, Action>>();
-        private static AutoCompletionWindow _autoCompletionForm                         = new AutoCompletionWindow(); //!< The link targets window instance        
-        static Bitmap tbBmp                                                             = Properties.Resources.ConsoleIcon;
-        static Bitmap tbBmp_tbTab                                                       = Properties.Resources.ConsoleIcon;
-        static Icon tbIcon                                                              = null;
-        static bool _consoleInitialized                                                 = false;
-        static bool _invokeInProgress                                                   = false;
-        static bool _requestAutoCompletion                                              = false;
-        static int _currentZoomLevel                                                    = 0;
-        static ScintillaMessageInterceptor _scintillaMsgInterceptor                     = null;  //!< Intercepts scintilla messages.
-        static NppMessageInterceptor _nppMsgInterceptpr                                 = null;  //!< Intercepts notepad ++ messages.
-        static bool _hasScintillaFocus                                                  = true;  //!< Indicates if the editor has focus.
-        static bool _isMenuLoopInactive                                                 = true;  //!< Indicates that npp menu loop is active.
+        private static AutoCompletionWindow _autoCompletionForm                         = new AutoCompletionWindow();        
+        private static Bitmap tbBmp                                                     = Properties.Resources.ConsoleIcon;
+        private static Bitmap tbBmp_tbTab                                               = Properties.Resources.ConsoleIcon;
+        private static Icon tbIcon                                                      = null;
+        private static bool _consoleInitialized                                         = false;
+        private static bool _invokeInProgress                                           = false;
+        private static bool _requestAutoCompletion                                      = false;
+        private static int _currentZoomLevel                                            = 0;
+        private static ScintillaMessageInterceptor _scintillaMsgInterceptor             = null;  //!< Intercepts scintilla messages.
+        private static NppMessageInterceptor _nppMsgInterceptpr                         = null;  //!< Intercepts notepad ++ messages.
+        private static bool _hasScintillaFocus                                          = true;  //!< Indicates if the editor has focus.
+        private static bool _isMenuLoopInactive                                         = true;  //!< Indicates that npp menu loop is active.
         #endregion
 
         #region [Startup/CleanUp]
@@ -110,12 +111,12 @@ namespace RTextNppPlugin
             _currentZoomLevel = Npp.GetZoomLevel();
             _autoCompletionForm.OnZoomLevelChanged(_currentZoomLevel);
 
-            Debugger.Launch();
+            //Debugger.Launch();
         }
 
         static void OnKeyInterceptorKeyDown(Keys key, int repeatCount, ref bool handled)
         {
-            if (FileUtilities.IsAutomateFile() && (Npp.GetSelections() == 1) && _hasScintillaFocus && _isMenuLoopInactive)
+            if (FileUtilities.IsAutomateFile() && (Npp.GetSelections() == 1) && HasScintillaFocus() && _isMenuLoopInactive)
             {
                 CSScriptIntellisense.Modifiers modifiers = CSScriptIntellisense.KeyInterceptor.GetModifiers();                
                 foreach (var shortcut in internalShortcuts.Keys)
@@ -506,6 +507,23 @@ namespace RTextNppPlugin
         #endregion
 
         #region [Helpers]
+
+        static bool HasScintillaFocus()
+        {
+            if (_hasScintillaFocus)
+            {
+                return true;
+            }
+            else
+            {
+                if(_autoCompletionForm.IsVisible && FocusManager.GetFocusedElement(_autoCompletionForm) != null)
+                {
+                    Npp.ForceGetFocus();
+                    return true;
+                }
+            }
+            return false;
+        }
 
         /**
          * Enumerates bind interanal shortcuts in this collection.
