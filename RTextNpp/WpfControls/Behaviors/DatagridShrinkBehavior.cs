@@ -19,77 +19,26 @@ namespace RTextNppPlugin.WpfControls.Behaviors
         protected override void OnAttached()
         {
             base.OnAttached();
-
-            AssociatedObject.Columns.CollectionChanged += OnColumnsCollectionChanged;
-
-            foreach (var column in AssociatedObject.Columns)
-            {
-                AddListener(column);
-            }
+            AssociatedObject.IsVisibleChanged += AssociatedObject_IsVisibleChanged;
         }
 
-        void OnColumnsCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+        void AssociatedObject_IsVisibleChanged(object sender, System.Windows.DependencyPropertyChangedEventArgs e)
         {
-            switch (e.Action)
-            {
-                case NotifyCollectionChangedAction.Add:
-                    foreach (var column in e.NewItems.OfType<DataGridColumn>())
-                    {
-                        AddListener(column);
-                    }
-                    break;
-                case NotifyCollectionChangedAction.Remove:
-                    foreach (var column in e.OldItems.OfType<DataGridColumn>())
-                    {
-                        RemoveListener(column);
-                    }
-                    break;
-                case NotifyCollectionChangedAction.Replace:
-                    foreach (var column in e.NewItems.OfType<DataGridColumn>())
-                    {
-                        AddListener(column);
-                    }
-                    foreach (var column in e.OldItems.OfType<DataGridColumn>())
-                    {
-                        RemoveListener(column);
-                    }
-                    break;
-            }
-        }
+            ResizeGrid(sender, new EventArgs());
+        }        
 
         protected override void OnDetaching()
         {
             base.OnDetaching();
-
-            foreach (var column in AssociatedObject.Columns)
-            {
-                RemoveListener(column);
-            }
-        }
-
-        private void AddListener(DataGridColumn column)
-        {
-            Descriptor.AddValueChanged(column, ResizeGrid);
-        }
-
-        private void RemoveListener(DataGridColumn column)
-        {
-            Descriptor.RemoveValueChanged(column, ResizeGrid);
         }
 
         private void ResizeGrid(object sender, EventArgs e)
         {
-            //foreach (var column in AssociatedObject.Columns)
-            //{
-            //    //column.MinWidth = 1.0;
-            //    column.Width = new DataGridLength(1, DataGridLengthUnitType.Star);
-            //    //column.Width = new DataGridLength(1, DataGridLengthUnitType.SizeToCells);
-            //}
-
-            //caclulate min possible width which fits all displayed objects
-            //var columnsWidth = AssociatedObject.Columns.Sum(c => c.ActualWidth);
-            //AssociatedObject.MinWidth = columnsWidth + 2;
-            //AssociatedObject.InvalidateMeasure();
+            foreach (var column in AssociatedObject.Columns)
+            {
+                column.MinWidth = 1.0;
+                column.Width = new DataGridLength(1, DataGridLengthUnitType.SizeToCells);
+            }
         }
     }
 

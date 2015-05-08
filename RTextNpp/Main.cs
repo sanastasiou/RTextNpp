@@ -110,6 +110,7 @@ namespace RTextNppPlugin
 
             _currentZoomLevel = Npp.GetZoomLevel();
             _autoCompletionForm.OnZoomLevelChanged(_currentZoomLevel);
+            Logging.Logger.Instance.Append("Configuration directory : {0}", Npp.GetConfigDir());
             #if DEBUG
             Debugger.Launch();
             #endif

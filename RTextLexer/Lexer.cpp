@@ -261,7 +261,9 @@ namespace RText
                 //ignore spaces
                 while (isWhitespace(context))
                 {
+                    context.SetState(TokenType_Space);
                     context.Forward();
+                    context.SetState(TokenType_Default);
                 }
                 //handle new line
                 if (context.Match('\n') || context.Match('\r', '\n'))

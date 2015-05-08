@@ -76,6 +76,7 @@
                       MaxHeight="{x:Static plugin_ns:Constants.MAX_AUXILIARY_WINDOWS_HEIGHT}"
                       AutoGenerateColumns="false"
                       HeadersVisibility="None"
+                      Width="{x:Static sys:Double.NaN}"
                       GridLinesVisibility="None"
                       MouseDoubleClick="OnAutoCompletionDatagridMouseDoubleClick"
                       VirtualizingStackPanel.IsVirtualizing="True"

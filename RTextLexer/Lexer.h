@@ -100,6 +100,7 @@ private:
         TokenType_Identifier,
         TokenType_Template,
         TokenType_Error,
+        TokenType_Space,
         TokenType_Other
     };
 
