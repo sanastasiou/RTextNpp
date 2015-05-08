@@ -110,8 +110,9 @@ namespace RTextNppPlugin
 
             _currentZoomLevel = Npp.GetZoomLevel();
             _autoCompletionForm.OnZoomLevelChanged(_currentZoomLevel);
-
-            //Debugger.Launch();
+            #if DEBUG
+            Debugger.Launch();
+            #endif
         }
 
         static void OnKeyInterceptorKeyDown(Keys key, int repeatCount, ref bool handled)

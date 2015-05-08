@@ -275,7 +275,7 @@ namespace RTextNppPlugin.Automate
                             }
                             else
                             {
-                                Debug.WriteLine("Could not execute command!");
+                                Trace.WriteLine("Could not execute command!");
                                 return null;
                             }
                         }

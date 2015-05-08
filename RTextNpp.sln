@@ -54,7 +54,8 @@ Global
 		{1F20BD26-EC35-4F64-80BB-036A706CB84D}.Release|Any CPU.Build.0 = Release|Any CPU
 		{1F20BD26-EC35-4F64-80BB-036A706CB84D}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{1F20BD26-EC35-4F64-80BB-036A706CB84D}.Release|Mixed Platforms.Build.0 = Release|Any CPU
-		{1F20BD26-EC35-4F64-80BB-036A706CB84D}.Release|Win32.ActiveCfg = Release|Any CPU
+		{1F20BD26-EC35-4F64-80BB-036A706CB84D}.Release|Win32.ActiveCfg = Release|x86
+		{1F20BD26-EC35-4F64-80BB-036A706CB84D}.Release|Win32.Build.0 = Release|x86
 		{1F20BD26-EC35-4F64-80BB-036A706CB84D}.Release|x64.ActiveCfg = Release|Any CPU
 		{1F20BD26-EC35-4F64-80BB-036A706CB84D}.Release|x86.ActiveCfg = Release|x86
 		{1F20BD26-EC35-4F64-80BB-036A706CB84D}.Release|x86.Build.0 = Release|x86

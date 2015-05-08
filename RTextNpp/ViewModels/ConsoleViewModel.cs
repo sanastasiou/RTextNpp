@@ -28,6 +28,7 @@ namespace RTextNppPlugin.ViewModels
             AddWorkspace(Constants.GENERAL_CHANNEL);            
             //subscribe to connector manager for workspace events
             ConnectorManager.Instance.OnConnectorAdded += ConnectorManagerOnConnectorAdded;
+            Index = 0;
         }
 
         void ConnectorManagerOnConnectorAdded(object source, ConnectorManager.ConnectorAddedEventArgs e)
@@ -214,7 +215,7 @@ namespace RTextNppPlugin.ViewModels
 
         #region [Data Members]
         private ObservableCollection<IConsoleViewModelBase> _workspaceCollection = new ObservableCollection<IConsoleViewModelBase>();
-        private int _index = 0;
+        private int _index                 = -1;
         private bool _isBusy               = false;
         private bool _isLoading            = false;
         private bool _isActive             = false;

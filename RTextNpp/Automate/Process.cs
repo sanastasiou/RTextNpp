@@ -473,7 +473,7 @@ namespace RTextNppPlugin.Utilities
             }
             catch (Exception ex)
             {
-                Debug.WriteLine(ex.Message);
+                Trace.WriteLine(ex.Message);
             }
             finally
             {
