@@ -299,7 +299,7 @@
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup>
-    <PostBuildEvent>copy /Y "$(ProjectDir)$(OutDir)$(TargetName).dll" "C:\Program Files (x86)\Notepad++\plugins"
+    <PostBuildEvent>if $(ConfigurationName) == Debug copy /Y "$(ProjectDir)$(OutDir)$(TargetName).dll" "C:\Program Files (x86)\Notepad++\plugins"
 if $(ConfigurationName) == Debug copy /Y "$(ProjectDir)$(OutDir)$(TargetName).dll" "G:\Win7Vm\Shared"
 if $(ConfigurationName) == Debug copy /Y "$(ProjectDir)$(OutDir)$(TargetName).*" "G:\Development\Notepad++\trunk\PowerEditor\visual.net\Unicode Debug\plugins"</PostBuildEvent>
   </PropertyGroup>
