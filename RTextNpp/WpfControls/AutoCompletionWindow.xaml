@@ -73,10 +73,9 @@
                       SelectionUnit="FullRow"
                       SelectionChanged="OnAutoCompletionDatagridSelectionChanged"
                       MaxWidth="{x:Static plugin_ns:Constants.MAX_AUXILIARY_WINDOWS_WIDTH}"
-                      MaxHeight="{x:Static plugin_ns:Constants.MAX_AUXILIARY_WINDOWS_HEIGHT}"
+                      MaxHeight="{x:Static plugin_ns:Constants.MAX_AUXILIARY_WINDOWS_HEIGHT}"                      
                       AutoGenerateColumns="false"
                       HeadersVisibility="None"
-                      Width="{x:Static sys:Double.NaN}"
                       GridLinesVisibility="None"
                       MouseDoubleClick="OnAutoCompletionDatagridMouseDoubleClick"
                       VirtualizingStackPanel.IsVirtualizing="True"
@@ -91,7 +90,7 @@
                     </Style>
                 </DataGrid.Resources>
                 <DataGrid.Columns>
-                    <DataGridTemplateColumn Header="Options" Width="SizeToCells" IsReadOnly="True">
+                    <DataGridTemplateColumn Header="Options" Width="SizeToCells" IsReadOnly="True" MinWidth="250">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>                                
                                 <Border ToolTipOpening="OnAutoCompletionBorderToolTipOpening"

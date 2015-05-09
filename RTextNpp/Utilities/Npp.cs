@@ -87,6 +87,15 @@ namespace CSScriptIntellisense
             {
                 DeleteRange(GetSelectionStart(), GetSelectionLength());
             }
+            //if insert is active replace the next char
+            if (KeyInterceptor.GetModifiers().IsInsert)
+            {
+                //delete only if not at end of line
+                if (GetCaretPosition() < GetLineEnd())
+                {
+                    DeleteFront();
+                }
+            }
             Win32.SendMessage(Npp.CurrentScintilla, SciMsg.SCI_ADDTEXT, s.GetByteCount(), s);
         }
 
@@ -242,9 +251,16 @@ namespace CSScriptIntellisense
             return (int)Win32.SendMessage(sci, SciMsg.SCI_GETCOLUMN, GetCaretPosition(), 0);
         }
 
-        static public int GetLineEnd(int line)
+        static public int GetLineEnd(int line = -1)
         {
-            return (GetLineStart(line) + GetLine().Length);
+            if (line == -1)
+            {
+                return (int)Win32.SendMessage(Plugin.GetCurrentScintilla(), SciMsg.SCI_GETLINEENDPOSITION, GetLineNumber(), 0);
+            }
+            else
+            {
+                return (int)Win32.SendMessage(Plugin.GetCurrentScintilla(), SciMsg.SCI_GETLINEENDPOSITION, line, 0);
+            }
         }
 
         static public int GetLineStart(int line)

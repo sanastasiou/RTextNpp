@@ -146,6 +146,7 @@ namespace CSScriptIntellisense
         public bool IsShift;
         public bool IsAlt;
         public bool IsCapsLock;
+        public bool IsInsert;
     }
 
     public class KeyInterceptor : WinHook<KeyInterceptor>
@@ -166,7 +167,8 @@ namespace CSScriptIntellisense
                 IsCtrl     = KeyInterceptor.IsPressed(Keys.ControlKey),
                 IsShift    = (KeyInterceptor.IsPressed(Keys.LShiftKey) || KeyInterceptor.IsPressed(Keys.RShiftKey)),
                 IsAlt      = KeyInterceptor.IsPressed(Keys.Menu),
-                IsCapsLock = Control.IsKeyLocked(Keys.CapsLock)
+                IsCapsLock = Control.IsKeyLocked(Keys.CapsLock),
+                IsInsert   = Control.IsKeyLocked(Keys.Insert)
             };
         }
 

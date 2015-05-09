@@ -36,7 +36,6 @@ namespace RTextNppPlugin.WpfControls.Behaviors
         {
             foreach (var column in AssociatedObject.Columns)
             {
-                column.MinWidth = 1.0;
                 column.Width = new DataGridLength(1, DataGridLengthUnitType.SizeToCells);
             }
         }

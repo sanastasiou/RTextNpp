@@ -647,7 +647,6 @@ namespace RTextNppPlugin.WpfControls
                 IsOnTop = false;
                 HidePreviouslyOpenedTooltip(null);
                 _delayedToolTipHandler.Cancel();
-                //force resize.. somehow
             }
             else
             {

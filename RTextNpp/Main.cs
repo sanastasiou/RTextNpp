@@ -306,7 +306,7 @@ namespace RTextNppPlugin
                         int aCurrentPosition = Npp.GetCaretPosition();
                         int aStartPosition   = Npp.GetLineStart(Npp.GetLineNumber());
                         int aColumn          = (aCurrentPosition - aStartPosition);
-                        //fix extractor column bug...
+
                         if (aCurrentPosition >= 0)
                         {
                             int aLineNumber = Npp.GetLineNumber();
@@ -321,21 +321,24 @@ namespace RTextNppPlugin
                             {
                                 aCaretPoint = Npp.GetCaretScreenLocationRelativeToPosition(aTokenizer.TriggerToken.Value.BufferPosition);
                             }
-                            _autoCompletionForm.Left = aCaretPoint.X;
-                            _autoCompletionForm.Top  = aCaretPoint.Y;
-                            Utilities.VisualUtilities.SetOwnerFromNppPlugin(_autoCompletionForm);
-                            _autoCompletionForm.AugmentAutoCompletion(aExtractor, aCaretPoint, aTokenizer, ref _requestAutoCompletion);
-                            switch (_autoCompletionForm.CharProcessAction)
+                            _autoCompletionForm.Dispatcher.Invoke((MethodInvoker)(() =>
                             {
-                                case ViewModels.AutoCompletionViewModel.CharProcessResult.ForceClose:
-                                    return;
-                                case ViewModels.AutoCompletionViewModel.CharProcessResult.ForceCommit:
-                                    CommitAutoCompletion(true);
-                                    break;
-                                default:
-                                    _autoCompletionForm.Show();
-                                    break;
-                            }
+                                _autoCompletionForm.Left = aCaretPoint.X;
+                                _autoCompletionForm.Top  = aCaretPoint.Y;
+                                Utilities.VisualUtilities.SetOwnerFromNppPlugin(_autoCompletionForm);
+                                _autoCompletionForm.AugmentAutoCompletion(aExtractor, aCaretPoint, aTokenizer, ref _requestAutoCompletion);
+                                switch (_autoCompletionForm.CharProcessAction)
+                                {
+                                    case ViewModels.AutoCompletionViewModel.CharProcessResult.ForceClose:
+                                        return;
+                                    case ViewModels.AutoCompletionViewModel.CharProcessResult.ForceCommit:
+                                        CommitAutoCompletion(true);
+                                        break;
+                                    default:
+                                        _autoCompletionForm.Show();
+                                        break;
+                                }
+                            }));
                         }
                     }
                 }
@@ -417,13 +420,19 @@ namespace RTextNppPlugin
 
         internal static bool OnScintillaFocusChanged(bool p)
         {
-            _hasScintillaFocus = p;
+            if(!(_hasScintillaFocus = p))
+            {
+                //CommitAutoCompletion(false);
+            }
             return false;
         }
 
         internal static bool OnMenuLoopStateChanged(bool p)
         {
-            _isMenuLoopInactive = p;
+            if(!(_isMenuLoopInactive = p))
+            {
+                //CommitAutoCompletion(false);
+            }
             return false;
         }
 
@@ -454,7 +463,7 @@ namespace RTextNppPlugin
             Marshal.StructureToPtr(tbIcons, pTbIcons, false);
             Win32.SendMessage(nppData._nppHandle, NppMsg.NPPM_ADDTOOLBARICON, _funcItems.Items[(int)Constants.NppMenuCommands.ConsoleWindow]._cmdID, pTbIcons);
             Marshal.FreeHGlobal(pTbIcons);
-        }
+        }        
 
         /**
          * Handles file opened event to start backend process, in case the relevant  backend process is not yet started.
