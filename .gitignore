@@ -7,7 +7,6 @@ Certificate.bat
 *.opensdf
 *.sdf
 *.suo
-*.txt
 *.user
 /RTextNppPlugin/obj
 *.coverage
