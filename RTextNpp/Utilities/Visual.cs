@@ -27,6 +27,13 @@ namespace RTextNppPlugin.Utilities
 
     public class VisualUtilities
     {
+        public enum WM_ACTIVATE_WPARAM : int
+        {
+            WA_INACTIVE,
+            WA_ACTIVE,
+            WA_CLICKACTIVE
+        }
+
         public enum HookType : int
         {
             WH_JOURNALRECORD   = 0,
@@ -341,6 +348,12 @@ namespace RTextNppPlugin.Utilities
         public static HwndSource HwndSourceFromIntPtr(IntPtr handle)
         {
             return HwndSource.FromHwnd(handle);
+        }
+
+        public static IntPtr HwndFromWpfWindow(System.Windows.Window window)
+        {
+            var wih = new WindowInteropHelper(window);
+            return wih.Handle;
         }
 
         /**

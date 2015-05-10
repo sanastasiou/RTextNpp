@@ -10,6 +10,7 @@ using CSScriptIntellisense;
 using RTextNppPlugin.Parsing;
 using RTextNppPlugin.Utilities;
 using RTextNppPlugin.ViewModels;
+using System.Diagnostics;
 
 
 namespace RTextNppPlugin.WpfControls
@@ -187,22 +188,6 @@ namespace RTextNppPlugin.WpfControls
         #endregion
 
         #region [Interface]
-        public double ZoomLevel
-        {
-            get
-            {
-                return GetModel().ZoomLevel;
-            }
-        }
-
-        public double ViewPortWidth
-        {
-            get
-            {
-                var scrollViewer = GetScrollViewer(AutoCompletionDatagrid);
-                return scrollViewer.ViewportWidth;
-            }
-        }
 
         #region [IWindowPosition Members]
         /**
@@ -249,7 +234,7 @@ namespace RTextNppPlugin.WpfControls
             _keyMonitor.KeysToIntercept.Add((int)System.Windows.Forms.Keys.PageDown);
             _keyMonitor.KeyDown += OnKeyMonitorKeyDown;
             _delayedFilterEventHandler = new DelayedEventHandler(this.PostProcessKeyPressed, 100);
-            _delayedToolTipHandler = new DelayedEventHandler<System.Windows.Controls.ToolTip>(OnToolTipDelayedHandlerExpired, 1000, System.Windows.Threading.DispatcherPriority.ApplicationIdle);
+            _delayedToolTipHandler     = new DelayedEventHandler<System.Windows.Controls.ToolTip>(OnToolTipDelayedHandlerExpired, 1000, System.Windows.Threading.DispatcherPriority.ApplicationIdle);
             IsOnTop = false;
         }
 
@@ -261,20 +246,29 @@ namespace RTextNppPlugin.WpfControls
 
         void OnAutoCompletionMouseMonitorMouseClick(object sender, MouseEventExtArgs e)
         {
-            e.Handled = false;            
-            if (!IsMouseInsideWindow())
+     
+            if (!IsMouseInsideFrameworkElement(this.Content as System.Windows.FrameworkElement))
             {
                 this.Hide();
             }           
             else
-            {
-                //if a completion is suggested but not selected, clicking on it should select it
-                //since index is not changed, this cannot be done with index selection changed event 
-                if(GetModel().SelectedCompletion != null)
+            {                
+                if (IsMouseInsideFrameworkElement(AutoCompletionDatagrid as System.Windows.FrameworkElement))
                 {
-                    GetModel().SelectedCompletion.IsSelected = true;
+                    //if a completion is suggested but not selected, clicking on it should select it
+                    //since index is not changed, this cannot be done with index selection changed event 
+                    if (GetModel().SelectedCompletion != null)
+                    {
+                        GetModel().SelectedCompletion.IsSelected = true;
+                    }
                 }
-            }
+                else
+                {
+                    //click is made outside of grid but inside window! - leave focus to editor i.e. make those areas not focusable
+                    e.Handled = true;
+                    Npp.GrabFocus();
+                }
+            }            
         }
 
 
@@ -449,22 +443,23 @@ namespace RTextNppPlugin.WpfControls
         /**
          * @return  true if mouse inside window, false if not.
          */
-        private bool IsMouseInsideWindow()
+        private bool IsMouseInsideFrameworkElement(System.Windows.FrameworkElement element)
         {
-            double dWidth = -1;
+            double dWidth  = -1;
             double dHeight = -1;
-            System.Windows.FrameworkElement pnlClient = this.Content as System.Windows.FrameworkElement;
-            if (pnlClient != null)
+            if (element != null)
             {
-                dWidth = pnlClient.ActualWidth;
-                dHeight = pnlClient.ActualHeight;
+                dWidth  = element.ActualWidth;
+                dHeight = element.ActualHeight;
             }
-            System.Windows.Point aPoint = Mouse.GetPosition(this);
+            System.Windows.Point aPoint = Mouse.GetPosition(element);
+            
             double xStart = 0.0;
             double xEnd = xStart + dWidth;
             double yStart = 0.0;
             double yEnd = yStart + dHeight;
-            if (aPoint.X < xStart || aPoint.X > xEnd || aPoint.Y < yStart || aPoint.Y > yEnd)
+            
+            if (aPoint.X < xStart || aPoint.X >= xEnd || aPoint.Y < yStart || aPoint.Y >= yEnd)
             {
                 return false;
             }
@@ -567,7 +562,9 @@ namespace RTextNppPlugin.WpfControls
             if (GetModel().SelectedCompletion != null)
             {
                 this.AutoCompletionDatagrid.ScrollIntoView(GetModel().SelectedCompletion);
-            }            
+            }
+            //keep caret blinking after a selection has been made by clicking
+            Npp.GrabFocus();
         }
 
         private void OnAutoCompletionBorderBackgroundUpdated(object sender, DataTransferEventArgs e)
@@ -709,7 +706,5 @@ namespace RTextNppPlugin.WpfControls
         }
 
         #endregion       
-
-
     }
 }

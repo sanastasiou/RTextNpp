@@ -14,7 +14,6 @@ using RTextNppPlugin.Utilities;
 using RTextNppPlugin.Utilities.WpfControlHost;
 using RTextNppPlugin.WpfControls;
 using WindowsSubclassWrapper;
-using System.Windows.Input;
 
 namespace RTextNppPlugin
 {
@@ -27,16 +26,19 @@ namespace RTextNppPlugin
 
         public override bool OnMessageReceived(uint msg, UIntPtr wParam, IntPtr lParam)
         {
-            VisualUtilities.WindowsMessage aMsg = (VisualUtilities.WindowsMessage)msg;
+            VisualUtilities.WindowsMessage aMsg = (VisualUtilities.WindowsMessage)msg;            
             switch(aMsg)
             {
+                case VisualUtilities.WindowsMessage.WM_TIMER:
+                case VisualUtilities.WindowsMessage.WM_PAINT:
+                    return false;
                 case VisualUtilities.WindowsMessage.WM_MOUSEWHEEL:
                     return Plugin.OnMouseWheelDetected(msg, wParam, lParam);
                 case VisualUtilities.WindowsMessage.WM_KILLFOCUS:
-                    return Plugin.OnScintillaFocusChanged(false);
+                    return Plugin.OnScintillaFocusChanged(false, wParam);
                 case VisualUtilities.WindowsMessage.WM_SETFOCUS:
-                    return Plugin.OnScintillaFocusChanged(true);
-            }            
+                    return Plugin.OnScintillaFocusChanged(true, wParam);
+            }
             return false;
         }
     }
@@ -51,14 +53,15 @@ namespace RTextNppPlugin
 
         public override bool OnMessageReceived(uint msg, UIntPtr wParam, IntPtr lParam)
         {
-            VisualUtilities.WindowsMessage aMsg = (VisualUtilities.WindowsMessage)msg;
+            VisualUtilities.WindowsMessage aMsg = (VisualUtilities.WindowsMessage)msg;            
             switch (aMsg)
             {
                 case VisualUtilities.WindowsMessage.WM_ENTERMENULOOP:
                     return Plugin.OnMenuLoopStateChanged(false);
                 case VisualUtilities.WindowsMessage.WM_EXITMENULOOP:
                     return Plugin.OnMenuLoopStateChanged(true);
-            }
+
+            }            
             return false;
         }
     }
@@ -418,11 +421,17 @@ namespace RTextNppPlugin
 
         #region [Event Handlers]
 
-        internal static bool OnScintillaFocusChanged(bool p)
+        internal static bool OnScintillaFocusChanged(bool p, UIntPtr wParam)
         {
-            if(!(_hasScintillaFocus = p))
+            _hasScintillaFocus = p;
+            IntPtr aWindowWithFocus = unchecked((IntPtr)(long)(ulong)wParam);
+            IntPtr aAutoCompletionWindow = VisualUtilities.HwndFromWpfWindow(_autoCompletionForm);
+            if (!_hasScintillaFocus && wParam != null && aWindowWithFocus != aAutoCompletionWindow)
             {
-                //CommitAutoCompletion(false);
+                if (aWindowWithFocus != IntPtr.Zero && aWindowWithFocus != Npp.CurrentScintilla)
+                {
+                    CommitAutoCompletion(false);
+                }
             }
             return false;
         }
@@ -431,7 +440,7 @@ namespace RTextNppPlugin
         {
             if(!(_isMenuLoopInactive = p))
             {
-                //CommitAutoCompletion(false);
+                CommitAutoCompletion(false);
             }
             return false;
         }
@@ -527,9 +536,9 @@ namespace RTextNppPlugin
             }
             else
             {
-                if(_autoCompletionForm.IsVisible && FocusManager.GetFocusedElement(_autoCompletionForm) != null)
+                if(_autoCompletionForm.IsVisible)// && _autoCompletionForm.IsFocused)
                 {
-                    Npp.ForceGetFocus();
+                    Npp.GrabFocus();
                     return true;
                 }
             }
@@ -605,6 +614,5 @@ namespace RTextNppPlugin
             }
         }
         #endregion
-
     }
 }

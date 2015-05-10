@@ -22,12 +22,10 @@ namespace CSScriptIntellisense
     {
         public const int DocEnd = -1;
 
-        static public void ForceGetFocus()
+        static public void SetEditorFocus()
         {
             Win32.SendMessage(Npp.CurrentScintilla, SciMsg.SCI_SETFOCUS, 1, 0);
         }
-
-
 
         static public int GetZoomLevel()
         {
@@ -115,20 +113,6 @@ namespace CSScriptIntellisense
             Win32.SendMessage(Npp.NppHandle, NppMsg.NPPM_MENUCOMMAND, 0, NppMenuCmd.IDM_FILE_NEW);
             Win32.SendMessage(Npp.CurrentScintilla, SciMsg.SCI_GRABFOCUS, 0, 0);
             Win32.SendMessage(Npp.CurrentScintilla, SciMsg.SCI_ADDTEXT, text);
-        }
-
-        /// <summary>
-        /// Determines whether the current file has the specified extension (e.g. ".cs").
-        /// <para>Note it is case insensitive.</para>
-        /// </summary>
-        /// <param name="extension">The extension.</param>
-        /// <returns></returns>
-        static public bool IsCurrentFileHasExtension(string extension)
-        {
-            var path = new StringBuilder(Win32.MAX_PATH);
-            Win32.SendMessage(Plugin.nppData._nppHandle, NppMsg.NPPM_GETFULLCURRENTPATH, 0, path);
-            string file = path.ToString();
-            return !string.IsNullOrWhiteSpace(file) && file.EndsWith(extension, StringComparison.OrdinalIgnoreCase);
         }
 
         static public void SetIndicatorStyle(int indicator, SciMsg style, Color color)
