@@ -271,25 +271,31 @@ namespace RTextNppPlugin.ViewModels
         {
             CharProcessAction = CharProcessResult.NoAction;
             _completionList.Clear();
+            TriggerPoint = tokenizer.TriggerToken;
             //get all tokens before the trigger token - if all previous tokens and all context lines match do not request new auto completion options
             //tokenizer.
-            if ((TriggerPoint.HasValue && tokenizer.TriggerToken.HasValue && TriggerPoint.Value == tokenizer.TriggerToken.Value && _cachedOptions != null) && !_isWarningCompletionActive)
+            if (_cachedOptions != null && _cachedTokens != null && _cachedContext != null && !_isWarningCompletionActive)
             {
-                TriggerPoint = tokenizer.TriggerToken;
-                _completionList.AddRange(_cachedOptions);
-                Filter();
-                return;
-            }
+                //last line of context can vary
 
-            TriggerPoint = tokenizer.TriggerToken;            
+                //if context is identical and tokens are also identical do not trigger auto completion request
+                if (_cachedContext.SequenceEqual(extractor.ContextList) && _cachedTokens.SequenceEqual(tokenizer.LineTokens))
+                {
+                    _completionList.AddRange(_cachedOptions);
+                    Filter();
+                    return;
+                }
+            }
+          
             if (!tokenizer.TriggerToken.HasValue)
             {
                 CharProcessAction = CharProcessResult.ForceClose;
                 return;
             }
 
-            //stored current context
+            //store cache
             _cachedContext = extractor.ContextList;
+            _cachedTokens  = tokenizer.LineTokens;
 
             AutoCompleteAndReferenceRequest aRequest = new AutoCompleteAndReferenceRequest
             {

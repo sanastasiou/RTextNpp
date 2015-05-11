@@ -205,8 +205,7 @@ namespace RTextNppPlugin.Parsing
         void FindTriggerToken(int currentCursorColumn)
         {
             foreach (var t in base.Tokenize())
-            {
-                _tokenList.Add(t.Context);                
+            {                
                 if (_currentPos >= t.BufferPosition && _currentPos <= t.BufferPosition + (t.EndColumn - t.StartColumn))
                 {
                     _triggerToken = new TokenTag
@@ -221,6 +220,7 @@ namespace RTextNppPlugin.Parsing
                     };
                     break;
                 }
+                _tokenList.Add(t.Context);
             }
             //special case when token is a space or label - auto completion needs to start at the end of the token
             if (_triggerToken.HasValue && ((_triggerToken.Value.Type == RTextTokenTypes.Space) || (_triggerToken.Value.Type == RTextTokenTypes.Label)))
