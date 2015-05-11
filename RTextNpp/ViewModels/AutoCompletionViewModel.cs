@@ -199,7 +199,12 @@ namespace RTextNppPlugin.ViewModels
         {
             _completionList.Clear();
             _filteredList.StopFiltering();
-            SelectedCompletion = null;
+            if (SelectedCompletion != null)
+            {
+                SelectedCompletion.IsFuzzy    = false;
+                SelectedCompletion.IsSelected = false;
+                SelectedCompletion            = null;
+            }
         }
 
         public BulkObservableCollection<Completion> UnderlyingList
@@ -234,10 +239,10 @@ namespace RTextNppPlugin.ViewModels
             {
                 throw new ArgumentException(String.Format("newPosition is out of range : {0}", newPosition));
             }
-            var previousSelection = SelectedCompletion;
-            if (previousSelection != null)
+
+            if (SelectedCompletion != null)
             {
-                previousSelection.IsFuzzy = previousSelection.IsSelected = false;
+                SelectedCompletion.IsFuzzy = SelectedCompletion.IsSelected = false;
             }
             SelectedCompletion         = _filteredList[newPosition];
             SelectedCompletion.IsFuzzy = SelectedCompletion.IsSelected = true;
@@ -271,27 +276,25 @@ namespace RTextNppPlugin.ViewModels
         {
             CharProcessAction = CharProcessResult.NoAction;
             _completionList.Clear();
-            TriggerPoint = tokenizer.TriggerToken;
-            //get all tokens before the trigger token - if all previous tokens and all context lines match do not request new auto completion options
-            //tokenizer.
-            if (_cachedOptions != null && _cachedTokens != null && _cachedContext != null && !_isWarningCompletionActive)
-            {
-                //last line of context can vary
 
-                //if context is identical and tokens are also identical do not trigger auto completion request
-                if (_cachedContext.SequenceEqual(extractor.ContextList) && _cachedTokens.SequenceEqual(tokenizer.LineTokens))
-                {
-                    _completionList.AddRange(_cachedOptions);
-                    Filter();
-                    return;
-                }
-            }
-          
             if (!tokenizer.TriggerToken.HasValue)
             {
                 CharProcessAction = CharProcessResult.ForceClose;
                 return;
             }
+
+            TriggerPoint = tokenizer.TriggerToken;
+            //get all tokens before the trigger token - if all previous tokens and all context lines match do not request new auto completion options
+            if (_cachedOptions != null && _cachedTokens != null && _cachedContext != null && !_isWarningCompletionActive)
+            {
+                //if context is identical and tokens are also identical do not trigger auto completion request
+                if (_cachedContext.Take(_cachedContext.Count() - 1).SequenceEqual(extractor.ContextList.Take(_cachedContext.Count() - 1)) && _cachedTokens.SequenceEqual(tokenizer.LineTokens))
+                {
+                    _completionList.AddRange(_cachedOptions);
+                    Filter();
+                    return;
+                }
+            }         
 
             //store cache
             _cachedContext = extractor.ContextList;
@@ -410,10 +413,10 @@ namespace RTextNppPlugin.ViewModels
         {
             _isFiltering = true;
             string fallBackHint  = _previousHint;
-            var previousSelection = SelectedCompletion;
-            if (previousSelection != null)
+
+            if (SelectedCompletion != null)
             {
-                previousSelection.IsSelected = previousSelection.IsFuzzy = false;
+                SelectedCompletion.IsSelected = SelectedCompletion.IsFuzzy = false;
             }
             
             if(TriggerPoint.HasValue && !String.IsNullOrWhiteSpace(TriggerPoint.Value.Context))
@@ -426,9 +429,9 @@ namespace RTextNppPlugin.ViewModels
                     //if count is null - previous selection is no longer valid!
                     //fuzzy matching
                     _filteredList.StopFiltering();
-                    if (previousSelection != null)
+                    if (SelectedCompletion != null)
                     {
-                        SelectedIndex = _filteredList.IndexOf(previousSelection);
+                        SelectedIndex = _filteredList.IndexOf(SelectedCompletion);
                     }
 
                     if(SelectedIndex == -1)
@@ -440,6 +443,10 @@ namespace RTextNppPlugin.ViewModels
                         }
                         else
                         {
+                            if(SelectedCompletion != null)
+                            {
+                                SelectedCompletion.IsSelected = SelectedCompletion.IsFuzzy = false;
+                            }
                             SelectedCompletion = null;
                         }
                     }
