@@ -49,7 +49,7 @@ namespace RTextNppPlugin.Automate.StateEngine
             public override bool Equals(object obj)
             {
                 StateTransition other = obj as StateTransition;
-                return other != null && this.mCurrentState == other.mCurrentState && this.mCommand == other.mCommand;
+                return other != null && mCurrentState == other.mCurrentState && mCommand == other.mCommand;
             }
         }
 
@@ -81,7 +81,7 @@ namespace RTextNppPlugin.Automate.StateEngine
              *
              * \return  The target state.
              */
-            public ProcessState TargetState { get { return this.mTargetState; } private set { this.mTargetState = value; } }
+            public ProcessState TargetState { get { return mTargetState; } private set { mTargetState = value; } }
 
             /**
              * \property    public Action TransitionAction
@@ -90,7 +90,7 @@ namespace RTextNppPlugin.Automate.StateEngine
              *
              * \return  The transition action.
              */
-            public Action TransitionAction { get { return this.mTransitionAction; } private set { this.mTransitionAction = value; } }
+            public Action TransitionAction { get { return mTransitionAction; } private set { mTransitionAction = value; } }
 
             /**
              * \property    public Func<bool> Guard
@@ -99,7 +99,7 @@ namespace RTextNppPlugin.Automate.StateEngine
              *
              * \return  The guard.
              */
-            public Func<bool> Guard { get { return this.mGuard; } private set { this.mGuard = value; } }
+            public Func<bool> Guard { get { return mGuard; } private set { mGuard = value; } }
         }
 
         private Dictionary<StateTransition, ProcessStateWithAction> mTransitions;

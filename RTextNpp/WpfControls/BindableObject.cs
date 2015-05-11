@@ -103,9 +103,9 @@ namespace RTextNppPlugin.WpfControls
         /// </param>
         protected void RaisePropertyChanged(string propertyName)
         {
-            this.VerifyProperty(propertyName);
+            VerifyProperty(propertyName);
 
-            PropertyChangedEventHandler handler = this.PropertyChanged;
+            PropertyChangedEventHandler handler = PropertyChanged;
             if (handler != null)
             {
                 // Get the cached event args.
@@ -116,7 +116,7 @@ namespace RTextNppPlugin.WpfControls
                 handler(this, args);
             }
 
-            this.AfterPropertyChanged(propertyName);
+            AfterPropertyChanged(propertyName);
         }
 
         #endregion // Protected Members
@@ -126,7 +126,7 @@ namespace RTextNppPlugin.WpfControls
         [Conditional("DEBUG")]
         private void VerifyProperty(string propertyName)
         {
-            Type type = this.GetType();
+            Type type = GetType();
 
             // Look for a public property with the specified name.
             PropertyInfo propInfo = type.GetProperty(propertyName);

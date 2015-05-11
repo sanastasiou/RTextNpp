@@ -7,7 +7,7 @@ namespace RTextNppPlugin.Utilities.WpfControlHost
     /**
      * A npp control host.
      *
-     * The solid purpose of this class is to periodically refresh the hosted control, because Notepad++ doesn't do this.
+     * The solid purpose of this class is to periodically refresh the hosted control, because Notepad++ doesn't do 
      * This results in falsely drawn controls when the user resizes the Notepad++ window.
      * \tparam  T   Generic type parameter which has to be a wpf control host.
      *                   
@@ -73,10 +73,10 @@ namespace RTextNppPlugin.Utilities.WpfControlHost
         {
             get
             {
-                if (this._elementHost.InvokeRequired)
+                if (_elementHost.InvokeRequired)
                 {
 
-                    return (bool)this._elementHost.Invoke(new Func<bool>(IsVisible));
+                    return (bool)_elementHost.Invoke(new Func<bool>(IsVisible));
                 }
                 else
                 {
@@ -103,9 +103,9 @@ namespace RTextNppPlugin.Utilities.WpfControlHost
         {
             set
             {
-                if (this._elementHost.InvokeRequired)
+                if (_elementHost.InvokeRequired)
                 {
-                    this._elementHost.Invoke(new Action<int>(SetCmdId), value);
+                    _elementHost.Invoke(new Action<int>(SetCmdId), value);
                 }
                 else
                 {
@@ -122,9 +122,9 @@ namespace RTextNppPlugin.Utilities.WpfControlHost
         {
             get
             {
-                if (this._elementHost.InvokeRequired)
+                if (_elementHost.InvokeRequired)
                 {
-                    return (IntPtr)this._elementHost.Invoke(new Func<IntPtr>(GetHandle));
+                    return (IntPtr)_elementHost.Invoke(new Func<IntPtr>(GetHandle));
                 }
                 return _elementHost.Handle;
             }
@@ -134,9 +134,9 @@ namespace RTextNppPlugin.Utilities.WpfControlHost
         {
             get
             {
-                if (this._elementHost.InvokeRequired)
+                if (_elementHost.InvokeRequired)
                 {
-                    return (bool)this._elementHost.Invoke(new Func<bool>(IsCreated));
+                    return (bool)_elementHost.Invoke(new Func<bool>(IsCreated));
                 }
                 else
                 {

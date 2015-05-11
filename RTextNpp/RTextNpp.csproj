@@ -299,9 +299,7 @@
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup>
-    <PostBuildEvent>if $(ConfigurationName) == Debug copy /Y "$(ProjectDir)$(OutDir)$(TargetName).dll" "C:\Program Files (x86)\Notepad++\plugins"
-if $(ConfigurationName) == Debug copy /Y "$(ProjectDir)$(OutDir)$(TargetName).dll" "G:\Win7Vm\Shared"
-if $(ConfigurationName) == Debug copy /Y "$(ProjectDir)$(OutDir)$(TargetName).*" "G:\Development\Notepad++\trunk\PowerEditor\visual.net\Unicode Debug\plugins"</PostBuildEvent>
+    <PostBuildEvent>if $(ConfigurationName) == Debug copy /Y "$(ProjectDir)$(OutDir)$(TargetName).dll" "C:\Program Files (x86)\Notepad++\plugins"</PostBuildEvent>
   </PropertyGroup>
   <Import Project="..\packages\Fody.1.26.1\build\Fody.targets" Condition="Exists('..\packages\Fody.1.26.1\build\Fody.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

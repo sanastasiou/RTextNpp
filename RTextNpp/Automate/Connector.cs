@@ -11,6 +11,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using RTextNppPlugin.Utilities;
+using System.Diagnostics;
 
 
 namespace RTextNppPlugin.Automate
@@ -177,22 +178,22 @@ namespace RTextNppPlugin.Automate
                                      new StateMachine.ProcessStateWithAction(ProcessState.Closed, CleanUpSocket));
             
             //start consuming progress messages
-            //mProgressManager = new StatusBarManager(ref this.mProgressQueue, this);
+            //mProgressManager = new StatusBarManager(ref mProgressQueue, this);
         }
 
         void ProcessExitedEvent(object source, RTextBackendProcess.ProcessExitedEventArgs e)
         {
             //kill any ongoing commands
-            if (this.IsBusy() && mReceivingThreadCancellationSource != null)
+            if (IsBusy() && mReceivingThreadCancellationSource != null)
             {
                 mReceivingThreadCancellationSource.Cancel();
             }
-            if (this.mFSM.CurrentState != ProcessState.Closed)
+            if (mFSM.CurrentState != ProcessState.Closed)
             {
-                this.mFSM.MoveNext(StateEngine.Command.Disconnected);
+                mFSM.MoveNext(StateEngine.Command.Disconnected);
             }
             //reset invocation id counter since the backend process died or exited after an idle timeout
-            this.mInvocationId = 0;
+            mInvocationId = 0;
         }
 
         /**
@@ -227,7 +228,7 @@ namespace RTextNppPlugin.Automate
          *
          * \return  The connector state.
          */
-        public ProcessState ConnectorState { get { return this.mFSM.CurrentState; } }
+        public ProcessState ConnectorState { get { return mFSM.CurrentState; } }
 
         /**
          *
@@ -248,28 +249,28 @@ namespace RTextNppPlugin.Automate
             if (command == null) return null;
             lock (mLock)
             {
-                switch (this.mFSM.CurrentState)
+                switch (mFSM.CurrentState)
                 {
                     case ProcessState.Closed:
-                        this.Connect();
-                        if (this.mFSM.CurrentState == ProcessState.Connected)
+                        Connect();
+                        if (mFSM.CurrentState == ProcessState.Connected)
                         {
-                            //this.mProgressManager.setText("Connection with RText Service established!");
-                            this.LoadModel(ref invocationId);
+                            //mProgressManager.setText("Connection with RText Service established!");
+                            LoadModel(ref invocationId);
                         }
                         return null;
                     case ProcessState.Connected:
                         {
-                            if (this.mFSM.GetNext(StateEngine.Command.Execute) == ProcessState.Busy)
+                            if (mFSM.GetNext(StateEngine.Command.Execute) == ProcessState.Busy)
                             {
                                 //mProgressManager.setText(command.command);
                                 if (timeout != -1)
                                 {
-                                    return this.Send<Command>(ref command, ref invocationId, timeout);
+                                    return Send<Command>(ref command, ref invocationId, timeout);
                                 }
                                 else
                                 {
-                                    this.BeginSend<Command>(ref command, ref invocationId);
+                                    BeginSend<Command>(ref command, ref invocationId);
                                     return null;
                                 }
                             }
@@ -302,7 +303,7 @@ namespace RTextNppPlugin.Automate
          */
         private void LoadModel( ref int invocationId )
         {
-            if(this.mBackendProcess.HasExited)
+            if(mBackendProcess.HasExited)
             {
                 Logging.Logger.Instance.Append(Logging.Logger.MessageType.Error, mBackendProcess.Workspace, "ERROR: RTextService is not running. Trying to restart service...");
                 mBackendProcess.StartRTextService();
@@ -310,7 +311,7 @@ namespace RTextNppPlugin.Automate
             }
             //send asynchronous command since load model may take a long time to complete depending on the workspace
             RequestBase aTempCommand = new RequestBase { command = Constants.Commands.LOAD_MODEL, type = "request" };
-            this.BeginSend<RequestBase>(ref aTempCommand, ref invocationId);
+            BeginSend<RequestBase>(ref aTempCommand, ref invocationId);
             OnFsmTransition(ProcessState.Loading);
         }
 
@@ -323,7 +324,7 @@ namespace RTextNppPlugin.Automate
          */
         private bool IsBusy()
         {
-            return this.mFSM.CurrentState == ProcessState.Busy;
+            return mFSM.CurrentState == ProcessState.Busy;
         }
 
         /**
@@ -339,8 +340,8 @@ namespace RTextNppPlugin.Automate
         {
             try
             {
-                invocationId = command.invocation_id = this.mInvocationId++;
-                this.mFSM.MoveNext(StateEngine.Command.Execute);
+                invocationId = command.invocation_id = mInvocationId++;
+                mFSM.MoveNext(StateEngine.Command.Execute);
                 mActiveCommand = command.command;
                 MemoryStream aStream = new MemoryStream();
                 //if (mActiveCommand == Constants.Commands.LOAD_MODEL && mErrorListManager.Workspaces.Contains(ProcessInfo.ProcKey))
@@ -348,12 +349,12 @@ namespace RTextNppPlugin.Automate
                 //    DataContractJsonSerializer aDummySerializer = SerializerFactory<LoadResponse>.getSerializer();
                 //    IResponseBase aDummyResponse = new LoadResponse { problems = new List<Problem>(), total_problems = 0, type = "response" };
                 //    aDummySerializer.WriteObject(aStream, aDummyResponse);
-                //    this.OnCommandExecuted(this, new CommandCompletedEventArgs(aDummyResponse, invocationId, mActiveCommand));
+                //    OnCommandExecuted(this, new CommandCompletedEventArgs(aDummyResponse, invocationId, mActiveCommand));
                 //}
                 aStream = new MemoryStream();
                 DataContractJsonSerializer aSerializer = SerializerFactory<Command>.getSerializer();
                 aSerializer.WriteObject(aStream, command);
-                byte[] msg = Encoding.ASCII.GetBytes(this.PrepareRequestString(ref aStream) );
+                byte[] msg = Encoding.ASCII.GetBytes(PrepareRequestString(ref aStream) );
                 // Send the data through the socket.
                 int bytesSent;
                 if (!Utilities.ProcessUtilities.TryExecute(SendRequest, Constants.SEND_TIMEOUT, msg, out bytesSent) || (bytesSent != msg.Length))
@@ -361,24 +362,24 @@ namespace RTextNppPlugin.Automate
                     Logging.Logger.Instance.Append( Logging.Logger.MessageType.Error,
                                                     mBackendProcess.Workspace,
                                                     "ERROR: void BeginSend<Command>(ref Command command, ref int invocationId) - Could not send request {0 }. Timeout of {1} has expired.", command.command, Constants.SEND_TIMEOUT);
-                    this.mFSM.MoveNext(StateEngine.Command.Disconnected);
+                    mFSM.MoveNext(StateEngine.Command.Disconnected);
                     return;
                 }
             }
             catch (ArgumentNullException ex)
             {
                 Logging.Logger.Instance.Append(Logging.Logger.MessageType.Error, mBackendProcess.Workspace, "ERROR: void BeginSend<Command>(ref Command command, ref int invocationId) - ArgumentNullException : {0}", ex.ToString());
-                this.mFSM.MoveNext(StateEngine.Command.Disconnected);
+                mFSM.MoveNext(StateEngine.Command.Disconnected);
             }
             catch (SocketException ex)
             {
                 Logging.Logger.Instance.Append(Logging.Logger.MessageType.Error, mBackendProcess.Workspace, "ERROR: void BeginSend<Command>(ref Command command, ref int invocationId) - SocketException : {0}", ex.ToString());
-                this.mFSM.MoveNext(StateEngine.Command.Disconnected);
+                mFSM.MoveNext(StateEngine.Command.Disconnected);
             }
             catch (Exception ex)
             {
                 Logging.Logger.Instance.Append(Logging.Logger.MessageType.Error, mBackendProcess.Workspace, "ERROR: void BeginSend<Command>(ref Command command, ref int invocationId) - Exception : {0}", ex.ToString());
-                this.mFSM.MoveNext(StateEngine.Command.Disconnected);
+                mFSM.MoveNext(StateEngine.Command.Disconnected);
             }
         }
 
@@ -397,25 +398,27 @@ namespace RTextNppPlugin.Automate
         private IResponseBase Send<Command>(ref Command command, ref int invocationId, int timeout) where Command : RequestBase                                                                              
         {
             string aExceptionMessage = null;
-            invocationId = command.invocation_id = this.mInvocationId++;
+            invocationId = command.invocation_id = mInvocationId++;
+            Stopwatch aStopWatch = new System.Diagnostics.Stopwatch();
+            aStopWatch.Start();
             try
             {
-                this.mFSM.MoveNext(StateEngine.Command.Execute);
+                mFSM.MoveNext(StateEngine.Command.Execute);
                 mActiveCommand = command.command;
                 MemoryStream aStream = new MemoryStream();
                 DataContractJsonSerializer aSerializer = SerializerFactory<Command>.getSerializer();
                 aSerializer.WriteObject(aStream, command);
-                byte[] msg = Encoding.ASCII.GetBytes(this.PrepareRequestString(ref aStream));
+                byte[] msg = Encoding.ASCII.GetBytes(PrepareRequestString(ref aStream));
                 // Send the data through the socket.
                 int bytesSent;
                 //wait for manual reset event which indicates that the response has arrived
-                this.mReceivedResponseEvent.Reset();
+                mReceivedResponseEvent.Reset();
                 if (!Utilities.ProcessUtilities.TryExecute(SendRequest, timeout, msg, out bytesSent) || (bytesSent != msg.Length))
                 {
                     //StatusBarManager.writeToOutputWindow(String.Format("Could not send request to RTextService. Connector : {0}", ProcessInfo.RTextFilePath),
                     //                                        Utilities.HashUtilities.getGUIDfromString(ProcessInfo.ProcKey),
                     //                                        ProcessInfo.ProcKey);
-                    //this.mFSM.MoveNext(StateEngine.Command.Disconnected);
+                    //mFSM.MoveNext(StateEngine.Command.Disconnected);
                     return null;
                 }
                 //value was not received during specified timeout
@@ -430,7 +433,7 @@ namespace RTextNppPlugin.Automate
                         //wait 0.1 seconds
                         Thread.Sleep(100);
                         // Check is task should be ended!
-                        if (mReceivingThreadCancellationSource == null || mReceivingThreadCancellationSource.IsCancellationRequested || this.mFSM.CurrentState == ProcessState.Closed)
+                        if (mReceivingThreadCancellationSource == null || mReceivingThreadCancellationSource.IsCancellationRequested || mFSM.CurrentState == ProcessState.Closed)
                         {
                             break;
                         }
@@ -438,15 +441,15 @@ namespace RTextNppPlugin.Automate
                 }, mReceivingThreadCancellationSource.Token);
                 System.Threading.Tasks.Task aReceiverTask = new System.Threading.Tasks.Task(() =>
                 {
-                    if (!this.mReceivedResponseEvent.WaitOne(timeout))
+                    if (!mReceivedResponseEvent.WaitOne(timeout))
                     {
-                        this.mFSM.MoveNext(StateEngine.Command.Disconnected);
+                        mFSM.MoveNext(StateEngine.Command.Disconnected);
                     }
                     else
                     {
-                        if (this.mReceiveStatus.Response != null)
+                        if (mReceiveStatus.Response != null)
                         {
-                            this.mReceiveStatus.Response = null;
+                            mReceiveStatus.Response = null;
                         }
                     }
                 });
@@ -457,12 +460,12 @@ namespace RTextNppPlugin.Automate
                 {
                     case 0:
                         //backend process exited, kill receiving task!
-                        this.mReceivedResponseEvent.Set();
+                        mReceivedResponseEvent.Set();
                         //indicate no valid backend response
                         mLastResponse                = null;
-                        this.mReceiveStatus.Response = null;
+                        mReceiveStatus.Response = null;
                         //move to disconnected state!
-                        this.mFSM.MoveNext(StateEngine.Command.Disconnected);
+                        mFSM.MoveNext(StateEngine.Command.Disconnected);
                         break;
                     case 1:
                         //ok receiving thread finished first kill watcher task
@@ -488,9 +491,10 @@ namespace RTextNppPlugin.Automate
                 if (aExceptionMessage != null)
                 {
                     Logging.Logger.Instance.Append(Logging.Logger.MessageType.Error, mBackendProcess.Workspace, "ERROR: void send<Command>(ref Command command, ref int invocationId, int timeout) - Exception : {0}", aExceptionMessage);
-                    this.mFSM.MoveNext(StateEngine.Command.Disconnected);
+                    mFSM.MoveNext(StateEngine.Command.Disconnected);
                 }
             }
+            Trace.WriteLine(String.Format("Synchronous send finished after : {0}", aStopWatch.Elapsed));
             return mLastResponse;
         }
 
@@ -513,14 +517,14 @@ namespace RTextNppPlugin.Automate
         private void Connect()
         {
             //clean up any previous socket
-            if (this.mReceiveStatus.Socket != null)
+            if (mReceiveStatus.Socket != null)
             {
-                this.CleanUpSocket();
+                CleanUpSocket();
             }
-            //if (!this.mConnectorManagerInstance.isProcessRunning(mBackendProcess.ProcessInfo.ProcKey))
+            //if (!mConnectorManagerInstance.isProcessRunning(mBackendProcess.ProcessInfo.ProcKey))
             //{
                 //StatusBarManager.writeToOutputWindow(   String.Format("ERROR : RText service for workspace {0} is not running. Trying to restart service...",
-                //                                        this.mBackendProcess.ProcessInfo.RTextFilePath),
+                //                                        mBackendProcess.ProcessInfo.RTextFilePath),
                 //                                        Utilities.HashUtilities.getGUIDfromString(ProcessInfo.ProcKey),
                 //                                        ProcessInfo.ProcKey
                 //                                    );
@@ -529,21 +533,21 @@ namespace RTextNppPlugin.Automate
                 //ConnectorManager.getInstance.StartProcess(mBackendProcess.ProcessInfo);
                 //return;
             //}
-            this.mReceiveStatus.Socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            mReceiveStatus.Socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             try
             {
-                if (!this.mReceiveStatus.Socket.Connected)
+                if (!mReceiveStatus.Socket.Connected)
                 {
                     //will throw if something is wrong
-                    IAsyncResult aConnectedResult = this.mReceiveStatus.Socket.BeginConnect("localhost", this.mBackendProcess.Port, ConnectCallback, this.mReceiveStatus);
+                    IAsyncResult aConnectedResult = mReceiveStatus.Socket.BeginConnect("localhost", mBackendProcess.Port, ConnectCallback, mReceiveStatus);
                     if (!aConnectedResult.AsyncWaitHandle.WaitOne(Constants.CONNECT_TIMEOUT))
                     {
                         throw new Exception("Connection to RText Service timed out!");
                     }
-                    this.mFSM.MoveNext(StateEngine.Command.Connect);
+                    mFSM.MoveNext(StateEngine.Command.Connect);
                 }
                 //start receiving
-                this.mReceiveStatus.Socket.BeginReceive(this.mReceiveStatus.Buffer, 0, this.mReceiveStatus.BufferSize, 0, new AsyncCallback(ReceiveCallback), this.mReceiveStatus);
+                mReceiveStatus.Socket.BeginReceive(mReceiveStatus.Buffer, 0, mReceiveStatus.BufferSize, 0, new AsyncCallback(ReceiveCallback), mReceiveStatus);
             }
             catch (Exception ex)
             {
@@ -568,7 +572,7 @@ namespace RTextNppPlugin.Automate
             try
             {
                 // Complete the connection.
-                this.mReceiveStatus.Socket.EndConnect(ar);
+                mReceiveStatus.Socket.EndConnect(ar);
             }
             catch (Exception ex)
             {
@@ -605,7 +609,7 @@ namespace RTextNppPlugin.Automate
                 //StatusBarManager.writeToOutputWindow(   String.Format("Connector {0}, could not receive response from RTextService.\nException : {1}\nRText service backend process was forcibly terminated.",
                 //                                        mBackendProcess.ProcessInfo.RTextFilePath, ex.Message),
                 //                                        mBackendProcess.ProcessInfo.Guid.Value, mBackendProcess.ProcessInfo.ProcKey);
-                this.mFSM.MoveNext(StateEngine.Command.Disconnected);
+                mFSM.MoveNext(StateEngine.Command.Disconnected);
             }
         }
 
@@ -721,16 +725,16 @@ namespace RTextNppPlugin.Automate
             state.Response        = String.Empty;
             state.ReceivedMessage = new StringBuilder(state.BufferSize);
             //mProgressManager.setText(String.Format("Ready"));
-            if ( this.mInvocationId - 1 != aResponseInvocationId )
+            if ( mInvocationId - 1 != aResponseInvocationId )
             {
                 Logging.Logger.Instance.Append( Logging.Logger.MessageType.Error,
                                                 mBackendProcess.Workspace,
                                                 "ERROR: void AnalyzeResponse(ref string response, ref StateObject state) - Invocation id mismacth : Expected {0} - Received {1}",
-                                                this.mInvocationId - 1,
+                                                mInvocationId - 1,
                                                 aResponseInvocationId);
             }
             mLastInvocationId = aResponseInvocationId;
-            this.mFSM.MoveNext(StateEngine.Command.ExecuteFinished);     
+            mFSM.MoveNext(StateEngine.Command.ExecuteFinished);     
         }
 
         /**
@@ -746,8 +750,8 @@ namespace RTextNppPlugin.Automate
         {
             if (response.type == Constants.Commands.PROGRESS)
             {
-                this.mProgressQueue.Add(new ProgressResponseStruct { Response = (ProgressResponse)response, Command = mActiveCommand });
-                this.mReceivedResponseEvent.Reset();
+                mProgressQueue.Add(new ProgressResponseStruct { Response = (ProgressResponse)response, Command = mActiveCommand });
+                mReceivedResponseEvent.Reset();
                 return false;
             }
             else if (response.type == Constants.Commands.ERROR)
@@ -768,7 +772,7 @@ namespace RTextNppPlugin.Automate
          */
         private int SendRequest(byte[] request)
         {
-            return this.mReceiveStatus.Socket.Send(request);
+            return mReceiveStatus.Socket.Send(request);
         }
 
         /**
@@ -802,7 +806,7 @@ namespace RTextNppPlugin.Automate
             public int BufferSize { get { return Constants.BUFFER_SIZE; } }
             public byte[] Buffer { get { return mBuffer; } }
             public StringBuilder ReceivedMessage { get { return mReceivedMessage; } set { mReceivedMessage = value; } }
-            public string Response { get { return this.mResponseString; } set { this.mResponseString = value; } }
+            public string Response { get { return mResponseString; } set { mResponseString = value; } }
             public Socket Socket { get; set; }
             public bool LengthMatched { get; set; }
             public int RequiredLength { get; set; }
@@ -816,12 +820,12 @@ namespace RTextNppPlugin.Automate
          */
         private void CleanUpSocket()
         {
-            if (this.mReceiveStatus.Socket.Connected)
+            if (mReceiveStatus.Socket.Connected)
             {
-                this.mReceiveStatus.Socket.Disconnect(false);
-                this.mReceiveStatus.Socket.Shutdown(SocketShutdown.Both);
-                this.mReceiveStatus.Socket.Close(Constants.CONNECT_TIMEOUT);
-                this.mReceiveStatus.Socket.Dispose();
+                mReceiveStatus.Socket.Disconnect(false);
+                mReceiveStatus.Socket.Shutdown(SocketShutdown.Both);
+                mReceiveStatus.Socket.Close(Constants.CONNECT_TIMEOUT);
+                mReceiveStatus.Socket.Dispose();
             }
         }
 
@@ -835,9 +839,9 @@ namespace RTextNppPlugin.Automate
             //notify synchronous subscribers that the response is received
             mReceivedResponseEvent.Set();
             //notify asynchronous subscribers that the response is received
-            if (this.OnCommandExecuted != null)
+            if (OnCommandExecuted != null)
             {
-                this.OnCommandExecuted(this, new CommandCompletedEventArgs(mLastResponse, mLastInvocationId, mActiveCommand));
+                OnCommandExecuted(this, new CommandCompletedEventArgs(mLastResponse, mLastInvocationId, mActiveCommand));
             }
         }
 

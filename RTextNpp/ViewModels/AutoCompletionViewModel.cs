@@ -197,7 +197,6 @@ namespace RTextNppPlugin.ViewModels
 
         public void OnAutoCompletionWindowCollapsing()
         {
-            _cachedOptions = new List<Completion>(_completionList);
             _completionList.Clear();
             _filteredList.StopFiltering();
             SelectedCompletion = null;
@@ -260,11 +259,6 @@ namespace RTextNppPlugin.ViewModels
             }
         }
 
-        public void ClearSelectedCompletion()
-        {
-            SelectedCompletion = null;
-        }
-
         public FilteredObservableCollection<Completion> CompletionList
         {
             get
@@ -273,11 +267,13 @@ namespace RTextNppPlugin.ViewModels
             }
         }
 
-        public void AugmentAutoCompletion(ContextExtractor extractor, Point caretPoint, AutoCompletionTokenizer tokenizer, ref bool request)
+        public void AugmentAutoCompletion(ContextExtractor extractor, Point caretPoint, AutoCompletionTokenizer tokenizer)
         {
             CharProcessAction = CharProcessResult.NoAction;
             _completionList.Clear();
-            if ((TriggerPoint.HasValue && tokenizer.TriggerToken.HasValue && TriggerPoint.Value == tokenizer.TriggerToken.Value && _cachedOptions != null) && !_isWarningCompletionActive && !request)
+            //get all tokens before the trigger token - if all previous tokens and all context lines match do not request new auto completion options
+            //tokenizer.
+            if ((TriggerPoint.HasValue && tokenizer.TriggerToken.HasValue && TriggerPoint.Value == tokenizer.TriggerToken.Value && _cachedOptions != null) && !_isWarningCompletionActive)
             {
                 TriggerPoint = tokenizer.TriggerToken;
                 _completionList.AddRange(_cachedOptions);
@@ -291,9 +287,13 @@ namespace RTextNppPlugin.ViewModels
                 CharProcessAction = CharProcessResult.ForceClose;
                 return;
             }
+
+            //stored current context
+            _cachedContext = extractor.ContextList;
+
             AutoCompleteAndReferenceRequest aRequest = new AutoCompleteAndReferenceRequest
             {
-                column        = extractor.ContextColumn,//compensate for backend
+                column        = extractor.ContextColumn,
                 command       = Constants.Commands.CONTENT_COMPLETION,
                 context       = extractor.ContextList,
                 type          = Constants.Commands.REQUEST,
@@ -338,13 +338,12 @@ namespace RTextNppPlugin.ViewModels
                             }
                             else
                             {
-                                //add pics, remove existins options
-                                var filteredList = aResponse.options.AsParallel().Where(x => !tokenizer.LineTokens.Contains(x.insert));
-                                var labeledList = filteredList.Select(x => new Completion(
+                                //add pics                                
+                                var labeledList = aResponse.options.AsParallel().Select(x => new Completion(
                                     x.display,
                                     x.insert,
                                     string.IsNullOrEmpty(x.desc) ? "No description available." : x.desc,
-                                    x.insert.Contains("event", StringComparison.InvariantCultureIgnoreCase) ? Completion.AutoCompletionType.Event : Completion.AutoCompletionType.Label));
+                                    DetermineCompletionImage(x.display)));
 
                                 if (labeledList.Count() != 0)
                                 {
@@ -353,6 +352,7 @@ namespace RTextNppPlugin.ViewModels
                                         //auto insert
                                         SelectedCompletion            = labeledList.First();
                                         SelectedCompletion.IsSelected = true;
+                                        _completionList.Add(labeledList.First());
                                         CharProcessAction             = CharProcessResult.ForceCommit;
                                     }
                                     else
@@ -360,14 +360,15 @@ namespace RTextNppPlugin.ViewModels
                                         _completionList.AddRange(labeledList.OrderBy(x => x.InsertionText));
                                         Filter();
                                     }
+                                    _cachedOptions = new List<Completion>(_completionList);
                                 }
                                 else
                                 {
+                                    _cachedOptions    = null;
                                     CharProcessAction = CharProcessResult.ForceClose;
                                 }
                             }
                             _isWarningCompletionActive = false;
-                            request                    = false;
                         }                                                
                         break;
                     default:
@@ -381,7 +382,7 @@ namespace RTextNppPlugin.ViewModels
             {
                 _completionList.Add(CreateWarningCompletion(Properties.Resources.CONNECTOR_INSTANCE_NULL, Properties.Resources.CONNECTOR_INSTANCE_NULL_DESC));
             }
-        }
+        }        
 
         public int SelectedIndex
         {
@@ -520,6 +521,33 @@ namespace RTextNppPlugin.ViewModels
             }            
         }
 
+        private Completion.AutoCompletionType DetermineCompletionImage(string displayText)
+        {            
+            if(displayText.Contains('/'))
+            {
+                return Completion.AutoCompletionType.Reference;
+            }
+            if(displayText.Contains("enum", StringComparison.InvariantCultureIgnoreCase))
+            {
+                return Completion.AutoCompletionType.Other;
+            }
+            if(displayText.Contains("string", StringComparison.InvariantCultureIgnoreCase))
+            {
+                return Completion.AutoCompletionType.Value;
+            }
+            if(displayText.Contains("event", StringComparison.InvariantCultureIgnoreCase))
+            {
+                return Completion.AutoCompletionType.Event;
+            }
+            if( displayText.Contains("literal", StringComparison.InvariantCultureIgnoreCase) || 
+                displayText.Contains("float", StringComparison.InvariantCultureIgnoreCase)   || 
+                displayText.Contains("integer", StringComparison.InvariantCultureIgnoreCase))
+            {
+                return Completion.AutoCompletionType.Value;
+            }
+            return Completion.AutoCompletionType.Label;
+        }
+
         #endregion
 
         #region [Data Members]
@@ -537,6 +565,8 @@ namespace RTextNppPlugin.ViewModels
         private bool _isWarningCompletionActive                                 = false;                                      //!< Indicates if a warning option was active.
         private int _selectedIndex                                              = 0;                                          //!< Indicates the selected index of the filtered option list.
         private bool _isFiltering                                               = false;                                      //!< Indicates if filtering function is currently active.        
+        private IEnumerable<string> _cachedContext                              = null;                                       //!< Holds the last context used for an auto completion request.
+        private IEnumerable<string> _cachedTokens                               = null;                                       //!< Holds all the tokens before the trigger point from the previous auto completion request.
         #endregion
     }
 }

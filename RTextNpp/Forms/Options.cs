@@ -70,7 +70,7 @@ namespace RTextNppPlugin.Forms
             _tooltipPlaceholder.SetToolTip(_autoSaveFileCheckBox, "Check to automatically save all relevant files of a workspace if any workspace file is modified.");
             _tooltipPlaceholder.SetToolTip(_autoSelectWorkspaceCheckBox, "Check to automatically select the correct workspace base on the currently viewed file.");
             _tooltipPlaceholder.SetToolTip(_excludeExtensionsTextBox, "Added extensions to be excluded without a dot, separated by ; e.g. meta; .");
-            this.AutoValidate = System.Windows.Forms.AutoValidate.EnablePreventFocusChange;            
+            AutoValidate = System.Windows.Forms.AutoValidate.EnablePreventFocusChange;            
         }
 
         private void OnValidatingExcludedExtensions(object sender, System.ComponentModel.CancelEventArgs e)

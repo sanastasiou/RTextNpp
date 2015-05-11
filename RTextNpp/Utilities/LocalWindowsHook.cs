@@ -31,8 +31,8 @@ namespace CSScriptIntellisense
 
         public POINT(int x, int y)
         {
-            this.X = x;
-            this.Y = y;
+            X = x;
+            Y = y;
         }
 
         public POINT(System.Drawing.Point pt) : this(pt.X, pt.Y) { }
@@ -154,7 +154,7 @@ namespace CSScriptIntellisense
         public LocalWindowsHook(VisualUtilities.HookType hook)
         {
             m_hookType = hook;
-            m_filterFunc = new HookProc(this.CoreHookProc); 
+            m_filterFunc = new HookProc(CoreHookProc); 
         }
         public LocalWindowsHook(VisualUtilities.HookType hook, HookProc func)
         {

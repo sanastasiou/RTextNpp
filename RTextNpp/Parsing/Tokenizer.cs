@@ -1,8 +1,8 @@
-﻿using CSScriptIntellisense;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using CSScriptIntellisense;
 
 namespace RTextNppPlugin.Parsing
 {
@@ -21,13 +21,13 @@ namespace RTextNppPlugin.Parsing
             public override string ToString()
             {
                 return String.Format("Token\nline : {0}\nsc : {1}\nec : {2}\npos : {3}\ncontext : {4}\ncc : {5}\ntype : {6}",
-                                      this.Line,
-                                      this.StartColumn,
-                                      this.EndColumn,
-                                      this.BufferPosition,
-                                      this.Context,
-                                      this.CaretColumn,
-                                      this.Type
+                                      Line,
+                                      StartColumn,
+                                      EndColumn,
+                                      BufferPosition,
+                                      Context,
+                                      CaretColumn,
+                                      Type
                                     );
             }
 
@@ -206,10 +206,7 @@ namespace RTextNppPlugin.Parsing
         {
             foreach (var t in base.Tokenize())
             {
-                if (t.Type == RTextTokenTypes.Label)
-                {
-                    _tokenList.Add(t.Context);
-                }
+                _tokenList.Add(t.Context);                
                 if (_currentPos >= t.BufferPosition && _currentPos <= t.BufferPosition + (t.EndColumn - t.StartColumn))
                 {
                     _triggerToken = new TokenTag

@@ -28,7 +28,7 @@ namespace CSScriptIntellisense
         protected WinHook()
             : base(VisualUtilities.HookType.WH_DEBUG)
         {
-            m_filterFunc = this.Proc;
+            m_filterFunc = Proc;
         }
 
         ~WinHook()

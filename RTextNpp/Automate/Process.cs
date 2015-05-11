@@ -309,10 +309,10 @@ namespace RTextNppPlugin.Utilities
                 mIsProcessStarting = true;
                 mTimeoutEvent.Reset();
 
-                mStartProcessDelegate = new AsyncMethodCaller(this.GetPortNumber);
-                this.mPort = -1; //reinit port every time this function is called
-                this.mGetPortNumberAsyncResult = mStartProcessDelegate.BeginInvoke(Constants.INITIAL_RESPONSE_TIMEOUT,
-                                                                                    out this.mPort,
+                mStartProcessDelegate = new AsyncMethodCaller(GetPortNumber);
+                mPort = -1; //reinit port every time this function is called
+                mGetPortNumberAsyncResult = mStartProcessDelegate.BeginInvoke(Constants.INITIAL_RESPONSE_TIMEOUT,
+                                                                                    out mPort,
                                                                                     new AsyncCallback(PortNumberRetrievalCompleted),
                                                                                     mStartProcessDelegate);
             }
@@ -328,18 +328,18 @@ namespace RTextNppPlugin.Utilities
         private void PortNumberRetrievalCompleted(IAsyncResult ar)
         {
             //called when the getPortNumber method has finished work...    
-            mIsPortNumberRetrieved = this.mStartProcessDelegate.EndInvoke(out this.mPort, ar);
+            mIsPortNumberRetrieved = mStartProcessDelegate.EndInvoke(out mPort, ar);
 
             //port could be retrieved - backend is running
-            if (this.mPort != -1)
+            if (mPort != -1)
             {
                 //load model if specified option is enabled 
                 if (Settings.Instance.Get<bool>(Settings.RTextNppSettings.AutoLoadWorkspace))
                 {
-                    this.OnTimerElapsed(null, EventArgs.Empty);
+                    OnTimerElapsed(null, EventArgs.Empty);
                 }
             }
-            WriteAutoRunValue(this.mAutoRunKey);
+            WriteAutoRunValue(mAutoRunKey);
             mAutoRunKey = String.Empty;
         }
 
@@ -373,13 +373,13 @@ namespace RTextNppPlugin.Utilities
             //will only return true if port number is retrieved during a timeout of 2 seconds!
             if (mTimeoutEvent.WaitOne(Constants.INITIAL_RESPONSE_TIMEOUT))
             {
-                this.mPInfo.Port = portNumber = this.mPort;
+                mPInfo.Port = portNumber = mPort;
                 return true;
             }
             else
             {
                 CleanupProcess();
-                this.mPInfo.Port = portNumber = this.mPort = -1;
+                mPInfo.Port = portNumber = mPort = -1;
                 return false;
             }
         }
@@ -391,7 +391,7 @@ namespace RTextNppPlugin.Utilities
          *
          * \return  The connector.
          */
-        public Connector Connector { get { return this.mConnector; } }
+        public Connector Connector { get { return mConnector; } }
 
         /**
          *
@@ -416,7 +416,7 @@ namespace RTextNppPlugin.Utilities
             {
                 try
                 {
-                    return this.mProcess.HasExited;
+                    return mProcess.HasExited;
                 }
                 catch
                 {
@@ -460,7 +460,7 @@ namespace RTextNppPlugin.Utilities
         {
             try
             {
-                this.mPort = -1;
+                mPort = -1;
                 //clean up process here
                 mProcess.EnableRaisingEvents = false;
                 Utilities.ProcessUtilities.KillProcessTree(mProcess);
@@ -548,7 +548,7 @@ namespace RTextNppPlugin.Utilities
             //notify connectors that their backend in no longer available!
             if (ProcessExitedEvent != null)
             {
-                ProcessExitedEvent(this, new ProcessExitedEventArgs(this.mPInfo.ProcKey));
+                ProcessExitedEvent(this, new ProcessExitedEventArgs(mPInfo.ProcKey));
             }
         }
 
@@ -794,7 +794,7 @@ namespace RTextNppPlugin.Utilities
                 string aRTextFilePath = FileUtilities.FindWorkspaceRoot(pathOfModifiedFile);
                 Plugin.GetFileObserver().SaveWorkspaceFiles(aRTextFilePath);
             }
-            if (this.mConnector != null)
+            if (mConnector != null)
             {
                 RestartLoadModelTimer();
             }
@@ -810,11 +810,11 @@ namespace RTextNppPlugin.Utilities
         private void OnTimerElapsed(object sender, EventArgs e)
         {
             //check needed so that the interval timer don't stop if a command could not be loaded - this way we can ensure that the complete model will always be loaded!
-            if (this.mConnector.ConnectorState == Automate.StateEngine.ProcessState.Busy)
+            if (mConnector.ConnectorState == Automate.StateEngine.ProcessState.Busy)
             {
                 if (!mIsMessageDisplayed)
                 {
-                    Logging.Logger.Instance.Append(Logging.Logger.MessageType.Info, mPInfo.ProcKey, "Changes were made to automate files while the model was being loaded. New loading pending...", this.mPInfo.ProcKey);
+                    Logging.Logger.Instance.Append(Logging.Logger.MessageType.Info, mPInfo.ProcKey, "Changes were made to automate files while the model was being loaded. New loading pending...", mPInfo.ProcKey);
                     mIsMessageDisplayed = true;
                 }
                 return;
@@ -822,9 +822,9 @@ namespace RTextNppPlugin.Utilities
             else
             {
                 RequestBase aLoadCommand = new RequestBase { command = Constants.Commands.LOAD_MODEL, invocation_id = -1, type = "request" };
-                this.mConnector.Execute(aLoadCommand, ref mInvocationId);
-                this.mTimer.Stop();
-                this.mIsMessageDisplayed = false;
+                mConnector.Execute(aLoadCommand, ref mInvocationId);
+                mTimer.Stop();
+                mIsMessageDisplayed = false;
             }
         }
         #endregion

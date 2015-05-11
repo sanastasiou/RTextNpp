@@ -32,26 +32,26 @@ namespace RTextNppPlugin
         /// </summary>
         private void InitializeComponent()
         {
-            this.SuspendLayout();
+            SuspendLayout();
             // 
             // _consoleOutputHost
             // 
-            this._consoleOutputHost.Dock = System.Windows.Forms.DockStyle.Fill;
-            this._consoleOutputHost.Location = new System.Drawing.Point(0, 0);
-            this._consoleOutputHost.Name = "_consoleOutputHost";
-            this._consoleOutputHost.Size = new System.Drawing.Size(680, 186);
-            this._consoleOutputHost.TabIndex = 0;
-            this._consoleOutputHost.Text = "ConsoleOutputHost";
+            _consoleOutputHost.Dock = System.Windows.Forms.DockStyle.Fill;
+            _consoleOutputHost.Location = new System.Drawing.Point(0, 0);
+            _consoleOutputHost.Name = "_consoleOutputHost";
+            _consoleOutputHost.Size = new System.Drawing.Size(680, 186);
+            _consoleOutputHost.TabIndex = 0;
+            _consoleOutputHost.Text = "ConsoleOutputHost";
             // 
             // ConsoleOutputForm
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(680, 186);
-            this.Controls.Add(this._consoleOutputHost);
-            this.Name = "ConsoleOutputForm";
-            this.Text = "RText++ Console";
-            this.ResumeLayout(false);
+            AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            ClientSize = new System.Drawing.Size(680, 186);
+            Controls.Add(_consoleOutputHost);
+            Name = "ConsoleOutputForm";
+            Text = "RText++ Console";
+            ResumeLayout(false);
 
         }
 

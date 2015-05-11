@@ -80,7 +80,6 @@ namespace RTextNppPlugin
         private static Icon tbIcon                                                      = null;
         private static bool _consoleInitialized                                         = false;
         private static bool _invokeInProgress                                           = false;
-        private static bool _requestAutoCompletion                                      = false;
         private static int _currentZoomLevel                                            = 0;
         private static ScintillaMessageInterceptor _scintillaMsgInterceptor             = null;  //!< Intercepts scintilla messages.
         private static NppMessageInterceptor _nppMsgInterceptpr                         = null;  //!< Intercepts notepad ++ messages.
@@ -135,7 +134,6 @@ namespace RTextNppPlugin
                             handled = !_autoCompletionForm.IsVisible;
                             if (!_autoCompletionForm.IsVisible)
                             {
-                                _requestAutoCompletion = true;
                                 var res = AsyncInvoke(handler.Item2);
                             }
                             //do nothing if form is already visible
@@ -241,7 +239,6 @@ namespace RTextNppPlugin
             {
                 if (!_autoCompletionForm.IsVisible)
                 {
-                    _requestAutoCompletion = true;
                     //do not start auto completion with whitespace char...
                     if (!Char.IsWhiteSpace(c))
                     {
@@ -270,7 +267,6 @@ namespace RTextNppPlugin
                 }
             }
             _autoCompletionForm.Hide();
-            _autoCompletionForm.ClearCompletion();
         }
 
         private static async Task AsyncInvoke(Action action)
@@ -329,7 +325,7 @@ namespace RTextNppPlugin
                                 _autoCompletionForm.Left = aCaretPoint.X;
                                 _autoCompletionForm.Top  = aCaretPoint.Y;
                                 Utilities.VisualUtilities.SetOwnerFromNppPlugin(_autoCompletionForm);
-                                _autoCompletionForm.AugmentAutoCompletion(aExtractor, aCaretPoint, aTokenizer, ref _requestAutoCompletion);
+                                _autoCompletionForm.AugmentAutoCompletion(aExtractor, aCaretPoint, aTokenizer);
                                 switch (_autoCompletionForm.CharProcessAction)
                                 {
                                     case ViewModels.AutoCompletionViewModel.CharProcessResult.ForceClose:
