@@ -69,11 +69,6 @@ namespace RTextNppPlugin.Parsing
                         StartColumn = t.StartColumn,
                         Type = t.Type
                     };
-                    //if list is empty add the token anyway, this is needed to compare token lists for auto completion caching
-                    //if(_tokenList.Count == 0)
-                    //{
-                    //    _tokenList.Add(t.Type == RTextTokenTypes.Space ? t.Context.Trim() : t.Context);
-                    //}
                     break;
                 }
                 if (t.Type != RTextTokenTypes.Space)

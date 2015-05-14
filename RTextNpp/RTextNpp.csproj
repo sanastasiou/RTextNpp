@@ -92,7 +92,6 @@
     <Compile Include="Automate\Protocol\LinkTargetsResponse.cs" />
     <Compile Include="Automate\Protocol\LoadResponse.cs" />
     <Compile Include="Automate\Protocol\ProgressResponse.cs" />
-    <Compile Include="Automate\Protocol\SerializerFactory.cs" />
     <Compile Include="Automate\StateEngine\StateMachine.cs" />
     <Compile Include="Logging\ILoggingObserver.cs" />
     <Compile Include="Logging\ISubscriber.cs" />
@@ -172,6 +171,9 @@
     <Reference Include="FileSystemWatcherCLRWrapper">
       <HintPath>..\ThirdParty\FileSystemWatcher\FileSystemWatcherCLRWrapper.dll</HintPath>
     </Reference>
+    <Reference Include="Jil">
+      <HintPath>..\packages\Jil.2.10.0\lib\net45\Jil.dll</HintPath>
+    </Reference>
     <Reference Include="LedControl">
       <HintPath>..\ThirdParty\WpfLedControl\LedControl.dll</HintPath>
     </Reference>
@@ -190,12 +192,14 @@
       <HintPath>..\packages\UnmanagedExports.1.2.6\lib\net\RGiesecke.DllExport.Metadata.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="Sigil">
+      <HintPath>..\packages\Sigil.4.4.0\lib\net45\Sigil.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.configuration" />
     <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Management" />
-    <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Windows" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Windows.Interactivity, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">

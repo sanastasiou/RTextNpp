@@ -62,13 +62,27 @@ namespace RTextNppPlugin.Logging
         public void Append(string msg, params object[] args)
         {
             #if DEBUG
-            Append(MessageType.Info, Constants.DEBUG_CHANNEL, String.Format(msg, args));
+            try
+            {
+                DoAppend(MessageType.Info, Constants.DEBUG_CHANNEL, String.Format(msg, args));
+            }
+            catch(System.FormatException)
+            {
+                DoAppend(MessageType.Info, Constants.DEBUG_CHANNEL, msg);
+            }
             #endif
         }
 
         public void Append(MessageType type, string channel, string msg, params object[] args)
         {
-            Append(type, channel, String.Format(msg, args));
+            try
+            {
+                DoAppend(type, channel, String.Format(msg, args));
+            }
+            catch (System.FormatException)
+            {
+                DoAppend(type, channel, msg);
+            }
         }
 
         /**
@@ -78,7 +92,7 @@ namespace RTextNppPlugin.Logging
          * \param   msg     The message.
          * \param   channel The channel.
          */
-        private void Append(MessageType type, string channel, string msg)
+        private void DoAppend(MessageType type, string channel, string msg)
         {
             if (String.IsNullOrWhiteSpace(msg))
             {

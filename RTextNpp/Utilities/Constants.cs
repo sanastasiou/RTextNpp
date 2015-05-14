@@ -24,7 +24,7 @@ namespace RTextNppPlugin
         public const string VERSION = "1.3.0.1";                                //!< Actual version of plugin
         public const int SEND_TIMEOUT = 2000;                                   //!< The send timeout
         public const int CONNECT_TIMEOUT = 10000;                               //!< indicates timeout for connecting a socket
-        public const int BUFFER_SIZE = 1048576;                                 //!< The size of the buffer.
+        public const int BUFFER_SIZE = 16384;                                   //!< The size of the buffer.
         public const string AUTO_COMPLETION_SET_NAME = "RTextAutoCompletion";   //!< The auto completion set name that this completion source provides
         public const string AUTO_COMPLETION_ERROR = "RTextBackendError";        //!< Set name when the bakcend gives a null response.
         public const string LEFT_COMMAND_BRACKET = "{";                         //!< Opening bracket for RText.Command

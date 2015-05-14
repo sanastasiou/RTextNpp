@@ -130,7 +130,7 @@ namespace RTextNppPlugin.WpfControls
             }
             else
             {
-                Dispatcher.Invoke(new Action<string, string, string>(Append), msg, style, channel);
+                Dispatcher.BeginInvoke(new Action<string, string, string>(Append), msg, style, channel);
             }
         }
 
