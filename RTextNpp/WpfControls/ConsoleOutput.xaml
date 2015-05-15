@@ -5,6 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:viewModels="clr-namespace:RTextNppPlugin.ViewModels"
              xmlns:wpfControls="clr-namespace:RTextNppPlugin.WpfControls"                        
+             xmlns:converters="clr-namespace:RTextNppPlugin.WpfControls.Converters"
              xmlns:uc="clr-namespace:LedControl;assembly=LedControl"
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="300">
@@ -14,6 +15,9 @@
     <UserControl.Resources>
         <ResourceDictionary>
             <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+            <converters:PercentageConverter x:Key="PercentageConverter"/>
+            <converters:CommandConverter x:Key="AutomateCommandConverter"/>
+            <converters:ProgressLabelSizeConverter x:Key="ProgressLabelConverter"/>
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="Styles.xaml"/>
             </ResourceDictionary.MergedDictionaries>
@@ -47,24 +51,18 @@
                         ColorOff="Red" 
                         ColorBusy="Orange"
                         Flashing="{Binding IsBusy, Mode=OneWay}"/>
-                <Label/>
+                <Label Content="Status: "/>
+                <Label Content="{Binding ActiveCommand, Converter={StaticResource AutomateCommandConverter}}"/>
             </StackPanel>
-            <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch" DockPanel.Dock="Top" x:Name="WorkspaceGrid" SizeChanged="OnWorkspaceGridSizeChanged">
+            <Grid HorizontalAlignment="Stretch"
+                  VerticalAlignment="Stretch"
+                  DockPanel.Dock="Top"
+                  x:Name="WorkspaceGrid"
+                  SizeChanged="OnWorkspaceGridSizeChanged">
                 <TabControl IsHitTestVisible="True" 
-                            x:Name="OutputTabControl"
+                            x:Name="OutputTabControl"                            
+                            Style="{StaticResource IsLoading_FadeInFadeOutStyle60PercentInverse}"
                             Background="Transparent">
-                    <TabControl.Style>
-                        <Style TargetType="TabControl">
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding IsAutomateWorkspace}" Value="False">
-                                    <Setter Property="SelectedIndex" Value="0"/>
-                                </DataTrigger>
-                                <DataTrigger Binding="{Binding IsAutomateWorkspace}" Value="True">
-                                    <Setter Property="SelectedIndex" Value="0"/>
-                                </DataTrigger>
-                            </Style.Triggers>
-                        </Style>
-                    </TabControl.Style>
                     <TabItem Name="Console" IsHitTestVisible="True" Background="Transparent">
                         <TabItem.Header>
                             <Label IsHitTestVisible="True" 
@@ -94,24 +92,68 @@
                         </TabItem.Header>
                     </TabItem>
                 </TabControl>
-                <Grid HorizontalAlignment="Center"
-                      VerticalAlignment="Center"
+                <Grid HorizontalAlignment="Stretch"
+                      VerticalAlignment="Stretch"
+                      Background="Black"
                       IsHitTestVisible="False"
                       Style="{StaticResource IsLoading_FadeInFadeOutStyle}"
-                      Visibility="{Binding IsLoading, Converter={StaticResource ResourceKey=BooleanToVisibilityConverter}}">
+                      Visibility="{Binding IsLoading, Converter={StaticResource ResourceKey=BooleanToVisibilityConverter}}" Cursor="Wait">
                     <wpfControls:CircularProgressBar HorizontalAlignment="Center" 
                                                      VerticalAlignment="Center" 
-                                                     SegmentColor="#FF878889"
-                                                     StrokeThickness="25"
+                                                     SegmentColor="#FF05143A"
+                                                     StrokeThickness="15"
                                                      x:Name="OuterProgressBar"
-                                                     Percentage="100"/>
-                    <Label HorizontalAlignment="Center" VerticalAlignment="Center" Content="{Binding ProgressPercentage}" />
-                    <wpfControls:CircularProgressBar HorizontalAlignment="Center"
-                                                     VerticalAlignment="Center"
+                                                     Percentage="100" Radius="20"/>
+                    <StackPanel Orientation="Vertical"
+                                HorizontalAlignment="Center" 
+                                Name="PercentageLabelContainer"
+                                VerticalAlignment="Center">
+                        <Viewbox>
+                            <StackPanel Orientation="Vertical"
+                                HorizontalAlignment="Center" 
+                                VerticalAlignment="Center">
+                                <Label  Content="{Binding ActiveCommand, Converter={StaticResource AutomateCommandConverter}}"                                          
+                                    FontWeight="Bold" 
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    FontStyle="Italic" 
+                                    Name="CommandNameLabel"
+                                    FontFamily="/RTextNpp;component/Fonts/#Arial" Foreground="Silver">
+                                    <Label.Effect>
+                                        <DropShadowEffect/>
+                                    </Label.Effect>
+                                </Label>
+                                <Label Content="{Binding ProgressPercentage, Converter={StaticResource PercentageConverter}}"                                        
+                                    FontWeight="Bold" 
+                                    FontStyle="Italic" 
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    FontFamily="/RTextNpp;component/Fonts/#Arial" Foreground="Silver">
+                                    <Label.Effect>
+                                        <DropShadowEffect/>
+                                    </Label.Effect>
+                                </Label>
+                            </StackPanel>
+                        </Viewbox>                            
+                    </StackPanel>
+                    <wpfControls:CircularProgressBar
                                                      Percentage="{Binding ProgressPercentage}"
-                                                     SegmentColor="#026873"
                                                      x:Name="InnerProgressBar"
-                                                     StrokeThickness="15"/>
+                                                     StrokeThickness="15" HorizontalAlignment="Center" VerticalAlignment="Center" Angle="363">
+                    	<wpfControls:CircularProgressBar.Effect>
+                    		<DropShadowEffect/>
+                    	</wpfControls:CircularProgressBar.Effect>
+                    	<wpfControls:CircularProgressBar.SegmentColor>
+                    		<LinearGradientBrush EndPoint="0.5,1" MappingMode="RelativeToBoundingBox" StartPoint="0.5,0">
+                    			<GradientStop Color="#FF00FF21"/>
+                    			<GradientStop Color="#FF0FFF0F"/>
+                    			<GradientStop Color="#FF48620F" Offset="0.5"/>
+                    			<GradientStop Color="#FF354515" Offset="0.601"/>
+                    			<GradientStop Color="#FF5EF327" Offset="1"/>
+                    			<GradientStop Color="#FF46660F" Offset="0.401"/>
+                    		</LinearGradientBrush>
+                    	</wpfControls:CircularProgressBar.SegmentColor>
+                    </wpfControls:CircularProgressBar>
                 </Grid>
             </Grid>            
         </DockPanel>                            

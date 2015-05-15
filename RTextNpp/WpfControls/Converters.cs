@@ -1,20 +1,60 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Data;
-using System.Windows.Media;
-using RTextNppPlugin.ViewModels;
 
 namespace RTextNppPlugin.WpfControls.Converters
 {
-    //called once for every new item on list..
-    internal class AutoCompletionBorderBrushConverter : IValueConverter
+    internal class PercentageConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
         {
+            double perc = (double)value;
+            return perc.ToString() + " %";
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+        {
             throw new NotSupportedException();
+        }
+    }
+
+    internal class ProgressLabelSizeConverter : IValueConverter
+    {
+        #region IValueConverter Members
+
+        public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+        {
+            return 1.0;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+
+        #endregion
+    }
+
+    internal class CommandConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+        {
+            switch (value as string)
+            {
+                case Constants.Commands.CONTENT_COMPLETION:
+                    return "Calculating auto completion options...";
+                case Constants.Commands.CONTEXT_INFO:
+                    return "Retrieving context information...";
+                case Constants.Commands.FIND_ELEMENTS:
+                    return "Searcing for elements...";
+                case Constants.Commands.LINK_TARGETS:
+                    return "Calculating references...";
+                case Constants.Commands.LOAD_MODEL:
+                    return "Loading automate model...";
+                case Constants.Commands.STOP:
+                    return "Offline.";
+                default:
+                    return "Ready.";
+            }
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)

@@ -1,5 +1,5 @@
-﻿using System.Windows.Controls;
-using System;
+﻿using System;
+using System.Windows.Controls;
 
 namespace RTextNppPlugin.WpfControls
 {
@@ -34,6 +34,12 @@ namespace RTextNppPlugin.WpfControls
             aNewRadius >>= 1;
             OuterProgressBar.Radius = aNewRadius;
             InnerProgressBar.Radius = aNewRadius;
+
+            var diameter     = aNewRadius * 2;
+            var radiusSquare = (diameter * diameter);
+            var halfSquare   = radiusSquare / 2;
+
+            PercentageLabelContainer.Width = PercentageLabelContainer.Height = Math.Sqrt(halfSquare);
         }
     }
 }

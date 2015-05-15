@@ -4,7 +4,11 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008">
     <Grid>
-        <Path x:Name="pathRoot" Stroke="{Binding SegmentColor, ElementName=userControl}" StrokeThickness="{Binding StrokeThickness, ElementName=userControl}" HorizontalAlignment="Left" VerticalAlignment="Top">
+        <Path x:Name="pathRoot" 
+              Stroke="{Binding SegmentColor, ElementName=userControl}"
+              StrokeThickness="{Binding StrokeThickness, ElementName=userControl}"
+              HorizontalAlignment="Left"
+              VerticalAlignment="Top">
             <Path.Data>
                 <PathGeometry>
                     <PathGeometry.Figures>
@@ -12,7 +16,7 @@
                             <PathFigure x:Name="pathFigure">
                                 <PathFigure.Segments>
                                     <PathSegmentCollection>
-                                        <ArcSegment x:Name="arcSegment" SweepDirection="Clockwise" />
+                                        <ArcSegment x:Name="arcSegment" SweepDirection="Clockwise"/>
                                     </PathSegmentCollection>
                                 </PathFigure.Segments>
                             </PathFigure>

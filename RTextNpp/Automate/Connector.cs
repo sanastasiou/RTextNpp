@@ -87,11 +87,13 @@ namespace RTextNppPlugin.Automate
             public ProcessState State { get; private set; }
 
             public String Workspace { get; private set; }
+            public String Command { get; private set; }
 
-            public StateChangedEventArgs(ProcessState state, string workspace)
+            public StateChangedEventArgs(ProcessState state, string workspace, string command)
             {
-                State = state;
+                State     = state;
                 Workspace = workspace;
+                Command   = command;
             }
         }
 
@@ -223,7 +225,7 @@ namespace RTextNppPlugin.Automate
             //notify connectors that their backend in no longer available!
             if (OnStateChanged != null)
             {
-                OnStateChanged(this, new StateChangedEventArgs(nextState, mBackendProcess.ProcKey));
+                OnStateChanged(this, new StateChangedEventArgs(nextState, mBackendProcess.ProcKey, mActiveCommand));
             }
         }
 
@@ -344,8 +346,8 @@ namespace RTextNppPlugin.Automate
             try
             {
                 command.invocation_id = mInvocationId++;
-                mFSM.MoveNext(cmd);
                 mActiveCommand = command.command;
+                mFSM.MoveNext(cmd);                
 
                 byte[] msg = null;
                 using (var output = new StringWriter())
@@ -687,7 +689,12 @@ namespace RTextNppPlugin.Automate
                 case Constants.Commands.PROGRESS:
                     if (OnProgressUpdated != null)
                     {
-                        OnProgressUpdated(this, new ProgressResponseEventArgs{ Response = (ProgressResponse)mLastResponse, Command = mActiveCommand, Workspace = this.mBackendProcess.ProcKey });
+                        OnProgressUpdated(this, new ProgressResponseEventArgs
+                        {
+                            Response  = (ProgressResponse)mLastResponse,
+                            Command   = mActiveCommand,
+                            Workspace = mBackendProcess.ProcKey
+                        });
                     }
                     mReceivedResponseEvent.Reset();
                     return false;

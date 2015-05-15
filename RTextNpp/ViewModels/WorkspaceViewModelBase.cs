@@ -47,6 +47,11 @@ namespace RTextNppPlugin.ViewModels
             get { return false; }
         }
 
+        public string ActiveCommand
+        {
+            get { return String.Empty; }
+        }
+
         #endregion
 
         #region [Data Members]

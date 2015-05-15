@@ -113,12 +113,36 @@
                     <BeginStoryboard>
                         <Storyboard>
                             <DoubleAnimation Storyboard.TargetProperty="Opacity"
-                                             To="1"
+                                             To="0.90"
                                              Duration="0:0:1.5"/>
                             <ObjectAnimationUsingKeyFrames Storyboard.TargetProperty="Visibility">
                                 <DiscreteObjectKeyFrame KeyTime="0:0:0.0"                                                                                   
                                                         Value="{x:Static Visibility.Visible}" />
                             </ObjectAnimationUsingKeyFrames>
+                        </Storyboard>
+                    </BeginStoryboard>
+                </DataTrigger.ExitActions>
+            </DataTrigger>
+        </Style.Triggers>
+    </Style>
+    <Style x:Key="IsLoading_FadeInFadeOutStyle60PercentInverse">
+        <Style.Triggers>           
+            <DataTrigger Binding="{Binding IsLoading}" Value="true">
+                <DataTrigger.EnterActions>
+                    <BeginStoryboard>
+                        <Storyboard>
+                            <DoubleAnimation Storyboard.TargetProperty="Opacity" 
+                                             To="0.6"                                                                                                                 
+                                             Duration="0:0:1.5" />
+                        </Storyboard>
+                    </BeginStoryboard>
+                </DataTrigger.EnterActions>
+                <DataTrigger.ExitActions>
+                    <BeginStoryboard>
+                        <Storyboard>
+                            <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                                             To="1"
+                                             Duration="0:0:1.5"/>
                         </Storyboard>
                     </BeginStoryboard>
                 </DataTrigger.ExitActions>

@@ -67,6 +67,7 @@ namespace RTextNppPlugin
             public const string PROGRESS           = "progress";              //!< Command which displays current loading progress.
             public const string ERROR              = "unknown_command_error"; //!< Erroneous command.
             public const string REQUEST            = "request";               //!< Request command.
+            public const string STOP               = "stop";                  //!< Stops backend.
         }
         #endregion
 

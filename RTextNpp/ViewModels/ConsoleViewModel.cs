@@ -80,6 +80,7 @@ namespace RTextNppPlugin.ViewModels
                     IsAutomateWorkspace = _workspaceCollection[_index].IsAutomateWorkspace;
                     ProgressPercentage  = _workspaceCollection[_index].ProgressPercentage;
                     Workspace           = _workspaceCollection[_index].Workspace;
+                    ActiveCommand       = _workspaceCollection[_index].ActiveCommand;
                     base.RaisePropertyChanged("Index");
                 }
             }
@@ -191,6 +192,22 @@ namespace RTextNppPlugin.ViewModels
             }
         }
 
+        public string ActiveCommand
+        {
+            get
+            {
+                return _currentCommand;
+            }
+            set
+            {
+                if(value != _currentCommand)
+                {
+                    _currentCommand = value;
+                    base.RaisePropertyChanged("ActiveCommand");
+                }
+            }
+        }
+
 
         /**
          * Gets a collection of workspaces.
@@ -221,6 +238,7 @@ namespace RTextNppPlugin.ViewModels
         private bool _isAutomateWorkspace  = false;
         private double _progressPercentage = 0.0;
         private string _workspace          = null;
+        private string _currentCommand     = String.Empty;
         #endregion
 
         #region [Helpers]
