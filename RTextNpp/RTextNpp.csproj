@@ -133,13 +133,13 @@
     <Compile Include="Utilities\DelayedEventHandler.cs" />
     <Compile Include="Utilities\FileModificationObserver.cs" />
     <Compile Include="Utilities\FileUtilities.cs" />
-    <Compile Include="Utilities\FuzzyMatching.cs" />
     <Compile Include="Utilities\HashUtilities.cs" />
     <Compile Include="Utilities\LocalWindowsHook.cs" />
     <Compile Include="Utilities\Npp.cs" />
     <Compile Include="Utilities\ParentProcessUtilities.cs" />
     <Compile Include="Utilities\ProcessUtilities.cs" />
     <Compile Include="Utilities\Settings.cs" />
+    <Compile Include="Utilities\StringExtensions.cs" />
     <Compile Include="Utilities\ThreadPerTaskkScheduler.cs" />
     <Compile Include="Utilities\Visual.cs" />
     <Compile Include="Utilities\WinHook.cs" />

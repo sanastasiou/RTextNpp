@@ -142,13 +142,11 @@ namespace RTextNppPlugin.Automate
         }
 
         /**
-         *
          * \brief   Constructor.
          *
+         * \param   proc    Backend process instance for this connector.
          *
-         * \param   pInfo       The information.
-         * \param   filePath    Full pathname of the file associated with this connector.
-         */
+         */        
         public Connector( RTextBackendProcess proc) : base()
         {
             mBackendProcess = proc;
@@ -210,17 +208,6 @@ namespace RTextNppPlugin.Automate
         }
 
         /**
-         * \brief   Gets current state.
-         *
-         * \return  The current state.
-         */
-        public ProcessState GetCurrentState()
-        {
-            return mFSM.CurrentState;
-        }
-
-
-        /**
          * \property    public ProcessState ConnectorState
          *
          * \brief   Gets the state of the connector.
@@ -230,18 +217,19 @@ namespace RTextNppPlugin.Automate
         public ProcessState ConnectorState { get { return mFSM.CurrentState; } }
 
         /**
-         *
          * \brief   Executes the given command synchronously.
          *
+         * \tparam  Command Type of the command.
+         * \param   command                 The command.
+         * \param   [in,out]  invocationId    Identifier for the invocation.
+         * \param   timeout                 (Optional) the timeout.
          *
-         * \tparam  Command      Type of the command.
-         * \param   ref invocationid The current invocation id.
-         * \tparam  Response         Type of the response.
-         * \param   command          The command.
+         * \return  A Response type instance if the command could be executed succesfully and within the
+         *          provided timeout, else null.
          *
-         * \return  A Response type instance if the command could be executed succesfully and within the provided timeout, else null.
-         * \remarks Users of this function must be prepared to receive null, as indication that something went wrong.
-         */
+         * \note    Users of this function must be prepared to receive null, as indication that
+         *          something went wrong.
+         */        
         public IResponseBase Execute<Command>( Command command, ref int invocationId, int timeout = -1 ) where Command : RequestBase                                                                                  
         {
             //sanity check
@@ -297,8 +285,6 @@ namespace RTextNppPlugin.Automate
         /**
          *
          * \brief   Executes after a socket connection is made to autoload the model.
-         *
-         *
          */
         private void LoadModel( ref int invocationId )
         {
@@ -317,7 +303,6 @@ namespace RTextNppPlugin.Automate
         /**
          *
          * \brief   Query if this object is busy.
-         *
          *
          * \return  true if busy, false if not.
          */
@@ -420,10 +405,11 @@ namespace RTextNppPlugin.Automate
                 mReceivedResponseEvent.Reset();
                 if (!Utilities.ProcessUtilities.TryExecute(SendRequest, timeout, msg, out bytesSent) || (bytesSent != msg.Length))
                 {
-                    //StatusBarManager.writeToOutputWindow(String.Format("Could not send request to RTextService. Connector : {0}", ProcessInfo.RTextFilePath),
-                    //                                        Utilities.HashUtilities.getGUIDfromString(ProcessInfo.ProcKey),
-                    //                                        ProcessInfo.ProcKey);
-                    //mFSM.MoveNext(StateEngine.Command.Disconnected);
+                    Logging.Logger.Instance.Append( Logging.Logger.MessageType.Error,
+                                                    mBackendProcess.Workspace,
+                                                    "Could not send request to RTextService."
+                                                  );
+                    mFSM.MoveNext(StateEngine.Command.Disconnected);
                     return null;
                 }
                 //value was not received during specified timeout
@@ -452,13 +438,6 @@ namespace RTextNppPlugin.Automate
                     {
                         mFSM.MoveNext(StateEngine.Command.Disconnected);
                     }
-                    else
-                    {
-                        if (mReceiveStatus.Response != null)
-                        {
-                            mReceiveStatus.Response = null;
-                        }
-                    }
                 });
                 aProcessExitWatcherTask.Start(aScheduler);
                 aReceiverTask.Start(aScheduler);
@@ -470,7 +449,6 @@ namespace RTextNppPlugin.Automate
                         mReceivedResponseEvent.Set();
                         //indicate no valid backend response
                         mLastResponse = null;
-                        mReceiveStatus.Response = null;
                         //move to disconnected state!
                         mFSM.MoveNext(StateEngine.Command.Disconnected);
                         break;
@@ -522,7 +500,6 @@ namespace RTextNppPlugin.Automate
                 //                                        ProcessInfo.ProcKey
                 //                                    );
                 //mProgressManager.setText("Ready");
-                //mProgressManager.stopAnimation();
                 //ConnectorManager.getInstance.StartProcess(mBackendProcess.ProcessInfo);
                 //return;
             //}
@@ -571,25 +548,21 @@ namespace RTextNppPlugin.Automate
          *
          * \brief   Callback for asynchronous receive functionality.
          *
-         *
          * \param   ar  The async result.
          */
         private void ReceiveCallback(IAsyncResult ar)
         {
             try
             {
-                // Retrieve the state object and the client socket 
-                // from the asynchronous state object.
-                StateObject state = (StateObject)ar.AsyncState;
                 // Read data from the remote device.
-                int aBytesRead = state.Socket.EndReceive(ar);
-                if (aBytesRead > 0)
+                mReceiveStatus.BytesToRead = mReceiveStatus.Socket.EndReceive(ar);
+                if (mReceiveStatus.BytesToRead > 0)
                 {
                     // There might be more data, so store the data received so far.
-                    state.ReceivedMessage.Append(Encoding.ASCII.GetString(state.Buffer, 0, aBytesRead));
+                    mReceiveStatus.ReceivedMessage.Append(Encoding.ASCII.GetString(mReceiveStatus.Buffer, 0, mReceiveStatus.BytesToRead));
                     // converts string into json objects
-                    TryDeserialize(ref state);
-                    state.Socket.BeginReceive(state.Buffer, 0, state.BufferSize, 0, new AsyncCallback(ReceiveCallback), state);
+                    TryDeserialize();
+                    mReceiveStatus.Socket.BeginReceive(mReceiveStatus.Buffer, 0, mReceiveStatus.BufferSize, 0, new AsyncCallback(ReceiveCallback), mReceiveStatus);
                 }
             }
             catch (Exception ex)
@@ -604,64 +577,54 @@ namespace RTextNppPlugin.Automate
 
         /**
         *
-        * \brief   Recursively deserialize JSON messages, and adds them to the message queue
-        *
-        *
-        * \param state State object used in the async receive method
+        * \brief   Recursively deserialize JSON messages.        
         * 
-        * \return  True if connection is successful, false otherwise.
         */
-        private void TryDeserialize(ref StateObject state)
+        private void TryDeserialize()
         {
-            if (state.LengthMatched)
+            if (mReceiveStatus.LengthMatched)
             {
                 //we know the length but the reveived stream is not enough
-                if (state.RequiredLength <= state.ReceivedMessage.Length)
+                if (mReceiveStatus.RequiredLength <= mReceiveStatus.ReceivedMessage.Length)
                 {
-                    state.LengthMatched = false;
-                    string aJSONmessage = state.ReceivedMessage.ToString(state.JSONLength.ToString().Length, state.JSONLength);
-                    state.ReceivedMessage.Remove(0, state.RequiredLength);
-                    //handle various responses
-                    AnalyzeResponse(ref aJSONmessage, ref state);
-                    if (state.ReceivedMessage.Length > 0)
-                    {
-                        TryDeserialize(ref state);
-                    }
+                    OnSufficientResponseLengthAcquired();                   
                 }
             }
             else
             {
-                Match aMatch = mMessageLengthRegex.Match(state.ReceivedMessage.ToString());
+                Match aMatch = mMessageLengthRegex.Match(mReceiveStatus.ReceivedMessage.ToString());
                 if (aMatch.Success)
                 {
-                    state.LengthMatched = true;
-                    state.JSONLength = Int32.Parse(aMatch.Groups[1].Value);
-                    state.RequiredLength = state.JSONLength.ToString().Length + state.JSONLength;
-                    if (state.RequiredLength <= state.ReceivedMessage.Length)
+                    mReceiveStatus.LengthMatched   = true;
+                    mReceiveStatus.JSONLength      = Int32.Parse(aMatch.Groups[1].Value);
+                    mReceiveStatus.RequiredLength  = mReceiveStatus.JSONLength.ToString().Length + mReceiveStatus.JSONLength;
+                    mReceiveStatus.ReceivedMessage = new StringBuilder(mReceiveStatus.ReceivedMessage.ToString(), mReceiveStatus.RequiredLength);
+                    if (mReceiveStatus.RequiredLength <= mReceiveStatus.ReceivedMessage.Length)
                     {
-                        state.LengthMatched = false;
-                        string aJSONmessage = state.ReceivedMessage.ToString(state.JSONLength.ToString().Length, state.JSONLength);
-                        state.ReceivedMessage.Remove(0, state.RequiredLength);
-                        //handle various responses
-                        AnalyzeResponse(ref aJSONmessage, ref state);
-                        if (state.ReceivedMessage.Length > 0)
-                        {
-                            TryDeserialize(ref state);
-                        }
+                        OnSufficientResponseLengthAcquired();
                     }
                 }
             }
+        }
+
+        private void OnSufficientResponseLengthAcquired()
+        {
+            mReceiveStatus.LengthMatched   = false;
+            string aJSONmessage            = mReceiveStatus.ReceivedMessage.ToString(mReceiveStatus.JSONLength.ToString().Length, mReceiveStatus.JSONLength);
+            mReceiveStatus.ReceivedMessage = new StringBuilder(mReceiveStatus.ReceivedMessage.ToString(mReceiveStatus.RequiredLength,
+                                                               mReceiveStatus.ReceivedMessage.Length - mReceiveStatus.RequiredLength));
+            //handle various responses
+            AnalyzeResponse(aJSONmessage);
+            TryDeserialize();
         }
 
         /**
          *
          * \brief   Analyzes the last received response.
          *
-         *
-         * \param [in,out]  response    The response string.
-         * \param [in,out]  state       The state object.
+         * \param   response    The response string.
          */
-        private void AnalyzeResponse(ref string response, ref StateObject state)
+        private void AnalyzeResponse(string response)
         {
             bool aIsResponceReceived = false;
             using (var input = new StringReader(response))
@@ -692,8 +655,6 @@ namespace RTextNppPlugin.Automate
             }
             if (aIsResponceReceived)
             {
-                state.Response = String.Empty;
-                state.ReceivedMessage = new StringBuilder(state.BufferSize);
                 if (mInvocationId - 1 != mLastResponse.invocation_id)
                 {
                     Logging.Logger.Instance.Append(Logging.Logger.MessageType.Error,
@@ -774,11 +735,11 @@ namespace RTextNppPlugin.Automate
             public int BufferSize { get { return Constants.BUFFER_SIZE; } }
             public byte[] Buffer { get { return mBuffer; } }
             public StringBuilder ReceivedMessage { get { return mReceivedMessage; } set { mReceivedMessage = value; } }
-            public string Response { get { return mResponseString; } set { mResponseString = value; } }
             public Socket Socket { get; set; }
             public bool LengthMatched { get; set; }
             public int RequiredLength { get; set; }
             public int JSONLength { get; set; }
+            public int BytesToRead { get; set; }
         }
 
         /**
@@ -792,7 +753,7 @@ namespace RTextNppPlugin.Automate
             {
                 mReceiveStatus.Socket.Disconnect(false);
                 mReceiveStatus.Socket.Shutdown(SocketShutdown.Both);
-                mReceiveStatus.Socket.Close(Constants.CONNECT_TIMEOUT);
+                mReceiveStatus.Socket.Close();
                 mReceiveStatus.Socket.Dispose();
             }
         }

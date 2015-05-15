@@ -45,7 +45,7 @@
                         IsActive="{Binding IsActive, Mode=OneWay}"
                         ColorOn="Green" 
                         ColorOff="Red" 
-                        ColorBusy="Yellow"
+                        ColorBusy="Orange"
                         Flashing="{Binding IsBusy, Mode=OneWay}"/>
                 <Label/>
             </StackPanel>
