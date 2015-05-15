@@ -33,7 +33,6 @@ namespace RTextNppPlugin.ViewModels
 
         void ConnectorManagerOnConnectorAdded(object source, ConnectorManager.ConnectorAddedEventArgs e)
         {
-
             //change to newly added workspace            
             AddWorkspace(e.Workspace, e.Connector);
         }

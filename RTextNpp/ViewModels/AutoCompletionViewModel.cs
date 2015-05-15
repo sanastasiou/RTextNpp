@@ -305,7 +305,6 @@ namespace RTextNppPlugin.ViewModels
                 column        = extractor.ContextColumn,
                 command       = Constants.Commands.CONTENT_COMPLETION,
                 context       = extractor.ContextList,
-                type          = Constants.Commands.REQUEST,
                 invocation_id = -1
             };            
             _currentConnector = ConnectorManager.Instance.Connector;
@@ -316,16 +315,17 @@ namespace RTextNppPlugin.ViewModels
                     case Automate.StateEngine.ProcessState.Closed:
                         
                         _completionList.Add(CreateWarningCompletion(Properties.Resources.ERR_BACKEND_CONNECTING, Properties.Resources.ERR_BACKEND_CONNECTING_DESC));
-                        _currentConnector.Execute<AutoCompleteAndReferenceRequest>(aRequest, ref _currentInvocationId);
+                        _currentConnector.Execute<AutoCompleteAndReferenceRequest>(aRequest);
                         _isWarningCompletionActive = true;
                         break;
                     case Automate.StateEngine.ProcessState.Busy:
                     case Automate.StateEngine.ProcessState.Loading:
+                    case Automate.StateEngine.ProcessState.Connected:
                         _completionList.Add(CreateWarningCompletion(Properties.Resources.ERR_BACKEND_BUSY, Properties.Resources.ERR_BACKEND_BUSY_DESC));
                         _isWarningCompletionActive = true;
                         break;
-                    case Automate.StateEngine.ProcessState.Connected:
-                        AutoCompleteResponse aResponse = _currentConnector.Execute<AutoCompleteAndReferenceRequest>(aRequest, ref _currentInvocationId, Constants.SYNCHRONOUS_COMMANDS_TIMEOUT) as AutoCompleteResponse;
+                    case Automate.StateEngine.ProcessState.Idle:
+                        AutoCompleteResponse aResponse = _currentConnector.Execute<AutoCompleteAndReferenceRequest>(aRequest, Constants.SYNCHRONOUS_COMMANDS_TIMEOUT) as AutoCompleteResponse;
 
                         if (aResponse == null)
                         {
@@ -334,51 +334,37 @@ namespace RTextNppPlugin.ViewModels
                         }
                         else
                         {
-                            //check invocation id
-                            if (_currentInvocationId != aResponse.invocation_id)
-                            {
-                                _completionList.Add(CreateWarningCompletion(Properties.Resources.ERR_AUTO_COMPLETION_INVOKATION, Properties.Resources.ERR_AUTO_COMPLETION_INVOKATION_DESC));
-                                Logger.Instance.Append(Logger.MessageType.Error,
-                                                            _currentConnector.Workspace,
-                                                            String.Format("Auto complete for file {0} failed. Wrong invocation id return from backend! Expected: {1} - Receoved: {2}",
-                                                                                                                                                                Npp.GetCurrentFile(),
-                                                                                                                                                                _currentInvocationId,
-                                                                                                                                                                aResponse.invocation_id));
-                            }
-                            else
-                            {
-                                //add pics                                
-                                var labeledList = aResponse.options.AsParallel().Select(x => new Completion(
-                                    x.display,
-                                    x.insert,
-                                    string.IsNullOrEmpty(x.desc) ? "No description available." : x.desc,
-                                    DetermineCompletionImage(x.display)));
+                            //add pics                                
+                            var labeledList = aResponse.options.AsParallel().Select(x => new Completion(
+                                x.display,
+                                x.insert,
+                                string.IsNullOrEmpty(x.desc) ? "No description available." : x.desc,
+                                DetermineCompletionImage(x.display)));
 
-                                if (labeledList.Count() != 0)
+                            if (labeledList.Count() != 0)
+                            {
+                                if (labeledList.Count() == 1)
                                 {
-                                    if (labeledList.Count() == 1)
-                                    {
-                                        //auto insert
-                                        SelectedCompletion            = labeledList.First();
-                                        SelectedCompletion.IsSelected = true;
-                                        _completionList.Add(labeledList.First());
-                                        CharProcessAction             = CharProcessResult.ForceCommit;
-                                    }
-                                    else
-                                    {
-                                        _completionList.AddRange(labeledList.OrderBy(x => x.InsertionText));
-                                        Filter();
-                                    }
-                                    _cachedOptions = new List<Completion>(_completionList);
+                                    //auto insert
+                                    SelectedCompletion = labeledList.First();
+                                    SelectedCompletion.IsSelected = true;
+                                    _completionList.Add(labeledList.First());
+                                    CharProcessAction = CharProcessResult.ForceCommit;
                                 }
                                 else
                                 {
-                                    _cachedOptions    = null;
-                                    CharProcessAction = CharProcessResult.ForceClose;
+                                    _completionList.AddRange(labeledList.OrderBy(x => x.InsertionText));
+                                    Filter();
                                 }
+                                _cachedOptions = new List<Completion>(_completionList);
+                            }
+                            else
+                            {
+                                _cachedOptions = null;
+                                CharProcessAction = CharProcessResult.ForceClose;
                             }
                             _isWarningCompletionActive = false;
-                        }                                                
+                        }
                         break;
                     default:
                         Logger.Instance.Append(Logger.MessageType.FatalError, _currentConnector.Workspace, "Undefined connector state reached. Please notify support.");
@@ -568,8 +554,7 @@ namespace RTextNppPlugin.ViewModels
         private readonly FilteredObservableCollection<Completion> _filteredList = null;                                       //!< UI completion list based on underlying list.
         private Tokenizer.TokenTag? _triggerToken                               = null;                                       //!< Current completion list trigger token.
         private Connector _currentConnector                                     = null;                                       //!< Connector for current document.
-        private MatchingType _lastMatchingType                                  = MatchingType.NONE;                          //!< Last matching completion type.
-        private int _currentInvocationId                                        = -1;                                         //!< Auto completion invocation id.
+        private MatchingType _lastMatchingType                                  = MatchingType.NONE;                          //!< Last matching completion type.        
         private int _count                                                      = 0;                                          //!< Options count.
         private double _zoomLevel                                               = 1.0;                                        //!< Auto completion window zoom level.
         private Completion _selectedCompletion                                  = null;                                       //!< Currently selected option.

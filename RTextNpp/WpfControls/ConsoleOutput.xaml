@@ -67,7 +67,9 @@
                     </TabControl.Style>
                     <TabItem Name="Console" IsHitTestVisible="True" Background="Transparent">
                         <TabItem.Header>
-                            <Label IsHitTestVisible="True" PreviewMouseDown="ConsolePreviewMouseDown">Console</Label>
+                            <Label IsHitTestVisible="True" 
+                                   Style="{StaticResource LabelNoPaddingStyle}"
+                                   PreviewMouseDown="ConsolePreviewMouseDown">Console</Label>
                         </TabItem.Header>
                         <RichTextBox    VerticalScrollBarVisibility="Auto"
                                         HorizontalScrollBarVisibility="Visible"
@@ -86,11 +88,17 @@
                              Style="{StaticResource Workspace_FadeInFadeOutStyle}"
                              Background="Transparent">
                         <TabItem.Header>
-                            <Label IsHitTestVisible="True" PreviewMouseDown="ErrorListPreviewMouseDown">Errors</Label>
+                            <Label IsHitTestVisible="True"
+                                   Style="{StaticResource LabelNoPaddingStyle}"
+                                   PreviewMouseDown="ErrorListPreviewMouseDown">Errors</Label>
                         </TabItem.Header>
                     </TabItem>
                 </TabControl>
-                <Grid HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False" Visibility="{Binding IsLoading, Converter={StaticResource ResourceKey=BooleanToVisibilityConverter}}">
+                <Grid HorizontalAlignment="Center"
+                      VerticalAlignment="Center"
+                      IsHitTestVisible="False"
+                      Style="{StaticResource IsLoading_FadeInFadeOutStyle}"
+                      Visibility="{Binding IsLoading, Converter={StaticResource ResourceKey=BooleanToVisibilityConverter}}">
                     <wpfControls:CircularProgressBar HorizontalAlignment="Center" 
                                                      VerticalAlignment="Center" 
                                                      SegmentColor="#FF878889"

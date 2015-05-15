@@ -41,7 +41,6 @@ namespace RTextNppPlugin.Utilities
         bool mIsMessageDisplayed = false;
         IAsyncResult mGetPortNumberAsyncResult;
         bool mIsPortNumberRetrieved = false;                                                                                     //!< Whether a process has started and the port number is retrieved.
-        int mInvocationId = -1;                                                                                                  //!< The invocation id used when loading model.. maybe it can be used in the furure
         string mExtension = String.Empty;                                                                                        //!< The associated extension string.
         string mAutoRunKey = String.Empty;                                                                                       //!< The autorun registry value.
 
@@ -821,8 +820,7 @@ namespace RTextNppPlugin.Utilities
             }
             else
             {
-                RequestBase aLoadCommand = new RequestBase { command = Constants.Commands.LOAD_MODEL, invocation_id = -1, type = "request" };
-                mConnector.Execute(aLoadCommand, ref mInvocationId);
+                mConnector.LoadModel();
                 mTimer.Stop();
                 mIsMessageDisplayed = false;
             }

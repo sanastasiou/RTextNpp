@@ -12,6 +12,7 @@ namespace RTextNppPlugin.ViewModels
             _connector = connector;
             _mainModel = mainViewModel;
             _connector.OnStateChanged += OnConnectorStateChanged;
+            _connector.OnProgressUpdated += OnConnectorProgressUpdated;
         }
 
         /**
@@ -62,18 +63,27 @@ namespace RTextNppPlugin.ViewModels
         #endregion
 
         #region [Event Handlers]
-        void OnConnectorStateChanged(object source, Connector.StateChangedEventArgs e)
+        private void OnConnectorProgressUpdated(object source, Connector.ProgressResponseEventArgs e)
+        {
+            if (e.Workspace == _mainModel.Workspace)
+            {
+                _mainModel.ProgressPercentage = e.Response.percentage;
+            }
+        }
+
+        private void OnConnectorStateChanged(object source, Connector.StateChangedEventArgs e)
         {
             Logging.Logger.Instance.Append("OnConnectorStateChanged : {0}", e.State);
             switch (e.State)
             {
-                case RTextNppPlugin.Automate.StateEngine.ProcessState.Loading:
-                case RTextNppPlugin.Automate.StateEngine.ProcessState.Busy:
+                case Automate.StateEngine.ProcessState.Loading:
+                case Automate.StateEngine.ProcessState.Busy:                
                     _isActive = true;
                     _isBusy   = true;                   
                     if(e.State == Automate.StateEngine.ProcessState.Loading)
                     {
-                        _isLoading = true;
+                        _isLoading                    = true;
+                        _mainModel.ProgressPercentage = 0.0;
                     }
                     if (e.Workspace == _mainModel.Workspace)
                     {
@@ -82,17 +92,18 @@ namespace RTextNppPlugin.ViewModels
                         _mainModel.IsLoading = _isLoading;                        
                     }
                     break;
-                case RTextNppPlugin.Automate.StateEngine.ProcessState.Connected:
+                case Automate.StateEngine.ProcessState.Connected:
+                case Automate.StateEngine.ProcessState.Idle:
                     _isActive  = true;
                     _isLoading = false;
                     _isBusy    = false;
                     if (e.Workspace == _mainModel.Workspace)
                     {
-                        _mainModel.IsActive = _isActive;
-                        _mainModel.IsBusy = _mainModel.IsLoading = false;
+                        _mainModel.IsActive           = _isActive;
+                        _mainModel.IsBusy             = _mainModel.IsLoading = false;
                     }
                     break;
-                case RTextNppPlugin.Automate.StateEngine.ProcessState.Closed:
+                case Automate.StateEngine.ProcessState.Closed:
                 default:
                     _isActive = _isLoading = _isBusy = false;
                     if (e.Workspace == _mainModel.Workspace)
@@ -105,7 +116,8 @@ namespace RTextNppPlugin.ViewModels
 
         public void Dispose()
         {
-            _connector.OnStateChanged -= OnConnectorStateChanged;
+            _connector.OnStateChanged    -= OnConnectorStateChanged;
+            _connector.OnProgressUpdated -= OnConnectorProgressUpdated;
         }
         #endregion
 

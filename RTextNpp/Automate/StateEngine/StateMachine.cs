@@ -13,6 +13,7 @@ namespace RTextNppPlugin.Automate.StateEngine
         Closed,
         Loading,
         Connected,
+        Idle,
         Busy
     }
     /**
@@ -25,6 +26,7 @@ namespace RTextNppPlugin.Automate.StateEngine
         Connect,
         Execute,
         ExecuteFinished,
+        LoadModel,
         Disconnected
     }
 
@@ -38,7 +40,7 @@ namespace RTextNppPlugin.Automate.StateEngine
             public StateTransition(ProcessState currentState, Command command)
             {
                 mCurrentState = currentState;
-                mCommand = command;
+                mCommand      = command;
             }
 
             public override int GetHashCode()
@@ -69,9 +71,9 @@ namespace RTextNppPlugin.Automate.StateEngine
              */
             public ProcessStateWithAction(ProcessState targetState, Action transitionAction = null, Func<bool> guard = null)
             {
-                mTargetState = targetState;
+                mTargetState      = targetState;
                 mTransitionAction = transitionAction;
-                mGuard = guard;
+                mGuard            = guard;
             }
 
             /**
