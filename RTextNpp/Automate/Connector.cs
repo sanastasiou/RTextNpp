@@ -36,9 +36,18 @@ namespace RTextNppPlugin.Automate
         private IResponseBase mLastResponse                                = null                                            ;            //!< Holds the last response from the backend.
         private int mLastInvocationId                                      = -1                                              ;            //!< Holds the last invocation id from the backend.
         private readonly RequestBase LOAD_COMMAND                          = new RequestBase { command = Constants.Commands.LOAD_MODEL }; //!< Load command.
+        private bool mCancelled                                            = false;                                                       //!< Indicates that a pending command was cancelled via user request.
         #endregion
 
         #region Interface
+
+        public bool IsCommandCancelled
+        {
+            get
+            {
+                return mCancelled;
+            }
+        }
 
         /**
          * \struct  ProgressResponseStruct
@@ -250,11 +259,11 @@ namespace RTextNppPlugin.Automate
             }
             if (IsExecutionAllowed())
             {
+                mCancelled = false;
                 return await SendAsync<Command>(command, timeout, StateEngine.Command.Execute);
             }
             return null;
         }
-
 
         /**
          * \brief   Executes the given command synchronously.
@@ -278,6 +287,7 @@ namespace RTextNppPlugin.Automate
             }
             if (IsExecutionAllowed())
             {
+                mCancelled = false;
                 BeginSend<Command>(command, command.command == Constants.Commands.LOAD_MODEL ? StateEngine.Command.LoadModel : StateEngine.Command.Execute);
             }
         }
@@ -290,6 +300,22 @@ namespace RTextNppPlugin.Automate
         {           
             BeginExecute(LOAD_COMMAND);
         }
+               
+        public void CancelCommand()
+        {
+            mCancelled = true;
+            if (mReceivingThreadCancellationSource != null)
+            {
+                mReceivingThreadCancellationSource.Cancel();
+            }
+        }
+        #endregion
+
+        #region EventHandlers
+        
+        #endregion
+
+        #region Helpers
 
         /**
          * \brief   Begins an async send. Just send a command without caring about the response of the backend.
@@ -306,8 +332,8 @@ namespace RTextNppPlugin.Automate
             try
             {
                 command.invocation_id = mInvocationId++;
-                mActiveCommand        = command.command;
-                mFSM.MoveNext(cmd);                
+                mActiveCommand = command.command;
+                mFSM.MoveNext(cmd);
 
                 byte[] msg = null;
                 using (var output = new StringWriter())
@@ -318,7 +344,7 @@ namespace RTextNppPlugin.Automate
 
                 if (mConnection.SendRequest(msg) != msg.Length)
                 {
-                    Logging.Logger.Instance.Append( Logging.Logger.MessageType.Error,
+                    Logging.Logger.Instance.Append(Logging.Logger.MessageType.Error,
                                                     mBackendProcess.Workspace,
                                                     "void BeginSend<Command>(ref Command command, ref int invocationId) - Could not send request {0 }. Timeout of {1} has expired.", command.command, Constants.SEND_TIMEOUT);
                     aHasErrorOccured = true;
@@ -345,14 +371,6 @@ namespace RTextNppPlugin.Automate
                 mFSM.MoveNext(StateEngine.Command.Disconnected);
             }
         }
-       
-        #endregion
-
-        #region EventHandlers
-        
-        #endregion
-
-        #region Helpers
 
         private async Task<IResponseBase> SendAsync<Command>(Command command, int timeout, StateEngine.Command cmd) where Command : RequestBase
         {

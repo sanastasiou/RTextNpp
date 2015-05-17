@@ -193,7 +193,8 @@ namespace RTextNppPlugin.ViewModels
             FilteredCount      = 0;            
             CharProcessAction  = CharProcessResult.NoAction;
             SelectedCompletion = null;
-            _completionList.Add(CreateWarningCompletion(Properties.Resources.ERR_BACKEND_CONNECTING, Properties.Resources.ERR_BACKEND_CONNECTING_DESC));       
+            _completionList.Add(CreateWarningCompletion(Properties.Resources.ERR_BACKEND_CONNECTING, Properties.Resources.ERR_BACKEND_CONNECTING_DESC));
+            Pending = false;
         }
 
         public void OnAutoCompletionWindowCollapsing()
@@ -206,12 +207,18 @@ namespace RTextNppPlugin.ViewModels
                 SelectedCompletion.IsSelected = false;
                 SelectedCompletion            = null;
             }
+            if (_connector != null)
+            {
+                _connector.CancelCommand();
+            }
         }
 
         public BulkObservableCollection<Completion> UnderlyingList
         {
             get { return _completionList; } 
         }
+
+        public bool Pending { get; private set; }
 
         public int FilteredCount
         {
@@ -308,14 +315,14 @@ namespace RTextNppPlugin.ViewModels
                 context       = extractor.ContextList,
                 invocation_id = -1
             };            
-            _currentConnector = ConnectorManager.Instance.Connector;
-            if (_currentConnector != null)
+            _connector = ConnectorManager.Instance.Connector;
+            if (_connector != null)
             {
-                switch (_currentConnector.ConnectorState)
+                switch (_connector.ConnectorState)
                 {
                     case Automate.StateEngine.ProcessState.Closed:                      
                         _completionList.Add(CreateWarningCompletion(Properties.Resources.ERR_BACKEND_CONNECTING, Properties.Resources.ERR_BACKEND_CONNECTING_DESC));
-                        _currentConnector.LoadModel();
+                        _connector.LoadModel();
                         _isWarningCompletionActive = true;
                         break;
                     case Automate.StateEngine.ProcessState.Busy:
@@ -325,15 +332,28 @@ namespace RTextNppPlugin.ViewModels
                         _isWarningCompletionActive = true;
                         break;
                     case Automate.StateEngine.ProcessState.Idle:
-                        AutoCompleteResponse aResponse = await _currentConnector.ExecuteAsync<AutoCompleteAndReferenceRequest>(aRequest, Constants.SYNCHRONOUS_COMMANDS_TIMEOUT) as AutoCompleteResponse;
+                        Pending = true;
+                        AutoCompleteResponse aResponse = await _connector.ExecuteAsync<AutoCompleteAndReferenceRequest>(aRequest, Constants.SYNCHRONOUS_COMMANDS_TIMEOUT) as AutoCompleteResponse;
 
                         if (aResponse == null)
                         {
-                            _completionList.Add(CreateWarningCompletion(Properties.Resources.ERR_AUTO_COMPLETION_NULL_RESP, Properties.Resources.ERR_AUTO_COMPLETION_NULL_DESC));
-                            _isWarningCompletionActive = true;
+                            if (_connector.IsCommandCancelled)
+                            {
+                                CharProcessAction = CharProcessResult.ForceClose;
+                            }
+                            else
+                            {
+                                _completionList.Add(CreateWarningCompletion(Properties.Resources.ERR_AUTO_COMPLETION_NULL_RESP, Properties.Resources.ERR_AUTO_COMPLETION_NULL_DESC));
+                                _isWarningCompletionActive = true;
+                            }
                         }
                         else
                         {
+                            if(_isWarningCompletionActive)
+                            {
+                                _completionList.Clear();
+                                _isWarningCompletionActive = false;
+                            }
                             //add pics                                
                             var labeledList = aResponse.options.AsParallel().Select(x => new Completion(
                                 x.display,
@@ -365,9 +385,10 @@ namespace RTextNppPlugin.ViewModels
                             }
                             _isWarningCompletionActive = false;
                         }
+                        Pending = false;
                         break;
                     default:
-                        Logger.Instance.Append(Logger.MessageType.FatalError, _currentConnector.Workspace, "Undefined connector state reached. Please notify support.");
+                        Logger.Instance.Append(Logger.MessageType.FatalError, _connector.Workspace, "Undefined connector state reached. Please notify support.");
                         _isWarningCompletionActive = true;
                         break;
 
@@ -553,7 +574,6 @@ namespace RTextNppPlugin.ViewModels
         private readonly BulkObservableCollection<Completion> _completionList   = new BulkObservableCollection<Completion>(); //!< Underlying completion list.
         private readonly FilteredObservableCollection<Completion> _filteredList = null;                                       //!< UI completion list based on underlying list.
         private Tokenizer.TokenTag? _triggerToken                               = null;                                       //!< Current completion list trigger token.
-        private Connector _currentConnector                                     = null;                                       //!< Connector for current document.
         private MatchingType _lastMatchingType                                  = MatchingType.NONE;                          //!< Last matching completion type.        
         private int _count                                                      = 0;                                          //!< Options count.
         private double _zoomLevel                                               = 1.0;                                        //!< Auto completion window zoom level.
@@ -565,6 +585,7 @@ namespace RTextNppPlugin.ViewModels
         private bool _isFiltering                                               = false;                                      //!< Indicates if filtering function is currently active.        
         private IEnumerable<string> _cachedContext                              = null;                                       //!< Holds the last context used for an auto completion request.
         private IEnumerable<string> _cachedTokens                               = null;                                       //!< Holds all the tokens before the trigger point from the previous auto completion request.
+        private Connector _connector                                            = null;                                       //!< Connector for this auto completion session.
         #endregion
     }
 }

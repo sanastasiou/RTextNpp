@@ -74,6 +74,6 @@ namespace RTextNppPlugin
             //}
             return new ShortcutKey();
         }
-        #endregion
+        #endregion        
     }
 }

@@ -101,6 +101,9 @@ namespace RTextNppPlugin
                 case (uint)SciMsg.SCN_ZOOM:
                     Plugin.OnZoomLevelModified();
                     break;
+                case (uint)2007:
+                    Plugin.CanclePendingAutoCompletionCommand();
+                    break;
             }
         }
     }

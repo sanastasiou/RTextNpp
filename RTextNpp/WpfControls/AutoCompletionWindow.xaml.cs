@@ -239,6 +239,14 @@ namespace RTextNppPlugin.WpfControls
             IsOnTop = false;
         }
 
+        public bool IsAutoCompletionCommandPending
+        {
+            get
+            {
+                return GetModel().Pending;
+            }
+        }
+
         void OnAutoCompletionMouseMonitorMouseWheelMoved(object sender, MouseEventExtArgs e)
         {
             ScrollList(e.Delta > 0 ? System.Windows.Forms.Keys.Up : System.Windows.Forms.Keys.Down, 3);
@@ -246,8 +254,8 @@ namespace RTextNppPlugin.WpfControls
         }
 
         void OnAutoCompletionMouseMonitorMouseClick(object sender, MouseEventExtArgs e)
-        {
-     
+        {     
+            //if an auto completion is taking to long, then it will not be visible, in this case hide is called to cancel the auto completion request
             if (!IsMouseInsideFrameworkElement(Content as System.Windows.FrameworkElement))
             {
                 Hide();

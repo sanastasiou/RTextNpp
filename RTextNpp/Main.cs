@@ -233,6 +233,14 @@ namespace RTextNppPlugin
             }
         }
 
+        public static void CanclePendingAutoCompletionCommand()
+        {
+            if(_autoCompletionForm.IsAutoCompletionCommandPending)
+            {
+                _autoCompletionForm.Hide();
+            }
+        }
+
         public static void OnCharTyped(char c)
         {
             if (!Char.IsControl(c) && !Char.IsWhiteSpace(c))
