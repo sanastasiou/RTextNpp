@@ -73,7 +73,6 @@ namespace RTextNppPlugin.ViewModels
 
         private void OnConnectorStateChanged(object source, Connector.StateChangedEventArgs e)
         {
-            System.Diagnostics.Trace.WriteLine(String.Format("OnConnectorStateChanged : {0}\nCommand : {1}", e.State, e.Command));
             switch (e.State)
             {
                 case Automate.StateEngine.ProcessState.Loading:
