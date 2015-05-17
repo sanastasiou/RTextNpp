@@ -320,12 +320,12 @@ namespace RTextNppPlugin
                             {
                                 aCaretPoint = Npp.GetCaretScreenLocationRelativeToPosition(aTokenizer.TriggerToken.Value.BufferPosition);
                             }
-                            _autoCompletionForm.Dispatcher.Invoke((MethodInvoker)(() =>
+                            _autoCompletionForm.Dispatcher.Invoke((MethodInvoker)(async() =>
                             {
                                 _autoCompletionForm.Left = aCaretPoint.X;
                                 _autoCompletionForm.Top  = aCaretPoint.Y;
                                 Utilities.VisualUtilities.SetOwnerFromNppPlugin(_autoCompletionForm);
-                                _autoCompletionForm.AugmentAutoCompletion(aExtractor, aCaretPoint, aTokenizer);
+                                await _autoCompletionForm.AugmentAutoCompletion(aExtractor, aCaretPoint, aTokenizer);
                                 switch (_autoCompletionForm.CharProcessAction)
                                 {
                                     case ViewModels.AutoCompletionViewModel.CharProcessResult.ForceClose:

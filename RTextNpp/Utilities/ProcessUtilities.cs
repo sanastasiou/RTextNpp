@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Management;
-using System.Threading;
 
 namespace RTextNppPlugin.Utilities
 {
@@ -75,41 +74,7 @@ namespace RTextNppPlugin.Utilities
                     }
                 }
             }
-        }
-
-        /**
-         *
-         * \brief   Tries to execute a function within a timeout.
-         *
-         *
-         * \tparam  T   Generic type parameter.
-         * \param   func        The function which will be executed.
-         * \param   timeout     The timeout.
-         * \param [out] result  The result of the executed function.
-         *
-         * \return  true if the functions returns a value before the timeout expires, false otherwise
-         */
-        public static bool TryExecute<TResult>(Func<TResult> func, int timeout, out TResult result)
-        {
-            var t = default(TResult);
-            var thread = new Thread(() => t = func());
-            thread.Start();
-            var completed = thread.Join(timeout);
-            if (!completed) thread.Abort();
-            result = t;
-            return completed;
-        }
-
-        public static bool TryExecute<TParam1, TResult>( Func< TParam1, TResult> func, int timeout, TParam1 param, out TResult result )
-        {
-            var t = default(TResult);
-            var thread = new Thread(() => t = func(param));
-            thread.Start();
-            var completed = thread.Join(timeout);
-            if (!completed) thread.Abort();
-            result = t;
-            return completed;
-        }
+        }        
 
         #region Helpers
         /**

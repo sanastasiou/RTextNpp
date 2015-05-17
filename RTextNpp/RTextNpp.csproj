@@ -93,6 +93,7 @@
     <Compile Include="Automate\Protocol\LinkTargetsResponse.cs" />
     <Compile Include="Automate\Protocol\LoadResponse.cs" />
     <Compile Include="Automate\Protocol\ProgressResponse.cs" />
+    <Compile Include="Automate\SocketConnection.cs" />
     <Compile Include="Automate\StateEngine\StateMachine.cs" />
     <Compile Include="Logging\ILoggingObserver.cs" />
     <Compile Include="Logging\ISubscriber.cs" />
@@ -141,7 +142,6 @@
     <Compile Include="Utilities\ProcessUtilities.cs" />
     <Compile Include="Utilities\Settings.cs" />
     <Compile Include="Utilities\StringExtensions.cs" />
-    <Compile Include="Utilities\ThreadPerTaskkScheduler.cs" />
     <Compile Include="Utilities\Visual.cs" />
     <Compile Include="Utilities\WinHook.cs" />
     <Compile Include="Utilities\WpfControlHost\PersistentWpfControlHost.cs" />

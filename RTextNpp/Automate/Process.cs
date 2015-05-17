@@ -310,10 +310,10 @@ namespace RTextNppPlugin.Utilities
 
                 mStartProcessDelegate = new AsyncMethodCaller(GetPortNumber);
                 mPort = -1; //reinit port every time this function is called
-                mGetPortNumberAsyncResult = mStartProcessDelegate.BeginInvoke(Constants.INITIAL_RESPONSE_TIMEOUT,
-                                                                                    out mPort,
-                                                                                    new AsyncCallback(PortNumberRetrievalCompleted),
-                                                                                    mStartProcessDelegate);
+                mGetPortNumberAsyncResult = mStartProcessDelegate.BeginInvoke( Constants.INITIAL_RESPONSE_TIMEOUT,
+                                                                               out mPort,
+                                                                               new AsyncCallback(PortNumberRetrievalCompleted),
+                                                                               mStartProcessDelegate);
             }
         }
 

@@ -10,6 +10,7 @@ using RTextNppPlugin.Logging;
 using RTextNppPlugin.Parsing;
 using RTextNppPlugin.Utilities;
 using RTextNppPlugin.WpfControls;
+using System.Threading.Tasks;
 
 namespace RTextNppPlugin.ViewModels
 {
@@ -272,7 +273,7 @@ namespace RTextNppPlugin.ViewModels
             }
         }
 
-        public void AugmentAutoCompletion(ContextExtractor extractor, Point caretPoint, AutoCompletionTokenizer tokenizer)
+        async public Task AugmentAutoCompletion(ContextExtractor extractor, Point caretPoint, AutoCompletionTokenizer tokenizer)
         {
             CharProcessAction = CharProcessResult.NoAction;
             _completionList.Clear();
@@ -312,10 +313,9 @@ namespace RTextNppPlugin.ViewModels
             {
                 switch (_currentConnector.ConnectorState)
                 {
-                    case Automate.StateEngine.ProcessState.Closed:
-                        
+                    case Automate.StateEngine.ProcessState.Closed:                      
                         _completionList.Add(CreateWarningCompletion(Properties.Resources.ERR_BACKEND_CONNECTING, Properties.Resources.ERR_BACKEND_CONNECTING_DESC));
-                        _currentConnector.Execute<AutoCompleteAndReferenceRequest>(aRequest);
+                        _currentConnector.LoadModel();
                         _isWarningCompletionActive = true;
                         break;
                     case Automate.StateEngine.ProcessState.Busy:
@@ -325,7 +325,7 @@ namespace RTextNppPlugin.ViewModels
                         _isWarningCompletionActive = true;
                         break;
                     case Automate.StateEngine.ProcessState.Idle:
-                        AutoCompleteResponse aResponse = _currentConnector.Execute<AutoCompleteAndReferenceRequest>(aRequest, Constants.SYNCHRONOUS_COMMANDS_TIMEOUT) as AutoCompleteResponse;
+                        AutoCompleteResponse aResponse = await _currentConnector.ExecuteAsync<AutoCompleteAndReferenceRequest>(aRequest, Constants.SYNCHRONOUS_COMMANDS_TIMEOUT) as AutoCompleteResponse;
 
                         if (aResponse == null)
                         {

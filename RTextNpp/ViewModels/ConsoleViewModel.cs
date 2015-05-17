@@ -3,6 +3,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using RTextNppPlugin.Automate;
+using System.Windows.Threading;
 
 namespace RTextNppPlugin.ViewModels
 {
@@ -13,7 +14,6 @@ namespace RTextNppPlugin.ViewModels
      */
     class ConsoleViewModel : BindableObject, IConsoleViewModelBase, IDisposable
     {
-
         #region Interface
         /**
          * Constructor.
@@ -30,6 +30,8 @@ namespace RTextNppPlugin.ViewModels
             ConnectorManager.Instance.OnConnectorAdded += ConnectorManagerOnConnectorAdded;
             Index = 0;
         }
+
+        public Dispatcher Dispatcher { get; set; }
 
         void ConnectorManagerOnConnectorAdded(object source, ConnectorManager.ConnectorAddedEventArgs e)
         {

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Windows.Controls;
+using RTextNppPlugin.ViewModels;
 
 namespace RTextNppPlugin.WpfControls
 {
@@ -11,6 +12,7 @@ namespace RTextNppPlugin.WpfControls
         public ConsoleOutput()
         {
             InitializeComponent();
+            ((ConsoleViewModel)DataContext).Dispatcher = Dispatcher;
         }
 
         private void ErrorListPreviewMouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)

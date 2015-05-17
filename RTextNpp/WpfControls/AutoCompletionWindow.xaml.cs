@@ -11,6 +11,7 @@ using RTextNppPlugin.Parsing;
 using RTextNppPlugin.Utilities;
 using RTextNppPlugin.ViewModels;
 using System.Diagnostics;
+using System.Threading.Tasks;
 
 
 namespace RTextNppPlugin.WpfControls
@@ -277,9 +278,9 @@ namespace RTextNppPlugin.WpfControls
             GetModel().OnAutoCompletionWindowCollapsing();
         }
 
-        public void AugmentAutoCompletion(ContextExtractor extractor, System.Drawing.Point caretPoint, AutoCompletionTokenizer tokenizer)
+        public async Task AugmentAutoCompletion(ContextExtractor extractor, System.Drawing.Point caretPoint, AutoCompletionTokenizer tokenizer)
         {
-            GetModel().AugmentAutoCompletion(extractor, caretPoint, tokenizer);
+            await GetModel().AugmentAutoCompletion(extractor, caretPoint, tokenizer);
             CharProcessAction = GetModel().CharProcessAction;
             TriggerPoint      = GetModel().TriggerPoint;
         }
