@@ -49,7 +49,7 @@ namespace RTextNppPlugin.WpfControls.Converters
                 case Constants.Commands.LINK_TARGETS:
                     return "Calculating references...";
                 case Constants.Commands.LOAD_MODEL:
-                    return "Loading automate model...";
+                    return "Loading model...";
                 case Constants.Commands.STOP:
                     return "Offline.";
                 default:

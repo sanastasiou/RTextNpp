@@ -396,6 +396,7 @@ namespace RTextNppPlugin.ViewModels
             }
             else
             {
+                _isWarningCompletionActive = true;
                 _completionList.Add(CreateWarningCompletion(Properties.Resources.CONNECTOR_INSTANCE_NULL, Properties.Resources.CONNECTOR_INSTANCE_NULL_DESC));
             }
         }        
