@@ -9,7 +9,7 @@
 #---------------------------------#
  
 # version format
-version: 0.5.{build}
+version: 0.6.{build}-{branch}
  
 # you can use {branch} name in version format too
 # version: 1.0.{build}-{branch}
@@ -94,7 +94,7 @@ install:
 assembly_info:
   patch: true
   file: AssemblyInfo.*
-  assembly_version: "0.5.{build}"
+  assembly_version: "0.6.{build}"
   assembly_file_version: "{version}"
   assembly_informational_version: "{version}"
  
@@ -116,7 +116,6 @@ assembly_info:
 # to add several platforms to build matrix:
 platform:
   - x86
-#  - Any CPU
  
 # build Configuration, i.e. Debug, Release, etc.
 #configuration: Release
@@ -137,7 +136,7 @@ build:
  
   # MSBuild verbosity level
   #verbosity: quiet|minimal|normal|detailed
-  verbosity: normal
+  verbosity: detailed
  
 # scripts to run before build
 before_build:
@@ -157,7 +156,7 @@ build_script:
  
 test:
   assemblies:
-    - ContextExtractionTests.dll
+    - Tests.dll
  
 #  categories:
 #    - UI
@@ -178,7 +177,7 @@ before_test:
 # scripts to run after tests
 after_test:
 # generate report for NUnit testing framework:
-    - packages\OpenCover.4.5.3723\OpenCover.Console.exe -register:user -filter:"+[*]*" -target:"packages\NUnit.Runners.2.6.4\tools\nunit-console.exe" -targetargs:"/noshadow /domain:single  ContextExtractionTests\bin\x86\Release\ContextExtractionTests.dll" -output:coverage.xml
+    - packages\OpenCover.4.5.3723\OpenCover.Console.exe -register:user -filter:"+[*]*" -target:"packages\NUnit.Runners.2.6.4\tools\nunit-console-x86.exe" -targetargs:"/noshadow /domain:single  Tests\bin\x86\Release\Tests.dll" -output:coverage.xml
     - packages\coveralls.io.1.3.4\tools\coveralls.net.exe --opencover coverage.xml
  
 # to run your custom scripts instead of automatic tests
@@ -344,10 +343,16 @@ notifications:
   # Email
   - provider: Email
     to:
-      - stef.anastasiou@gmail.com
-    subject: 'Build {{status}}'                  # optional
-    message: "{{message}}, {{commitId}}, ..."    # optional
+      - stefanos.anastasiou@esrlabs.com
+    #subject: 'RTextNpp Build {{status}}'
+    #message: "{{message}}, {{commitId}}, ..."    # optional
+    on_build_success: false
+    on_build_failure: true
     on_build_status_changed: true
+  - provider: Slack
+    auth_token:
+      secure: AP0kOGkZK+gDtDw+fHl+SDc8Nk6sSqZ7o0ROHl9aR4ARw7ldK4KtGxGqiKp85SSH
+    channel: automate-jep
  
 #  # HipChat
 #  - provider: HipChat

@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using CSScriptIntellisense;
-using RTextNppPlugin.Automate;
+using RTextNppPlugin.RText;
 using RTextNppPlugin.Forms;
 using RTextNppPlugin.Parsing;
 using RTextNppPlugin.Utilities;
@@ -70,7 +70,7 @@ namespace RTextNppPlugin
     {
         #region [Fields]
         private static PersistentWpfControlHost<ConsoleOutputForm> _consoleOutput       = new PersistentWpfControlHost<ConsoleOutputForm>(Settings.RTextNppSettings.ConsoleWindowActive);
-        private static ConnectorManager _connectorManager                               = Automate.ConnectorManager.Instance;
+        private static ConnectorManager _connectorManager                               = RText.ConnectorManager.Instance;
         private static Options _options                                                 = new Forms.Options();
         private static FileModificationObserver _fileObserver                           = new FileModificationObserver();
         private static Dictionary<ShortcutKey, Tuple<string, Action>> internalShortcuts = new Dictionary<ShortcutKey, Tuple<string, Action>>();

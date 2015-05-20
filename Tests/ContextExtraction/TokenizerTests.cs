@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
-namespace AutoCompletionTests
+namespace ContextExtraction.Tokenizer
 {
     using Moq;
     using NUnit.Framework;

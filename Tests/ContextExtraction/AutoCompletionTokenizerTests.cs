@@ -2,7 +2,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
-namespace AutoCompletionTests
+namespace ContextExtraction.AutoCompletion
 {
     using Moq;
     using NUnit.Framework;

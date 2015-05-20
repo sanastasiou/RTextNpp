@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using RTextNppPlugin.Utilities;
 
-namespace RTextNppPlugin.Automate
+namespace RTextNppPlugin.RText
 {
     /**
      * \brief   Manager for connectors.

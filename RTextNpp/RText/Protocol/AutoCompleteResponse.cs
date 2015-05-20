@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace RTextNppPlugin.Automate.Protocol
+namespace RTextNppPlugin.RText.Protocol
 {
     public class Option
     {

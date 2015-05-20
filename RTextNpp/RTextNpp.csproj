@@ -21,33 +21,6 @@
     <NuGetPackageImportStamp>dd805e22</NuGetPackageImportStamp>
     <ExpressionBlendVersion>12.0.51020.0</ExpressionBlendVersion>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <PlatformTarget>x86</PlatformTarget>
-    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
-    <Prefer32Bit>false</Prefer32Bit>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>none</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release</OutputPath>
-    <DefineConstants>DEBUG</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <FileAlignment>512</FileAlignment>
-    <PlatformTarget>x86</PlatformTarget>
-    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
-    <Prefer32Bit>false</Prefer32Bit>
-    <RunCodeAnalysis>false</RunCodeAnalysis>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
     <DebugSymbols>true</DebugSymbols>
     <OutputPath>bin\x86\Debug\</OutputPath>
@@ -79,22 +52,22 @@
   </Target>
   -->
   <ItemGroup>
-    <Compile Include="Automate\Connector.cs" />
-    <Compile Include="Automate\ConnectorManager.cs" />
-    <Compile Include="Automate\Process.cs" />
-    <Compile Include="Automate\Protocol\AutoCompleteAndReferenceRequest.cs" />
-    <Compile Include="Automate\Protocol\AutoCompleteRequest.cs" />
-    <Compile Include="Automate\Protocol\AutoCompleteResponse.cs" />
-    <Compile Include="Automate\Protocol\Base.cs" />
-    <Compile Include="Automate\Protocol\ContextInfoResponse.cs" />
-    <Compile Include="Automate\Protocol\ErrorResponse.cs" />
-    <Compile Include="Automate\Protocol\FindElementRequest.cs" />
-    <Compile Include="Automate\Protocol\FindRTextElementsResponse.cs" />
-    <Compile Include="Automate\Protocol\LinkTargetsResponse.cs" />
-    <Compile Include="Automate\Protocol\LoadResponse.cs" />
-    <Compile Include="Automate\Protocol\ProgressResponse.cs" />
-    <Compile Include="Automate\SocketConnection.cs" />
-    <Compile Include="Automate\StateEngine\StateMachine.cs" />
+    <Compile Include="RText\Connector.cs" />
+    <Compile Include="RText\ConnectorManager.cs" />
+    <Compile Include="RText\Process.cs" />
+    <Compile Include="RText\Protocol\AutoCompleteAndReferenceRequest.cs" />
+    <Compile Include="RText\Protocol\AutoCompleteRequest.cs" />
+    <Compile Include="RText\Protocol\AutoCompleteResponse.cs" />
+    <Compile Include="RText\Protocol\Base.cs" />
+    <Compile Include="RText\Protocol\ContextInfoResponse.cs" />
+    <Compile Include="RText\Protocol\ErrorResponse.cs" />
+    <Compile Include="RText\Protocol\FindElementRequest.cs" />
+    <Compile Include="RText\Protocol\FindRTextElementsResponse.cs" />
+    <Compile Include="RText\Protocol\LinkTargetsResponse.cs" />
+    <Compile Include="RText\Protocol\LoadResponse.cs" />
+    <Compile Include="RText\Protocol\ProgressResponse.cs" />
+    <Compile Include="RText\SocketConnection.cs" />
+    <Compile Include="RText\StateEngine\StateMachine.cs" />
     <Compile Include="Logging\ILoggingObserver.cs" />
     <Compile Include="Logging\ISubscriber.cs" />
     <Compile Include="Logging\Logger.cs" />

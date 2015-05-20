@@ -1,9 +1,10 @@
 ﻿using System;
 
-using RTextNppPlugin.Automate;
-
 namespace RTextNppPlugin.ViewModels
 {
+    using RTextNppPlugin.RText;
+    using RTextNppPlugin.RText.StateEngine;
+
     class WorkspaceViewModel : WorkspaceViewModelBase, IConsoleViewModelBase, IDisposable
     {
         #region [Interface]
@@ -75,12 +76,12 @@ namespace RTextNppPlugin.ViewModels
         {
             switch (e.State)
             {
-                case Automate.StateEngine.ProcessState.Loading:
-                case Automate.StateEngine.ProcessState.Busy:
+                case ProcessState.Loading:
+                case ProcessState.Busy:
                     _isActive = true;
                     _isBusy = true;
                     _activeCommand = e.Command;
-                    if (e.State == Automate.StateEngine.ProcessState.Loading)
+                    if (e.State == ProcessState.Loading)
                     {
                         _isLoading                    = true;
                         _mainModel.ProgressPercentage = 0.0;
@@ -93,8 +94,8 @@ namespace RTextNppPlugin.ViewModels
                         _mainModel.ActiveCommand = _activeCommand;
                     }
                     break;
-                case Automate.StateEngine.ProcessState.Connected:
-                case Automate.StateEngine.ProcessState.Idle:
+                case ProcessState.Connected:
+                case ProcessState.Idle:
                     _isActive = true;
                     _isLoading = false;
                     _isBusy = false;
@@ -106,7 +107,7 @@ namespace RTextNppPlugin.ViewModels
                         _mainModel.ActiveCommand = _activeCommand;
                     }
                     break;
-                case Automate.StateEngine.ProcessState.Closed:
+                case ProcessState.Closed:
                 default:
                     _isActive = _isLoading = _isBusy = false;
                     _activeCommand = Constants.Commands.STOP;

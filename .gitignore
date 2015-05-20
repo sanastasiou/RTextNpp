@@ -11,3 +11,4 @@ Certificate.bat
 /RTextNppPlugin/obj
 *.coverage
 packages/
+TestResult.xml

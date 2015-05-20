@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
-namespace ContextExtractionTests
+namespace ContextExtraction.ExtractionTests
 {
     using NUnit.Framework;
     using RTextNppPlugin.Parsing;

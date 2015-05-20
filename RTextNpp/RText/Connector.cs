@@ -7,13 +7,13 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using Jil;
-using RTextNppPlugin.Automate.Protocol;
-using RTextNppPlugin.Automate.StateEngine;
+using RTextNppPlugin.RText.Protocol;
+using RTextNppPlugin.RText.StateEngine;
 using RTextNppPlugin.Utilities;
 using System.Threading.Tasks;
 
 
-namespace RTextNppPlugin.Automate
+namespace RTextNppPlugin.RText
 {
     /**
      * \class   Connector

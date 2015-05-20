@@ -2,7 +2,7 @@
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
-using RTextNppPlugin.Automate;
+using RTextNppPlugin.RText;
 using System.Windows.Threading;
 
 namespace RTextNppPlugin.ViewModels

@@ -5,12 +5,12 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("RTextNppPlugin")]
+[assembly: AssemblyTitle("RTextNpp")]
 [assembly: AssemblyDescription("Provides RText editing capabilities to Notepad++")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("E.S.R.Labs AG")]
-[assembly: AssemblyProduct("RTextNppPlugin")]
-[assembly: AssemblyCopyright("Copyright © E.S.R. Labs AG 2014")]
+[assembly: AssemblyProduct("RTextNpp")]
+[assembly: AssemblyCopyright("Copyright © E.S.R. Labs AG 2014-2015")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

@@ -7,8 +7,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Threading;
 using Microsoft.Win32;
-using RTextNppPlugin.Automate;
-using RTextNppPlugin.Automate.Protocol;
+using RTextNppPlugin.RText;
+using RTextNppPlugin.RText.Protocol;
 
 namespace RTextNppPlugin.Utilities
 {
@@ -809,7 +809,7 @@ namespace RTextNppPlugin.Utilities
         private void OnTimerElapsed(object sender, EventArgs e)
         {
             //check needed so that the interval timer don't stop if a command could not be loaded - this way we can ensure that the complete model will always be loaded!
-            if (mConnector.ConnectorState == Automate.StateEngine.ProcessState.Busy)
+            if (mConnector.ConnectorState == RText.StateEngine.ProcessState.Busy)
             {
                 if (!mIsMessageDisplayed)
                 {

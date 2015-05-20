@@ -2,7 +2,7 @@
 using System.Net.Sockets;
 using System.Text;
 
-namespace RTextNppPlugin.Automate
+namespace RTextNppPlugin.RText
 {
     public class SocketConnection
     {

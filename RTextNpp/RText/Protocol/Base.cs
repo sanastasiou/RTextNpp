@@ -1,4 +1,4 @@
-﻿namespace RTextNppPlugin.Automate.Protocol
+﻿namespace RTextNppPlugin.RText.Protocol
 {
     public class RequestBase
     {

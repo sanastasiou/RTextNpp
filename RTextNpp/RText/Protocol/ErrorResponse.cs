@@ -1,5 +1,5 @@
 ﻿
-namespace RTextNppPlugin.Automate.Protocol
+namespace RTextNppPlugin.RText.Protocol
 {
     class ErrorResponse : ProgressResponse, IResponseBase
     {

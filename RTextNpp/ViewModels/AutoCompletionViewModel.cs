@@ -4,8 +4,8 @@ using System.Drawing;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Language.Intellisense;
-using RTextNppPlugin.Automate;
-using RTextNppPlugin.Automate.Protocol;
+using RTextNppPlugin.RText;
+using RTextNppPlugin.RText.Protocol;
 using RTextNppPlugin.Logging;
 using RTextNppPlugin.Parsing;
 using RTextNppPlugin.Utilities;
@@ -319,18 +319,18 @@ namespace RTextNppPlugin.ViewModels
             {
                 switch (_connector.ConnectorState)
                 {
-                    case Automate.StateEngine.ProcessState.Closed:                      
+                    case RText.StateEngine.ProcessState.Closed:                      
                         _completionList.Add(CreateWarningCompletion(Properties.Resources.ERR_BACKEND_CONNECTING, Properties.Resources.ERR_BACKEND_CONNECTING_DESC));
                         _connector.LoadModel();
                         _isWarningCompletionActive = true;
                         break;
-                    case Automate.StateEngine.ProcessState.Busy:
-                    case Automate.StateEngine.ProcessState.Loading:
-                    case Automate.StateEngine.ProcessState.Connected:
+                    case RText.StateEngine.ProcessState.Busy:
+                    case RText.StateEngine.ProcessState.Loading:
+                    case RText.StateEngine.ProcessState.Connected:
                         _completionList.Add(CreateWarningCompletion(Properties.Resources.ERR_BACKEND_BUSY, Properties.Resources.ERR_BACKEND_BUSY_DESC));
                         _isWarningCompletionActive = true;
                         break;
-                    case Automate.StateEngine.ProcessState.Idle:
+                    case RText.StateEngine.ProcessState.Idle:
                         Pending = true;
                         AutoCompleteResponse aResponse = await _connector.ExecuteAsync<AutoCompleteAndReferenceRequest>(aRequest, Constants.SYNCHRONOUS_COMMANDS_TIMEOUT) as AutoCompleteResponse;
 

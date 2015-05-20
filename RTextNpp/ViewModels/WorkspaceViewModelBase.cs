@@ -1,5 +1,5 @@
 ﻿using System;
-using RTextNppPlugin.Automate;
+using RTextNppPlugin.RText;
 
 namespace RTextNppPlugin.ViewModels
 {
