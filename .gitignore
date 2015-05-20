@@ -12,3 +12,4 @@ Certificate.bat
 *.coverage
 packages/
 TestResult.xml
+coverage.xml
