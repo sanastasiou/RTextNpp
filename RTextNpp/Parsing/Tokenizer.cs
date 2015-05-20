@@ -16,6 +16,11 @@ namespace RTextNppPlugin.Parsing
             public int Line { get; set; }
             public int StartColumn { get; set; }
             public int EndColumn { get; set; }
+            /**
+             * \brief   Gets or sets the buffer position.
+             *
+             * \return  The buffer position at the start of the token. End position can be found by adding the length of the context to it.
+             */
             public int BufferPosition { get; set; }
 
             public override string ToString()

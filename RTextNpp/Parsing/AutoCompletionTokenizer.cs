@@ -38,16 +38,9 @@ namespace RTextNppPlugin.Parsing
         }
 
         /**
-         * Gets or sets the caret position.
+         * Gets the line tokens exluding the trigger point token.
          *
-         * \return  The caret position.
-         */
-        public int CaretColumn { get; set; }
-
-        /**
-         * Gets the line tokens up until the trigger point has been found.
-         *
-         * \return  The line tokens.
+         * \return  The line tokens except the token of the trigger point.
          */
         public IEnumerable<string> LineTokens
         {
@@ -75,10 +68,8 @@ namespace RTextNppPlugin.Parsing
                     };
                     break;
                 }
-                if (t.Type != RTextTokenTypes.Space)
-                {
-                    _tokenList.Add(t.Context);
-                }
+                _tokenList.Add(t.Context);
+
             }
 
             if (_triggerToken.HasValue)
