@@ -1,15 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 
 namespace AutoCompletionTests
 {
+    using Moq;
     using NUnit.Framework;
     using RTextNppPlugin.Parsing;
     using RTextNppPlugin.Utilities;
-    using Moq;
 
     [ExcludeFromCodeCoverage]
     [TestFixture]
