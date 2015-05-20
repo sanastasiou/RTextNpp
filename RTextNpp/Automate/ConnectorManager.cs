@@ -96,7 +96,7 @@ namespace RTextNppPlugin.Automate
         /**
          * Initializes this ConnectorManager.
          *
-         * \param   nppData Information describing the npp.
+         * \param   nppData Information describing the Npp.Instance.
          * \remarks Must be called upon plugin initialization.                  
          */
         public void Initialize(NppData nppData)
@@ -135,7 +135,7 @@ namespace RTextNppPlugin.Automate
         {
             get
             {
-                string aCurrentFile = CSScriptIntellisense.Npp.GetCurrentFile();
+                string aCurrentFile = Npp.Instance.GetCurrentFile();
                 if (FileUtilities.IsAutomateFile(aCurrentFile))
                 {
                     //find root of file

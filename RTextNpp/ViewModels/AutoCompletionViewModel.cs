@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
-using CSScriptIntellisense;
+using System.Threading.Tasks;
 using Microsoft.VisualStudio.Language.Intellisense;
 using RTextNppPlugin.Automate;
 using RTextNppPlugin.Automate.Protocol;
@@ -10,7 +10,6 @@ using RTextNppPlugin.Logging;
 using RTextNppPlugin.Parsing;
 using RTextNppPlugin.Utilities;
 using RTextNppPlugin.WpfControls;
-using System.Threading.Tasks;
 
 namespace RTextNppPlugin.ViewModels
 {
@@ -502,8 +501,8 @@ namespace RTextNppPlugin.ViewModels
 
         private void AddCharToTriggerPoint(char c)
         {
-            int aCurrentPosition = CSScriptIntellisense.Npp.GetCaretPosition();
-            int aLineNumber      = CSScriptIntellisense.Npp.GetLineNumber();
+            int aCurrentPosition = Npp.Instance.GetCaretPosition();
+            int aLineNumber      = Npp.Instance.GetLineNumber();
             if(!_triggerToken.HasValue)
             {
                 CharProcessAction = CharProcessResult.ForceClose;
@@ -515,8 +514,7 @@ namespace RTextNppPlugin.ViewModels
             if (char.IsWhiteSpace(c) && (wasEmpty || t.Type == RTextTokenTypes.Comma ))
             {
                 CharProcessAction = CharProcessResult.MoveToRight;                
-                //if auto completion is inside comment, notation, name, string jusr return
-                AutoCompletionTokenizer aTokenizer = new AutoCompletionTokenizer(aLineNumber, aCurrentPosition, Npp.GetColumn());
+                AutoCompletionTokenizer aTokenizer = new AutoCompletionTokenizer(aLineNumber, aCurrentPosition, Npp.Instance);
                 TriggerPoint = aTokenizer.TriggerToken;
                 return;
             }
@@ -528,8 +526,7 @@ namespace RTextNppPlugin.ViewModels
 
             if (aCurrentPosition >= 0)
             {
-                //if auto completion is inside comment, notation, name, string jusr return
-                AutoCompletionTokenizer aTokenizer = new AutoCompletionTokenizer(aLineNumber, aCurrentPosition, Npp.GetColumn());
+                AutoCompletionTokenizer aTokenizer = new AutoCompletionTokenizer(aLineNumber, aCurrentPosition, Npp.Instance);
                 TriggerPoint = aTokenizer.TriggerToken;
                 if (!TriggerPoint.HasValue)
                 {

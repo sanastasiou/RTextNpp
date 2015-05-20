@@ -122,6 +122,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Utilities\BindingProxy.cs" />
     <Compile Include="Utilities\GlobalMouseHook.cs" />
+    <Compile Include="Utilities\INpp.cs" />
     <Compile Include="Utilities\MouseEventExtArgs.cs" />
     <Compile Include="Utilities\SplitEnumerator.cs" />
     <Compile Include="DllExport\UnmanagedExports.cs" />

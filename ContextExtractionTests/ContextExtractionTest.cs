@@ -43,8 +43,13 @@ namespace ContextExtractionTests
             //adjust column for backend
             Assert.AreEqual(0, c.ContextColumn);
             Assert.AreEqual(0, c.ContextList.Count());
-        }
+        }        
+    }
 
+    [ExcludeFromCodeCoverage]
+    [TestFixture]
+    public class ContextExtraction
+    {
         const string MultipleLineContext = @"      #some commment
                                                    @some notation
                                                    PPortPrototype control,\ 
@@ -64,8 +69,8 @@ namespace ContextExtractionTests
         /// <param name="lengthToEndOfCurrentLine"></param>
         [Test, Sequential]
         public void ValidArguments_MultilineInput([Values(33, 51, 58, 0, 243)] int lengthToEndOfCurrentLine,
-                                                  [Values(211, 193, 186, 244, 1)] int expectedColumn      )
-        {            
+                                                  [Values(211, 193, 186, 244, 1)] int expectedColumn)
+        {
             ContextExtractor c = new ContextExtractor(MultipleLineContext, lengthToEndOfCurrentLine);
 
             //adjust column for backend
@@ -132,12 +137,40 @@ AUTOSAR {
 
         [Test, Sequential]
         public void SingleSeparatorContext([Values("\\", ",", "[", "]", "")] string input,
-                                           [Values(1,2,2,2, 0)] int column,
+                                           [Values(1, 2, 2, 2, 0)] int column,
                                            [Values(1, 1, 1, 1, 0)] int contextLines)
         {
             ContextExtractor c = new ContextExtractor(input, 0);
             Assert.AreEqual(column, c.ContextColumn);
             Assert.AreEqual(contextLines, c.ContextList.Count());
+        }
+        const string ContextExtractionSampleInput = @"
+AUTOSAR {
+  ARPackage Coding {
+    ARPackage Interfaces {
+      CalprmInterface ICafCalprm {
+        CalprmElementPrototype cpCahEnableTagePassenger, type: /AUTOSAR/DataTypes/Boolean {";
+
+        System.Collections.Generic.List<string> ContextLinesSample = new System.Collections.Generic.List<string> 
+        { 
+            "AUTOSAR {",
+            "ARPackage Coding {",
+            "ARPackage Interfaces {",
+            "CalprmInterface ICafCalprm {",
+            "        CalprmElementPrototype cpCahEnableTagePassenger, type: /AUTOSAR/DataTypes/Boolean {"};
+
+        const int LastLineLength = 91;
+
+        //91 is the lenght of the last context block line
+        [Test, Combinatorial]
+        public void CheckContextAnalysis([Values(ContextExtractionSampleInput)] string input,
+                                         [Range(0, LastLineLength)] int lengthToEndOfCurrentLine)
+        {
+            ContextExtractor c = new ContextExtractor(input, lengthToEndOfCurrentLine);           
+            //adjust column for backend
+            Assert.AreEqual((LastLineLength - lengthToEndOfCurrentLine) + 1, c.ContextColumn);
+            Assert.AreEqual(ContextLinesSample.Count(), c.ContextList.Count());
+            Assert.IsTrue(c.ContextList.SequenceEqual(ContextLinesSample));
         }
     }
 }

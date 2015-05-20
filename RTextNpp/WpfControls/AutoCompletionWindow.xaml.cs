@@ -275,7 +275,7 @@ namespace RTextNppPlugin.WpfControls
                 {
                     //click is made outside of grid but inside window! - leave focus to editor i.e. make those areas not focusable
                     e.Handled = true;
-                    Npp.GrabFocus();
+                    Npp.Instance.GrabFocus();
                 }
             }            
         }
@@ -316,10 +316,10 @@ namespace RTextNppPlugin.WpfControls
             if (IsVisible)
             {
                 //in case the form is visible - move it to the new place...
-                var aCaretPoint = Npp.GetCaretScreenLocationForForm();
+                var aCaretPoint = Npp.Instance.GetCaretScreenLocationForForm();
                 if (GetModel().TriggerPoint.HasValue)
                 {
-                    aCaretPoint = CSScriptIntellisense.Npp.GetCaretScreenLocationRelativeToPosition(GetModel().TriggerPoint.Value.BufferPosition);
+                    aCaretPoint = Npp.Instance.GetCaretScreenLocationRelativeToPosition(GetModel().TriggerPoint.Value.BufferPosition);
                 }
                 Left = aCaretPoint.X;
                 Top  = aCaretPoint.Y;
@@ -342,7 +342,7 @@ namespace RTextNppPlugin.WpfControls
                 CharProcessAction = GetModel().CharProcessAction;
                 if(CharProcessAction == AutoCompletionViewModel.CharProcessResult.MoveToRight)
                 {
-                    Left = Npp.GetCaretScreenLocationForForm(Npp.GetCaretPosition()).X;
+                    Left = Npp.Instance.GetCaretScreenLocationForForm(Npp.Instance.GetCaretPosition()).X;
                     CharProcessAction = AutoCompletionViewModel.CharProcessResult.NoAction;
                 }
                 //only filter if auto completion form can still remain open
@@ -380,7 +380,7 @@ namespace RTextNppPlugin.WpfControls
             double aCalculatedOffset = 0.0;
             var scrollViewer = GetScrollViewer(AutoCompletionDatagrid);
             System.Diagnostics.Trace.WriteLine(String.Format("Window width : {0}\nBorder width : {1}\nViewport width : {2}", Width, AutoCompletionListBorder.ActualWidth, scrollViewer.ViewportWidth));
-            if ((Left + Width + Constants.MAX_AUTO_COMPLETION_TOOLTIP_WIDTH) > Npp.GetClientRectFromPoint(new System.Drawing.Point((int)Left, (int)Top)).Right)
+            if ((Left + Width + Constants.MAX_AUTO_COMPLETION_TOOLTIP_WIDTH) > Npp.Instance.GetClientRectFromPoint(new System.Drawing.Point((int)Left, (int)Top)).Right)
             {
                 if (scrollViewer.ComputedHorizontalScrollBarVisibility == System.Windows.Visibility.Visible)
                 {
@@ -570,7 +570,7 @@ namespace RTextNppPlugin.WpfControls
                 AutoCompletionDatagrid.ScrollIntoView(GetModel().SelectedCompletion);
             }
             //keep caret blinking after a selection has been made by clicking
-            Npp.GrabFocus();
+            Npp.Instance.GrabFocus();
         }
 
         private void OnAutoCompletionBorderBackgroundUpdated(object sender, DataTransferEventArgs e)
@@ -619,17 +619,17 @@ namespace RTextNppPlugin.WpfControls
             }
             else if(!IsOnTop && IsVisible)
             {
-                if (!((e.NewSize.Height + Top ) <= Npp.GetClientRectFromControl(Npp.NppHandle).Bottom))
+                if (!((e.NewSize.Height + Top ) <= Npp.Instance.GetClientRectFromControl(Npp.Instance.NppHandle).Bottom))
                 {
                     //bottom exceeded - put list on top of word
-                    Top = Npp.GetCaretScreenLocationForFormAboveWord().Y;
+                    Top = Npp.Instance.GetCaretScreenLocationForFormAboveWord().Y;
                     //problem here - we need to take into account the initial length of the list, otherwise our initial point is wrong if the list is not full
                     Top -= (int)(e.NewSize.Height);
                     IsOnTop = true;
                 }
             }
             //position list in such a way that it doesn't get split into two monitors
-            var rectFromPoint = Npp.GetClientRectFromPoint(new System.Drawing.Point((int)Left, (int)Top));
+            var rectFromPoint = Npp.Instance.GetClientRectFromPoint(new System.Drawing.Point((int)Left, (int)Top));
             //if the width of the auto completion window overlaps the right edge of the screen, then move the window at the left until no overlap is present
             if (rectFromPoint.Right < Left + e.NewSize.Width)
             {
@@ -663,7 +663,7 @@ namespace RTextNppPlugin.WpfControls
             if (TriggerPoint != null && !String.IsNullOrEmpty(Completion.InsertionText))
             {
                 //use current selected item to replace token
-                Npp.ReplaceWordFromToken(TriggerPoint, Completion.InsertionText);
+                Npp.Instance.ReplaceWordFromToken(TriggerPoint, Completion.InsertionText);
             }
             Hide();
         }

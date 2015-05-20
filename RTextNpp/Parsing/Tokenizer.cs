@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using CSScriptIntellisense;
+using RTextNppPlugin.Utilities;
 
 namespace RTextNppPlugin.Parsing
 {
@@ -16,17 +17,15 @@ namespace RTextNppPlugin.Parsing
             public int StartColumn { get; set; }
             public int EndColumn { get; set; }
             public int BufferPosition { get; set; }
-            public int CaretColumn { get; set; }
 
             public override string ToString()
             {
-                return String.Format("Token\nline : {0}\nsc : {1}\nec : {2}\npos : {3}\ncontext : {4}\ncc : {5}\ntype : {6}",
+                return String.Format("Token\nLine : {0}\nStart column : {1}\nEnd column : {2}\nCaret position at start : {3}\nContext : {4}\nType : {5}",
                                       Line,
                                       StartColumn,
                                       EndColumn,
                                       BufferPosition,
                                       Context,
-                                      CaretColumn,
                                       Type
                                     );
             }
@@ -54,15 +53,17 @@ namespace RTextNppPlugin.Parsing
         }
 
         #region[Interface]
-        public Tokenizer(int line)
+
+        public Tokenizer(int line, INpp nppHelper)
         {
             _lineNumber = line;
-            _lineText = CSScriptIntellisense.Npp.GetLine(line);
+            _nppHelper  = nppHelper;
+            _lineText   = _nppHelper.GetLine(_lineNumber);
         }
 
         public IEnumerable<TokenTag> Tokenize(params RTextTokenTypes[] typesToKeep)
         {
-            int aOffset = CSScriptIntellisense.Npp.GetLineStart(_lineNumber);
+            int aOffset = _nppHelper.GetLineStart(_lineNumber);
             bool aFirstToken = true;
             //column in rtext protocol starts at 1
             int aColumn = 0;
@@ -77,12 +78,12 @@ namespace RTextNppPlugin.Parsing
                         {
                             TokenTag aCurrentTag = new TokenTag
                             {
-                                Line = _lineNumber,
-                                Context = aMatch.Value,
-                                StartColumn = aColumn + aMatch.Index,
-                                EndColumn = aColumn + aMatch.Length,
+                                Line           = _lineNumber,
+                                Context        = aMatch.Value,
+                                StartColumn    = aColumn + aMatch.Index,
+                                EndColumn      = aColumn + aMatch.Length,
                                 BufferPosition = aOffset + aColumn,
-                                Type = type
+                                Type           = type
                             };
                             //special case for identifier
                             if (type == RTextTokenTypes.Label)
@@ -122,7 +123,7 @@ namespace RTextNppPlugin.Parsing
             else
             {
                 //get previous line
-                string aline = CSScriptIntellisense.Npp.GetLine(--currentLine);
+                string aline = _nppHelper.GetLine(--currentLine);
                 if (String.IsNullOrWhiteSpace(aline))
                 {
                     return (isLineExtended(currentLine));
@@ -151,8 +152,9 @@ namespace RTextNppPlugin.Parsing
         #endregion
 
         #region[Data Members]
-        string _lineText;    //!< Line to tokenize.
-        int _lineNumber;  //!< Line number.
+        string _lineText                 = String.Empty; //!< Line to tokenize.
+        readonly int _lineNumber         = 0;            //!< Line number.
+        readonly private INpp _nppHelper = null;         //!< Npp helper.
         #endregion
     }
 }

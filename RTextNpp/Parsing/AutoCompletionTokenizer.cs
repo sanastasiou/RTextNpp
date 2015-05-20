@@ -1,22 +1,27 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using CSScriptIntellisense;
 
 namespace RTextNppPlugin.Parsing
 {
+    using Utilities;
     /**
      * \brief   An automatic completion tokenizer. This class finds the token for which autocompletion is invoked.
      */
     public class AutoCompletionTokenizer : Tokenizer
     {
-        public AutoCompletionTokenizer(int line, int currentCaretPosition, int currentCursorColumn)
-            : base(line)
+        /**
+         * \brief   Constructor.
+         *
+         * \param   line                    The line.
+         * \param   currentCaretPosition    The current caret position.
+         * \param   nppHelper               The npp helper which provides access to npp buffer information.
+         */
+        public AutoCompletionTokenizer(int line, int currentCaretPosition, INpp nppHelper)
+            : base(line, nppHelper)
         {
+            _nppHelper  = nppHelper;
             _currentPos = currentCaretPosition;
-            FindTriggerToken(currentCursorColumn);
+            FindTriggerToken();
         }
 
         /**
@@ -53,7 +58,7 @@ namespace RTextNppPlugin.Parsing
         }
 
         #region [Helpers]
-        void FindTriggerToken(int currentCursorColumn)
+        void FindTriggerToken()
         {
             foreach (var t in base.Tokenize())
             {
@@ -62,12 +67,11 @@ namespace RTextNppPlugin.Parsing
                     _triggerToken = new TokenTag
                     {
                         BufferPosition = t.BufferPosition,
-                        CaretColumn = currentCursorColumn,
-                        Context = t.Context,
-                        EndColumn = t.EndColumn,
-                        Line = t.Line,
-                        StartColumn = t.StartColumn,
-                        Type = t.Type
+                        Context        = t.Context,
+                        EndColumn      = t.EndColumn,
+                        Line           = t.Line,
+                        StartColumn    = t.StartColumn,
+                        Type           = t.Type
                     };
                     break;
                 }
@@ -76,34 +80,19 @@ namespace RTextNppPlugin.Parsing
                     _tokenList.Add(t.Context);
                 }
             }
-            //special case when token is a space or label - auto completion needs to start at the end of the token
-            if (_triggerToken.HasValue && ((_triggerToken.Value.Type == RTextTokenTypes.Space) || (_triggerToken.Value.Type == RTextTokenTypes.Label)))
-            {
-                //move buffer position, start column, end column, at the end of the token
-                _triggerToken = new TokenTag
-                {
-                    BufferPosition = Npp.GetCaretPosition(),
-                    CaretColumn = Npp.GetCaretPosition(),
-                    Context = String.Empty,
-                    EndColumn = Npp.GetCaretPosition(),
-                    Line = _triggerToken.Value.Line,
-                    StartColumn = Npp.GetCaretPosition(),
-                    Type = _triggerToken.Value.Type
-                };
-            }
 
             if (_triggerToken.HasValue)
             {
                 var aTokenType = _triggerToken.Value.Type;
-                if (aTokenType == RTextTokenTypes.QuotedString ||
-                   aTokenType == RTextTokenTypes.Comment ||
-                   aTokenType == RTextTokenTypes.Error ||
-                   aTokenType == RTextTokenTypes.LeftAngleBrakcet ||
-                   aTokenType == RTextTokenTypes.NewLine ||
-                   aTokenType == RTextTokenTypes.Notation ||
-                   aTokenType == RTextTokenTypes.RightAngleBracket ||
-                   aTokenType == RTextTokenTypes.RightBrakcet ||
-                   aTokenType == RTextTokenTypes.Template
+                if (aTokenType == RTextTokenTypes.QuotedString      ||
+                    aTokenType == RTextTokenTypes.Comment           ||
+                    aTokenType == RTextTokenTypes.Error             ||
+                    aTokenType == RTextTokenTypes.LeftAngleBrakcet  ||
+                    aTokenType == RTextTokenTypes.NewLine           ||
+                    aTokenType == RTextTokenTypes.Notation          ||
+                    aTokenType == RTextTokenTypes.RightAngleBracket ||
+                    aTokenType == RTextTokenTypes.RightBrakcet      ||
+                    aTokenType == RTextTokenTypes.Template
                   )
                 {
                     //no auto completion for above types
@@ -114,9 +103,10 @@ namespace RTextNppPlugin.Parsing
         #endregion
 
         #region [Data Members]
-        private readonly int _currentPos;
+        private readonly int _currentPos          = 0;
         private Tokenizer.TokenTag? _triggerToken = null;
-        private List<string> _tokenList = new List<string>(50);
+        private readonly INpp _nppHelper          = null;
+        private List<string> _tokenList           = new List<string>(50);
         #endregion
     }
 }
