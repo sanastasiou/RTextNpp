@@ -74,28 +74,28 @@ namespace RTextNppPlugin.ViewModels
 
         private void OnConnectorStateChanged(object source, Connector.StateChangedEventArgs e)
         {
-            switch (e.State)
+            switch (e.StateEntered)
             {
-                case ProcessState.Loading:
-                case ProcessState.Busy:
-                    _isActive = true;
-                    _isBusy = true;
+                case ConnectorStates.Loading:
+                case ConnectorStates.Busy:
+                    _isActive      = true;
+                    _isBusy        = true;
                     _activeCommand = e.Command;
-                    if (e.State == ProcessState.Loading)
+                    if (e.StateEntered == ConnectorStates.Loading)
                     {
-                        _isLoading                    = true;
-                        _mainModel.ProgressPercentage = 0.0;
+                        _isLoading  = true;
+                        _percentage = 0.0;
                     }
                     if (e.Workspace == _mainModel.Workspace)
                     {
-                        _mainModel.IsActive      = _isActive;
-                        _mainModel.IsBusy        = _isBusy;
-                        _mainModel.IsLoading     = _isLoading;
-                        _mainModel.ActiveCommand = _activeCommand;
+                        _mainModel.IsActive           = _isActive;
+                        _mainModel.IsBusy             = _isBusy;
+                        _mainModel.IsLoading          = _isLoading;
+                        _mainModel.ActiveCommand      = _activeCommand;
+                        _mainModel.ProgressPercentage = _percentage;
                     }
                     break;
-                case ProcessState.Connected:
-                case ProcessState.Idle:
+                case ConnectorStates.Idle:
                     _isActive = true;
                     _isLoading = false;
                     _isBusy = false;
@@ -106,8 +106,7 @@ namespace RTextNppPlugin.ViewModels
                         _mainModel.IsBusy        = _mainModel.IsLoading = false;
                         _mainModel.ActiveCommand = _activeCommand;
                     }
-                    break;
-                case ProcessState.Closed:
+                    break;                
                 default:
                     _isActive = _isLoading = _isBusy = false;
                     _activeCommand = Constants.Commands.STOP;

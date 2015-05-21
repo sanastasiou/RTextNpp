@@ -10,6 +10,7 @@ using RTextNppPlugin.Logging;
 using RTextNppPlugin.Parsing;
 using RTextNppPlugin.Utilities;
 using RTextNppPlugin.WpfControls;
+using RTextNppPlugin.RText.StateEngine;
 
 namespace RTextNppPlugin.ViewModels
 {
@@ -317,22 +318,22 @@ namespace RTextNppPlugin.ViewModels
             _connector = ConnectorManager.Instance.Connector;
             if (_connector != null)
             {
-                switch (_connector.ConnectorState)
+                switch (_connector.CurrentState.State)
                 {
-                    case RText.StateEngine.ProcessState.Closed:                      
+                    case ConnectorStates.Disconnected:
                         _completionList.Add(CreateWarningCompletion(Properties.Resources.ERR_BACKEND_CONNECTING, Properties.Resources.ERR_BACKEND_CONNECTING_DESC));
-                        _connector.LoadModel();
+                        _connector.BeginExecute(_connector.LOAD_COMMAND, RText.StateEngine.Command.LoadModel);
                         _isWarningCompletionActive = true;
                         break;
-                    case RText.StateEngine.ProcessState.Busy:
-                    case RText.StateEngine.ProcessState.Loading:
-                    case RText.StateEngine.ProcessState.Connected:
+                    case ConnectorStates.Busy:
+                    case ConnectorStates.Loading:
+                    case ConnectorStates.Connecting:
                         _completionList.Add(CreateWarningCompletion(Properties.Resources.ERR_BACKEND_BUSY, Properties.Resources.ERR_BACKEND_BUSY_DESC));
                         _isWarningCompletionActive = true;
                         break;
-                    case RText.StateEngine.ProcessState.Idle:
+                    case ConnectorStates.Idle:
                         Pending = true;
-                        AutoCompleteResponse aResponse = await _connector.ExecuteAsync<AutoCompleteAndReferenceRequest>(aRequest, Constants.SYNCHRONOUS_COMMANDS_TIMEOUT) as AutoCompleteResponse;
+                        AutoCompleteResponse aResponse = await _connector.ExecuteAsync<AutoCompleteAndReferenceRequest>(aRequest, Constants.SYNCHRONOUS_COMMANDS_TIMEOUT, Command.Execute) as AutoCompleteResponse;
 
                         if (aResponse == null)
                         {

@@ -809,7 +809,7 @@ namespace RTextNppPlugin.Utilities
         private void OnTimerElapsed(object sender, EventArgs e)
         {
             //check needed so that the interval timer don't stop if a command could not be loaded - this way we can ensure that the complete model will always be loaded!
-            if (mConnector.ConnectorState == RText.StateEngine.ProcessState.Busy)
+            if (mConnector.CurrentState.State == RText.StateEngine.ConnectorStates.Loading)
             {
                 if (!mIsMessageDisplayed)
                 {
@@ -820,7 +820,7 @@ namespace RTextNppPlugin.Utilities
             }
             else
             {
-                mConnector.LoadModel();
+                mConnector.BeginExecute(Connector.LOAD_COMMAND, RText.StateEngine.Command.LoadModel);
                 mTimer.Stop();
                 mIsMessageDisplayed = false;
             }

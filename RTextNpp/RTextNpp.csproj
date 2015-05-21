@@ -54,6 +54,7 @@
   <ItemGroup>
     <Compile Include="RText\Connector.cs" />
     <Compile Include="RText\ConnectorManager.cs" />
+    <Compile Include="RText\IConnector.cs" />
     <Compile Include="RText\Process.cs" />
     <Compile Include="RText\Protocol\AutoCompleteAndReferenceRequest.cs" />
     <Compile Include="RText\Protocol\AutoCompleteRequest.cs" />
@@ -67,7 +68,11 @@
     <Compile Include="RText\Protocol\LoadResponse.cs" />
     <Compile Include="RText\Protocol\ProgressResponse.cs" />
     <Compile Include="RText\SocketConnection.cs" />
-    <Compile Include="RText\StateEngine\StateMachine.cs" />
+    <Compile Include="RText\StateEngine\ConnectorCommands.cs" />
+    <Compile Include="RText\StateEngine\ConnectorStates.cs" />
+    <Compile Include="RText\StateEngine\IConnectorState.cs" />
+    <Compile Include="Utilities\ActionWrapper\ActionWrapper.cs" />
+    <Compile Include="Utilities\ActionWrapper\IActionWrapper.cs" />
     <Compile Include="Logging\ILoggingObserver.cs" />
     <Compile Include="Logging\ISubscriber.cs" />
     <Compile Include="Logging\Logger.cs" />
