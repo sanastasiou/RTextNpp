@@ -178,7 +178,7 @@ before_test:
 after_test:
 # generate report for NUnit testing framework:
     - packages\OpenCover.4.5.3723\OpenCover.Console.exe -register:user -excludebyfile:*\*.il -filter:"+[RTextNpp]RTextNppPlugin* +[RTextNpp]CSScriptIntellisense -[Tests]*" -target:"packages\NUnit.Runners.2.6.4\tools\nunit-console-x86.exe" -targetargs:"/noshadow /nologo /labels /domain:single /framework:4.5 /nodots Tests\bin\x86\Release\Tests.dll" -output:coverage.xml
-    - ps: -File .\CoverageFix.ps1
+    - ps: .\CoverageFix.ps1
     - packages\coveralls.io.1.3.4\tools\coveralls.net.exe --opencover coverage.xml
  
 # to run your custom scripts instead of automatic tests
