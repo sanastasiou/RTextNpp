@@ -9,7 +9,7 @@
 #---------------------------------#
  
 # version format
-version: 0.6.{build}-{branch}
+version: 0.6.{build}
  
 # you can use {branch} name in version format too
 # version: 1.0.{build}-{branch}
@@ -94,7 +94,7 @@ install:
 assembly_info:
   patch: true
   file: AssemblyInfo.*
-  assembly_version: "0.6.{build}"
+  assembly_version: "{version}"
   assembly_file_version: "{version}"
   assembly_informational_version: "{version}"
  
