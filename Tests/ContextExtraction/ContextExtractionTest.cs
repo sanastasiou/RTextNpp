@@ -6,7 +6,6 @@ namespace ContextExtraction.ExtractionTests
     using NUnit.Framework;
     using RTextNppPlugin.Parsing;
 
-    [ExcludeFromCodeCoverage]
     [TestFixture]
     public class Initialization
     {

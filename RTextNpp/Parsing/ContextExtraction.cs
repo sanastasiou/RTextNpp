@@ -66,7 +66,15 @@ namespace RTextNppPlugin.Parsing
 
         #endregion
 
+
         #region [Helpers]
+
+        /**
+         * \brief   Analyzes the given joined lines.
+         *
+         * \param   joinedLines The joined lines.
+         * \todo    Figured out exactly when a line can be broken and adjust code accordingly
+         */
         private void Analyze(List<StringBuilder> joinedLines)
         {
             _contextLines = new Stack<string>(joinedLines.Count());
@@ -107,16 +115,16 @@ namespace RTextNppPlugin.Parsing
                         case '}':
                             ++block_nesting;
                             break;
-                        case '[':
-                            if (array_nesting > 0)
-                            {
-                                --array_nesting;
-                            }
-                            else if (array_nesting == 0)
-                            {
-                                _contextLines.Push(aStrippedLine);
-                            }
-                            break;
+                        //case '[':
+                        //    if (array_nesting > 0)
+                        //    {
+                        //        --array_nesting;
+                        //    }
+                        //    else if (array_nesting == 0)
+                        //    {
+                        //        _contextLines.Push(aStrippedLine);
+                        //    }
+                        //    break;
                         case ']':
                             ++array_nesting;
                             break;

@@ -26,35 +26,14 @@ namespace RTextNppPlugin.Parsing
 
             public override string ToString()
             {
-                return String.Format("Token\nLine : {0}\nStart column : {1}\nEnd column : {2}\nCaret position at start : {3}\nContext : {4}\nType : {5}",
+                return String.Format("Token : {0}\nLine : {1}\nStart column : {2}\nEnd column : {3}\nCaret position at start : {4}\nType : {5}",
+                                      Context,
                                       Line,
                                       StartColumn,
                                       EndColumn,
                                       BufferPosition,
-                                      Context,
                                       Type
                                     );
-            }
-
-            public static bool operator ==(TokenTag lhs, TokenTag rhs)
-            {
-                return (lhs.Type == lhs.Type && lhs.Line == rhs.Line && lhs.StartColumn == rhs.StartColumn);
-
-            }
-
-            public static bool operator != (TokenTag lhs, TokenTag rhs)
-            {
-                return !(lhs == rhs);
-            }
-
-            public override bool Equals(object obj)
-            {
-                return base.Equals(obj);
-            }
-
-            public override int GetHashCode()
-            {
-                return base.GetHashCode();
             }
         }
 
@@ -122,7 +101,7 @@ namespace RTextNppPlugin.Parsing
         #region[Helpers]
         bool isLineExtended(int currentLine)
         {
-            if (currentLine < 0)
+            if (currentLine <= 0)
             {
                 return false;
             }
@@ -136,22 +115,8 @@ namespace RTextNppPlugin.Parsing
                 }
                 else
                 {
-                    foreach (var c in aline.Reverse())
-                    {
-                        if (Char.IsWhiteSpace(c))
-                        {
-                            continue;
-                        }
-                        else if (c == ',' || c == '[' || c == '\\')
-                        {
-                            return true;
-                        }
-                        else
-                        {
-                            return false;
-                        }
-                    }
-                    return false;
+                    char c = aline.TrimEnd().Last();
+                    return (c == ',' || c == '[' || c == '\\');
                 }
             }
         }

@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 namespace ContextExtraction.AutoCompletion
@@ -9,7 +8,6 @@ namespace ContextExtraction.AutoCompletion
     using RTextNppPlugin.Parsing;
     using RTextNppPlugin.Utilities;
 
-    [ExcludeFromCodeCoverage]
     [TestFixture]
     class AutoCompletionTokenizerTests
     {
