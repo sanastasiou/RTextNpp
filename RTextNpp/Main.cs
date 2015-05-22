@@ -13,7 +13,6 @@ using RTextNppPlugin.Utilities;
 using RTextNppPlugin.Utilities.WpfControlHost;
 using RTextNppPlugin.WpfControls;
 using WindowsSubclassWrapper;
-using RTextNppPlugin.Forms;
 
 namespace RTextNppPlugin
 {
@@ -70,7 +69,8 @@ namespace RTextNppPlugin
     {
         #region [Fields]
         private static ConnectorManager _connectorManager                               = new ConnectorManager();
-        private static PersistentWpfControlHost<ConsoleOutputForm> _consoleOutput       = new PersistentWpfControlHost<ConsoleOutputForm>(Settings.RTextNppSettings.ConsoleWindowActive, new ConsoleOutputForm(_connectorManager));        
+        private static Settings _settings                                               = new Settings(Npp.Instance);
+        private static PersistentWpfControlHost<ConsoleOutputForm> _consoleOutput       = new PersistentWpfControlHost<ConsoleOutputForm>(Settings.RTextNppSettings.ConsoleWindowActive, new ConsoleOutputForm(_connectorManager), _settings);        
         private static Options _options                                                 = new Options();
         private static FileModificationObserver _fileObserver                           = new FileModificationObserver();
         private static Dictionary<ShortcutKey, Tuple<string, Action>> internalShortcuts = new Dictionary<ShortcutKey, Tuple<string, Action>>();
@@ -88,6 +88,8 @@ namespace RTextNppPlugin
         #endregion
 
         #region [Startup/CleanUp]
+
+        static internal Settings Settings { get { return _settings; } }
 
         static internal void CommandMenuInit()
         {
@@ -120,7 +122,7 @@ namespace RTextNppPlugin
 
         static void OnKeyInterceptorKeyDown(Keys key, int repeatCount, ref bool handled)
         {
-            if (FileUtilities.IsAutomateFile() && (Npp.Instance.GetSelections() == 1) && HasScintillaFocus() && _isMenuLoopInactive)
+            if (FileUtilities.IsRTextFile() && (Npp.Instance.GetSelections() == 1) && HasScintillaFocus() && _isMenuLoopInactive)
             {
                 CSScriptIntellisense.Modifiers modifiers = CSScriptIntellisense.KeyInterceptor.GetModifiers();                
                 foreach (var shortcut in internalShortcuts.Keys)
@@ -306,7 +308,7 @@ namespace RTextNppPlugin
         {
             HandleErrors(() =>
             {
-                if (FileUtilities.IsAutomateFile())
+                if (FileUtilities.IsRTextFile())
                 {
                     if (!_autoCompletionForm.IsVisible)
                     {
@@ -592,7 +594,7 @@ namespace RTextNppPlugin
             //FileVersionInfo fvi = FileVersionInfo.GetVersionInfo(assembly.Location);
             //string version = fvi.FileVersion;
 
-            if (Settings.Instance.Get<bool>(Utilities.Settings.RTextNppSettings.ConsoleWindowActive))
+            if (Plugin.Settings.Get<bool>(Utilities.Settings.RTextNppSettings.ConsoleWindowActive))
             {
                 ShowConsoleOutput();
                 Win32.SendMessage(nppData._nppHandle, NppMsg.NPPM_SETMENUITEMCHECK, _funcItems.Items[0]._cmdID, 1);

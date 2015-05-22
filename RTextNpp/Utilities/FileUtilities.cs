@@ -143,23 +143,25 @@ namespace RTextNppPlugin.Utilities
         }
 
         /**
-         * Query if the current file is an automate file.
+         * Query if the current file is an rtext file.
          *
-         * \return  true if the current file is an automate file, false if not.
+         * \return  true if the current file is an rtext file, false if not.
          */
-        public static bool IsAutomateFile()
+        public static bool IsRTextFile()
         {
-            return IsAutomateFile(GetCurrentFilePath());
+            return IsRTextFile(GetCurrentFilePath());
         }
 
         /**
-         * \brief   Query if 'file' is an automate file.
+         * \brief   Query if 'file' is an rtext file.
+
          *
          * \param   file    The file.
          *
-         * \return  true if file parameter is an automate file, false if not.      
+         * \return  true if file parameter is an rtext file, false if not.      
+
          */
-        public static bool IsAutomateFile(string file)
+        public static bool IsRTextFile(string file)
         {
             try
             {
@@ -169,7 +171,7 @@ namespace RTextNppPlugin.Utilities
                     fileExt = fileExt.Remove(0, 1);
                 }
                 //list of excluded extensions
-                List<string> aExlusionList = new List<string>(Settings.Instance.Get(Settings.RTextNppSettings.ExcludeExtensions).Split(new char[]{';'}, StringSplitOptions.RemoveEmptyEntries));
+                List<string> aExlusionList = new List<string>(Plugin.Settings.Get(Settings.RTextNppSettings.ExcludeExtensions).Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries));
 
                 //get npp configuration directory
                 //get list of supported extensions

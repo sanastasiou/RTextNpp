@@ -7,7 +7,8 @@ namespace RTextNppPlugin.RText
 {
     /**
      * \brief   Manager for connectors.
-     *          Creates and destroyes Connector instances based on actual automate workspaces.
+     *          Creates and destroyes Connector instances based on actual rtext workspaces.
+
      */
     internal sealed class ConnectorManager
     {
@@ -64,7 +65,7 @@ namespace RTextNppPlugin.RText
         internal void CreateConnector(string file)
         {
             //check if file extension is an automate file
-            if (FileUtilities.IsAutomateFile(file))
+            if (FileUtilities.IsRTextFile(file))
             {
                 //identify .rtext file
                 string rTextFileLocation = FileUtilities.FindWorkspaceRoot(file);
@@ -119,7 +120,7 @@ namespace RTextNppPlugin.RText
             get
             {
                 string aCurrentFile = Npp.Instance.GetCurrentFile();
-                if (FileUtilities.IsAutomateFile(aCurrentFile))
+                if (FileUtilities.IsRTextFile(aCurrentFile))
                 {
                     //find root of file
                     string aProcKey = FileUtilities.FindWorkspaceRoot(aCurrentFile) + Path.GetExtension(aCurrentFile);

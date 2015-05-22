@@ -6,9 +6,10 @@ namespace RTextNppPlugin.Utilities.WpfControlHost
     {
         #region [Interface]
 
-        public PersistentWpfControlHost(Settings.RTextNppSettings persistenceKey, T elementHost ) : base(elementHost)
+        public PersistentWpfControlHost(Settings.RTextNppSettings persistenceKey, T elementHost, Settings settings ) : base(elementHost)
         {
-            _key = persistenceKey;
+            _key      = persistenceKey;
+            _settings = settings;
         }
 
         #endregion
@@ -17,13 +18,14 @@ namespace RTextNppPlugin.Utilities.WpfControlHost
         protected override void OnVisibilityChanged(object sender, EventArgs e)
         {
             base.OnVisibilityChanged(sender, e);
-            Settings.Instance.Set(base.Visible, _key);
+            _settings.Set(base.Visible, _key);
         }
 
         #endregion
 
         #region [Data members]
         readonly Settings.RTextNppSettings _key;
+        readonly Settings _settings;
         #endregion
     }
 }

@@ -14,18 +14,18 @@ namespace RTextNppPlugin.Forms
 
         public void SaveSettings()
         {
-            Settings.Instance.Set(AutoChangeWorkspace, Settings.RTextNppSettings.AutoChangeWorkspace);
-            Settings.Instance.Set(AutoLoadWorkspace, Settings.RTextNppSettings.AutoLoadWorkspace);
-            Settings.Instance.Set(AutoSaveFiles, Settings.RTextNppSettings.AutoSaveFiles);
-            Settings.Instance.Set(_excludeExtensionsTextBox.Text, Settings.RTextNppSettings.ExcludeExtensions);
+            Plugin.Settings.Set(AutoChangeWorkspace, Settings.RTextNppSettings.AutoChangeWorkspace);
+            Plugin.Settings.Set(AutoLoadWorkspace, Settings.RTextNppSettings.AutoLoadWorkspace);
+            Plugin.Settings.Set(AutoSaveFiles, Settings.RTextNppSettings.AutoSaveFiles);
+            Plugin.Settings.Set(_excludeExtensionsTextBox.Text, Settings.RTextNppSettings.ExcludeExtensions);
         }
 
         public void RestoreSettings()
         {
-            AutoLoadWorkspace = Settings.Instance.Get<bool>(Settings.RTextNppSettings.AutoLoadWorkspace);
-            AutoSaveFiles = Settings.Instance.Get<bool>(Settings.RTextNppSettings.AutoSaveFiles);
-            AutoChangeWorkspace = Settings.Instance.Get<bool>(Settings.RTextNppSettings.AutoChangeWorkspace);
-            _excludeExtensionsTextBox.Text = Settings.Instance.Get(Settings.RTextNppSettings.ExcludeExtensions);
+            AutoLoadWorkspace              = Plugin.Settings.Get<bool>(Settings.RTextNppSettings.AutoLoadWorkspace);
+            AutoSaveFiles                  = Plugin.Settings.Get<bool>(Settings.RTextNppSettings.AutoSaveFiles);
+            AutoChangeWorkspace            = Plugin.Settings.Get<bool>(Settings.RTextNppSettings.AutoChangeWorkspace);
+            _excludeExtensionsTextBox.Text = Plugin.Settings.Get(Settings.RTextNppSettings.ExcludeExtensions);
         }
 
         public bool AutoLoadWorkspace

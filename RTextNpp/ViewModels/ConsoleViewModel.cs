@@ -9,7 +9,8 @@ namespace RTextNppPlugin.ViewModels
 {
     /**
      * A ViewModel for the console.
-     * The model is responsible for holding information about all loaded automate workspaces.
+     * The model is responsible for holding information about all loaded rtext workspaces.
+
      * The model provide means to update the console, error list and rtext find windows.
      */
     class ConsoleViewModel : BindableObject, IConsoleViewModelBase, IDisposable

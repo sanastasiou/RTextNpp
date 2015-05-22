@@ -333,7 +333,7 @@ namespace RTextNppPlugin.Utilities
             if (mPort != -1)
             {
                 //load model if specified option is enabled 
-                if (Settings.Instance.Get<bool>(Settings.RTextNppSettings.AutoLoadWorkspace))
+                if (Plugin.Settings.Get<bool>(Settings.RTextNppSettings.AutoLoadWorkspace))
                 {
                     OnTimerElapsed(null, EventArgs.Empty);
                 }
@@ -787,7 +787,7 @@ namespace RTextNppPlugin.Utilities
          */
         private void OnWorkspaceModified(string pathOfModifiedFile)
         {
-            if (Settings.Instance.Get<bool>(Settings.RTextNppSettings.AutoSaveFiles))
+            if (Plugin.Settings.Get<bool>(Settings.RTextNppSettings.AutoSaveFiles))
             {
                 //find .rtext file of this document 
                 string aRTextFilePath = FileUtilities.FindWorkspaceRoot(pathOfModifiedFile);

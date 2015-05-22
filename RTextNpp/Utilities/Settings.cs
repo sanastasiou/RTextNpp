@@ -34,10 +34,9 @@ namespace RTextNppPlugin.Utilities
 
         #endregion
 
-        #region [Data Members]
-        private static volatile Settings _instance;  //!< Singleton Instance.
-        private static object _lock = new Object();  //!< Mutex.
+        #region [Data Members]        
         private List<string> _settingKeys;           //!< List of all setting keys
+        private ConfigurationSetter _configSetter;
         #endregion
 
         internal enum RTextNppSettings : int
@@ -51,40 +50,23 @@ namespace RTextNppPlugin.Utilities
 
         #region [Implementation Details]
 
-        /**
-         * Constructor that prevents a default instance of this class from being created.
-         */
-        private Settings()
+        internal Settings(INpp pluginHelper)
         {
-            _settingKeys = new List<string>(Enum.GetNames(typeof(RTextNppSettings)));
+            _settingKeys  = new List<string>(Enum.GetNames(typeof(RTextNppSettings)));
+            _configSetter = new ConfigurationSetter(pluginHelper);
 
         }
 
         #endregion
 
         #region [Interface]
-        public static Settings Instance
-        {
-            get
-            {
-                if (_instance == null)
-                {
-                    lock (_lock)
-                    {
-                        if (_instance == null)
-                            _instance = new Settings();
-                    }
-                }
-                return _instance;
-            }
-        }
 
         public string Get(RTextNppSettings settingKey)
         {
             string setting = String.Empty;
             try
             {
-                ConfigurationSetter.readSetting(ref setting, _settingKeys[(int)settingKey]);
+                _configSetter.readSetting(ref setting, _settingKeys[(int)settingKey]);
             }
             catch (Exception ex)
             {
@@ -97,8 +79,8 @@ namespace RTextNppPlugin.Utilities
         {
             T setting = new T();
             try
-            {                
-                ConfigurationSetter.readSetting(ref setting, _settingKeys[(int)settingKey]);
+            {
+                _configSetter.readSetting(ref setting, _settingKeys[(int)settingKey]);
             }
             catch(Exception ex)
             {
@@ -111,7 +93,7 @@ namespace RTextNppPlugin.Utilities
         {
             try
             {
-                ConfigurationSetter.saveSetting(setting, _settingKeys[(int)settingKey]);
+                _configSetter.saveSetting(setting, _settingKeys[(int)settingKey]);
                 if (OnSettingChanged != null)
                 {
                     OnSettingChanged(this, new SettingChangedEventArgs(settingKey));

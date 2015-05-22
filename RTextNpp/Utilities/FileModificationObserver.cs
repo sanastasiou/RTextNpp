@@ -31,7 +31,7 @@ namespace RTextNppPlugin.Utilities
         public void OnFileOpened(string filepath)
         {
             ModificationState aFileState = FileUtilities.IsFileModified(filepath) ? ModificationState.Modified : ModificationState.Saved;
-            if (FileUtilities.IsAutomateFile(filepath))
+            if (FileUtilities.IsRTextFile(filepath))
             {
                 if (!_fileList.ContainsKey(filepath))
                 {
@@ -93,7 +93,8 @@ namespace RTextNppPlugin.Utilities
         }
 
         /**
-         * Saves all not save automate files.
+         * Saves all not save rtext files.
+
          */
         public void SaveAllFiles()
         {
