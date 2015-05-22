@@ -14,20 +14,34 @@ namespace RTextNppPlugin.ViewModels
      */
     class ConsoleViewModel : BindableObject, IConsoleViewModelBase, IDisposable
     {
+        #region [Data Members]
+        private ObservableCollection<IConsoleViewModelBase> _workspaceCollection = new ObservableCollection<IConsoleViewModelBase>();
+        private int _index                                                       = -1;
+        private bool _isBusy                                                     = false;
+        private bool _isLoading                                                  = false;
+        private bool _isActive                                                   = false;
+        private bool _isAutomateWorkspace                                        = false;
+        private double _progressPercentage                                       = 0.0;
+        private string _workspace                                                = null;
+        private string _currentCommand                                           = String.Empty;
+        private readonly ConnectorManager _cmanager                              = null;
+        #endregion
+
         #region Interface
         /**
          * Constructor.
          *
          * \param   workspace   The workspace.
          */
-        public ConsoleViewModel()
+        public ConsoleViewModel(ConnectorManager cmanager)
         {
+            _cmanager = cmanager;
             #if DEBUG
             AddWorkspace(Constants.DEBUG_CHANNEL);
             #endif
             AddWorkspace(Constants.GENERAL_CHANNEL);            
             //subscribe to connector manager for workspace events
-            ConnectorManager.Instance.OnConnectorAdded += ConnectorManagerOnConnectorAdded;
+            _cmanager.OnConnectorAdded += ConnectorManagerOnConnectorAdded;
             Index = 0;
         }
 
@@ -231,18 +245,6 @@ namespace RTextNppPlugin.ViewModels
 
         #endregion
 
-        #region [Data Members]
-        private ObservableCollection<IConsoleViewModelBase> _workspaceCollection = new ObservableCollection<IConsoleViewModelBase>();
-        private int _index                 = -1;
-        private bool _isBusy               = false;
-        private bool _isLoading            = false;
-        private bool _isActive             = false;
-        private bool _isAutomateWorkspace  = false;
-        private double _progressPercentage = 0.0;
-        private string _workspace          = null;
-        private string _currentCommand     = String.Empty;
-        #endregion
-
         #region [Helpers]
 
         private void Dispose(bool disposing)
@@ -252,7 +254,7 @@ namespace RTextNppPlugin.ViewModels
                 // Dispose any disposable fields here
                 GC.SuppressFinalize(this);
             }
-            ConnectorManager.Instance.OnConnectorAdded -= ConnectorManagerOnConnectorAdded;
+            _cmanager.OnConnectorAdded -= ConnectorManagerOnConnectorAdded;
         }
 
         #endregion

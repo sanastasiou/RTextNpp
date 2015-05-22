@@ -1,6 +1,6 @@
-﻿using RTextNppPlugin.ViewModels;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.ComponentModel.Design.Serialization;
+using RTextNppPlugin.RText;
 
 namespace RTextNppPlugin.WpfControls
 {
@@ -12,32 +12,17 @@ namespace RTextNppPlugin.WpfControls
      */
     [Designer("System.Windows.Forms.Design.ControlDesigner, System.Design")]
     [DesignerSerializer("System.ComponentModel.Design.Serialization.TypeCodeDomSerializer , System.Design", "System.ComponentModel.Design.Serialization.CodeDomSerializer, System.Design")]
-    class ElementHost<T, U> : System.Windows.Forms.Integration.ElementHost where T : System.Windows.Controls.UserControl, new()
+    class ElementHost<T, U> : System.Windows.Forms.Integration.ElementHost where T : System.Windows.Controls.UserControl
                                                                            where U : BindableObject
     {
-        private T _wpfControl = new T();
+        private T _wpfControl;
         private U _viewModel = default(U);
 
-        public ElementHost()
+        public ElementHost(T control)
         {
-            base.Child = _wpfControl;
-            _viewModel = (U)_wpfControl.DataContext;
-        }
-
-        public U ViewModel
-        {
-            get
-            {
-                return _viewModel;
-            }
-        }
-
-        public T WpfControl
-        {
-            get
-            {
-                return _wpfControl;
-            }
+            _wpfControl = control;
+            base.Child  = _wpfControl;
+            _viewModel  = (U)_wpfControl.DataContext;
         }
     } 
 

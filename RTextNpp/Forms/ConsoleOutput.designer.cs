@@ -52,16 +52,8 @@ namespace RTextNppPlugin
             Name = "ConsoleOutputForm";
             Text = "RText++ Console";
             ResumeLayout(false);
-
         }
 
-        #endregion
-        private System.Windows.Forms.Integration.ElementHost _consoleOutputHost = new ElementHost<WpfControls.ConsoleOutput, ViewModels.ConsoleViewModel>();
-
-
-
-
-
-
+        #endregion        
     }
 }

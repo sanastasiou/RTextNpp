@@ -12,7 +12,7 @@ namespace RTextNppPlugin.Utilities.WpfControlHost
      * \tparam  T   Generic type parameter which has to be a wpf control host.
      *                   
      */
-    class WpfControlHostBase<T> : IDisposable where T : System.Windows.Forms.Form, new()
+    class WpfControlHostBase<T> : IDisposable where T : System.Windows.Forms.Form
     {
 
         #region Interface
@@ -29,10 +29,10 @@ namespace RTextNppPlugin.Utilities.WpfControlHost
          *
          * \param   settingKey  The key for the persistence setting.
          */
-        public WpfControlHostBase()
+        public WpfControlHostBase(T elementHost)
         {
             Trace.WriteLine("WpfControlHostBase()");
-            _elementHost = new T();
+            _elementHost = elementHost;
             _elementHost.VisibleChanged += OnVisibilityChanged;
             _elementHost.Move += OnElementHostMove;
             _elementHost.PaddingChanged += OnElementHostMove;

@@ -2,11 +2,11 @@
 
 namespace RTextNppPlugin.Utilities.WpfControlHost
 {
-    class PersistentWpfControlHost<T> : WpfControlHostBase<T>, IDisposable where T : System.Windows.Forms.Form, new()
+    class PersistentWpfControlHost<T> : WpfControlHostBase<T>, IDisposable where T : System.Windows.Forms.Form
     {
         #region [Interface]
 
-        public PersistentWpfControlHost(Settings.RTextNppSettings persistenceKey ) : base()
+        public PersistentWpfControlHost(Settings.RTextNppSettings persistenceKey, T elementHost ) : base(elementHost)
         {
             _key = persistenceKey;
         }

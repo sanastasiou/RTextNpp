@@ -187,8 +187,9 @@ namespace RTextNppPlugin.ViewModels
             }
         }
         
-        public AutoCompletionViewModel()
+        public AutoCompletionViewModel(ConnectorManager cmanager)
         {
+            _cManager          = cmanager;
             _filteredList      = new FilteredObservableCollection<Completion>(_completionList);
             FilteredCount      = 0;            
             CharProcessAction  = CharProcessResult.NoAction;
@@ -315,7 +316,7 @@ namespace RTextNppPlugin.ViewModels
                 context       = extractor.ContextList,
                 invocation_id = -1
             };            
-            _connector = ConnectorManager.Instance.Connector;
+            _connector = _cManager.Connector;
             if (_connector != null)
             {
                 switch (_connector.CurrentState.State)
@@ -572,6 +573,7 @@ namespace RTextNppPlugin.ViewModels
         #region [Data Members]
         private readonly BulkObservableCollection<Completion> _completionList   = new BulkObservableCollection<Completion>(); //!< Underlying completion list.
         private readonly FilteredObservableCollection<Completion> _filteredList = null;                                       //!< UI completion list based on underlying list.
+        private readonly ConnectorManager _cManager                             = null;                                       //!< Connector manager.
         private Tokenizer.TokenTag? _triggerToken                               = null;                                       //!< Current completion list trigger token.
         private MatchingType _lastMatchingType                                  = MatchingType.NONE;                          //!< Last matching completion type.        
         private int _count                                                      = 0;                                          //!< Options count.

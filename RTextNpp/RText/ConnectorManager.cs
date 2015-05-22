@@ -19,19 +19,19 @@ namespace RTextNppPlugin.RText
          * \param   source  Source for the evemt.
          * \param   e       Connector added event information.
          */
-        public delegate void ConnectorAddedEvent(object source, ConnectorAddedEventArgs e);
+        internal delegate void ConnectorAddedEvent(object source, ConnectorAddedEventArgs e);
 
-        public event ConnectorAddedEvent OnConnectorAdded;  //!< Event queue for all listeners interested in OnConnectorAdded events.
+        internal event ConnectorAddedEvent OnConnectorAdded;  //!< Event queue for all listeners interested in OnConnectorAdded events.
 
         /**
          * Additional information for connector added events.
          */
-        public class ConnectorAddedEventArgs : EventArgs
+        internal class ConnectorAddedEventArgs : EventArgs
         {
-            public String Workspace { get; private set; }
-            public Connector Connector { get; private set; }
+            internal String Workspace { get; private set; }
+            internal Connector Connector { get; private set; }
 
-            public ConnectorAddedEventArgs(string workspace, Connector connector)
+            internal ConnectorAddedEventArgs(string workspace, Connector connector)
             {
                 Workspace = workspace;
                 Connector = connector;
@@ -42,7 +42,12 @@ namespace RTextNppPlugin.RText
 
         #region Interface
 
-        public void ReleaseConnectors()
+        internal ConnectorManager()
+        {
+             _processList = new Dictionary<string, Utilities.RTextBackendProcess>();
+        }
+
+        internal void ReleaseConnectors()
         {
             var keys = _processList.Keys;
             foreach(var key in keys)
@@ -56,7 +61,7 @@ namespace RTextNppPlugin.RText
          *
          * \param   file    The file.
          */
-        public void CreateConnector(string file)
+        internal void CreateConnector(string file)
         {
             //check if file extension is an automate file
             if (FileUtilities.IsAutomateFile(file))
@@ -99,31 +104,9 @@ namespace RTextNppPlugin.RText
          * \param   nppData Information describing the Npp.Instance.
          * \remarks Must be called upon plugin initialization.                  
          */
-        public void Initialize(NppData nppData)
+        internal void Initialize(NppData nppData)
         {
             _nppData = nppData;
-        }
-
-        /**
-         * Gets the instance.
-         *
-         * \return  The instance.
-         */
-        public static ConnectorManager Instance
-        {
-            get
-            {
-                if (_instance == null)
-                {
-                    lock (_lock)
-                    {
-                        if (_instance == null)
-                            _instance = new ConnectorManager();
-                    }
-                }
-
-                return _instance;
-            }
         }
 
         /**
@@ -131,7 +114,7 @@ namespace RTextNppPlugin.RText
          *
          * \return  The connector.
          */
-        public Connector Connector
+        internal Connector Connector
         {
             get
             {
@@ -155,20 +138,8 @@ namespace RTextNppPlugin.RText
         #endregion
 
         #region Data Members
-        private Dictionary<string, Utilities.RTextBackendProcess> _processList = new Dictionary<string, Utilities.RTextBackendProcess>();
-        private NppData _nppData;                            //!< Access to notepad++ data.
-        private static volatile ConnectorManager _instance;  //!< Singleton Instance.
-        private static object _lock = new Object();          //!< Mutex.
-        #endregion
-
-        #region Implementation Details        
-
-        /**
-         * Constructor that prevents a default instance of this class from being created.
-         */
-        private ConnectorManager()
-        {
-        }
-        #endregion        
+        private Dictionary<string, Utilities.RTextBackendProcess> _processList;
+        private NppData _nppData;                            
+        #endregion     
     }
 }

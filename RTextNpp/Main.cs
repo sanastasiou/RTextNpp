@@ -6,14 +6,14 @@ using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using CSScriptIntellisense;
-using RTextNppPlugin.RText;
 using RTextNppPlugin.Forms;
 using RTextNppPlugin.Parsing;
+using RTextNppPlugin.RText;
 using RTextNppPlugin.Utilities;
 using RTextNppPlugin.Utilities.WpfControlHost;
 using RTextNppPlugin.WpfControls;
 using WindowsSubclassWrapper;
+using RTextNppPlugin.Forms;
 
 namespace RTextNppPlugin
 {
@@ -69,12 +69,12 @@ namespace RTextNppPlugin
     partial class Plugin
     {
         #region [Fields]
-        private static PersistentWpfControlHost<ConsoleOutputForm> _consoleOutput       = new PersistentWpfControlHost<ConsoleOutputForm>(Settings.RTextNppSettings.ConsoleWindowActive);
-        private static ConnectorManager _connectorManager                               = RText.ConnectorManager.Instance;
-        private static Options _options                                                 = new Forms.Options();
+        private static ConnectorManager _connectorManager                               = new ConnectorManager();
+        private static PersistentWpfControlHost<ConsoleOutputForm> _consoleOutput       = new PersistentWpfControlHost<ConsoleOutputForm>(Settings.RTextNppSettings.ConsoleWindowActive, new ConsoleOutputForm(_connectorManager));        
+        private static Options _options                                                 = new Options();
         private static FileModificationObserver _fileObserver                           = new FileModificationObserver();
         private static Dictionary<ShortcutKey, Tuple<string, Action>> internalShortcuts = new Dictionary<ShortcutKey, Tuple<string, Action>>();
-        private static AutoCompletionWindow _autoCompletionForm                         = new AutoCompletionWindow();        
+        private static AutoCompletionWindow _autoCompletionForm                         = new AutoCompletionWindow(_connectorManager);
         private static Bitmap tbBmp                                                     = Properties.Resources.ConsoleIcon;
         private static Bitmap tbBmp_tbTab                                               = Properties.Resources.ConsoleIcon;
         private static Icon tbIcon                                                      = null;
@@ -533,7 +533,7 @@ namespace RTextNppPlugin
         #endregion
 
         #region [Helpers]
-
+       
         static bool HasScintillaFocus()
         {
             if (_hasScintillaFocus)

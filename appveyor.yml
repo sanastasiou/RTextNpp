@@ -88,7 +88,7 @@ test:
 # scripts to run after tests
 after_test:
 # generate report for NUnit testing framework:
-    - packages\OpenCover.4.5.3723\OpenCover.Console.exe -register:user -excludebyattribute:ExcludeFromCodeCoverage -skipautoprops -hideskipped:All -excludebyfile:*\*.il -filter:"+[RTextNpp]RTextNppPlugin* +[RTextNpp]CSScriptIntellisense -[Tests]*" -target:"packages\NUnit.Runners.2.6.4\tools\nunit-console-x86.exe" -targetargs:"/noshadow /nologo /labels /domain:single /framework:4.5 /nodots Tests\bin\x86\Release\Tests.dll" -output:coverage.xml
+    - packages\OpenCover.4.5.3723\OpenCover.Console.exe -register:user -excludebyattribute:.*ExcludeFromCodeCoverage -skipautoprops -hideskipped:All -excludebyfile:*\*.il -filter:"+[RTextNpp]RTextNppPlugin* +[RTextNpp]CSScriptIntellisense -[Tests]*" -target:"packages\NUnit.Runners.2.6.4\tools\nunit-console-x86.exe" -targetargs:"/noshadow /nologo /labels /domain:single /framework:4.5 /nodots Tests\bin\x86\Release\Tests.dll" -output:coverage.xml
     - ps: .\CoverageFix.ps1
     - packages\coveralls.io.1.3.4\tools\coveralls.net.exe --opencover coverage.xml
 
@@ -109,3 +109,6 @@ notifications:
     auth_token:
       secure: AP0kOGkZK+gDtDw+fHl+SDc8Nk6sSqZ7o0ROHl9aR4ARw7ldK4KtGxGqiKp85SSH
     channel: automate-jep
+    on_build_success: false
+    on_build_failure: false
+    on_build_status_changed: true

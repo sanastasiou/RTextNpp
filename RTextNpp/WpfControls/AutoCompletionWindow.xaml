@@ -24,9 +24,6 @@
         ShowActivated="False"
         Topmost="False"
         SizeToContent="WidthAndHeight">
-    <Window.DataContext>
-        <viewModels:AutoCompletionViewModel/>
-    </Window.DataContext>
     <Window.Resources>        
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>

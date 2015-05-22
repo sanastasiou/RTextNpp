@@ -12,6 +12,7 @@ using RTextNppPlugin.Utilities;
 using RTextNppPlugin.ViewModels;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using RTextNppPlugin.RText;
 
 
 namespace RTextNppPlugin.WpfControls
@@ -20,7 +21,7 @@ namespace RTextNppPlugin.WpfControls
     {
         private event EventHandler<MouseEventExtArgs> _MouseClick;
 
-        public event EventHandler<MouseEventExtArgs> MouseClick
+        internal event EventHandler<MouseEventExtArgs> MouseClick
         {
             add
             {
@@ -42,7 +43,7 @@ namespace RTextNppPlugin.WpfControls
 
         private event EventHandler<MouseEventExtArgs> _MouseWheel;
 
-        public event EventHandler<MouseEventExtArgs> MouseWheel
+        internal event EventHandler<MouseEventExtArgs> MouseWheel
         {
             add
             {
@@ -64,7 +65,7 @@ namespace RTextNppPlugin.WpfControls
 
         private event EventHandler<MouseEventExtArgs> _MouseDoubleClick;
 
-        public event EventHandler<MouseEventExtArgs> MouseDoubleClick
+        internal event EventHandler<MouseEventExtArgs> MouseDoubleClick
         {
             add
             {
@@ -226,9 +227,10 @@ namespace RTextNppPlugin.WpfControls
         }
         #endregion        
 
-        public AutoCompletionWindow()
+        internal AutoCompletionWindow(ConnectorManager cmanager)
         {
             InitializeComponent();
+            DataContext = new ViewModels.AutoCompletionViewModel(cmanager);
             _keyMonitor.KeysToIntercept.Add((int)System.Windows.Forms.Keys.Down);
             _keyMonitor.KeysToIntercept.Add((int)System.Windows.Forms.Keys.Up);
             _keyMonitor.KeysToIntercept.Add((int)System.Windows.Forms.Keys.PageUp);
@@ -239,7 +241,7 @@ namespace RTextNppPlugin.WpfControls
             IsOnTop = false;
         }
 
-        public bool IsAutoCompletionCommandPending
+        internal bool IsAutoCompletionCommandPending
         {
             get
             {
@@ -280,20 +282,20 @@ namespace RTextNppPlugin.WpfControls
             }            
         }
         
-        public new void Hide()
+        internal new void Hide()
         {
             base.Hide();
             GetModel().OnAutoCompletionWindowCollapsing();
         }
 
-        public async Task AugmentAutoCompletion(ContextExtractor extractor, System.Drawing.Point caretPoint, AutoCompletionTokenizer tokenizer)
+        internal async Task AugmentAutoCompletion(ContextExtractor extractor, System.Drawing.Point caretPoint, AutoCompletionTokenizer tokenizer)
         {
             await GetModel().AugmentAutoCompletion(extractor, caretPoint, tokenizer);
             CharProcessAction = GetModel().CharProcessAction;
             TriggerPoint      = GetModel().TriggerPoint;
         }
 
-        public void PostProcessKeyPressed()
+        internal void PostProcessKeyPressed()
         {
             //handle this on UI thread since it will alter UI
             Dispatcher.Invoke(new Action(GetModel().Filter));
@@ -309,9 +311,9 @@ namespace RTextNppPlugin.WpfControls
 
         internal AutoCompletionViewModel.CharProcessResult CharProcessAction { get; private set; }
 
-        public Tokenizer.TokenTag ? TriggerPoint {get;private set;}
+        internal Tokenizer.TokenTag ? TriggerPoint {get;private set;}
 
-        public void OnZoomLevelChanged(int newZoomLevel)
+        internal void OnZoomLevelChanged(int newZoomLevel)
         {
             if (IsVisible)
             {
@@ -329,7 +331,7 @@ namespace RTextNppPlugin.WpfControls
 
         internal AutoCompletionViewModel.Completion Completion { get { return GetModel().SelectedCompletion; } }
 
-        public void OnKeyPressed(char c = '\0')
+        internal void OnKeyPressed(char c = '\0')
         {
             CharProcessAction = AutoCompletionViewModel.CharProcessResult.NoAction;
             if (IsVisible)
