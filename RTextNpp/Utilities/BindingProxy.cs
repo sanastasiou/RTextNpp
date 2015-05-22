@@ -1,5 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using System.Windows;
+﻿using System.Windows;
 
 namespace RTextNppPlugin.Utilities
 {
@@ -12,7 +11,7 @@ namespace RTextNppPlugin.Utilities
     {
         #region Overrides of Freezable
 
-        [ExcludeFromCodeCoverage]
+        [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
         protected override Freezable CreateInstanceCore()
         {
             return new BindingProxy();
