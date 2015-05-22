@@ -7,6 +7,6 @@
     [TestFixture]
     class StateMachineTests
     {
-        
+                        
     }
 }

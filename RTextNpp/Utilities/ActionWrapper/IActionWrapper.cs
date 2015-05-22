@@ -1,5 +1,5 @@
-﻿using System;
-namespace RTextNppPlugin.RText.StateEngine
+﻿
+namespace RTextNppPlugin.Utilities
 {
     interface IActionWrapper
     {

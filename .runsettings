@@ -19,7 +19,7 @@
                     <CodeCoverage>
                         <ModulePaths>
                             <Exclude>
-                                <ModulePath>.*contextextractiontests\.dll</ModulePath>
+                                <ModulePath>.*tests\.dll</ModulePath>
                                 <ModulePath>.*filesystemwatcherclrwrapper\.dll</ModulePath>
                                 <ModulePath>.*rtextlexer\.dll</ModulePath>
                                 <ModulePath>.*windowssubclasscliwrapper\.dll</ModulePath>
@@ -32,6 +32,7 @@
                             </Include>
                             <Exclude>
                                 <Function>^((?!(RTextNppPlugin|CSScriptIntellisense)).)*$</Function>
+                                <Function>^.*?CreateInstanceCore.*$</Function>
                             </Exclude>
                         </Functions>
                     </CodeCoverage>

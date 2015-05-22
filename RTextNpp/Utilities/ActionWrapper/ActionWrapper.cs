@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace RTextNppPlugin.RText.StateEngine
+namespace RTextNppPlugin.Utilities
 {
-    internal class ActionWrapper<T1> : IActionWrapper where T1 : class
+    public class ActionWrapper<T1> : IActionWrapper
     {
         private readonly Action<T1> _action;
         private readonly T1 _arg;
@@ -23,9 +23,7 @@ namespace RTextNppPlugin.RText.StateEngine
         }
     }
 
-    internal class ActionWrapper<T1, T2> : IActionWrapper
-        where T1 : class
-        where T2 : class
+    public class ActionWrapper<T1, T2> : IActionWrapper
     {
         private readonly Action<T1, T2> _action;
         private readonly T1 _arg1;
@@ -44,10 +42,7 @@ namespace RTextNppPlugin.RText.StateEngine
         }
     }
 
-    internal class ActionWrapper<T1, T2, T3> : IActionWrapper
-        where T1 : class
-        where T2 : class
-        where T3 : class
+    public class ActionWrapper<T1, T2, T3> : IActionWrapper
     {
         private readonly Action<T1, T2, T3> _action;
         private readonly T1 _arg1;
@@ -68,7 +63,7 @@ namespace RTextNppPlugin.RText.StateEngine
         }
     }
 
-    internal class ActionWrapper : IActionWrapper
+    public class ActionWrapper : IActionWrapper
     {
         private readonly Action _action;
 
