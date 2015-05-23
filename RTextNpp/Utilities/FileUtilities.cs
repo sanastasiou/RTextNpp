@@ -8,12 +8,13 @@ using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using CSScriptIntellisense;
 using System.Diagnostics;
+using RTextNppPlugin.Utilities.Settings;
 
 namespace RTextNppPlugin.Utilities
 {
-    public static class FileUtilities
+    internal static class FileUtilities
     {
-        public static Regex FileExtensionRegex = new Regex(@"(?<=\*)\..*?(?=,|:)", RegexOptions.Compiled); //!< The file extensions regular expression
+        internal static Regex FileExtensionRegex = new Regex(@"(?<=\*)\..*?(?=,|:)", RegexOptions.Compiled); //!< The file extensions regular expression
 
         /**
          * Searches for workspace root.
@@ -22,7 +23,7 @@ namespace RTextNppPlugin.Utilities
          *
          * \return  The found workspace root ( file path of .rtext file ).
          */
-        public static string FindWorkspaceRoot(string file)
+        internal static string FindWorkspaceRoot(string file)
         {
             try
             {
@@ -99,7 +100,7 @@ namespace RTextNppPlugin.Utilities
          *
          * \return  The list of open files, an empty list in case no file is open.
          */
-        public static List<string> GetListOfOpenFiles(ref NppData nppData)
+        internal static List<string> GetListOfOpenFiles(ref NppData nppData)
         {
             List<string> aFiles = new List<string>();
 
@@ -122,7 +123,7 @@ namespace RTextNppPlugin.Utilities
          *
          * \return  The npp configuration directory.
          */
-        public static string GetNppConfigDirectory()
+        internal static string GetNppConfigDirectory()
         {
             StringBuilder sbIniFilePath = new StringBuilder(Win32.MAX_PATH);
             Win32.SendMessage(Plugin.nppData._nppHandle, NppMsg.NPPM_GETPLUGINSCONFIGDIR, Win32.MAX_PATH, sbIniFilePath);
@@ -143,25 +144,26 @@ namespace RTextNppPlugin.Utilities
         }
 
         /**
-         * Query if the current file is an rtext file.
+         * \brief   Query if 'settings' is r text file.
+         *
+         * \param   settings    Provides access to persistent settings.
          *
          * \return  true if the current file is an rtext file, false if not.
          */
-        public static bool IsRTextFile()
+        internal static bool IsRTextFile(ISettings settings)
         {
-            return IsRTextFile(GetCurrentFilePath());
+            return IsRTextFile(GetCurrentFilePath(), settings);
         }
 
         /**
          * \brief   Query if 'file' is an rtext file.
-
          *
-         * \param   file    The file.
+         * \param   file        The file.
+         * \param   settings    Options for controlling the operation.
          *
-         * \return  true if file parameter is an rtext file, false if not.      
-
+         * \return  true if file parameter is an rtext file, false if not.
          */
-        public static bool IsRTextFile(string file)
+        internal static bool IsRTextFile(string file, ISettings settings)
         {
             try
             {
@@ -171,7 +173,7 @@ namespace RTextNppPlugin.Utilities
                     fileExt = fileExt.Remove(0, 1);
                 }
                 //list of excluded extensions
-                List<string> aExlusionList = new List<string>(Plugin.Settings.Get(Settings.RTextNppSettings.ExcludeExtensions).Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries));
+                List<string> aExlusionList = new List<string>(settings.Get(Settings.Settings.RTextNppSettings.ExcludeExtensions).Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries));
 
                 //get npp configuration directory
                 //get list of supported extensions
@@ -210,7 +212,7 @@ namespace RTextNppPlugin.Utilities
          *
          * \return  The file path of the currently viewed document.
          */
-        public static string GetCurrentFilePath()
+        internal static string GetCurrentFilePath()
         {
             NppMsg msg = NppMsg.NPPM_GETFULLCURRENTPATH;
             StringBuilder path = new StringBuilder(Win32.MAX_PATH);
@@ -225,7 +227,7 @@ namespace RTextNppPlugin.Utilities
          *
          * \return  true if file is considered to be modified, false if not.
          */
-        public static bool IsFileModified(string file)
+        internal static bool IsFileModified(string file)
         {
             IntPtr sci = Plugin.GetCurrentScintilla();
             return ((int)Win32.SendMessage(sci, SciMsg.SCI_GETMODIFY, 0, 0) != 0);
@@ -236,7 +238,7 @@ namespace RTextNppPlugin.Utilities
          *
          * \param   file    The file.
          */
-        public static void SaveFile(string file)
+        internal static void SaveFile(string file)
         {
             Win32.SendMessage(Plugin.nppData._nppHandle, NppMsg.NPPM_SWITCHTOFILE, 0, file);
             Win32.SendMessage(Plugin.nppData._nppHandle, NppMsg.NPPM_SAVECURRENTFILE, 0, 0);
@@ -247,7 +249,7 @@ namespace RTextNppPlugin.Utilities
          *
          * \param   file    The file.
          */
-        public static void SwitchToFile(string file)
+        internal static void SwitchToFile(string file)
         {
             Win32.SendMessage(Plugin.nppData._nppHandle, NppMsg.NPPM_SWITCHTOFILE, 0, file);
         }

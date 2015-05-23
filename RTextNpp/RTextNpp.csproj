@@ -101,6 +101,7 @@
     <Compile Include="Utilities\BindingProxy.cs" />
     <Compile Include="Utilities\GlobalMouseHook.cs" />
     <Compile Include="Utilities\INpp.cs" />
+    <Compile Include="Utilities\Settings\ISettings.cs" />
     <Compile Include="Utilities\MouseEventExtArgs.cs" />
     <Compile Include="Utilities\SplitEnumerator.cs" />
     <Compile Include="DllExport\UnmanagedExports.cs" />
@@ -109,7 +110,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Include="Utilities\ConfigurationSetter.cs" />
+    <Compile Include="Utilities\Settings\ConfigurationSetter.cs" />
     <Compile Include="Utilities\Constants.cs" />
     <Compile Include="Utilities\DelayedEventHandler.cs" />
     <Compile Include="Utilities\FileModificationObserver.cs" />
@@ -119,7 +120,7 @@
     <Compile Include="Utilities\Npp.cs" />
     <Compile Include="Utilities\ParentProcessUtilities.cs" />
     <Compile Include="Utilities\ProcessUtilities.cs" />
-    <Compile Include="Utilities\Settings.cs" />
+    <Compile Include="Utilities\Settings\Settings.cs" />
     <Compile Include="Utilities\StringExtensions.cs" />
     <Compile Include="Utilities\Visual.cs" />
     <Compile Include="Utilities\WinHook.cs" />

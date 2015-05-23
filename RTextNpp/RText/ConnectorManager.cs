@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using RTextNppPlugin.Utilities;
+using RTextNppPlugin.Utilities.Settings;
 
 namespace RTextNppPlugin.RText
 {
@@ -43,8 +44,9 @@ namespace RTextNppPlugin.RText
 
         #region Interface
 
-        internal ConnectorManager()
+        internal ConnectorManager(ISettings settings)
         {
+            _settings     = settings;
              _processList = new Dictionary<string, Utilities.RTextBackendProcess>();
         }
 
@@ -65,7 +67,7 @@ namespace RTextNppPlugin.RText
         internal void CreateConnector(string file)
         {
             //check if file extension is an automate file
-            if (FileUtilities.IsRTextFile(file))
+            if (FileUtilities.IsRTextFile(file, _settings))
             {
                 //identify .rtext file
                 string rTextFileLocation = FileUtilities.FindWorkspaceRoot(file);
@@ -88,7 +90,7 @@ namespace RTextNppPlugin.RText
                     }
                     else
                     {
-                        _processList.Add(processKey, new Utilities.RTextBackendProcess(rTextFileLocation, Path.GetExtension(file)));
+                        _processList.Add(processKey, new Utilities.RTextBackendProcess(rTextFileLocation, Path.GetExtension(file), _settings));
                     }
 
                     if (OnConnectorAdded != null)
@@ -120,7 +122,7 @@ namespace RTextNppPlugin.RText
             get
             {
                 string aCurrentFile = Npp.Instance.GetCurrentFile();
-                if (FileUtilities.IsRTextFile(aCurrentFile))
+                if (FileUtilities.IsRTextFile(aCurrentFile, _settings))
                 {
                     //find root of file
                     string aProcKey = FileUtilities.FindWorkspaceRoot(aCurrentFile) + Path.GetExtension(aCurrentFile);
@@ -140,7 +142,8 @@ namespace RTextNppPlugin.RText
 
         #region Data Members
         private Dictionary<string, Utilities.RTextBackendProcess> _processList;
-        private NppData _nppData;                            
+        private NppData _nppData;
+        private readonly ISettings _settings = null;
         #endregion     
     }
 }

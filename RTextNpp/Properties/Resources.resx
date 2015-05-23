@@ -216,4 +216,7 @@
   <data name="ERR_AUTO_COMPLETION_NULL_RESP" xml:space="preserve">
     <value>RText backend service auto completion request failed.</value>
   </data>
+  <data name="RTextNpp_dll" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\RTextNpp.dll.config;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
 </root>

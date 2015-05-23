@@ -2,6 +2,7 @@
 using System.IO;
 using System.Collections.Generic;
 using System.Linq;
+using RTextNppPlugin.Utilities.Settings;
 
 namespace RTextNppPlugin.Utilities
 {
@@ -10,10 +11,16 @@ namespace RTextNppPlugin.Utilities
         #region [Data Members]
 
         private Dictionary<string, ModificationState> _fileList = new Dictionary<string, ModificationState>(100);
-        static object _lock = new object();
+        private static object _lock = new object();
+        private readonly ISettings _settings = null;
         #endregion
 
         #region [Interface]
+        internal FileModificationObserver(ISettings settings)
+        {
+            _settings = settings;
+        }
+
         enum ModificationState
         {
             Unknown,
@@ -28,10 +35,10 @@ namespace RTextNppPlugin.Utilities
          *
          * \param   filepath    The filepath.
          */
-        public void OnFileOpened(string filepath)
+        internal void OnFileOpened(string filepath)
         {
             ModificationState aFileState = FileUtilities.IsFileModified(filepath) ? ModificationState.Modified : ModificationState.Saved;
-            if (FileUtilities.IsRTextFile(filepath))
+            if (FileUtilities.IsRTextFile(filepath, _settings))
             {
                 if (!_fileList.ContainsKey(filepath))
                 {
@@ -50,7 +57,7 @@ namespace RTextNppPlugin.Utilities
          *
          * \param   filepath    The filepath.
          */
-        public void OnFilemodified(string filepath)
+        internal void OnFilemodified(string filepath)
         {
             OnFileOpened(filepath);
         }
@@ -61,7 +68,7 @@ namespace RTextNppPlugin.Utilities
          *
          * \param   filepath    The filepath.
          */
-        public void OnFileUnmodified(string filepath)
+        internal void OnFileUnmodified(string filepath)
         {
             OnFileOpened(filepath);
         }
@@ -71,7 +78,7 @@ namespace RTextNppPlugin.Utilities
          *
          * \param   workspace   The workspace.
          */
-        public void SaveWorkspaceFiles(string workspace)
+        internal void SaveWorkspaceFiles(string workspace)
         {
             string aCurrentFile = FileUtilities.GetCurrentFilePath();
             List<string> aFileList = new List<string>(_fileList.Keys);
@@ -96,7 +103,7 @@ namespace RTextNppPlugin.Utilities
          * Saves all not save rtext files.
 
          */
-        public void SaveAllFiles()
+        internal void SaveAllFiles()
         {
             string aCurrentFile = FileUtilities.GetCurrentFilePath();
             List<string> aFileList = new List<string>(_fileList.Keys);
@@ -118,7 +125,7 @@ namespace RTextNppPlugin.Utilities
          * Cleans Notepad++ backup because of a bug that currently exists. This interferes with correct handling of saved/unsaved files.
          * \note  http://sourceforge.net/p/notepad-plus/bugs/5155/
          */
-        public void CleanBackup()
+        internal void CleanBackup()
         {
             string aAppDataDir = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + Constants.NPP_BACKUP_DIR;
             try

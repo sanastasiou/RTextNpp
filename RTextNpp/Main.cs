@@ -11,6 +11,7 @@ using RTextNppPlugin.Parsing;
 using RTextNppPlugin.RText;
 using RTextNppPlugin.Utilities;
 using RTextNppPlugin.Utilities.WpfControlHost;
+using RTextNppPlugin.Utilities.Settings;
 using RTextNppPlugin.WpfControls;
 using WindowsSubclassWrapper;
 
@@ -68,11 +69,11 @@ namespace RTextNppPlugin
     partial class Plugin
     {
         #region [Fields]
-        private static ConnectorManager _connectorManager                               = new ConnectorManager();
-        private static Settings _settings                                               = new Settings(Npp.Instance);
+        private static ISettings _settings                                              = new Settings(Npp.Instance);
+        private static ConnectorManager _connectorManager                               = new ConnectorManager(_settings);
         private static PersistentWpfControlHost<ConsoleOutputForm> _consoleOutput       = new PersistentWpfControlHost<ConsoleOutputForm>(Settings.RTextNppSettings.ConsoleWindowActive, new ConsoleOutputForm(_connectorManager), _settings, Npp.Instance);        
-        private static Options _options                                                 = new Options();
-        private static FileModificationObserver _fileObserver                           = new FileModificationObserver();
+        private static Options _options                                                 = new Options(_settings);
+        private static FileModificationObserver _fileObserver                           = new FileModificationObserver(_settings);
         private static Dictionary<ShortcutKey, Tuple<string, Action>> internalShortcuts = new Dictionary<ShortcutKey, Tuple<string, Action>>();
         private static AutoCompletionWindow _autoCompletionForm                         = new AutoCompletionWindow(_connectorManager);
         private static Bitmap tbBmp                                                     = Properties.Resources.ConsoleIcon;
@@ -88,8 +89,6 @@ namespace RTextNppPlugin
         #endregion
 
         #region [Startup/CleanUp]
-
-        static internal Settings Settings { get { return _settings; } }
 
         static internal void CommandMenuInit()
         {
@@ -122,7 +121,7 @@ namespace RTextNppPlugin
 
         static void OnKeyInterceptorKeyDown(Keys key, int repeatCount, ref bool handled)
         {
-            if (FileUtilities.IsRTextFile() && (Npp.Instance.GetSelections() == 1) && HasScintillaFocus() && _isMenuLoopInactive)
+            if (FileUtilities.IsRTextFile(_settings) && (Npp.Instance.GetSelections() == 1) && HasScintillaFocus() && _isMenuLoopInactive)
             {
                 CSScriptIntellisense.Modifiers modifiers = CSScriptIntellisense.KeyInterceptor.GetModifiers();                
                 foreach (var shortcut in internalShortcuts.Keys)
@@ -308,7 +307,7 @@ namespace RTextNppPlugin
         {
             HandleErrors(() =>
             {
-                if (FileUtilities.IsRTextFile())
+                if (FileUtilities.IsRTextFile(_settings))
                 {
                     if (!_autoCompletionForm.IsVisible)
                     {
@@ -589,11 +588,7 @@ namespace RTextNppPlugin
 
         static internal void LoadSettings()
         {
-            //Assembly assembly = Assembly.GetExecutingAssembly();
-            //FileVersionInfo fvi = FileVersionInfo.GetVersionInfo(assembly.Location);
-            //string version = fvi.FileVersion;
-
-            if (Plugin.Settings.Get<bool>(Utilities.Settings.RTextNppSettings.ConsoleWindowActive))
+            if ( _settings.Get<bool>(Settings.RTextNppSettings.ConsoleWindowActive))
             {
                 ShowConsoleOutput();
                 Win32.SendMessage(nppData._nppHandle, NppMsg.NPPM_SETMENUITEMCHECK, _funcItems.Items[0]._cmdID, 1);

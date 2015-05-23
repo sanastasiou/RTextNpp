@@ -2,12 +2,13 @@
 
 namespace Tests.Utilities
 {
-    using NUnit.Framework;
-    using RTextNppPlugin.Utilities;
-    using RTextNppPlugin.Utilities.WpfControlHost;
+    using System.Threading;
     using System.Windows.Forms;
     using Moq;
-    using System.Threading;
+    using NUnit.Framework;
+    using RTextNppPlugin.Utilities;
+    using RTextNppPlugin.Utilities.Settings;
+    using RTextNppPlugin.Utilities.WpfControlHost;
 
     [TestFixture]
     class WpfControlHostTests
@@ -187,9 +188,10 @@ namespace Tests.Utilities
         public void PersistentHostTest()
         {
             var nppMock = new Mock<INpp>();
+            var nppIsMock = new Mock<ISettings>();
             Form f = new Form();
-            Settings s = new Settings(nppMock.Object);
-            PersistentWpfControlHost<Form> aHost = new PersistentWpfControlHost<Form>(Settings.RTextNppSettings.ConsoleWindowActive, f, s, nppMock.Object);
+
+            PersistentWpfControlHost<Form> aHost = new PersistentWpfControlHost<Form>(Settings.RTextNppSettings.ConsoleWindowActive, f, nppIsMock.Object, nppMock.Object);
             aHost.OnVisibilityChanged(null, new EventArgs());
         }
     }

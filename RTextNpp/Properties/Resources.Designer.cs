@@ -315,6 +315,24 @@ namespace RTextNppPlugin.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot; ?&gt;
+        ///&lt;configuration&gt;
+        ///    &lt;appSettings&gt;
+        ///        &lt;add key=&quot;AutoLoadWorkspace&quot; value=&quot;True&quot; /&gt;
+        ///        &lt;add key=&quot;ConsoleWindowActive&quot; value=&quot;True&quot; /&gt;
+        ///        &lt;add key=&quot;AutoSaveFiles&quot; value=&quot;True&quot; /&gt;
+        ///        &lt;add key=&quot;AutoChangeWorkspace&quot; value=&quot;True&quot; /&gt;
+        ///        &lt;add key=&quot;ExcludeExtensions&quot; value=&quot;meta;&quot; /&gt;
+        ///    &lt;/appSettings&gt;
+        ///&lt;/configuration&gt;.
+        /// </summary>
+        internal static string RTextNpp_dll {
+            get {
+                return ResourceManager.GetString("RTextNpp_dll", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Show auto-complete list.
         /// </summary>
         internal static string SHOW_AUTO_COMPLETION_LIST_NAME {

@@ -1,34 +1,39 @@
 ﻿using System.Windows.Forms;
 using RTextNppPlugin.Utilities;
 using System.Text.RegularExpressions;
+using RTextNppPlugin.Utilities.Settings;
 
 namespace RTextNppPlugin.Forms
 {
-    public partial class Options : Form
+    internal partial class Options : Form
     {
-        public Options()
+        #region [Data Members]
+        ISettings _settings = null;
+        #endregion
+
+        internal Options(ISettings settings)
         {
+            _settings = settings;
             InitializeComponent();
-            RestoreSettings();
         }
 
-        public void SaveSettings()
+        internal void SaveSettings()
         {
-            Plugin.Settings.Set(AutoChangeWorkspace, Settings.RTextNppSettings.AutoChangeWorkspace);
-            Plugin.Settings.Set(AutoLoadWorkspace, Settings.RTextNppSettings.AutoLoadWorkspace);
-            Plugin.Settings.Set(AutoSaveFiles, Settings.RTextNppSettings.AutoSaveFiles);
-            Plugin.Settings.Set(_excludeExtensionsTextBox.Text, Settings.RTextNppSettings.ExcludeExtensions);
+            _settings.Set(AutoChangeWorkspace, Settings.RTextNppSettings.AutoChangeWorkspace);
+            _settings.Set(AutoLoadWorkspace, Settings.RTextNppSettings.AutoLoadWorkspace);
+            _settings.Set(AutoSaveFiles, Settings.RTextNppSettings.AutoSaveFiles);
+            _settings.Set(_excludeExtensionsTextBox.Text, Settings.RTextNppSettings.ExcludeExtensions);
         }
 
-        public void RestoreSettings()
+        internal void RestoreSettings()
         {
-            AutoLoadWorkspace              = Plugin.Settings.Get<bool>(Settings.RTextNppSettings.AutoLoadWorkspace);
-            AutoSaveFiles                  = Plugin.Settings.Get<bool>(Settings.RTextNppSettings.AutoSaveFiles);
-            AutoChangeWorkspace            = Plugin.Settings.Get<bool>(Settings.RTextNppSettings.AutoChangeWorkspace);
-            _excludeExtensionsTextBox.Text = Plugin.Settings.Get(Settings.RTextNppSettings.ExcludeExtensions);
+            AutoLoadWorkspace              = _settings.Get<bool>(Settings.RTextNppSettings.AutoLoadWorkspace);
+            AutoSaveFiles                  = _settings.Get<bool>(Settings.RTextNppSettings.AutoSaveFiles);
+            AutoChangeWorkspace            = _settings.Get<bool>(Settings.RTextNppSettings.AutoChangeWorkspace);
+            _excludeExtensionsTextBox.Text = _settings.Get(Settings.RTextNppSettings.ExcludeExtensions);
         }
 
-        public bool AutoLoadWorkspace
+        internal bool AutoLoadWorkspace
         {
             get
             {
@@ -40,7 +45,7 @@ namespace RTextNppPlugin.Forms
             }
         }
 
-        public bool AutoSaveFiles
+        internal bool AutoSaveFiles
         {
             get
             {
@@ -52,7 +57,7 @@ namespace RTextNppPlugin.Forms
             }
         }
 
-        public bool AutoChangeWorkspace
+        internal bool AutoChangeWorkspace
         {
             get
             {
@@ -66,6 +71,7 @@ namespace RTextNppPlugin.Forms
 
         private void OnOptionsFormLoad(object sender, System.EventArgs e)
         {
+            RestoreSettings();
             _tooltipPlaceholder.SetToolTip(_autoloadWorkspaceCheckButton, "Check to automatically load the corresponding workspace of an automate file upon opening the file.");
             _tooltipPlaceholder.SetToolTip(_autoSaveFileCheckBox, "Check to automatically save all relevant files of a workspace if any workspace file is modified.");
             _tooltipPlaceholder.SetToolTip(_autoSelectWorkspaceCheckBox, "Check to automatically select the correct workspace base on the currently viewed file.");

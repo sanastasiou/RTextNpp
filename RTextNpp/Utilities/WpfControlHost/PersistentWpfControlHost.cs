@@ -2,11 +2,12 @@
 
 namespace RTextNppPlugin.Utilities.WpfControlHost
 {
+    using RTextNppPlugin.Utilities.Settings;
     internal class PersistentWpfControlHost<T> : WpfControlHostBase<T>, IDisposable where T : System.Windows.Forms.Form
     {
         #region [Interface]
 
-        public PersistentWpfControlHost(Settings.RTextNppSettings persistenceKey, T elementHost, Settings settings, INpp nppHelper ) : base(elementHost, nppHelper)
+        public PersistentWpfControlHost(Settings.RTextNppSettings persistenceKey, T elementHost, ISettings settings, INpp nppHelper ) : base(elementHost, nppHelper)
         {
             _key      = persistenceKey;
             _settings = settings;
@@ -25,7 +26,7 @@ namespace RTextNppPlugin.Utilities.WpfControlHost
 
         #region [Data members]
         readonly Settings.RTextNppSettings _key;
-        readonly Settings _settings;
+        readonly ISettings _settings;
         #endregion
     }
 }
