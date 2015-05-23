@@ -3,6 +3,7 @@ namespace RTextNppPlugin.Utilities
 {
     public interface INpp
     {
+        void ChangeMenuItemCheck(int CmdId, bool isChecked);
         void AddText(string s);
         void ClearIndicator(int indicator, int startPos, int endPos);
         void ClearSelection();

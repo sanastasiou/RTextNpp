@@ -61,6 +61,7 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -76,6 +77,8 @@
     <Compile Include="StateMachineTests\StateMachineTests.cs" />
     <Compile Include="Utilities\ActionWrapperTests.cs" />
     <Compile Include="Utilities\BindingProxyTests.cs" />
+    <Compile Include="Utilities\DispatcherUtil.cs" />
+    <Compile Include="Utilities\WpfControlHostTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

@@ -1,8 +1,8 @@
 ﻿using System.ComponentModel;
 using RTextNppPlugin.WpfControls;
+using System.Diagnostics.CodeAnalysis;
 
-
-namespace RTextNppPlugin
+namespace RTextNppPlugin.Forms
 {
     partial class ConsoleOutputForm
     {

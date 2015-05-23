@@ -70,7 +70,7 @@ namespace RTextNppPlugin
         #region [Fields]
         private static ConnectorManager _connectorManager                               = new ConnectorManager();
         private static Settings _settings                                               = new Settings(Npp.Instance);
-        private static PersistentWpfControlHost<ConsoleOutputForm> _consoleOutput       = new PersistentWpfControlHost<ConsoleOutputForm>(Settings.RTextNppSettings.ConsoleWindowActive, new ConsoleOutputForm(_connectorManager), _settings);        
+        private static PersistentWpfControlHost<ConsoleOutputForm> _consoleOutput       = new PersistentWpfControlHost<ConsoleOutputForm>(Settings.RTextNppSettings.ConsoleWindowActive, new ConsoleOutputForm(_connectorManager), _settings, Npp.Instance);        
         private static Options _options                                                 = new Options();
         private static FileModificationObserver _fileObserver                           = new FileModificationObserver();
         private static Dictionary<ShortcutKey, Tuple<string, Action>> internalShortcuts = new Dictionary<ShortcutKey, Tuple<string, Action>>();
@@ -382,7 +382,6 @@ namespace RTextNppPlugin
             if (!_consoleInitialized)
             {
                 _consoleInitialized = true;
-                _consoleOutput.SetNppHandle(nppData._nppHandle);
 
                 using (Bitmap newBmp = new Bitmap(16, 16))
                 {

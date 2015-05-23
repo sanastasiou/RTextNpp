@@ -2,11 +2,11 @@
 
 namespace RTextNppPlugin.Utilities.WpfControlHost
 {
-    class PersistentWpfControlHost<T> : WpfControlHostBase<T>, IDisposable where T : System.Windows.Forms.Form
+    internal class PersistentWpfControlHost<T> : WpfControlHostBase<T>, IDisposable where T : System.Windows.Forms.Form
     {
         #region [Interface]
 
-        public PersistentWpfControlHost(Settings.RTextNppSettings persistenceKey, T elementHost, Settings settings ) : base(elementHost)
+        public PersistentWpfControlHost(Settings.RTextNppSettings persistenceKey, T elementHost, Settings settings, INpp nppHelper ) : base(elementHost, nppHelper)
         {
             _key      = persistenceKey;
             _settings = settings;
@@ -15,7 +15,7 @@ namespace RTextNppPlugin.Utilities.WpfControlHost
         #endregion
 
         #region [Implementation Details]
-        protected override void OnVisibilityChanged(object sender, EventArgs e)
+        internal override void OnVisibilityChanged(object sender, EventArgs e)
         {
             base.OnVisibilityChanged(sender, e);
             _settings.Set(base.Visible, _key);

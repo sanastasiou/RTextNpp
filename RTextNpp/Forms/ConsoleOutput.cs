@@ -3,9 +3,11 @@ using System.Windows.Forms;
 using System.ComponentModel;
 using RTextNppPlugin.WpfControls;
 using RTextNppPlugin.RText;
+using System.Diagnostics.CodeAnalysis;
 
-namespace RTextNppPlugin
+namespace RTextNppPlugin.Forms
 {
+    [ExcludeFromCodeCoverage]
     partial class ConsoleOutputForm : Form
     {
         internal ConsoleOutputForm(ConnectorManager cmanager)

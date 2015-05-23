@@ -1,6 +1,6 @@
 ﻿using System;
-using System.Timers;
 using System.Diagnostics;
+using System.Timers;
 
 namespace RTextNppPlugin.Utilities.WpfControlHost
 {
@@ -12,7 +12,7 @@ namespace RTextNppPlugin.Utilities.WpfControlHost
      * \tparam  T   Generic type parameter which has to be a wpf control host.
      *                   
      */
-    class WpfControlHostBase<T> : IDisposable where T : System.Windows.Forms.Form
+    internal class WpfControlHostBase<T> : IDisposable where T : System.Windows.Forms.Form
     {
 
         #region Interface
@@ -22,41 +22,29 @@ namespace RTextNppPlugin.Utilities.WpfControlHost
          *
          * \return  The element host.
          */
-        public T ElementHost { get { return _elementHost; } }
+        internal T ElementHost { get { return _elementHost; } }
        
         /**
          * Constructor.
          *
          * \param   settingKey  The key for the persistence setting.
          */
-        public WpfControlHostBase(T elementHost)
+        internal WpfControlHostBase(T elementHost, INpp nppHelper)
         {
             Trace.WriteLine("WpfControlHostBase()");
-            _elementHost = elementHost;
+            _elementHost                = elementHost;
             _elementHost.VisibleChanged += OnVisibilityChanged;
-            _elementHost.Move += OnElementHostMove;
+            _elementHost.Move           += OnElementHostMove;
             _elementHost.PaddingChanged += OnElementHostMove;
-            _elementHost.Resize += OnElementHostMove;
-            _refreshTimer.Elapsed += OnRefreshTimerElapsed;
-            _refreshTimer.Enabled = true;
-            _refreshTimer.AutoReset = true;
-        }
-
-        public T WpfHost
-        {
-            get
-            {
-                return (T)_elementHost;
-            }
-        }
-
-        public void SetNppHandle(IntPtr handle)
-        {
-            NPP_HANDLE = handle;
+            _elementHost.Resize         += OnElementHostMove;
+            _refreshTimer.Elapsed       += OnRefreshTimerElapsed;
+            _refreshTimer.Enabled       = true;
+            _refreshTimer.AutoReset     = true;
+            _nppHelper                  = nppHelper;
         }
 
         /**
-         * Public implementation of Dispose pattern callable by consumers.
+         * internal implementation of Dispose pattern callable by consumers.
          */
         public void Dispose()
         {
@@ -69,7 +57,7 @@ namespace RTextNppPlugin.Utilities.WpfControlHost
          *
          * \return  true if visible, false if not.
          */
-        public bool Visible
+        internal bool Visible
         {
             get
             {
@@ -90,7 +78,7 @@ namespace RTextNppPlugin.Utilities.WpfControlHost
          *
          * \return  true if it succeeds, false if it fails.
          */
-        public bool Focus()
+        internal bool Focus()
         {
             if (_elementHost.InvokeRequired)
             {
@@ -99,7 +87,7 @@ namespace RTextNppPlugin.Utilities.WpfControlHost
             return _elementHost.Focus();
         }
 
-        public int CmdId
+        internal int CmdId
         {
             set
             {
@@ -112,13 +100,13 @@ namespace RTextNppPlugin.Utilities.WpfControlHost
                     _cmdId = value;
                 }
             }
-            private get
+            get
             {
                 return _cmdId;
             }
         }
 
-        public IntPtr Handle
+        internal IntPtr Handle
         {
             get
             {
@@ -130,20 +118,6 @@ namespace RTextNppPlugin.Utilities.WpfControlHost
             }
         }
 
-        public bool Created
-        {
-            get
-            {
-                if (_elementHost.InvokeRequired)
-                {
-                    return (bool)_elementHost.Invoke(new Func<bool>(IsCreated));
-                }
-                else
-                {
-                    return IsCreated();
-                }
-            }
-        }
         #endregion
 
         #region [Event Handlers]
@@ -152,23 +126,16 @@ namespace RTextNppPlugin.Utilities.WpfControlHost
         {
             _refreshTimer.Elapsed -= OnRefreshTimerElapsed;
             //update check box - special case where update box has false value after plugin initialization...
-            Win32.SendMessage(NPP_HANDLE, NppMsg.NPPM_SETMENUITEMCHECK, CmdId, _elementHost.Visible ? 1 : 0);
+            _nppHelper.ChangeMenuItemCheck(_cmdId, _elementHost.Visible);
             if (_refreshNeeded)
             {
-                if (_elementHost.InvokeRequired)
-                {
-                    _elementHost.BeginInvoke((Action)(() => { _elementHost.Refresh(); }));
-                }
-                else
-                {
-                    _elementHost.Refresh();
-                }
+                _elementHost.BeginInvoke((Action)(() => { _elementHost.Refresh(); }));
                 _refreshNeeded = false;
             }
             _refreshTimer.Elapsed += OnRefreshTimerElapsed;
         }
 
-        void OnElementHostMove(object sender, EventArgs e)
+        private void OnElementHostMove(object sender, EventArgs e)
         {
             _refreshNeeded = true;
         }
@@ -179,9 +146,9 @@ namespace RTextNppPlugin.Utilities.WpfControlHost
          * \param   sender  Source of the event.
          * \param   e       Event information to send to registered event handlers.
          */
-        protected virtual void OnVisibilityChanged(object sender, EventArgs e)
+        internal virtual void OnVisibilityChanged(object sender, EventArgs e)
         {
-            Win32.SendMessage(NPP_HANDLE, NppMsg.NPPM_SETMENUITEMCHECK, CmdId, _elementHost.Visible ? 1 : 0);
+            _nppHelper.ChangeMenuItemCheck(_cmdId, _elementHost.Visible);
             if (_elementHost.Visible)
             {
                 _refreshTimer.Start();
@@ -199,6 +166,7 @@ namespace RTextNppPlugin.Utilities.WpfControlHost
         /**
          * Finaliser.
          */
+        [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
         ~WpfControlHostBase()
         {
             Dispose(false);
@@ -214,20 +182,15 @@ namespace RTextNppPlugin.Utilities.WpfControlHost
 
             if (disposing)
             {
-                _refreshTimer.Enabled = false;
-                _refreshTimer.AutoReset = false;
+                _refreshTimer.Enabled       = false;
+                _refreshTimer.AutoReset     = false;
                 _elementHost.VisibleChanged -= OnVisibilityChanged;
-                _elementHost.Move -= OnElementHostMove;
+                _elementHost.Move           -= OnElementHostMove;
                 _elementHost.PaddingChanged -= OnElementHostMove;
-                _elementHost.Resize -= OnElementHostMove;
-                _refreshTimer.Elapsed -= OnRefreshTimerElapsed;
+                _elementHost.Resize         -= OnElementHostMove;
+                _refreshTimer.Elapsed       -= OnRefreshTimerElapsed;
             }
             disposed = true;
-        }
-
-        private void SetHandle(IntPtr handle)
-        {
-            NPP_HANDLE = handle;
         }
 
         private IntPtr GetHandle()
@@ -235,22 +198,12 @@ namespace RTextNppPlugin.Utilities.WpfControlHost
             return _elementHost.Handle;
         }
 
-        bool IsCreated()
-        {
-            if (!_isCreated)
-            {
-                _isCreated = true;
-                return false;
-            }
-            return true;
-        }
-
-        bool IsVisible()
+        private bool IsVisible()
         {
             return _elementHost.Visible;
         }
 
-        void SetCmdId(int id)
+        private void SetCmdId(int id)
         {
             _cmdId = id;
         }
@@ -259,13 +212,12 @@ namespace RTextNppPlugin.Utilities.WpfControlHost
 
         #region [Data Members]
 
-        private IntPtr NPP_HANDLE = IntPtr.Zero;                                  //!< Notepad++ main window handle.
-        private T _elementHost;                                                   //!< The element host to be redrawed.
-        private Timer _refreshTimer = new Timer(Constants.FORM_INTERVAL_REFRESH); //!< The timer, which if expired, shall refresh the element host window.
-        private bool disposed = false;                                            //!< Has the disposed method already been called.
-        private bool _isCreated = false;                                          //!< Indicates if windows was created.
-        private int _cmdId = 0;                                                   //!< Indicates the cmd id, needed to set check box on menu items.
-        private bool _refreshNeeded = false;                                      //!< Indicates that a control refresh is needed, e.g. after a move.
+        private readonly INpp _nppHelper = null;                                       //!< Npp helper instance, used to communicate with Npp.
+        private T _elementHost;                                                        //!< The element host to be redrawed.
+        private Timer _refreshTimer      = new Timer(Constants.FORM_INTERVAL_REFRESH); //!< The timer, which if expired, shall refresh the element host window.
+        private bool disposed            = false;                                      //!< Has the disposed method already been called.
+        private int _cmdId               = 0;                                          //!< Indicates the cmd id, needed to set check box on menu items.
+        private bool _refreshNeeded      = false;                                      //!< Indicates that a control refresh is needed, e.g. after a move.
         #endregion
     }
 }

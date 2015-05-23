@@ -33,6 +33,8 @@
                             <Exclude>
                                 <Function>^((?!(RTextNppPlugin|CSScriptIntellisense)).)*$</Function>
                                 <Function>^.*?CreateInstanceCore.*$</Function>
+                                <Function>^RTextNppPlugin.Forms.ConsoleOutput.*$</Function>
+                                <Function>^.*?~.*$</Function>
                             </Exclude>
                         </Functions>
                     </CodeCoverage>
