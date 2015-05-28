@@ -78,8 +78,10 @@
     <Compile Include="Utilities\ActionWrapperTests.cs" />
     <Compile Include="Utilities\BindingProxyTests.cs" />
     <Compile Include="Utilities\ConfiguratorTests.cs" />
+    <Compile Include="Utilities\DelayedEventHandlerTests.cs" />
     <Compile Include="Utilities\DispatcherUtil.cs" />
     <Compile Include="Utilities\SettingsTests.cs" />
+    <Compile Include="Utilities\TestWithActiveDispatcher.cs" />
     <Compile Include="Utilities\WpfControlHostTests.cs" />
   </ItemGroup>
   <ItemGroup>

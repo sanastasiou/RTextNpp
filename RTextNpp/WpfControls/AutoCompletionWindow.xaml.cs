@@ -184,9 +184,9 @@ namespace RTextNppPlugin.WpfControls
         KeyInterceptor _keyMonitor                                  = new KeyInterceptor();
         AutoCompletionMouseMonitor _autoCompletionMouseMonitor      = new AutoCompletionMouseMonitor();
         ToolTip _previouslyOpenedToolTip                            = null;
-        DelayedEventHandler<ToolTip> _delayedToolTipHandler         = null;
-        
+        DelayedEventHandler _delayedToolTipHandler                  = null;
 
+        
         #endregion
 
         #region [Interface]
@@ -236,8 +236,8 @@ namespace RTextNppPlugin.WpfControls
             _keyMonitor.KeysToIntercept.Add((int)System.Windows.Forms.Keys.PageUp);
             _keyMonitor.KeysToIntercept.Add((int)System.Windows.Forms.Keys.PageDown);
             _keyMonitor.KeyDown += OnKeyMonitorKeyDown;
-            _delayedFilterEventHandler = new DelayedEventHandler(PostProcessKeyPressed, 100);
-            _delayedToolTipHandler     = new DelayedEventHandler<System.Windows.Controls.ToolTip>(OnToolTipDelayedHandlerExpired, 1000, System.Windows.Threading.DispatcherPriority.ApplicationIdle);
+            _delayedFilterEventHandler = new DelayedEventHandler(new ActionWrapper(PostProcessKeyPressed), 100);
+            _delayedToolTipHandler     = new DelayedEventHandler(new ActionWrapper<System.Windows.Controls.ToolTip>(OnToolTipDelayedHandlerExpired, null), 1000, System.Windows.Threading.DispatcherPriority.ApplicationIdle);
             IsOnTop = false;
         }
 
@@ -579,13 +579,13 @@ namespace RTextNppPlugin.WpfControls
         {
             var border  = sender as Border;
             var context = border.DataContext as AutoCompletionViewModel.Completion;
-            ToolTip tp  = border.ToolTip as ToolTip;
+            ToolTip tp = border.ToolTip as ToolTip;
             if (context.IsSelected)
             {
                 tp.PlacementTarget = border;
-                tp.Placement       = System.Windows.Controls.Primitives.PlacementMode.Right;
+                tp.Placement = System.Windows.Controls.Primitives.PlacementMode.Right;
                 HidePreviouslyOpenedTooltip(tp);
-                _delayedToolTipHandler.TriggerHandler(tp);
+                _delayedToolTipHandler.TriggerHandler(new ActionWrapper<System.Windows.Controls.ToolTip>(OnToolTipDelayedHandlerExpired, tp));
             }
         }
 

@@ -1,16 +1,14 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Windows.Forms;
 using System.Windows.Threading;
 
 namespace RTextNppPlugin.Utilities
 {
-    class DelayedEventHandler
+    internal class DelayedEventHandler
     {
         #region [Data Members]
 
         private DispatcherTimer _timer = null;
-        private Action _handler        = null;     
+        private IActionWrapper _action = null;
 
         #endregion
 
@@ -18,22 +16,29 @@ namespace RTextNppPlugin.Utilities
 
 
 
-        public DelayedEventHandler(Action handler, double milliseconds, DispatcherPriority priority = DispatcherPriority.ApplicationIdle)
+        internal DelayedEventHandler(IActionWrapper action, double milliseconds, DispatcherPriority priority = DispatcherPriority.ApplicationIdle)
         {
-            _handler         = handler;
+            _action         = action;
             _timer           = new DispatcherTimer(priority);
             _timer.Interval  = TimeSpan.FromMilliseconds(milliseconds);
             _timer.Tick      += OnIntervalTick;
             Cancel();
         }
 
-        public void TriggerHandler()
+        internal void TriggerHandler()
         {
             _timer.Start();
             _timer.IsEnabled = true;
         }
 
-        public void Cancel()
+        internal void TriggerHandler(IActionWrapper action)
+        {
+            _action = action;
+            _timer.Start();
+            _timer.IsEnabled = true;
+        }
+
+        internal void Cancel()
         {
             _timer.Stop();
             _timer.IsEnabled = false;
@@ -46,56 +51,8 @@ namespace RTextNppPlugin.Utilities
         void OnIntervalTick(object sender, EventArgs e)
         {
             Cancel();
-            _handler.Invoke();
+            _action.DoAction();
         }              
         #endregion
-    }
-
-    class DelayedEventHandler<T>
-    {
-        #region [Data Members]
-
-        private DispatcherTimer _timer = null;
-        private Action<T> _handler = null;
-        private T _arg = default(T);
-
-        #endregion
-
-        #region [Interface]
-
-
-
-        public DelayedEventHandler(Action<T> handler, double milliseconds, DispatcherPriority priority = DispatcherPriority.ApplicationIdle)
-        {
-            _handler = handler;
-            _timer = new DispatcherTimer(priority);
-            _timer.Interval = TimeSpan.FromMilliseconds(milliseconds);
-            _timer.Tick += OnIntervalTick;
-            Cancel();
-        }
-
-        public void TriggerHandler(T arg)
-        {
-            _arg = arg;
-            _timer.Start();
-            _timer.IsEnabled = true;
-        }
-
-        public void Cancel()
-        {
-            _timer.Stop();
-            _timer.IsEnabled = false;
-        }
-
-        #endregion
-
-        #region [Event Handlers]
-
-        void OnIntervalTick(object sender, EventArgs e)
-        {
-            Cancel();
-            _handler.Invoke(_arg);
-        }
-        #endregion
-    }
+    }    
 }

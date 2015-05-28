@@ -34,7 +34,7 @@ namespace RTextNppPlugin.Utilities
             _action(_arg1, _arg2);
         }
 
-        public ActionWrapper(Action<T1, T2> action, T1 arg1, T2 arg2)
+        public ActionWrapper(Action<T1, T2> action, T1 arg1 = default(T1), T2 arg2 = default(T2))
         {
             _action = action;
             _arg1 = arg1;
@@ -54,7 +54,7 @@ namespace RTextNppPlugin.Utilities
             _action(_arg1, _arg2, _arg3);
         }
 
-        public ActionWrapper(Action<T1, T2, T3> action, T1 arg1, T2 arg2, T3 arg3)
+        public ActionWrapper(Action<T1, T2, T3> action, T1 arg1 = default(T1), T2 arg2 = default(T2), T3 arg3 = default(T3))
         {
             _action = action;
             _arg1 = arg1;
