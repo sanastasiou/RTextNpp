@@ -129,19 +129,13 @@ namespace RTextNppPlugin.Utilities
             Win32.SendMessage(Plugin.nppData._nppHandle, NppMsg.NPPM_GETPLUGINSCONFIGDIR, Win32.MAX_PATH, sbIniFilePath);
             string configDir = sbIniFilePath.ToString();
 
-            try
+            if (Directory.Exists(configDir))
             {
-                if (Directory.Exists(configDir))
-                {
-                    return configDir;
-                }
-                return null;
+                return configDir;
             }
-            catch (Exception)
-            {
-                return null;
-            }
+            return null;
         }
+
 
         /**
          * \brief   Query if 'settings' is r text file.

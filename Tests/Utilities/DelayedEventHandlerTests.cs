@@ -92,7 +92,7 @@ namespace Tests.Utilities
         private void TriggerMultiple()
         {
             _noArgHandler.TriggerHandler();
-            _noArgHandler.TriggerHandler();
+            _noArgHandler.TriggerHandler(new ActionWrapper(() => { _isNoArgHandlerCalled = true; ++_count; }));
         }
 
         private void TriggerCancel()

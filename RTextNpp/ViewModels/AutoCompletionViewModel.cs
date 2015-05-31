@@ -323,8 +323,8 @@ namespace RTextNppPlugin.ViewModels
                 {
                     case ConnectorStates.Disconnected:
                         _completionList.Add(CreateWarningCompletion(Properties.Resources.ERR_BACKEND_CONNECTING, Properties.Resources.ERR_BACKEND_CONNECTING_DESC));
-                        _connector.BeginExecute(_connector.LOAD_COMMAND, RText.StateEngine.Command.LoadModel);
                         _isWarningCompletionActive = true;
+                        await _connector.ExecuteAsync<AutoCompleteAndReferenceRequest>(aRequest, Constants.SYNCHRONOUS_COMMANDS_TIMEOUT, Command.Execute);                        
                         break;
                     case ConnectorStates.Busy:
                     case ConnectorStates.Loading:

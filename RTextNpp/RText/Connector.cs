@@ -189,17 +189,20 @@ namespace RTextNppPlugin.RText
 
         public async Task<IResponseBase> ExecuteAsync<Command>(Command command, int timeout, StateEngine.Command cmd) where Command : RequestBase
         {
-            if (command == null)
+            if (!IsBusy())
             {
-                throw new InvalidOperationException("Command argument cannot be null.");
-            }
-            if (IsExecutionAllowed())
-            {
-                mCancelled = false;
-                _currentState.ExecuteCommand(StateEngine.Command.Execute);
+                UpdateFsmAndPendingCommand(command, cmd);
                 return await SendAsync<Command>(command, timeout);
             }
-            return null;
+            else
+            {
+                bool isProcessStarted = await RestartService();
+                if (isProcessStarted)
+                {
+                    EnsureModelIsLoaded();
+                }
+                return null;
+            }
         }
 
         /**
@@ -216,13 +219,20 @@ namespace RTextNppPlugin.RText
          * \note    Users of this function must be prepared to receive null, as indication that
          *          something went wrong.
          */
-        public void BeginExecute<Command>(Command command, StateEngine.Command cmd) where Command : RequestBase
+        public async Task BeginExecute<Command>(Command command, StateEngine.Command cmd) where Command : RequestBase
         {
-            if (IsExecutionAllowed())
+            if (!IsBusy())
             {
-                mCancelled = false;
-                _currentState.ExecuteCommand(cmd);
+                UpdateFsmAndPendingCommand(command, cmd);
                 BeginSend<Command>(command);                
+            }
+            else
+            {
+                bool isProcessStarted = await RestartService();
+                if (isProcessStarted)
+                {
+                    EnsureModelIsLoaded();
+                }
             }
         }
                
@@ -243,27 +253,20 @@ namespace RTextNppPlugin.RText
         #region Helpers
 
         /**
-         * \brief   Begins an async send. Just send a command without caring about the response of the backend.
-         *          Callers of this function should subscribe to CommandExecuted event to be able to receive a response.
-         *          Usually used for long running commands like load_model.
+         * Begins an async send. Just send a command without caring about the response of the backend.
+         * Callers of this function should subscribe to CommandExecuted event to be able to receive a
+         * response. Usually used for long running commands like load_model.
          *
          * \tparam  Command Type of the command.
          * \param   command The command.
-         * \param   cmd     The state machine command pointing to the next state.
-         */
+         *
+         */        
         private void BeginSend<Command>(Command command) where Command : RequestBase
         {
             bool aHasErrorOccured = false;
             try
             {
-                command.invocation_id = mInvocationId++;
-                mActiveCommand = command.command;
-                byte[] msg = null;
-                using (var output = new StringWriter())
-                {
-                    JSON.Serialize<Command>(command, output, Options.IncludeInherited);
-                    msg = PrepareRequestString(output);
-                }
+                byte[] msg = GetCommandAsByteArray(command);
 
                 if (mConnection.SendRequest(msg) != msg.Length)
                 {
@@ -295,19 +298,20 @@ namespace RTextNppPlugin.RText
             }
         }
 
+        /**
+         * Sends a command while waiting asynchronously for a respone.
+         *
+         * \tparam  Command Type of the command.
+         * \param   command The command.
+         * \param   timeout The timeout to wait after which the command will be responed with null.
+         *
+         * \return  The response from the backend.
+         */
         private async Task<IResponseBase> SendAsync<Command>(Command command, int timeout) where Command : RequestBase
         {
-            command.invocation_id = mInvocationId++;
             try
             {
-                mActiveCommand = command.command;
-                byte[] msg = null;
-
-                using (var output = new StringWriter())
-                {
-                    JSON.Serialize<Command>(command, output, Options.IncludeInherited);
-                    msg = PrepareRequestString(output);
-                }
+                byte[] msg = GetCommandAsByteArray(command);
 
                 // Send the data through the socket.
                 //wait for manual reset event which indicates that the response has arrived
@@ -577,30 +581,39 @@ namespace RTextNppPlugin.RText
             return Encoding.ASCII.GetBytes(aExtendedString.ToString());
         }
 
-        /**
-         * \brief   Query if this command execution is allowed.
-         *
-         * \return  true if execution is allowed, false if not.
-         */
-        private bool IsExecutionAllowed()
+        private async Task<bool> RestartService()
         {
             if (mBackendProcess.HasExited)
             {
                 Logging.Logger.Instance.Append(Logging.Logger.MessageType.Error, mBackendProcess.Workspace, "RTextService is not running. Trying to restart service...");
-                mBackendProcess.StartRTextService();
+                return await mBackendProcess.InitializeBackendAsync();
             }
-            switch (CurrentState.State)
+            return true;
+        }
+
+        private void EnsureModelIsLoaded()
+        {
+            if (CurrentState.State == ConnectorStates.Disconnected)
             {
-                case ConnectorStates.Idle:
-                    return true;
-                case ConnectorStates.Disconnected:
-                    _currentState.ExecuteCommand(Command.Connect);
-                    break;
-                default:
-                    Trace.WriteLine(String.Format("Could not execute command! State : {0}", CurrentState.State));
-                    break;
+                _currentState.ExecuteCommand(Command.Connect);
             }
-            return false;
+        }
+
+        private void UpdateFsmAndPendingCommand<Command>(Command command, StateEngine.Command cmd) where Command : RequestBase
+        {
+            mCancelled     = false;
+            mActiveCommand = command.command;
+            _currentState.ExecuteCommand(cmd);
+        }
+
+        private byte[] GetCommandAsByteArray<Command>(Command command) where Command : RequestBase
+        {
+            command.invocation_id = mInvocationId++;
+            using (var output = new StringWriter())
+            {
+                JSON.Serialize<Command>(command, output, Options.IncludeInherited);
+                return PrepareRequestString(output);
+            }
         }
 
         #endregion
@@ -636,7 +649,9 @@ namespace RTextNppPlugin.RText
         }
 
         public void OnLoadingEntry()
-        {
+        {            
+            mCancelled     = false;
+            mActiveCommand = LOAD_COMMAND.command;
             BeginSend(LOAD_COMMAND);
         }
 

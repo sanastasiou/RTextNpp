@@ -81,7 +81,7 @@ namespace RTextNppPlugin.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Could not process request..
+        ///   Looks up a localized string similar to Could not process request because backend is not running..
         /// </summary>
         internal static string CONNECTOR_INSTANCE_NULL {
             get {
@@ -90,7 +90,7 @@ namespace RTextNppPlugin.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Please take a screen shot and notify support..
+        ///   Looks up a localized string similar to Backend is restarting....
         /// </summary>
         internal static string CONNECTOR_INSTANCE_NULL_DESC {
             get {
@@ -147,7 +147,7 @@ namespace RTextNppPlugin.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Please take a screenshot and contact support..
+        ///   Looks up a localized string similar to If the problem persists please contact support..
         /// </summary>
         internal static string ERR_AUTO_COMPLETION_NULL_DESC {
             get {
@@ -318,8 +318,8 @@ namespace RTextNppPlugin.Properties {
         ///   Looks up a localized string similar to &lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot; ?&gt;
         ///&lt;configuration&gt;
         ///    &lt;appSettings&gt;
-        ///        &lt;add key=&quot;AutoLoadWorkspace&quot; value=&quot;True&quot; /&gt;
         ///        &lt;add key=&quot;ConsoleWindowActive&quot; value=&quot;True&quot; /&gt;
+        ///        &lt;add key=&quot;AutoLoadWorkspace&quot; value=&quot;True&quot; /&gt;
         ///        &lt;add key=&quot;AutoSaveFiles&quot; value=&quot;True&quot; /&gt;
         ///        &lt;add key=&quot;AutoChangeWorkspace&quot; value=&quot;True&quot; /&gt;
         ///        &lt;add key=&quot;ExcludeExtensions&quot; value=&quot;meta;&quot; /&gt;

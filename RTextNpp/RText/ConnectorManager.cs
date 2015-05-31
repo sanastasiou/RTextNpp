@@ -64,7 +64,7 @@ namespace RTextNppPlugin.RText
          *
          * \param   file    The file.
          */
-        internal void CreateConnector(string file)
+        internal async void CreateConnector(string file)
         {
             //check if file extension is an automate file
             if (FileUtilities.IsRTextFile(file, _settings))
@@ -81,16 +81,13 @@ namespace RTextNppPlugin.RText
                     Logging.Logger.Instance.Append(Logging.Logger.MessageType.Info, processKey, "Workspace root for file : {0} is : {1}", file, rTextFileLocation);
 
                     //maybe process already exists..
-                    if (_processList.ContainsKey(processKey))
-                    {
-                        if (_processList[processKey].HasExited)
-                        {
-                            _processList[processKey].StartRTextService();
-                        }
-                    }
-                    else
+                    if (!_processList.ContainsKey(processKey))
                     {
                         _processList.Add(processKey, new Utilities.RTextBackendProcess(rTextFileLocation, Path.GetExtension(file), _settings));
+                    }
+                    if (_processList[processKey].HasExited)
+                    {
+                        await _processList[processKey].InitializeBackendAsync();
                     }
 
                     if (OnConnectorAdded != null)
@@ -126,7 +123,7 @@ namespace RTextNppPlugin.RText
                 {
                     //find root of file
                     string aProcKey = FileUtilities.FindWorkspaceRoot(aCurrentFile) + Path.GetExtension(aCurrentFile);
-                    if(_processList.ContainsKey(aProcKey) && !_processList[aProcKey].HasExited)
+                    if (_processList.ContainsKey(aProcKey))
                     {
                         return _processList[aProcKey].Connector;
                     }
