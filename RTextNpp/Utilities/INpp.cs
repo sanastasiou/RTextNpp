@@ -1,8 +1,12 @@
 ﻿using System;
 namespace RTextNppPlugin.Utilities
 {
-    public interface INpp
+    internal interface INpp
     {
+        void SwitchToFile(string file);
+        void SaveFile(string file);
+        bool IsFileModified(string file);
+        string GetCurrentFilePath();
         void ChangeMenuItemCheck(int CmdId, bool isChecked);
         void AddText(string s);
         void ClearIndicator(int indicator, int startPos, int endPos);

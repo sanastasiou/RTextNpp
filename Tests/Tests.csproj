@@ -72,14 +72,22 @@
   <ItemGroup>
     <Compile Include="ContextExtraction\AutoCompletionTokenizerTests.cs" />
     <Compile Include="ContextExtraction\ContextExtractionTest.cs" />
+    <Compile Include="MoqExtensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ContextExtraction\TokenizerTests.cs" />
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
     <Compile Include="StateMachineTests\StateMachineTests.cs" />
     <Compile Include="Utilities\ActionWrapperTests.cs" />
     <Compile Include="Utilities\BindingProxyTests.cs" />
     <Compile Include="Utilities\ConfiguratorTests.cs" />
     <Compile Include="Utilities\DelayedEventHandlerTests.cs" />
     <Compile Include="Utilities\DispatcherUtil.cs" />
+    <Compile Include="Utilities\FIleModificationObserverTests.cs" />
+    <Compile Include="Utilities\FileUtilitiesTests.cs" />
     <Compile Include="Utilities\SettingsTests.cs" />
     <Compile Include="Utilities\TestWithActiveDispatcher.cs" />
     <Compile Include="Utilities\WpfControlHostTests.cs" />
@@ -96,6 +104,18 @@
   </ItemGroup>
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\RTextNpp.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\WorkspaceRoot.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

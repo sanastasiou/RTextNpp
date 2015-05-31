@@ -13,12 +13,14 @@ namespace RTextNppPlugin.Utilities
         private Dictionary<string, ModificationState> _fileList = new Dictionary<string, ModificationState>(100);
         private static object _lock = new object();
         private readonly ISettings _settings = null;
+        private readonly INpp _nppHelper = null;
         #endregion
 
         #region [Interface]
-        internal FileModificationObserver(ISettings settings)
+        internal FileModificationObserver(ISettings settings, INpp nppHelper)
         {
-            _settings = settings;
+            _settings  = settings;
+            _nppHelper = nppHelper;
         }
 
         enum ModificationState
@@ -37,8 +39,8 @@ namespace RTextNppPlugin.Utilities
          */
         internal void OnFileOpened(string filepath)
         {
-            ModificationState aFileState = FileUtilities.IsFileModified(filepath) ? ModificationState.Modified : ModificationState.Saved;
-            if (FileUtilities.IsRTextFile(filepath, _settings))
+            ModificationState aFileState = _nppHelper.IsFileModified(filepath) ? ModificationState.Modified : ModificationState.Saved;
+            if (FileUtilities.IsRTextFile(filepath, _settings, _nppHelper))
             {
                 if (!_fileList.ContainsKey(filepath))
                 {
@@ -59,7 +61,7 @@ namespace RTextNppPlugin.Utilities
          */
         internal void OnFilemodified(string filepath)
         {
-            OnFileOpened(filepath);
+            _fileList[filepath] = ModificationState.Modified;
         }
 
         /**
@@ -70,7 +72,7 @@ namespace RTextNppPlugin.Utilities
          */
         internal void OnFileUnmodified(string filepath)
         {
-            OnFileOpened(filepath);
+            _fileList[filepath] = ModificationState.Saved;
         }
 
         /**
@@ -80,7 +82,7 @@ namespace RTextNppPlugin.Utilities
          */
         internal void SaveWorkspaceFiles(string workspace)
         {
-            string aCurrentFile = FileUtilities.GetCurrentFilePath();
+            string aCurrentFile = _nppHelper.GetCurrentFilePath();
             List<string> aFileList = new List<string>(_fileList.Keys);
             foreach (var key in aFileList)
             {
@@ -88,36 +90,14 @@ namespace RTextNppPlugin.Utilities
                 {
                     if (_fileList[key] != ModificationState.Saved)
                     {
-                        FileUtilities.SaveFile(key);
+                        _nppHelper.SaveFile(key);
                         _fileList[key] = ModificationState.Saved;
                     }
                 }
             }
-            if (aCurrentFile != FileUtilities.GetCurrentFilePath())
+            if (aCurrentFile != _nppHelper.GetCurrentFilePath())
             {
-                FileUtilities.SwitchToFile(aCurrentFile);
-            }
-        }
-
-        /**
-         * Saves all not save rtext files.
-
-         */
-        internal void SaveAllFiles()
-        {
-            string aCurrentFile = FileUtilities.GetCurrentFilePath();
-            List<string> aFileList = new List<string>(_fileList.Keys);
-            foreach (var key in aFileList)
-            {
-                if (_fileList[key] != ModificationState.Saved)
-                {
-                    FileUtilities.SaveFile(key);
-                    _fileList[key] = ModificationState.Saved;
-                }
-            }
-            if (aCurrentFile != FileUtilities.GetCurrentFilePath())
-            {
-                FileUtilities.SwitchToFile(aCurrentFile);
+                _nppHelper.SwitchToFile(aCurrentFile);
             }
         }
 

@@ -70,10 +70,10 @@ namespace RTextNppPlugin
     {
         #region [Fields]
         private static ISettings _settings                                              = new Settings(Npp.Instance);
-        private static ConnectorManager _connectorManager                               = new ConnectorManager(_settings);
+        private static ConnectorManager _connectorManager                               = new ConnectorManager(_settings, Npp.Instance);
         private static PersistentWpfControlHost<ConsoleOutputForm> _consoleOutput       = new PersistentWpfControlHost<ConsoleOutputForm>(Settings.RTextNppSettings.ConsoleWindowActive, new ConsoleOutputForm(_connectorManager), _settings, Npp.Instance);        
         private static Options _options                                                 = new Options(_settings);
-        private static FileModificationObserver _fileObserver                           = new FileModificationObserver(_settings);
+        private static FileModificationObserver _fileObserver                           = new FileModificationObserver(_settings, Npp.Instance);
         private static Dictionary<ShortcutKey, Tuple<string, Action>> internalShortcuts = new Dictionary<ShortcutKey, Tuple<string, Action>>();
         private static AutoCompletionWindow _autoCompletionForm                         = new AutoCompletionWindow(_connectorManager);
         private static Bitmap tbBmp                                                     = Properties.Resources.ConsoleIcon;
@@ -121,7 +121,7 @@ namespace RTextNppPlugin
 
         static void OnKeyInterceptorKeyDown(Keys key, int repeatCount, ref bool handled)
         {
-            if (FileUtilities.IsRTextFile(_settings) && (Npp.Instance.GetSelections() == 1) && HasScintillaFocus() && _isMenuLoopInactive)
+            if (FileUtilities.IsRTextFile(_settings, Npp.Instance) && (Npp.Instance.GetSelections() == 1) && HasScintillaFocus() && _isMenuLoopInactive)
             {
                 CSScriptIntellisense.Modifiers modifiers = CSScriptIntellisense.KeyInterceptor.GetModifiers();                
                 foreach (var shortcut in internalShortcuts.Keys)
@@ -307,7 +307,7 @@ namespace RTextNppPlugin
         {
             HandleErrors(() =>
             {
-                if (FileUtilities.IsRTextFile(_settings))
+                if (FileUtilities.IsRTextFile(_settings, Npp.Instance))
                 {
                     if (!_autoCompletionForm.IsVisible)
                     {
@@ -485,7 +485,7 @@ namespace RTextNppPlugin
          */
         public static void OnFileOpened()
         {            
-            string aFileOpened = FileUtilities.GetCurrentFilePath();
+            string aFileOpened = Npp.Instance.GetCurrentFilePath();
             _connectorManager.CreateConnector(aFileOpened);
             _fileObserver.OnFileOpened(aFileOpened);
         }
@@ -495,7 +495,7 @@ namespace RTextNppPlugin
          */
         public static void OnFileConsideredModified()
         {
-            _fileObserver.OnFilemodified(FileUtilities.GetCurrentFilePath());
+            _fileObserver.OnFilemodified(Npp.Instance.GetCurrentFilePath());
         }
 
         /**
@@ -503,7 +503,7 @@ namespace RTextNppPlugin
          */
         public static void OnFileConsideredUnmodified()
         {
-            _fileObserver.OnFileUnmodified(FileUtilities.GetCurrentFilePath());
+            _fileObserver.OnFileUnmodified(Npp.Instance.GetCurrentFilePath());
         }
 
         /**

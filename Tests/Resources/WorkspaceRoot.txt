@@ -1,0 +1,5 @@
+
+
+*.atm,*.atm40:
+
+cmd /c automate-rtext-service -m 3.1.5 --ext-dir=Config/Automate/Extensions --macro-path=Config/Automate/Macros "."

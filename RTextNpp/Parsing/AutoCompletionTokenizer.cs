@@ -7,7 +7,7 @@ namespace RTextNppPlugin.Parsing
     /**
      * \brief   An automatic completion tokenizer. This class finds the token for which autocompletion is invoked.
      */
-    public class AutoCompletionTokenizer : Tokenizer
+    internal class AutoCompletionTokenizer : Tokenizer
     {
         /**
          * \brief   Constructor.
@@ -16,7 +16,7 @@ namespace RTextNppPlugin.Parsing
          * \param   currentCaretPosition    The current caret position.
          * \param   nppHelper               The npp helper which provides access to npp buffer information.
          */
-        public AutoCompletionTokenizer(int line, int currentCaretPosition, INpp nppHelper)
+        internal AutoCompletionTokenizer(int line, int currentCaretPosition, INpp nppHelper)
             : base(line, nppHelper)
         {
             _nppHelper  = nppHelper;
@@ -29,7 +29,7 @@ namespace RTextNppPlugin.Parsing
          *
          * \return  The trigger token.
          */
-        public Tokenizer.TokenTag? TriggerToken
+        internal Tokenizer.TokenTag? TriggerToken
         {
             get
             {
@@ -42,7 +42,7 @@ namespace RTextNppPlugin.Parsing
          *
          * \return  The line tokens except the token of the trigger point.
          */
-        public IEnumerable<string> LineTokens
+        internal IEnumerable<string> LineTokens
         {
             get
             {

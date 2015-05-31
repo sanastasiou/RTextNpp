@@ -99,6 +99,54 @@ namespace RTextNppPlugin.Utilities
             Win32.SendMessage(instance.CurrentScintilla, SciMsg.SCI_DELETERANGE, position, length);
         }
 
+        /**
+         * \brief   Gets current file path.
+         *
+         * \return  The file path of the currently viewed document.
+         */
+        public string GetCurrentFilePath()
+        {
+            NppMsg msg = NppMsg.NPPM_GETFULLCURRENTPATH;
+            StringBuilder path = new StringBuilder(Win32.MAX_PATH);
+            Win32.SendMessage(Plugin.nppData._nppHandle, msg, 0, path);
+            return path.ToString();
+        }
+
+        /**
+         * Query if 'file' is file modified.
+         *
+         * \param   file    The file.
+         *
+         * \return  true if file is considered to be modified, false if not.
+         */
+        public bool IsFileModified(string file)
+        {
+            IntPtr sci = Plugin.GetCurrentScintilla();
+            return ((int)Win32.SendMessage(sci, SciMsg.SCI_GETMODIFY, 0, 0) != 0);
+        }
+
+        /**
+         * Saves the currently viewed file.
+         *
+         * \param   file    The file.
+         */
+        public void SaveFile(string file)
+        {
+            Win32.SendMessage(Plugin.nppData._nppHandle, NppMsg.NPPM_SWITCHTOFILE, 0, file);
+            Win32.SendMessage(Plugin.nppData._nppHandle, NppMsg.NPPM_SAVECURRENTFILE, 0, 0);
+        }
+
+        /**
+         * Switches active view to file.
+         *
+         * \param   file    The file.
+         */
+        public void SwitchToFile(string file)
+        {
+            Win32.SendMessage(Plugin.nppData._nppHandle, NppMsg.NPPM_SWITCHTOFILE, 0, file);
+        }
+
+
         public void AddText(string s)
         {
             if (GetSelectionLength() > 1)

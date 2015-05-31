@@ -12,7 +12,7 @@ namespace Tests.Utilities
     using System.Xml;
 
     [TestFixture]
-    class ConfiguratorTestsNonExistingFile
+    class ConfiguratorTests
     {        
         [SetUp] 
         public void Init()
@@ -97,6 +97,61 @@ namespace Tests.Utilities
             s.readSetting<bool>(ref value, Settings.RTextNppSettings.AutoSaveFiles);
 
             Assert.IsTrue(value);
+        }
+
+        private ConfigurationSetter _multiThreadConfiguration = null;
+
+        [Test]
+        public void AddNameThreadSafetyTest()
+        {
+            var t1 = new Thread(SaveAutoSaveFilesSettingsMany);
+            var t2 = new Thread(SaveAutoSwitchMany);
+            var t3 = new Thread(SaveAutoSaveFilesSettingsMany);
+            var t4 = new Thread(SaveAutoSwitchMany);
+
+            var nppMock = new Mock<INpp>();
+            nppMock.Setup<string>(x => x.GetConfigDir()).Returns(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location));
+
+            _multiThreadConfiguration = new ConfigurationSetter(nppMock.Object);
+
+            t1.Priority = ThreadPriority.Lowest;
+            t2.Priority = ThreadPriority.Lowest;
+            //t3.Priority = ThreadPriority.Lowest;
+            //t4.Priority = ThreadPriority.Lowest;
+            
+            t1.Start();
+            t2.Start();
+            //t3.Start();
+            //t4.Start();
+
+            t1.Join();
+            t2.Join();
+            //t3.Join();
+            //t4.Join();
+
+            bool aAutosaveFiles       = false;
+
+            _multiThreadConfiguration.readSetting(ref aAutosaveFiles, Settings.RTextNppSettings.AutoSaveFiles);
+
+            Assert.IsTrue(aAutosaveFiles);
+        }
+
+        private void SaveAutoSaveFilesSettingsMany()
+        {
+            for (int x = 0; x < 1000; x++)
+            {
+                _multiThreadConfiguration.saveSetting<bool>(true, Settings.RTextNppSettings.AutoSaveFiles);
+            }
+        }
+
+        private void SaveAutoSwitchMany()
+        {
+            for (int x = 0; x < 1000; x++)
+            {
+                bool aAutosaveFiles = false;
+                _multiThreadConfiguration.readSetting(ref aAutosaveFiles, Settings.RTextNppSettings.AutoSaveFiles);
+                Assert.IsTrue(aAutosaveFiles);
+            }
         }
     }
 }

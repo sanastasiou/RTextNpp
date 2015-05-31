@@ -44,10 +44,11 @@ namespace RTextNppPlugin.RText
 
         #region Interface
 
-        internal ConnectorManager(ISettings settings)
+        internal ConnectorManager(ISettings settings, INpp nppHelper)
         {
-            _settings     = settings;
-             _processList = new Dictionary<string, Utilities.RTextBackendProcess>();
+            _settings    = settings;
+            _processList = new Dictionary<string, Utilities.RTextBackendProcess>();
+            _nppHelper   = nppHelper;
         }
 
         internal void ReleaseConnectors()
@@ -67,7 +68,7 @@ namespace RTextNppPlugin.RText
         internal async void CreateConnector(string file)
         {
             //check if file extension is an automate file
-            if (FileUtilities.IsRTextFile(file, _settings))
+            if (FileUtilities.IsRTextFile(file, _settings, _nppHelper))
             {
                 //identify .rtext file
                 string rTextFileLocation = FileUtilities.FindWorkspaceRoot(file);
@@ -119,7 +120,7 @@ namespace RTextNppPlugin.RText
             get
             {
                 string aCurrentFile = Npp.Instance.GetCurrentFile();
-                if (FileUtilities.IsRTextFile(aCurrentFile, _settings))
+                if (FileUtilities.IsRTextFile(aCurrentFile, _settings, _nppHelper))
                 {
                     //find root of file
                     string aProcKey = FileUtilities.FindWorkspaceRoot(aCurrentFile) + Path.GetExtension(aCurrentFile);
@@ -141,6 +142,7 @@ namespace RTextNppPlugin.RText
         private Dictionary<string, Utilities.RTextBackendProcess> _processList;
         private NppData _nppData;
         private readonly ISettings _settings = null;
+        private readonly INpp _nppHelper     = null;
         #endregion     
     }
 }

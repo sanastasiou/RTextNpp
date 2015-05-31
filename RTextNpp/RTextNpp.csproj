@@ -115,7 +115,6 @@
     <Compile Include="Utilities\DelayedEventHandler.cs" />
     <Compile Include="Utilities\FileModificationObserver.cs" />
     <Compile Include="Utilities\FileUtilities.cs" />
-    <Compile Include="Utilities\HashUtilities.cs" />
     <Compile Include="Utilities\LocalWindowsHook.cs" />
     <Compile Include="Utilities\Npp.cs" />
     <Compile Include="Utilities\ParentProcessUtilities.cs" />

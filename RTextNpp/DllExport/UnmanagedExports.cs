@@ -88,15 +88,15 @@ namespace RTextNppPlugin
                     break;
                 case (uint)NppMsg.NPPN_BUFFERACTIVATED:
                     Plugin.OnFileOpened();
-                    Logging.Logger.Instance.Append("File {0} is modification status : {1}", FileUtilities.GetCurrentFilePath(), FileUtilities.IsFileModified(FileUtilities.GetCurrentFilePath()));
+                    Logging.Logger.Instance.Append("File {0} is modification status : {1}", Npp.Instance.GetCurrentFilePath(), Npp.Instance.IsFileModified(Npp.Instance.GetCurrentFilePath()));
                     break;
                 case (uint)SciMsg.SCN_SAVEPOINTLEFT:
                     Plugin.OnFileConsideredModified();
-                    Logging.Logger.Instance.Append("Catching SCN_SAVEPOINTLEFT for file : {0}", FileUtilities.GetCurrentFilePath());
+                    Logging.Logger.Instance.Append("Catching SCN_SAVEPOINTLEFT for file : {0}", Npp.Instance.GetCurrentFilePath());
                     break;
                 case (uint)SciMsg.SCN_SAVEPOINTREACHED:
                     Plugin.OnFileConsideredUnmodified();
-                    Logging.Logger.Instance.Append("Catching SCN_SAVEPOINTREACHED for file : {0}", FileUtilities.GetCurrentFilePath());
+                    Logging.Logger.Instance.Append("Catching SCN_SAVEPOINTREACHED for file : {0}", Npp.Instance.GetCurrentFilePath());
                     break;
                 case (uint)SciMsg.SCN_ZOOM:
                     Plugin.OnZoomLevelModified();

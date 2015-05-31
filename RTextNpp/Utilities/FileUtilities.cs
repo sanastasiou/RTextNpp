@@ -9,6 +9,7 @@ using System.Xml.Linq;
 using CSScriptIntellisense;
 using System.Diagnostics;
 using RTextNppPlugin.Utilities.Settings;
+using AJ.Common;
 
 namespace RTextNppPlugin.Utilities
 {
@@ -52,90 +53,40 @@ namespace RTextNppPlugin.Utilities
             {
                 return String.Empty;
             }
-            try
+
+            // maybe there are more than one .rtext file with different names
+            string[] rTextFiles = (System.IO.Directory.GetFiles(currentDir, "*" + Constants.WORKSPACE_TYPE, SearchOption.TopDirectoryOnly));
+            //find .rtext file , ignore capitalization
+            foreach (string aFile in rTextFiles)
             {
-                // maybe there are more than one .rtext file with different names
-                string[] rTextFiles = (System.IO.Directory.GetFiles(currentDir, "*.rtext", SearchOption.TopDirectoryOnly));
-                //find .rtext file , ignore capitalization
-                foreach (string aFile in rTextFiles)
+                //the filename and extension has to be .rtext
+                if (Path.GetFileName(aFile).ToLower().Equals(Constants.WORKSPACE_TYPE))
                 {
-                    //the filename and extension has to be .rtext
-                    if (Path.GetFileName(aFile).ToLower().Equals(".rtext"))
+                    string[] aLines = File.ReadAllLines(aFile);
+                    for (int i = 0; i < aLines.Count(); ++i)
                     {
-                        string[] aLines = File.ReadAllLines(aFile);
-                        for (int i = 0; i < aLines.Count(); ++i)
+                        //skip empty lines
+                        if (String.IsNullOrEmpty(aLines[i])) continue;
+                        //find endings
+                        Match matchResults = FileExtensionRegex.Match(aLines[i]);
+                        while (matchResults.Success)
                         {
-                            //skip empty lines
-                            if (String.IsNullOrEmpty(aLines[i])) continue;
-                            //find endings
-                            Match matchResults = FileExtensionRegex.Match(aLines[i]);
-                            while (matchResults.Success)
+                            if (matchResults.Value.Equals(extension))
                             {
-                                if (matchResults.Value.Equals(extension))
-                                {
-                                    return aFile;
-                                }
-                                matchResults = matchResults.NextMatch();
+                                return aFile;
                             }
+                            matchResults = matchResults.NextMatch();
                         }
                     }
                 }
-                //did not find .rtext to this directory - go to parent and search again
-                if (Directory.GetParent(currentDir) != null)
-                {
-                    return FindWorkspaceRoot(Directory.GetParent(currentDir).FullName, extension);
-                }
             }
-            catch (Exception ex)
+            //did not find .rtext to this directory - go to parent and search again
+            if (Directory.GetParent(currentDir) != null)
             {
-                Logging.Logger.Instance.Append(Logging.Logger.MessageType.Error, Constants.GENERAL_CHANNEL, "FileUtilities.FindWorkspaceRoot({0}, {1} : Exception : {2}", currentDir, extension, ex.Message);
+                return FindWorkspaceRoot(Directory.GetParent(currentDir).FullName, extension);
             }
             return String.Empty;
         }
-
-        /**
-         * Gets list of open files from npp instance.
-         *
-         * \param [in,out]  nppData Notepad++ instance data.
-         *
-         * \return  The list of open files, an empty list in case no file is open.
-         */
-        internal static List<string> GetListOfOpenFiles(ref NppData nppData)
-        {
-            List<string> aFiles = new List<string>();
-
-            int nbFile = (int)Win32.SendMessage(nppData._nppHandle, NppMsg.NPPM_GETNBOPENFILES, 0, 0);
-            if (nbFile > 0)
-            {
-                using (ClikeStringArray cStrArray = new ClikeStringArray(nbFile, Win32.MAX_PATH))
-                {
-                    if (Win32.SendMessage(nppData._nppHandle, NppMsg.NPPM_GETOPENFILENAMES, cStrArray.NativePointer, nbFile) != IntPtr.Zero)
-                    {
-                        aFiles = new List<string>(cStrArray.ManagedStringsUnicode);
-                    }
-                }
-            }
-            return aFiles;
-        }
-
-        /**
-         * Gets npp configuration directory.
-         *
-         * \return  The npp configuration directory.
-         */
-        internal static string GetNppConfigDirectory()
-        {
-            StringBuilder sbIniFilePath = new StringBuilder(Win32.MAX_PATH);
-            Win32.SendMessage(Plugin.nppData._nppHandle, NppMsg.NPPM_GETPLUGINSCONFIGDIR, Win32.MAX_PATH, sbIniFilePath);
-            string configDir = sbIniFilePath.ToString();
-
-            if (Directory.Exists(configDir))
-            {
-                return configDir;
-            }
-            return null;
-        }
-
 
         /**
          * \brief   Query if 'settings' is r text file.
@@ -144,9 +95,9 @@ namespace RTextNppPlugin.Utilities
          *
          * \return  true if the current file is an rtext file, false if not.
          */
-        internal static bool IsRTextFile(ISettings settings)
+        internal static bool IsRTextFile(ISettings settings, INpp nppHelper)
         {
-            return IsRTextFile(GetCurrentFilePath(), settings);
+            return IsRTextFile(nppHelper.GetCurrentFilePath(), settings, nppHelper);
         }
 
         /**
@@ -157,7 +108,7 @@ namespace RTextNppPlugin.Utilities
          *
          * \return  true if file parameter is an rtext file, false if not.
          */
-        internal static bool IsRTextFile(string file, ISettings settings)
+        internal static bool IsRTextFile(string file, ISettings settings, INpp nppHelper)
         {
             try
             {
@@ -171,7 +122,7 @@ namespace RTextNppPlugin.Utilities
 
                 //get npp configuration directory
                 //get list of supported extensions
-                string configDir = GetNppConfigDirectory();
+                string configDir = nppHelper.GetConfigDir();
 
                 //try to open external lexer configuration file
                 XDocument xmlDom = XDocument.Load(configDir + @"\" + Constants.EX_LEXER_CONFIG_FILENAME);
@@ -183,7 +134,7 @@ namespace RTextNppPlugin.Utilities
                 string additionalExt = xmlDom.Root.Element("LexerStyles").Element("LexerType").Attribute("ext").Value;
                 if (!String.IsNullOrWhiteSpace(additionalExt))
                 {
-                    foreach (var ext in additionalExt.Split(' '))
+                    foreach (var ext in additionalExt.SplitString(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries))
                     {
                         if (fileExt.Equals(ext, StringComparison.InvariantCultureIgnoreCase))
                         {
@@ -199,53 +150,6 @@ namespace RTextNppPlugin.Utilities
                 return false;
             }
 
-        }
-
-        /**
-         * Gets current file path.
-         *
-         * \return  The file path of the currently viewed document.
-         */
-        internal static string GetCurrentFilePath()
-        {
-            NppMsg msg = NppMsg.NPPM_GETFULLCURRENTPATH;
-            StringBuilder path = new StringBuilder(Win32.MAX_PATH);
-            Win32.SendMessage(Plugin.nppData._nppHandle, msg, 0, path);
-            return path.ToString();
-        }
-
-        /**
-         * Query if 'file' is file modified.
-         *
-         * \param   file    The file.
-         *
-         * \return  true if file is considered to be modified, false if not.
-         */
-        internal static bool IsFileModified(string file)
-        {
-            IntPtr sci = Plugin.GetCurrentScintilla();
-            return ((int)Win32.SendMessage(sci, SciMsg.SCI_GETMODIFY, 0, 0) != 0);
-        }
-
-        /**
-         * Saves the currently viewed file.
-         *
-         * \param   file    The file.
-         */
-        internal static void SaveFile(string file)
-        {
-            Win32.SendMessage(Plugin.nppData._nppHandle, NppMsg.NPPM_SWITCHTOFILE, 0, file);
-            Win32.SendMessage(Plugin.nppData._nppHandle, NppMsg.NPPM_SAVECURRENTFILE, 0, 0);
-        }
-
-        /**
-         * Switches active view to file.
-         *
-         * \param   file    The file.
-         */
-        internal static void SwitchToFile(string file)
-        {
-            Win32.SendMessage(Plugin.nppData._nppHandle, NppMsg.NPPM_SWITCHTOFILE, 0, file);
         }
     }
 }

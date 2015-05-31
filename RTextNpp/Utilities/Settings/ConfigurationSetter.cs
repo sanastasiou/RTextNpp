@@ -1,6 +1,6 @@
 ﻿using System;
-using System.Reflection;
 using System.IO;
+using System.Reflection;
 using System.Xml;
 using RTextNppPlugin.Logging;
 
@@ -30,24 +30,29 @@ namespace RTextNppPlugin.Utilities.Settings
         {
             try
             {
+                string aConfigPath = GetConfigurationPath();
                 lock (_lock)
                 {
-                    string aConfigPath = GetConfigurationPath();
                     EnsureConfigurationFileExists(aConfigPath);
-                    XmlDocument aDoc = new XmlDocument();
-                    aDoc.Load(aConfigPath);
-                    foreach (XmlNode n in aDoc.DocumentElement.FirstChild.ChildNodes)
+                }
+                XmlDocument aDoc = new XmlDocument();
+                aDoc.Load(aConfigPath);
+                foreach (XmlNode n in aDoc.DocumentElement.FirstChild.ChildNodes)
+                {
+                    if (n.Attributes["key"].Value.Equals(settingKey.ToString()))
                     {
-                        if (n.Attributes["key"].Value.Equals(settingKey.ToString()))
+
+                        n.Attributes["value"].Value = setting.ToString();
+                        lock (_lock)
                         {
-                            n.Attributes["value"].Value = setting.ToString();
                             aDoc.Save(aConfigPath);
-                            return;
                         }
+
+                        return;
                     }
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Logger.Instance.Append(Logger.MessageType.Error, Constants.GENERAL_CHANNEL, "internal void saveSetting<T>(T setting, Settings.RTextNppSettings settingKey) : Exception : {0}", ex.Message);
             }
@@ -57,24 +62,23 @@ namespace RTextNppPlugin.Utilities.Settings
         {
             try
             {
+                string aConfigPath = GetConfigurationPath();
                 lock (_lock)
                 {
-                    string aConfigPath = GetConfigurationPath();
                     EnsureConfigurationFileExists(aConfigPath);
-
-                    XmlDocument aDoc = new XmlDocument();
-                    aDoc.Load(aConfigPath);
-                    foreach(XmlNode n in aDoc.DocumentElement.FirstChild.ChildNodes)
+                }
+                XmlDocument aDoc = new XmlDocument();
+                aDoc.Load(aConfigPath);
+                foreach (XmlNode n in aDoc.DocumentElement.FirstChild.ChildNodes)
+                {
+                    if (n.Attributes["key"].Value.Equals(settingKey.ToString()))
                     {
-                        if(n.Attributes["key"].Value.Equals(settingKey.ToString()))
-                        {
-                            setting = (T)Convert.ChangeType(n.Attributes["value"].Value, typeof(T));
-                            return;
-                        }
-                    }                    
+                        setting = (T)Convert.ChangeType(n.Attributes["value"].Value, typeof(T));
+                        return;
+                    }
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Logger.Instance.Append(Logger.MessageType.Error, Constants.GENERAL_CHANNEL, "internal void saveSetting<T>(T setting, Settings.RTextNppSettings settingKey) : Exception : {0}", ex.Message);
             }
@@ -83,7 +87,7 @@ namespace RTextNppPlugin.Utilities.Settings
         private void EnsureConfigurationFileExists(string configPath)
         {
             if (!File.Exists(configPath))
-            {                
+            {
                 //create file with default settings
                 DEFAULT_SETTINGS.Save(configPath);
             }

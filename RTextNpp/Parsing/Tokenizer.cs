@@ -12,17 +12,17 @@ namespace RTextNppPlugin.Parsing
     {
         public struct TokenTag
         {
-            public RTextTokenTypes Type { get; set; }
-            public string Context { get; set; }
-            public int Line { get; set; }
-            public int StartColumn { get; set; }
-            public int EndColumn { get; set; }
+            internal RTextTokenTypes Type { get; set; }
+            internal string Context { get; set; }
+            internal int Line { get; set; }
+            internal int StartColumn { get; set; }
+            internal int EndColumn { get; set; }
             /**
              * \brief   Gets or sets the buffer position.
              *
              * \return  The buffer position at the start of the token. End position can be found by adding the length of the context to it.
              */
-            public int BufferPosition { get; set; }
+            internal int BufferPosition { get; set; }
 
             public override string ToString()
             {
@@ -39,14 +39,14 @@ namespace RTextNppPlugin.Parsing
 
         #region[Interface]
 
-        public Tokenizer(int line, INpp nppHelper)
+        internal Tokenizer(int line, INpp nppHelper)
         {
             _lineNumber = line;
             _nppHelper  = nppHelper;
             _lineText   = new StringBuilder(_nppHelper.GetLine(_lineNumber));
         }
 
-        public IEnumerable<TokenTag> Tokenize(params RTextTokenTypes[] typesToKeep)
+        internal IEnumerable<TokenTag> Tokenize(params RTextTokenTypes[] typesToKeep)
         {
             int aOffset = _nppHelper.GetLineStart(_lineNumber);
             bool aFirstToken = true;
