@@ -42,7 +42,7 @@ namespace RTextNppPlugin.Parsing
          *
          * \return  The line tokens except the token of the trigger point.
          */
-        internal IEnumerable<string> LineTokens
+        internal IEnumerable<TokenTag> LineTokens
         {
             get
             {
@@ -55,6 +55,7 @@ namespace RTextNppPlugin.Parsing
         {
             foreach (var t in base.Tokenize())
             {
+                _tokenList.Add(t);
                 if (_currentPos >= t.BufferPosition && _currentPos <= t.BufferPosition + (t.EndColumn - t.StartColumn))
                 {
                     _triggerToken = new TokenTag
@@ -68,8 +69,6 @@ namespace RTextNppPlugin.Parsing
                     };
                     break;
                 }
-                _tokenList.Add(t.Context);
-
             }
 
             if (_triggerToken.HasValue)
@@ -94,10 +93,10 @@ namespace RTextNppPlugin.Parsing
         #endregion
 
         #region [Data Members]
-        private readonly int _currentPos          = 0;
-        private Tokenizer.TokenTag? _triggerToken = null;
-        private readonly INpp _nppHelper          = null;
-        private List<string> _tokenList           = new List<string>(50);
+        private readonly int _currentPos  = 0;
+        private TokenTag? _triggerToken   = null;
+        private readonly INpp _nppHelper  = null;
+        private List<TokenTag> _tokenList = new List<TokenTag>(50);
         #endregion
     }
 }

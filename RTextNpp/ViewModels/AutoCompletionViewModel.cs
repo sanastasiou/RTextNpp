@@ -4,13 +4,13 @@ using System.Drawing;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Language.Intellisense;
-using RTextNppPlugin.RText;
-using RTextNppPlugin.RText.Protocol;
 using RTextNppPlugin.Logging;
 using RTextNppPlugin.Parsing;
+using RTextNppPlugin.RText;
+using RTextNppPlugin.RText.Protocol;
+using RTextNppPlugin.RText.StateEngine;
 using RTextNppPlugin.Utilities;
 using RTextNppPlugin.WpfControls;
-using RTextNppPlugin.RText.StateEngine;
 
 namespace RTextNppPlugin.ViewModels
 {
@@ -585,7 +585,7 @@ namespace RTextNppPlugin.ViewModels
         private int _selectedIndex                                              = 0;                                          //!< Indicates the selected index of the filtered option list.
         private bool _isFiltering                                               = false;                                      //!< Indicates if filtering function is currently active.        
         private IEnumerable<string> _cachedContext                              = null;                                       //!< Holds the last context used for an auto completion request.
-        private IEnumerable<string> _cachedTokens                               = null;                                       //!< Holds all the tokens before the trigger point from the previous auto completion request.
+        private IEnumerable<Tokenizer.TokenTag> _cachedTokens                   = null;                                       //!< Holds all the tokens before the trigger point from the previous auto completion request.
         private Connector _connector                                            = null;                                       //!< Connector for this auto completion session.
         #endregion
     }

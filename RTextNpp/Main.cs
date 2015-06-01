@@ -321,13 +321,14 @@ namespace RTextNppPlugin
                             //get text from start till current line end
                             string aContextBlock = Npp.Instance.GetTextBetween(0, Npp.Instance.GetLineEnd(aLineNumber));
                             ContextExtractor aExtractor = new ContextExtractor(aContextBlock, Npp.Instance.GetLengthToEndOfLine(aColumn));
-                            //if auto completion is inside comment, notation, name, string jusr return
+                            //if auto completion is inside comment, notation, name, string just return
                             AutoCompletionTokenizer aTokenizer = new AutoCompletionTokenizer(aLineNumber, aCurrentPosition, Npp.Instance);                            
                             //if a token is found then the window should appear at the start of it, else it should appear at the caret
                             Point aCaretPoint = Npp.Instance.GetCaretScreenLocationForForm();
                             if (aTokenizer.TriggerToken.HasValue && 
                                 aTokenizer.TriggerToken.Value.Type != RTextTokenTypes.Comma &&
-                                aTokenizer.TriggerToken.Value.Type != RTextTokenTypes.Space)
+                                aTokenizer.TriggerToken.Value.Type != RTextTokenTypes.Space &&
+                                aTokenizer.TriggerToken.Value.Type != RTextTokenTypes.Label)
                             {
                                 aCaretPoint = Npp.Instance.GetCaretScreenLocationRelativeToPosition(aTokenizer.TriggerToken.Value.BufferPosition);
                             }
