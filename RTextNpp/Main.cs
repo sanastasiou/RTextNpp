@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
@@ -560,14 +561,14 @@ namespace RTextNppPlugin
                 _win32.ISendMessage(nppData._nppHandle, NppMsg.NPPM_SETMENUITEMCHECK, _funcItems.Items[0]._cmdID, 1);
             }
 
-            _nppMsgInterceptpr             = new NotepadMessageInterceptor(nppData._nppHandle);
-            _scintillaMainMsgInterceptor   = new ScintillaMessageInterceptor(nppData._scintillaMainHandle);
-            _scintillaMainMsgInterceptor.ScintillaFocusChanged += OnMainScintillaFocusChanged;
-            _scintillaSecondMsgInterceptor = new ScintillaMessageInterceptor(nppData._scintillaSecondHandle);
+            _nppMsgInterceptpr                                   = new NotepadMessageInterceptor(nppData._nppHandle);
+            _scintillaMainMsgInterceptor                         = new ScintillaMessageInterceptor(nppData._scintillaMainHandle);
+            _scintillaMainMsgInterceptor.ScintillaFocusChanged   += OnMainScintillaFocusChanged;
+            _scintillaSecondMsgInterceptor                       = new ScintillaMessageInterceptor(nppData._scintillaSecondHandle);
             _scintillaSecondMsgInterceptor.ScintillaFocusChanged += OnSecondScintillaFocusChanged;
-            _scintillaMainMsgInterceptor.MouseWheelMoved += OnScintillaMouseWheelMoved;
-            _scintillaSecondMsgInterceptor.MouseWheelMoved += OnScintillaMouseWheelMoved;
-            _nppMsgInterceptpr.MenuLoopStateChanged += OnMenuLoopStateChanged;
+            _scintillaMainMsgInterceptor.MouseWheelMoved         += OnScintillaMouseWheelMoved;
+            _scintillaSecondMsgInterceptor.MouseWheelMoved       += OnScintillaMouseWheelMoved;
+            _nppMsgInterceptpr.MenuLoopStateChanged              += OnMenuLoopStateChanged;
         }
 
         /**
