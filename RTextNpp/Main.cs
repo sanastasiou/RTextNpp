@@ -328,7 +328,9 @@ namespace RTextNppPlugin
                             if (aTokenizer.TriggerToken.HasValue && 
                                 aTokenizer.TriggerToken.Value.Type != RTextTokenTypes.Comma &&
                                 aTokenizer.TriggerToken.Value.Type != RTextTokenTypes.Space &&
-                                aTokenizer.TriggerToken.Value.Type != RTextTokenTypes.Label)
+                                (aTokenizer.TriggerToken.Value.Type != RTextTokenTypes.Label ||
+                                (aTokenizer.TriggerToken.Value.Type == RTextTokenTypes.Label && 
+                                 aCurrentPosition < (aTokenizer.TriggerToken.Value.BufferPosition + aTokenizer.TriggerToken.Value.Context.Length))))
                             {
                                 aCaretPoint = Npp.Instance.GetCaretScreenLocationRelativeToPosition(aTokenizer.TriggerToken.Value.BufferPosition);
                             }

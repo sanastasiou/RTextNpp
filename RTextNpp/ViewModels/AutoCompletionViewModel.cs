@@ -293,21 +293,36 @@ namespace RTextNppPlugin.ViewModels
             }
 
             TriggerPoint = tokenizer.TriggerToken;
+            bool areContextEquals = false;
             //get all tokens before the trigger token - if all previous tokens and all context lines match do not request new auto completion options
-            if (_cachedOptions != null && _cachedTokens != null && _cachedContext != null && !_isWarningCompletionActive)
-            {
-                //if context is identical and tokens are also identical do not trigger auto completion request
-                if (_cachedContext.Take(_cachedContext.Count() - 1).SequenceEqual(extractor.ContextList.Take(_cachedContext.Count() - 1)) && _cachedTokens.SequenceEqual(tokenizer.LineTokens))
+            if (_cachedOptions != null && _cachedContext != null && !_isWarningCompletionActive)
+            {                
+                if (_cachedContext.Count() == 1 && extractor.ContextList.Count() == 1)
                 {
-                    _completionList.AddRange(_cachedOptions);
-                    Filter();
-                    return;
+                    areContextEquals = (_equalityComparer.AreTokenStreamsEqual(tokenizer.LineTokens, Npp.Instance.GetCaretPosition(), Npp.Instance.GetCurrentFilePath()));
                 }
-            }         
+                else
+                {
+                    //if context is identical and tokens are also identical do not trigger auto completion request
+                    areContextEquals = (_cachedContext.Take(_cachedContext.Count() - 1).SequenceEqual(extractor.ContextList.Take(_cachedContext.Count() - 1)) &&
+                                        _equalityComparer.AreTokenStreamsEqual(tokenizer.LineTokens, Npp.Instance.GetCaretPosition(), Npp.Instance.GetCurrentFilePath()));
+                }
+            }
+            else
+            {
+                //prime comparer
+                _equalityComparer.AreTokenStreamsEqual(tokenizer.LineTokens, Npp.Instance.GetCaretPosition(), Npp.Instance.GetCurrentFilePath());
+            }
+
+            if (areContextEquals)
+            {
+                _completionList.AddRange(_cachedOptions);
+                Filter();
+                return;
+            }
 
             //store cache
             _cachedContext = extractor.ContextList;
-            _cachedTokens  = tokenizer.LineTokens;
 
             AutoCompleteAndReferenceRequest aRequest = new AutoCompleteAndReferenceRequest
             {
@@ -459,9 +474,11 @@ namespace RTextNppPlugin.ViewModels
                             SelectedCompletion = null;
                         }
                     }
-
-                    SelectedCompletion.IsFuzzy    = true;
-                    SelectedCompletion.IsSelected = false;
+                    if (SelectedCompletion != null)
+                    {
+                        SelectedCompletion.IsFuzzy = true;
+                        SelectedCompletion.IsSelected = false;
+                    }
 
                     FilteredCount = _completionList.Count;                    
                 }
@@ -512,7 +529,7 @@ namespace RTextNppPlugin.ViewModels
             }
             Tokenizer.TokenTag t = TriggerPoint.Value;
             string aContext = t.Context;
-            bool wasEmpty = (aContext.Length == 0);
+            bool wasEmpty = (aContext.Length == 0 || t.Type == RTextTokenTypes.Space);
             if (char.IsWhiteSpace(c) && (wasEmpty || t.Type == RTextTokenTypes.Comma ))
             {
                 CharProcessAction = CharProcessResult.MoveToRight;                
@@ -585,8 +602,8 @@ namespace RTextNppPlugin.ViewModels
         private int _selectedIndex                                              = 0;                                          //!< Indicates the selected index of the filtered option list.
         private bool _isFiltering                                               = false;                                      //!< Indicates if filtering function is currently active.        
         private IEnumerable<string> _cachedContext                              = null;                                       //!< Holds the last context used for an auto completion request.
-        private IEnumerable<Tokenizer.TokenTag> _cachedTokens                   = null;                                       //!< Holds all the tokens before the trigger point from the previous auto completion request.
         private Connector _connector                                            = null;                                       //!< Connector for this auto completion session.
+        private TokenEqualityComparer _equalityComparer                         = new TokenEqualityComparer();                //!< Compares two tokens list for similiary.
         #endregion
     }
 }

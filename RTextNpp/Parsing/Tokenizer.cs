@@ -10,7 +10,7 @@ namespace RTextNppPlugin.Parsing
 {
     public class Tokenizer
     {
-        public struct TokenTag
+        public struct TokenTag : IEquatable<TokenTag>
         {
             internal RTextTokenTypes Type { get; set; }
             internal string Context { get; set; }
@@ -35,6 +35,33 @@ namespace RTextNppPlugin.Parsing
                                       Type
                                     );
             }
+
+            public int EndPosition
+            {
+                get
+                {
+                    return (BufferPosition + (EndColumn - StartColumn));
+                }
+            }
+
+            public bool IsPositionContained(int position)
+            {
+                return BufferPosition <= position && EndPosition >= position;
+            }
+
+            #region IEquatable<TokenTag> Members
+
+            public bool Equals(TokenTag other)
+            {
+                return Type           == other.Type           &&
+                       BufferPosition == other.BufferPosition &&
+                       Context        == other.Context        &&
+                       EndColumn      == other.EndColumn      &&
+                       Line           == other.Line           &&
+                       StartColumn    == other.StartColumn;
+            }
+
+            #endregion
         }
 
         #region[Interface]
@@ -77,7 +104,7 @@ namespace RTextNppPlugin.Parsing
                             }
                             else if (type == RTextTokenTypes.RTextName)
                             {
-                                if (aFirstToken && !isLineExtended(_lineNumber))
+                                if (aFirstToken && !IsLineExtended(_lineNumber))
                                 {
                                     aCurrentTag.Type = RTextTokenTypes.Command;
                                     aFirstToken = false;
@@ -99,7 +126,7 @@ namespace RTextNppPlugin.Parsing
         #endregion
 
         #region[Helpers]
-        bool isLineExtended(int currentLine)
+        private bool IsLineExtended(int currentLine)
         {
             if (currentLine <= 0)
             {
@@ -111,7 +138,7 @@ namespace RTextNppPlugin.Parsing
                 string aline = _nppHelper.GetLine(--currentLine);
                 if (String.IsNullOrWhiteSpace(aline))
                 {
-                    return (isLineExtended(currentLine));
+                    return (IsLineExtended(currentLine));
                 }
                 else
                 {

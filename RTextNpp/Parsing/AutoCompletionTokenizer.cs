@@ -51,12 +51,12 @@ namespace RTextNppPlugin.Parsing
         }
 
         #region [Helpers]
-        void FindTriggerToken()
+        private void FindTriggerToken()
         {
             foreach (var t in base.Tokenize())
             {
                 _tokenList.Add(t);
-                if (_currentPos >= t.BufferPosition && _currentPos <= t.BufferPosition + (t.EndColumn - t.StartColumn))
+                if (TokenLocationPredicate(_currentPos, t))
                 {
                     _triggerToken = new TokenTag
                     {
@@ -89,6 +89,11 @@ namespace RTextNppPlugin.Parsing
                     _triggerToken = null;
                 }
             }
+        }
+
+        internal static bool TokenLocationPredicate(int caretPosition, TokenTag token)
+        {
+            return (caretPosition >= token.BufferPosition && caretPosition <= token.BufferPosition + (token.EndColumn - token.StartColumn));
         }
         #endregion
 

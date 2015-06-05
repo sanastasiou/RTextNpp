@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using RTextNppPlugin.Parsing;
+using System;
 
 namespace RTextNppPlugin.RText
 {
@@ -12,10 +14,103 @@ namespace RTextNppPlugin.RText
      */
     internal sealed class TokenEqualityComparer
     {
-        internal static bool AreTokenStreamsEqual(IEnumerable<Tokenizer.TokenTag> lhs, IEnumerable<Tokenizer.TokenTag> rhs)
-        {
+        #region [Data Members]
+        private IEnumerable<Tokenizer.TokenTag> _previousList; //!< Holds the previous tokenizer list        
+        private string _previousFile;                          //!< Holds the previous file where auto completion request was made
+        private int _previousCaretPosition;                    //!< Previous caret position.
+        #endregion
 
-            return true;
+        #region [Interface]
+
+        internal TokenEqualityComparer()
+        {
+            _previousList          = null;
+            _previousFile          = string.Empty;
+            _previousCaretPosition = -1;
         }
+
+        internal bool AreTokenStreamsEqual(IEnumerable<Tokenizer.TokenTag> currentList, int caretPosition, string file)
+        {
+            bool areEqual = false;
+            int tokenDifference = 1;
+            if(_previousList != null && file == _previousFile)
+            {
+                bool isTokenListEqual = false;
+                if(_previousList.Count() != currentList.Count())
+                {
+                    //check if it is possible that even if the token count doesn't match the context itself is equal
+                    isTokenListEqual = AreUnevenTokenListsEqual(currentList, out tokenDifference);
+                }
+                else
+                {
+                    if(_previousList.Count() > 1)
+                    {
+                        isTokenListEqual = AreUnevenTokenListsEqual(currentList, out tokenDifference);
+                    }
+                    else
+                    {
+                        //single token
+                        isTokenListEqual = true;
+                    }
+                }
+
+                if (isTokenListEqual)
+                {
+                    var affectedToken = (from t in currentList
+                                        where AutoCompletionTokenizer.TokenLocationPredicate(caretPosition, t) && t.Type != RTextTokenTypes.Space
+                                        select t).FirstOrDefault();
+                    var previousAffectedToken = (from t in _previousList
+                                                 where AutoCompletionTokenizer.TokenLocationPredicate(_previousCaretPosition, t) && t.Type != RTextTokenTypes.Space
+                                                 select t).FirstOrDefault();
+                    if(previousAffectedToken.Context == null)
+                    {
+                        areEqual = true;
+                    }
+                    else
+                    {
+                        if(tokenDifference == 0)
+                        {
+                            if (affectedToken.Type == RTextTokenTypes.Label)
+                            {
+                                //type|: has a different completion list than type:|
+                                if(!((_previousCaretPosition == affectedToken.EndPosition && caretPosition < affectedToken.EndPosition) ||
+                                   (_previousCaretPosition < affectedToken.EndPosition && caretPosition == affectedToken.EndPosition)))
+                                {
+                                    areEqual = true;
+                                }
+                            }
+                            else
+                            {
+                                areEqual = true;
+                            }
+                        }                        
+                    }
+                }
+
+            }
+            _previousList          = currentList;
+            _previousFile          = file;
+            _previousCaretPosition = caretPosition;
+            return areEqual;
+        }
+        #endregion
+
+        #region [Helpers]
+        private bool AreUnevenTokenListsEqual(IEnumerable<Tokenizer.TokenTag> currentList, out int tokenDifference)
+        {
+            var aPreviousListWithoutSpaces = from token in _previousList
+                                             where token.Type != RTextTokenTypes.Space || (token.Type == RTextTokenTypes.Space && token.Equals(_previousList.Last()) && _previousList.Count() > 1)
+                                             select token;
+            var aCurrentListWithoutSpaces  = from token in currentList
+                                             where token.Type != RTextTokenTypes.Space || (token.Type == RTextTokenTypes.Space && token.Equals(currentList.Last()) && currentList.Count() > 1 )
+                                             select token;
+            var minCount = Math.Min(aPreviousListWithoutSpaces.Count(), aCurrentListWithoutSpaces.Count());
+            var maxCount = Math.Max(aPreviousListWithoutSpaces.Count(), aCurrentListWithoutSpaces.Count());
+            bool isMinimumContextEqual = aPreviousListWithoutSpaces.Take(minCount).SequenceEqual(aCurrentListWithoutSpaces.Take(minCount));
+            //single token difference is means identical context
+            return ((tokenDifference = (maxCount - minCount)) <= 1) && isMinimumContextEqual;
+        }
+
+        #endregion
     }
 }
