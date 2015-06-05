@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace RTextNppPlugin.Parsing
+namespace RTextNppPlugin.RText.Parsing
 {
     /**
      * Interface for context extraction.

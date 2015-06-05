@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
-using System.Diagnostics;
 using RTextNppPlugin.Utilities;
 
 namespace CSScriptIntellisense
@@ -66,7 +65,7 @@ namespace CSScriptIntellisense
                 }
             }
 
-            return CallNextHookEx(m_hhook, code, wParam, lParam);
+            return base.ICallNextHookEx(m_hhook, code, wParam, lParam);
         }
 
         virtual protected bool HandleHookEvent(IntPtr wParam, IntPtr lParam)

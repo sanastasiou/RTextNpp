@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using RTextNppPlugin.Parsing;
+using RTextNppPlugin.RText.Parsing;
 using System;
 
 namespace RTextNppPlugin.RText

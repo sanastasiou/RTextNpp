@@ -1,12 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
-using CSScriptIntellisense;
-using RTextNppPlugin.Utilities;
 using System.Text;
+using System.Text.RegularExpressions;
+using RTextNppPlugin.Utilities;
 
-namespace RTextNppPlugin.Parsing
+namespace RTextNppPlugin.RText.Parsing
 {
     public class Tokenizer
     {
@@ -42,11 +41,6 @@ namespace RTextNppPlugin.Parsing
                 {
                     return (BufferPosition + (EndColumn - StartColumn));
                 }
-            }
-
-            public bool IsPositionContained(int position)
-            {
-                return BufferPosition <= position && EndPosition >= position;
             }
 
             #region IEquatable<TokenTag> Members

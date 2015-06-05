@@ -1,8 +1,11 @@
 ﻿using System;
 namespace RTextNppPlugin.Utilities
 {
+    using RTextNppPlugin.RText.Parsing;
+    using RTextNppPlugin.DllExport;
     internal interface INpp
     {
+        IntPtr GetCurrentScintilla(NppData nppData);
         void SwitchToFile(string file);
         void SaveFile(string file);
         bool IsFileModified(string file);
@@ -55,13 +58,13 @@ namespace RTextNppPlugin.Utilities
         IntPtr NppHandle { get; }
         void OpenFile(string file);
         void PlaceIndicator(int indicator, int startPos, int endPos);
-        void ReplaceWordFromToken(RTextNppPlugin.Parsing.Tokenizer.TokenTag? token, string insertionText);
+        void ReplaceWordFromToken(Tokenizer.TokenTag? token, string insertionText);
         void SaveCurrentFile();
         void ScrollToCaret();
         void SetCaretPosition(int pos);
         void SetEditorFocus();
         void SetFirstVisibleLine(int line);
-        void SetIndicatorStyle(int indicator, RTextNppPlugin.SciMsg style, System.Drawing.Color color);
+        void SetIndicatorStyle(int indicator, SciMsg style, System.Drawing.Color color);
         void SetSelection(int start, int end);
         void SetTextBetween(string text, System.Drawing.Point point);
         void SetTextBetween(string text, int start, int end = -1);

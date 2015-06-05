@@ -1,9 +1,9 @@
-﻿using RTextNppPlugin.WpfControls;
-using System;
+﻿using System;
 using System.Collections.ObjectModel;
 using System.Linq;
-using RTextNppPlugin.RText;
 using System.Windows.Threading;
+using RTextNppPlugin.RText;
+using RTextNppPlugin.WpfControls;
 
 namespace RTextNppPlugin.ViewModels
 {

@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows.Forms;
-using System.Linq;
 using RTextNppPlugin.Utilities;
 
-namespace RTextNppPlugin
+namespace RTextNppPlugin.DllExport
 {
     #region " Notepad++ "
     [StructLayout(LayoutKind.Sequential)]
@@ -2086,68 +2086,34 @@ namespace RTextNppPlugin
     #endregion
 
     #region " Platform "
-    public class Win32
+    public class Win32 : IWin32
     {
         // ************************************************************************
         // Filter function delegate
         public delegate int HookProc(int code, IntPtr wParam, IntPtr lParam);
 
-        #region Win32 Imports
-        // ************************************************************************
-        // Win32: SetWindowsHookEx()
-        [DllImport("user32.dll", CharSet = CharSet.Auto, CallingConvention = CallingConvention.StdCall, SetLastError = true)]
-        protected static extern IntPtr SetWindowsHookEx(VisualUtilities.HookType code, HookProc func, IntPtr hInstance, int threadID);
-        // ************************************************************************
-
-        // ************************************************************************
-        // Win32: UnhookWindowsHookEx()
-        [DllImport("user32.dll", CharSet = CharSet.Auto, CallingConvention = CallingConvention.StdCall, SetLastError = true)]
-        protected static extern int UnhookWindowsHookEx(IntPtr hhook);
-        // ************************************************************************
-
-        // ************************************************************************
-        // Win32: CallNextHookEx()
-        [DllImport("user32.dll", CharSet = CharSet.Auto, CallingConvention = CallingConvention.StdCall)]
-        protected static extern int CallNextHookEx(IntPtr hhook, int code, IntPtr wParam, IntPtr lParam);
-        // ************************************************************************
-
-        [DllImport("user32")]
-        public static extern IntPtr SendMessage(IntPtr hWnd, NppMsg Msg, int wParam, NppMenuCmd lParam);
-        [DllImport("user32")]
-        public static extern IntPtr SendMessage(IntPtr hWnd, NppMsg Msg, int wParam, IntPtr lParam);
-        [DllImport("user32")]
-        public static extern IntPtr SendMessage(IntPtr hWnd, NppMsg Msg, int wParam, int lParam);
-        [DllImport("user32")]
-        public static extern IntPtr SendMessage(IntPtr hWnd, NppMsg Msg, int wParam, out int lParam);
-        [DllImport("user32")]
-        public static extern IntPtr SendMessage(IntPtr hWnd, NppMsg Msg, IntPtr wParam, int lParam);
-        [DllImport("user32")]
-        public static extern IntPtr SendMessage(IntPtr hWnd, NppMsg Msg, int wParam, ref LangType lParam);
-        [DllImport("user32")]
-        public static extern IntPtr SendMessage(IntPtr hWnd, NppMsg Msg, int wParam, [MarshalAs(UnmanagedType.LPWStr)] StringBuilder lParam);
-        [DllImport("user32")]
-        public static extern IntPtr SendMessage(IntPtr hWnd, NppMsg Msg, int wParam, [MarshalAs(UnmanagedType.LPWStr)] string lParam);
-        [DllImport("user32")]
-        public static extern IntPtr SendMessage(IntPtr hWnd, NppMsg Msg, IntPtr wParam, [MarshalAs(UnmanagedType.LPWStr)] string lParam);
-
-        [DllImport("user32")]
-        public static extern IntPtr SendMessage(IntPtr hWnd, SciMsg Msg, int wParam, IntPtr lParam);
-        [DllImport("user32")]
-        public static extern IntPtr SendMessage(IntPtr hWnd, SciMsg Msg, int wParam, string lParam);
-        [DllImport("user32")]
-        public static extern IntPtr SendMessage(IntPtr hWnd, SciMsg Msg, int wParam, [MarshalAs(UnmanagedType.LPStr)] StringBuilder lParam);
-        [DllImport("user32")]
-        public static extern IntPtr SendMessage(IntPtr hWnd, SciMsg Msg, int wParam, int lParam);
-
-        [DllImport("user32")]
-        public static extern IntPtr SendMessage(IntPtr hWnd, int Msg, int wParam, int lParam);
-
-        public static IntPtr SendMenuCmd(IntPtr hWnd, NppMenuCmd wParam, int lParam)
+        #region [Interface]
+        public virtual IntPtr IGetMenu(IntPtr hWnd)
         {
-            return Win32.SendMessage(hWnd, (int)WinMsg.WM_COMMAND, (int)wParam, lParam);
+            return GetMenu(hWnd);
         }
 
-        public static IntPtr SendMessage(IntPtr hWnd, SciMsg Msg, string text)
+        public int ICheckMenuItem(IntPtr hmenu, int uIDCheckItem, int uCheck)
+        {
+            return CheckMenuItem(hmenu, uIDCheckItem, uCheck);
+        }
+
+        public virtual int IGetPrivateProfileInt(string lpAppName, string lpKeyName, int nDefault, string lpFileName)
+        {
+            return GetPrivateProfileInt(lpAppName, lpKeyName, nDefault, lpFileName);
+        }
+
+        public virtual bool IWritePrivateProfileString(string lpAppName, string lpKeyName, string lpString, string lpFileName)
+        {
+            return WritePrivateProfileString(lpAppName, lpKeyName, lpString, lpFileName);
+        }
+
+        public virtual IntPtr ISendMessage(IntPtr hWnd, SciMsg Msg, string text)
         {
             byte[] bites = Encoding.UTF8.GetBytes(text);
             IntPtr ip = ToUnmanagedArray(bites);
@@ -2156,7 +2122,7 @@ namespace RTextNppPlugin
             return result;
         }
 
-        static IntPtr ToUnmanagedArray(byte[] data)
+        public virtual IntPtr ToUnmanagedArray(byte[] data)
         {
             unsafe
             {
@@ -2170,23 +2136,161 @@ namespace RTextNppPlugin
             }
         }
 
-        public const int MAX_PATH = 260;
-        [DllImport("kernel32")]
-        public static extern int GetPrivateProfileInt(string lpAppName, string lpKeyName, int nDefault, string lpFileName);
-        [DllImport("kernel32")]
-        public static extern bool WritePrivateProfileString(string lpAppName, string lpKeyName, string lpString, string lpFileName);
+        public virtual IntPtr SendMenuCmd(IntPtr hWnd, NppMenuCmd wParam, int lParam)
+        {
+            return Win32.SendMessage(hWnd, (int)WinMsg.WM_COMMAND, (int)wParam, lParam);
+        }
 
-        public const int MF_BYCOMMAND = 0;
-        public const int MF_CHECKED = 8;
-        public const int MF_UNCHECKED = 0;
-        [DllImport("user32")]
-        public static extern IntPtr GetMenu(IntPtr hWnd);
-        [DllImport("user32")]
-        public static extern int CheckMenuItem(IntPtr hmenu, int uIDCheckItem, int uCheck);
+        public virtual IntPtr ISetWindowsHookEx(VisualUtilities.HookType code, HookProc func, IntPtr hInstance, int threadID)
+        {
+            return SetWindowsHookEx(code, func, hInstance, threadID);
+        }
+
+        public virtual int IUnhookWindowsHookEx(IntPtr hhook)
+        {
+            return UnhookWindowsHookEx(hhook);
+        }
+
+        public virtual int ICallNextHookEx(IntPtr hhook, int code, IntPtr wParam, IntPtr lParam)
+        {
+            return CallNextHookEx(hhook, code, wParam, lParam);
+        }
+
+        public virtual IntPtr ISendMessage(IntPtr hWnd, NppMsg Msg, int wParam, NppMenuCmd lParam)
+        {
+            return SendMessage(hWnd, Msg, wParam, lParam);
+        }
+
+        public virtual IntPtr ISendMessage(IntPtr hWnd, NppMsg Msg, int wParam, IntPtr lParam)
+        {
+            return SendMessage(hWnd, Msg, wParam, lParam);
+        }
+
+        public virtual IntPtr ISendMessage(IntPtr hWnd, NppMsg Msg, int wParam, int lParam)
+        {
+            return SendMessage(hWnd, Msg, wParam, lParam);
+        }
+
+        public virtual IntPtr ISendMessage(IntPtr hWnd, NppMsg Msg, int wParam, out int lParam)
+        {
+            return SendMessage(hWnd, Msg, wParam, out lParam);
+        }
+
+        public virtual IntPtr ISendMessage(IntPtr hWnd, NppMsg Msg, IntPtr wParam, int lParam)
+        {
+            return SendMessage(hWnd, Msg, wParam, lParam);
+        }
+
+        public virtual IntPtr ISendMessage(IntPtr hWnd, NppMsg Msg, int wParam, ref LangType lParam)
+        {
+            return SendMessage(hWnd, Msg, wParam, ref lParam);
+        }
+
+        public virtual IntPtr ISendMessage(IntPtr hWnd, NppMsg Msg, int wParam, [MarshalAs(UnmanagedType.LPWStr)] StringBuilder lParam)
+        {
+            return SendMessage(hWnd, Msg, wParam, lParam);
+        }
+
+        public virtual IntPtr ISendMessage(IntPtr hWnd, NppMsg Msg, int wParam, [MarshalAs(UnmanagedType.LPWStr)] string lParam)
+        {
+            return SendMessage(hWnd, Msg, wParam, lParam);
+        }
+
+        public virtual IntPtr ISendMessage(IntPtr hWnd, NppMsg Msg, IntPtr wParam, [MarshalAs(UnmanagedType.LPWStr)] string lParam)
+        {
+            return SendMessage(hWnd, Msg, wParam, lParam);
+        }
+
+        public virtual IntPtr ISendMessage(IntPtr hWnd, SciMsg Msg, int wParam, IntPtr lParam)
+        {
+            return SendMessage(hWnd, Msg, wParam, lParam);
+        }
+
+        public virtual IntPtr ISendMessage(IntPtr hWnd, SciMsg Msg, int wParam, string lParam)
+        {
+            return SendMessage(hWnd, Msg, wParam, lParam);
+        }
+
+        public virtual IntPtr ISendMessage(IntPtr hWnd, SciMsg Msg, int wParam, [MarshalAs(UnmanagedType.LPStr)] StringBuilder lParam)
+        {
+            return SendMessage(hWnd, Msg, wParam, lParam);
+        }
+
+        public virtual IntPtr ISendMessage(IntPtr hWnd, SciMsg Msg, int wParam, int lParam)
+        {
+            return SendMessage(hWnd, Msg, wParam, lParam);
+        }
+
 
         #endregion
 
-        public const int WM_CREATE = 1;
+        #region Win32 Imports
+        // ************************************************************************
+        // Win32: SetWindowsHookEx()
+        [DllImport("user32.dll", CharSet = CharSet.Auto, CallingConvention = CallingConvention.StdCall, SetLastError = true)]
+        private static extern IntPtr SetWindowsHookEx(VisualUtilities.HookType code, HookProc func, IntPtr hInstance, int threadID);
+        // ************************************************************************
+
+        // ************************************************************************
+        // Win32: UnhookWindowsHookEx()
+        [DllImport("user32.dll", CharSet = CharSet.Auto, CallingConvention = CallingConvention.StdCall, SetLastError = true)]
+        private static extern int UnhookWindowsHookEx(IntPtr hhook);
+        // ************************************************************************
+
+        // ************************************************************************
+        // Win32: CallNextHookEx()
+        [DllImport("user32.dll", CharSet = CharSet.Auto, CallingConvention = CallingConvention.StdCall)]
+        private static extern int CallNextHookEx(IntPtr hhook, int code, IntPtr wParam, IntPtr lParam);
+        // ************************************************************************
+
+        [DllImport("user32")]
+        private static extern IntPtr SendMessage(IntPtr hWnd, NppMsg Msg, int wParam, NppMenuCmd lParam);
+        [DllImport("user32")]
+        private static extern IntPtr SendMessage(IntPtr hWnd, NppMsg Msg, int wParam, IntPtr lParam);
+        [DllImport("user32")]
+        private static extern IntPtr SendMessage(IntPtr hWnd, NppMsg Msg, int wParam, int lParam);
+        [DllImport("user32")]
+        private static extern IntPtr SendMessage(IntPtr hWnd, NppMsg Msg, int wParam, out int lParam);
+        [DllImport("user32")]
+        private static extern IntPtr SendMessage(IntPtr hWnd, NppMsg Msg, IntPtr wParam, int lParam);
+        [DllImport("user32")]
+        private static extern IntPtr SendMessage(IntPtr hWnd, NppMsg Msg, int wParam, ref LangType lParam);
+        [DllImport("user32")]
+        private static extern IntPtr SendMessage(IntPtr hWnd, NppMsg Msg, int wParam, [MarshalAs(UnmanagedType.LPWStr)] StringBuilder lParam);
+        [DllImport("user32")]
+        private static extern IntPtr SendMessage(IntPtr hWnd, NppMsg Msg, int wParam, [MarshalAs(UnmanagedType.LPWStr)] string lParam);
+        [DllImport("user32")]
+        private static extern IntPtr SendMessage(IntPtr hWnd, NppMsg Msg, IntPtr wParam, [MarshalAs(UnmanagedType.LPWStr)] string lParam);
+
+        [DllImport("user32")]
+        private static extern IntPtr SendMessage(IntPtr hWnd, SciMsg Msg, int wParam, IntPtr lParam);
+        [DllImport("user32")]
+        private static extern IntPtr SendMessage(IntPtr hWnd, SciMsg Msg, int wParam, string lParam);
+        [DllImport("user32")]
+        private static extern IntPtr SendMessage(IntPtr hWnd, SciMsg Msg, int wParam, [MarshalAs(UnmanagedType.LPStr)] StringBuilder lParam);
+        [DllImport("user32")]
+        private static extern IntPtr SendMessage(IntPtr hWnd, SciMsg Msg, int wParam, int lParam);
+
+        [DllImport("user32")]
+        private static extern IntPtr SendMessage(IntPtr hWnd, int Msg, int wParam, int lParam);
+       
+        public  const int MAX_PATH = 260;
+        [DllImport("kernel32")]
+        private static extern int GetPrivateProfileInt(string lpAppName, string lpKeyName, int nDefault, string lpFileName);
+        [DllImport("kernel32")]
+        private static extern bool WritePrivateProfileString(string lpAppName, string lpKeyName, string lpString, string lpFileName);
+
+        private const int MF_BYCOMMAND = 0;
+        private const int MF_CHECKED = 8;
+        private const int MF_UNCHECKED = 0;
+        [DllImport("user32")]
+        private static extern IntPtr GetMenu(IntPtr hWnd);
+        [DllImport("user32")]
+        private static extern int CheckMenuItem(IntPtr hmenu, int uIDCheckItem, int uCheck);
+
+        #endregion
+
+        private const int WM_CREATE = 1;
     }
 
     public class ClikeStringArray : IDisposable
@@ -2209,9 +2313,9 @@ namespace RTextNppPlugin
         }
 
         public IntPtr NativePointer { get { return _nativeArray; } }
-        public List<string> ManagedStringsAnsi { get { return _getManagedItems(false); } }
-        public List<string> ManagedStringsUnicode { get { return _getManagedItems(true); } }
-        List<string> _getManagedItems(bool unicode)
+        public List<string> ManagedStringsAnsi { get { return GetManagedItems(false); } }
+        public List<string> ManagedStringsUnicode { get { return GetManagedItems(true); } }
+        private List<string> GetManagedItems(bool unicode)
         {
             List<string> _managedItems = new List<string>();
             for (int i = 0; i < _nativeItems.Count; i++)

@@ -2,6 +2,7 @@
 using System.Runtime.InteropServices;
 using System.Text;
 using RGiesecke.DllExport;
+using RTextNppPlugin.DllExport;
 using RTextNppPlugin.Utilities;
 
 namespace RTextNppPlugin

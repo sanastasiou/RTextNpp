@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Linq;
 using System.Windows;
-using System.Windows.Media;
-using System.Runtime.InteropServices;
-using System.Windows.Forms;
 using System.Windows.Interop;
+using System.Windows.Media;
 
 namespace RTextNppPlugin.Utilities
 {
@@ -375,30 +372,6 @@ namespace RTextNppPlugin.Utilities
                 return parent;
             else
                 return FindVisualParent<T>(parentObject);
-        }
-
-        /**
-         *
-         * \brief   Gets an array of strings based on enums, with an optional black entry.
-         *
-         *
-         * \tparam  T   Generic type parameter.
-         * \param   includeBlank    true to include, false to exclude the blank.
-         *
-         * \return  The enum values&lt; t&gt;
-         */
-        public static string[] GetEnumValues<T>(bool includeBlank = false, params T[] skipEnums)
-        {
-            var values = (from val in (Enum.GetValues(typeof(T)) as T[])
-                          where !skipEnums.Contains(val)
-                          select val.ToString()).ToList<string>();
-            
-            if (includeBlank)
-            {
-                values.Insert(0, string.Empty);
-            }
-
-            return values.ToArray();
         }
 
         public static T GetVisualChild<T>(Visual parent) where T : Visual

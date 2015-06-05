@@ -52,6 +52,7 @@
   </Target>
   -->
   <ItemGroup>
+    <Compile Include="DllExport\IWin32.cs" />
     <Compile Include="RText\Connector.cs" />
     <Compile Include="RText\ConnectorManager.cs" />
     <Compile Include="RText\IConnector.cs" />
@@ -92,12 +93,12 @@
     </Compile>
     <Compile Include="DllExport\NppPluginNETBase.cs" />
     <Compile Include="DllExport\NppPluginNETHelper.cs" />
-    <Compile Include="Parsing\AutoCompletionTokenizer.cs" />
-    <Compile Include="Parsing\ContextExtraction.cs" />
-    <Compile Include="Parsing\IContextExtractor.cs" />
-    <Compile Include="Parsing\RTextRegexMap.cs" />
-    <Compile Include="Parsing\RTextTokenTypes.cs" />
-    <Compile Include="Parsing\Tokenizer.cs" />
+    <Compile Include="RText\Parsing\AutoCompletionTokenizer.cs" />
+    <Compile Include="RText\Parsing\ContextExtraction.cs" />
+    <Compile Include="RText\Parsing\IContextExtractor.cs" />
+    <Compile Include="RText\Parsing\RTextRegexMap.cs" />
+    <Compile Include="RText\Parsing\RTextTokenTypes.cs" />
+    <Compile Include="RText\Parsing\Tokenizer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Utilities\BindingProxy.cs" />
     <Compile Include="Utilities\GlobalMouseHook.cs" />
@@ -118,7 +119,6 @@
     <Compile Include="Utilities\FileUtilities.cs" />
     <Compile Include="Utilities\LocalWindowsHook.cs" />
     <Compile Include="Utilities\Npp.cs" />
-    <Compile Include="Utilities\ParentProcessUtilities.cs" />
     <Compile Include="Utilities\ProcessUtilities.cs" />
     <Compile Include="Utilities\Settings\Settings.cs" />
     <Compile Include="Utilities\StringExtensions.cs" />

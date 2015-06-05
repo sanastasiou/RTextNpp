@@ -7,10 +7,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Threading;
 using Microsoft.Win32;
-using RTextNppPlugin.RText;
 
-namespace RTextNppPlugin.Utilities
+namespace RTextNppPlugin.RText
 {
+    using RTextNppPlugin.Utilities;
     using RTextNppPlugin.Utilities.Settings;
     /**
      * \class   RTextBackendProcess
@@ -307,7 +307,7 @@ namespace RTextNppPlugin.Utilities
                 if (_pInfo.Port != -1)
                 {
                     //load model if specified option is enabled 
-                    if (_settings.Get<bool>(Settings.Settings.RTextNppSettings.AutoLoadWorkspace))
+                    if (_settings.Get<bool>(Settings.RTextNppSettings.AutoLoadWorkspace))
                     {
                         OnTimerElapsed(null, EventArgs.Empty);
                     }
@@ -684,7 +684,7 @@ namespace RTextNppPlugin.Utilities
          */
         private void OnWorkspaceModified(string pathOfModifiedFile)
         {
-            if (_settings.Get<bool>(Settings.Settings.RTextNppSettings.AutoSaveFiles))
+            if (_settings.Get<bool>(Settings.RTextNppSettings.AutoSaveFiles))
             {
                 //find .rtext file of this document 
                 string aRTextFilePath = FileUtilities.FindWorkspaceRoot(pathOfModifiedFile);

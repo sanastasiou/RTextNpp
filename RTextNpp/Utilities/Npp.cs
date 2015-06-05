@@ -11,16 +11,18 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows.Forms;
-using RTextNppPlugin.Parsing;
 
 namespace RTextNppPlugin.Utilities
 {
     using CSScriptIntellisense;
+    using RTextNppPlugin.DllExport;
+    using RTextNppPlugin.RText.Parsing;
     public class Npp : INpp
     {
         #region [Singleton Data Members]
         private static volatile Npp instance;
         private static object syncRoot = new Object();
+        private static IWin32 _win32 = new Win32();
         #endregion        
 
         private Npp() { }
@@ -42,25 +44,32 @@ namespace RTextNppPlugin.Utilities
             }
         }
 
+        public IntPtr GetCurrentScintilla(NppData nppData)
+        {
+            int curScintilla;
+            _win32.ISendMessage(nppData._nppHandle, NppMsg.NPPM_GETCURRENTSCINTILLA, 0, out curScintilla);
+            return (curScintilla == 0) ? nppData._scintillaMainHandle : nppData._scintillaSecondHandle;
+        }
+
         public void SetEditorFocus()
         {
-            Win32.SendMessage(instance.CurrentScintilla, SciMsg.SCI_SETFOCUS, 1, 0);
+            _win32.ISendMessage(instance.CurrentScintilla, SciMsg.SCI_SETFOCUS, 1, 0);
         }
 
         public int GetZoomLevel()
         {
-            return (int)Win32.SendMessage(instance.CurrentScintilla, SciMsg.SCI_GETZOOM, 0, 0);
+            return (int)_win32.ISendMessage(instance.CurrentScintilla, SciMsg.SCI_GETZOOM, 0, 0);
         }
 
         public int GetSelectionStart()
         {
-            return (int)Win32.SendMessage(instance.CurrentScintilla, SciMsg.SCI_GETSELECTIONNSTART, 0, 0);
+            return (int)_win32.ISendMessage(instance.CurrentScintilla, SciMsg.SCI_GETSELECTIONNSTART, 0, 0);
         }
 
         public int GetSelectionLength()
         {
-            int aSelStart = (int)Win32.SendMessage(instance.CurrentScintilla, SciMsg.SCI_GETSELECTIONNSTART, 0, 0);
-            int aSelEnd = (int)Win32.SendMessage(instance.CurrentScintilla, SciMsg.SCI_GETSELECTIONNEND, 0, 0);
+            int aSelStart = (int)_win32.ISendMessage(instance.CurrentScintilla, SciMsg.SCI_GETSELECTIONNSTART, 0, 0);
+            int aSelEnd = (int)_win32.ISendMessage(instance.CurrentScintilla, SciMsg.SCI_GETSELECTIONNEND, 0, 0);
             if (aSelStart == aSelEnd)
             {
                 return 1;
@@ -70,7 +79,7 @@ namespace RTextNppPlugin.Utilities
 
         public int GetSelections()
         {
-            return (int)Win32.SendMessage(instance.CurrentScintilla, SciMsg.SCI_GETSELECTIONS, 0, 0);
+            return (int)_win32.ISendMessage(instance.CurrentScintilla, SciMsg.SCI_GETSELECTIONS, 0, 0);
         }
 
         public void DeleteFront()
@@ -90,13 +99,13 @@ namespace RTextNppPlugin.Utilities
         {
             for (int i = 0; i < length; ++i)
             {
-                Win32.SendMessage(instance.CurrentScintilla, SciMsg.SCI_DELETEBACK, 0, 0);
+                _win32.ISendMessage(instance.CurrentScintilla, SciMsg.SCI_DELETEBACK, 0, 0);
             }
         }
 
         public void DeleteRange(int position, int length)
         {
-            Win32.SendMessage(instance.CurrentScintilla, SciMsg.SCI_DELETERANGE, position, length);
+            _win32.ISendMessage(instance.CurrentScintilla, SciMsg.SCI_DELETERANGE, position, length);
         }
 
         /**
@@ -108,7 +117,7 @@ namespace RTextNppPlugin.Utilities
         {
             NppMsg msg = NppMsg.NPPM_GETFULLCURRENTPATH;
             StringBuilder path = new StringBuilder(Win32.MAX_PATH);
-            Win32.SendMessage(Plugin.nppData._nppHandle, msg, 0, path);
+            _win32.ISendMessage(Plugin.nppData._nppHandle, msg, 0, path);
             return path.ToString();
         }
 
@@ -121,8 +130,8 @@ namespace RTextNppPlugin.Utilities
          */
         public bool IsFileModified(string file)
         {
-            IntPtr sci = Plugin.GetCurrentScintilla();
-            return ((int)Win32.SendMessage(sci, SciMsg.SCI_GETMODIFY, 0, 0) != 0);
+            IntPtr sci = GetCurrentScintilla(Plugin.nppData);
+            return ((int)_win32.ISendMessage(sci, SciMsg.SCI_GETMODIFY, 0, 0) != 0);
         }
 
         /**
@@ -132,8 +141,8 @@ namespace RTextNppPlugin.Utilities
          */
         public void SaveFile(string file)
         {
-            Win32.SendMessage(Plugin.nppData._nppHandle, NppMsg.NPPM_SWITCHTOFILE, 0, file);
-            Win32.SendMessage(Plugin.nppData._nppHandle, NppMsg.NPPM_SAVECURRENTFILE, 0, 0);
+            _win32.ISendMessage(Plugin.nppData._nppHandle, NppMsg.NPPM_SWITCHTOFILE, 0, file);
+            _win32.ISendMessage(Plugin.nppData._nppHandle, NppMsg.NPPM_SAVECURRENTFILE, 0, 0);
         }
 
         /**
@@ -143,7 +152,7 @@ namespace RTextNppPlugin.Utilities
          */
         public void SwitchToFile(string file)
         {
-            Win32.SendMessage(Plugin.nppData._nppHandle, NppMsg.NPPM_SWITCHTOFILE, 0, file);
+            _win32.ISendMessage(Plugin.nppData._nppHandle, NppMsg.NPPM_SWITCHTOFILE, 0, file);
         }
 
 
@@ -162,57 +171,57 @@ namespace RTextNppPlugin.Utilities
                     DeleteFront();
                 }
             }
-            Win32.SendMessage(instance.CurrentScintilla, SciMsg.SCI_ADDTEXT, s.GetByteCount(), s);
+            _win32.ISendMessage(instance.CurrentScintilla, SciMsg.SCI_ADDTEXT, s.GetByteCount(), s);
         }
 
         public void ChangeMenuItemCheck(int CmdId, bool isChecked)
         {
-            Win32.SendMessage(instance.NppHandle, NppMsg.NPPM_SETMENUITEMCHECK, CmdId, isChecked ? 1 : 0);
+            _win32.ISendMessage(instance.NppHandle, NppMsg.NPPM_SETMENUITEMCHECK, CmdId, isChecked ? 1 : 0);
         }
 
         public string GetCurrentFile()
         {
             var path = new StringBuilder(Win32.MAX_PATH);
-            Win32.SendMessage(Plugin.nppData._nppHandle, NppMsg.NPPM_GETFULLCURRENTPATH, 0, path);
+            _win32.ISendMessage(Plugin.nppData._nppHandle, NppMsg.NPPM_GETFULLCURRENTPATH, 0, path);
             return path.ToString();
         }
         public void SaveCurrentFile()
         {
-            Win32.SendMessage(instance.NppHandle, NppMsg.NPPM_SAVECURRENTFILE, 0, 0);
+            _win32.ISendMessage(instance.NppHandle, NppMsg.NPPM_SAVECURRENTFILE, 0, 0);
         }
 
         public void DisplayInNewDocument(string text)
         {
-            Win32.SendMessage(instance.NppHandle, NppMsg.NPPM_MENUCOMMAND, 0, NppMenuCmd.IDM_FILE_NEW);
-            Win32.SendMessage(instance.CurrentScintilla, SciMsg.SCI_GRABFOCUS, 0, 0);
-            Win32.SendMessage(instance.CurrentScintilla, SciMsg.SCI_ADDTEXT, text);
+            _win32.ISendMessage(instance.NppHandle, NppMsg.NPPM_MENUCOMMAND, 0, NppMenuCmd.IDM_FILE_NEW);
+            _win32.ISendMessage(instance.CurrentScintilla, SciMsg.SCI_GRABFOCUS, 0, 0);
+            _win32.ISendMessage(instance.CurrentScintilla, SciMsg.SCI_ADDTEXT, text);
         }
 
         public void SetIndicatorStyle(int indicator, SciMsg style, Color color)
         {
-            IntPtr sci = Plugin.GetCurrentScintilla();
-            Win32.SendMessage(sci, SciMsg.SCI_INDICSETSTYLE, indicator, (int)style);
-            Win32.SendMessage(sci, SciMsg.SCI_INDICSETFORE, indicator, ColorTranslator.ToWin32(color));
+            IntPtr sci = GetCurrentScintilla(Plugin.nppData);
+            _win32.ISendMessage(sci, SciMsg.SCI_INDICSETSTYLE, indicator, (int)style);
+            _win32.ISendMessage(sci, SciMsg.SCI_INDICSETFORE, indicator, ColorTranslator.ToWin32(color));
         }
 
         public void ClearIndicator(int indicator, int startPos, int endPos)
         {
-            IntPtr sci = Plugin.GetCurrentScintilla();
-            Win32.SendMessage(sci, SciMsg.SCI_SETINDICATORCURRENT, indicator, 0);
-            Win32.SendMessage(sci, SciMsg.SCI_INDICATORCLEARRANGE, startPos, endPos - startPos);
+            IntPtr sci = GetCurrentScintilla(Plugin.nppData);
+            _win32.ISendMessage(sci, SciMsg.SCI_SETINDICATORCURRENT, indicator, 0);
+            _win32.ISendMessage(sci, SciMsg.SCI_INDICATORCLEARRANGE, startPos, endPos - startPos);
         }
 
         public void PlaceIndicator(int indicator, int startPos, int endPos)
         {
-            IntPtr sci = Plugin.GetCurrentScintilla();
-            Win32.SendMessage(sci, SciMsg.SCI_SETINDICATORCURRENT, indicator, 0);
-            Win32.SendMessage(sci, SciMsg.SCI_INDICATORFILLRANGE, startPos, endPos - startPos);
+            IntPtr sci = GetCurrentScintilla(Plugin.nppData);
+            _win32.ISendMessage(sci, SciMsg.SCI_SETINDICATORCURRENT, indicator, 0);
+            _win32.ISendMessage(sci, SciMsg.SCI_INDICATORFILLRANGE, startPos, endPos - startPos);
         }
 
         public string GetConfigDir()
         {
             var buffer = new StringBuilder(260);
-            Win32.SendMessage(Plugin.nppData._nppHandle, NppMsg.NPPM_GETPLUGINSCONFIGDIR, 260, buffer);
+            _win32.ISendMessage(Plugin.nppData._nppHandle, NppMsg.NPPM_GETPLUGINSCONFIGDIR, 260, buffer);
             return buffer.ToString();
         }
 
@@ -220,7 +229,7 @@ namespace RTextNppPlugin.Utilities
         {
             var ranges = new List<Point>();
 
-            IntPtr sci = Plugin.GetCurrentScintilla();
+            IntPtr sci = GetCurrentScintilla(Plugin.nppData);
 
             int testPosition = 0;
 
@@ -234,9 +243,9 @@ namespace RTextNppPlugin.Utilities
                 //probe for 4 : 4..6
                 //probe for 6 : 4..10
 
-                int rangeStart = (int)Win32.SendMessage(sci, SciMsg.SCI_INDICATORSTART, indicator, testPosition);
-                int rangeEnd = (int)Win32.SendMessage(sci, SciMsg.SCI_INDICATOREND, indicator, testPosition);
-                int value = (int)Win32.SendMessage(sci, SciMsg.SCI_INDICATORVALUEAT, indicator, testPosition);
+                int rangeStart = (int)_win32.ISendMessage(sci, SciMsg.SCI_INDICATORSTART, indicator, testPosition);
+                int rangeEnd = (int)_win32.ISendMessage(sci, SciMsg.SCI_INDICATOREND, indicator, testPosition);
+                int value = (int)_win32.ISendMessage(sci, SciMsg.SCI_INDICATORVALUEAT, indicator, testPosition);
                 if (value == 1) //indicator is present
                     ranges.Add(new Point(rangeStart, rangeEnd));
 
@@ -261,22 +270,22 @@ namespace RTextNppPlugin.Utilities
 
         public string GetLine(int line)
         {
-            IntPtr sci = Plugin.GetCurrentScintilla();
+            IntPtr sci = GetCurrentScintilla(Plugin.nppData);
 
-            int length = (int)Win32.SendMessage(sci, SciMsg.SCI_LINELENGTH, line, 0);
+            int length = (int)_win32.ISendMessage(sci, SciMsg.SCI_LINELENGTH, line, 0);
             var buffer = new StringBuilder(length + 1);
-            Win32.SendMessage(sci, SciMsg.SCI_GETLINE, line, buffer);
+            _win32.ISendMessage(sci, SciMsg.SCI_GETLINE, line, buffer);
             buffer.Length = length; //NPP may inject some rubbish at the end of the line
             return buffer.ToString();
         }
 
         public StringBuilder GetLineAsStringBuilder(int line)
         {
-            IntPtr sci = Plugin.GetCurrentScintilla();
+            IntPtr sci = GetCurrentScintilla(Plugin.nppData);
 
-            int length = (int)Win32.SendMessage(sci, SciMsg.SCI_LINELENGTH, line, 0);
+            int length = (int)_win32.ISendMessage(sci, SciMsg.SCI_LINELENGTH, line, 0);
             var buffer = new StringBuilder(length + 1);
-            Win32.SendMessage(sci, SciMsg.SCI_GETLINE, line, buffer);
+            _win32.ISendMessage(sci, SciMsg.SCI_GETLINE, line, buffer);
             buffer.Length = length; //NPP may inject some rubbish at the end of the line
             return buffer;
         }
@@ -293,8 +302,8 @@ namespace RTextNppPlugin.Utilities
 
         public int GetLineNumber(int position)
         {
-            IntPtr sci = Plugin.GetCurrentScintilla();
-            return (int)Win32.SendMessage(sci, SciMsg.SCI_LINEFROMPOSITION, position, 0);
+            IntPtr sci = GetCurrentScintilla(Plugin.nppData);
+            return (int)_win32.ISendMessage(sci, SciMsg.SCI_LINEFROMPOSITION, position, 0);
         }
 
         public int GetLengthToEndOfLine(int currentCharacterColumn)
@@ -304,44 +313,44 @@ namespace RTextNppPlugin.Utilities
 
         public int GetColumn()
         {
-            IntPtr sci = Plugin.GetCurrentScintilla();
-            return (int)Win32.SendMessage(sci, SciMsg.SCI_GETCOLUMN, GetCaretPosition(), 0);
+            IntPtr sci = GetCurrentScintilla(Plugin.nppData);
+            return (int)_win32.ISendMessage(sci, SciMsg.SCI_GETCOLUMN, GetCaretPosition(), 0);
         }
 
         public int GetLineEnd(int line = -1)
         {
             if (line == -1)
             {
-                return (int)Win32.SendMessage(Plugin.GetCurrentScintilla(), SciMsg.SCI_GETLINEENDPOSITION, GetLineNumber(), 0);
+                return (int)_win32.ISendMessage(GetCurrentScintilla(Plugin.nppData), SciMsg.SCI_GETLINEENDPOSITION, GetLineNumber(), 0);
             }
             else
             {
-                return (int)Win32.SendMessage(Plugin.GetCurrentScintilla(), SciMsg.SCI_GETLINEENDPOSITION, line, 0);
+                return (int)_win32.ISendMessage(GetCurrentScintilla(Plugin.nppData), SciMsg.SCI_GETLINEENDPOSITION, line, 0);
             }
         }
 
         public int GetLineStart(int line)
         {
-            IntPtr sci = Plugin.GetCurrentScintilla();
-            return (int)Win32.SendMessage(sci, SciMsg.SCI_POSITIONFROMLINE, line, 0);
+            IntPtr sci = GetCurrentScintilla(Plugin.nppData);
+            return (int)_win32.ISendMessage(sci, SciMsg.SCI_POSITIONFROMLINE, line, 0);
         }
 
         public int GetFirstVisibleLine()
         {
-            IntPtr sci = Plugin.GetCurrentScintilla();
-            return (int)Win32.SendMessage(sci, SciMsg.SCI_GETFIRSTVISIBLELINE, 0, 0);
+            IntPtr sci = GetCurrentScintilla(Plugin.nppData);
+            return (int)_win32.ISendMessage(sci, SciMsg.SCI_GETFIRSTVISIBLELINE, 0, 0);
         }
 
         public void SetFirstVisibleLine(int line)
         {
-            IntPtr sci = Plugin.GetCurrentScintilla();
-            Win32.SendMessage(sci, SciMsg.SCI_SETFIRSTVISIBLELINE, line, 0);
+            IntPtr sci = GetCurrentScintilla(Plugin.nppData);
+            _win32.ISendMessage(sci, SciMsg.SCI_SETFIRSTVISIBLELINE, line, 0);
         }
 
         public int GetLineCount()
         {
-            IntPtr sci = Plugin.GetCurrentScintilla();
-            return (int)Win32.SendMessage(sci, SciMsg.SCI_GETLINECOUNT, 0, 0);
+            IntPtr sci = GetCurrentScintilla(Plugin.nppData);
+            return (int)_win32.ISendMessage(sci, SciMsg.SCI_GETLINECOUNT, 0, 0);
         }
 
         public string GetShortcutsFile()
@@ -368,9 +377,9 @@ namespace RTextNppPlugin.Utilities
          */
         public Point GetCaretScreenLocationRelativeToPosition(int position)
         {
-            IntPtr sci = Plugin.GetCurrentScintilla();
-            int x = (int)Win32.SendMessage(sci, SciMsg.SCI_POINTXFROMPOSITION, 0, position);
-            int y = (int)Win32.SendMessage(sci, SciMsg.SCI_POINTYFROMPOSITION, 0, position);
+            IntPtr sci = GetCurrentScintilla(Plugin.nppData);
+            int x = (int)_win32.ISendMessage(sci, SciMsg.SCI_POINTXFROMPOSITION, 0, position);
+            int y = (int)_win32.ISendMessage(sci, SciMsg.SCI_POINTYFROMPOSITION, 0, position);
             Point aPoint = new Point(x, y);
             ClientToScreen(sci, ref aPoint);
             aPoint.Y += GetTextHeight(GetCaretLineNumber());
@@ -414,10 +423,10 @@ namespace RTextNppPlugin.Utilities
 
         public Point GetCaretScreenLocation()
         {
-            IntPtr sci = Plugin.GetCurrentScintilla();
-            int pos = (int)Win32.SendMessage(sci, SciMsg.SCI_GETCURRENTPOS, 0, 0);
-            int x = (int)Win32.SendMessage(sci, SciMsg.SCI_POINTXFROMPOSITION, 0, pos);
-            int y = (int)Win32.SendMessage(sci, SciMsg.SCI_POINTYFROMPOSITION, 0, pos);
+            IntPtr sci = GetCurrentScintilla(Plugin.nppData);
+            int pos = (int)_win32.ISendMessage(sci, SciMsg.SCI_GETCURRENTPOS, 0, 0);
+            int x = (int)_win32.ISendMessage(sci, SciMsg.SCI_POINTXFROMPOSITION, 0, pos);
+            int y = (int)_win32.ISendMessage(sci, SciMsg.SCI_POINTYFROMPOSITION, 0, pos);
             
             Point point = new Point(x, y);
             ClientToScreen(sci, ref point);
@@ -426,12 +435,12 @@ namespace RTextNppPlugin.Utilities
 
         public int GetPositionFromMouseLocation()
         {
-            IntPtr sci = Plugin.GetCurrentScintilla();
+            IntPtr sci = GetCurrentScintilla(Plugin.nppData);
 
             Point point = Cursor.Position;
             ScreenToClient(sci, ref point);
             
-            int pos = (int)Win32.SendMessage(sci, SciMsg.SCI_CHARPOSITIONFROMPOINTCLOSE, point.X, point.Y);
+            int pos = (int)_win32.ISendMessage(sci, SciMsg.SCI_CHARPOSITIONFROMPOINTCLOSE, point.X, point.Y);
 
             return pos;
         }
@@ -439,7 +448,7 @@ namespace RTextNppPlugin.Utilities
         public void Exit()
         {
             const int WM_COMMAND = 0x111;
-            Win32.SendMessage(Plugin.nppData._nppHandle, (NppMsg)WM_COMMAND, (int)NppMenuCmd.IDM_FILE_EXIT, 0);
+            _win32.ISendMessage(Plugin.nppData._nppHandle, (NppMsg)WM_COMMAND, (int)NppMenuCmd.IDM_FILE_EXIT, 0);
         }
 
         public string GetTextBetween(Point point)
@@ -449,14 +458,14 @@ namespace RTextNppPlugin.Utilities
 
         public string GetTextBetween(int start, int end = -1)
         {
-            IntPtr sci = Plugin.GetCurrentScintilla();
+            IntPtr sci = GetCurrentScintilla(Plugin.nppData);
 
             if (end == -1)
-                end = (int)Win32.SendMessage(sci, SciMsg.SCI_GETLENGTH, 0, 0);
+                end = (int)_win32.ISendMessage(sci, SciMsg.SCI_GETLENGTH, 0, 0);
 
             using (var tr = new Sci_TextRange(start, end, end - start + 1)) //+1 for null termination
             {
-                Win32.SendMessage(sci, SciMsg.SCI_GETTEXTRANGE, 0, tr.NativePointer);
+                _win32.ISendMessage(sci, SciMsg.SCI_GETTEXTRANGE, 0, tr.NativePointer);
                 return tr.lpstrText;
             }
         }
@@ -469,29 +478,29 @@ namespace RTextNppPlugin.Utilities
         public void SetTextBetween(string text, int start, int end = -1)
         {
             //supposed not to scroll
-            IntPtr sci = Plugin.GetCurrentScintilla();
+            IntPtr sci = GetCurrentScintilla(Plugin.nppData);
 
             if (end == -1)
-                end = (int)Win32.SendMessage(sci, SciMsg.SCI_GETLENGTH, 0, 0);
+                end = (int)_win32.ISendMessage(sci, SciMsg.SCI_GETLENGTH, 0, 0);
 
-            Win32.SendMessage(sci, SciMsg.SCI_SETTARGETSTART, start, 0);
-            Win32.SendMessage(sci, SciMsg.SCI_SETTARGETEND, end, 0);
-            Win32.SendMessage(sci, SciMsg.SCI_REPLACETARGET, text);
+            _win32.ISendMessage(sci, SciMsg.SCI_SETTARGETSTART, start, 0);
+            _win32.ISendMessage(sci, SciMsg.SCI_SETTARGETEND, end, 0);
+            _win32.ISendMessage(sci, SciMsg.SCI_REPLACETARGET, text);
         }
 
         public string TextAfterCursor(int maxLength)
         {
-            IntPtr hCurrentEditView = Plugin.GetCurrentScintilla();
-            int currentPos = (int)Win32.SendMessage(hCurrentEditView, SciMsg.SCI_GETCURRENTPOS, 0, 0);
+            IntPtr hCurrentEditView = GetCurrentScintilla(Plugin.nppData);
+            int currentPos = (int)_win32.ISendMessage(hCurrentEditView, SciMsg.SCI_GETCURRENTPOS, 0, 0);
             return TextAfterPosition(currentPos, maxLength);
         }
 
         public string TextAfterPosition(int position, int maxLength)
         {
             int bufCapacity = maxLength + 1;
-            IntPtr hCurrentEditView = Plugin.GetCurrentScintilla();
+            IntPtr hCurrentEditView = GetCurrentScintilla(Plugin.nppData);
             int currentPos = position;
-            int fullLength = (int)Win32.SendMessage(hCurrentEditView, SciMsg.SCI_GETLENGTH, 0, 0);
+            int fullLength = (int)_win32.ISendMessage(hCurrentEditView, SciMsg.SCI_GETLENGTH, 0, 0);
             int startPos = currentPos;
             int endPos = Math.Min(currentPos + bufCapacity, fullLength);
             int size = endPos - startPos;
@@ -500,7 +509,7 @@ namespace RTextNppPlugin.Utilities
             {
                 using (var tr = new Sci_TextRange(startPos, endPos, bufCapacity))
                 {
-                    Win32.SendMessage(hCurrentEditView, SciMsg.SCI_GETTEXTRANGE, 0, tr.NativePointer);
+                    _win32.ISendMessage(hCurrentEditView, SciMsg.SCI_GETTEXTRANGE, 0, tr.NativePointer);
                     return tr.lpstrText;
                 }
             }
@@ -510,25 +519,25 @@ namespace RTextNppPlugin.Utilities
 
         public void ReplaceWordFromToken(Tokenizer.TokenTag ? token, string insertionText)
         {            
-            IntPtr sci = Plugin.GetCurrentScintilla();
+            IntPtr sci = GetCurrentScintilla(Plugin.nppData);
             int aCaretPos = GetCaretPosition();
             bool isCaretInsideToken = (aCaretPos >= token.Value.BufferPosition && aCaretPos < (token.Value.BufferPosition + token.Value.Context.Length));
 
             if (token.HasValue && (token.Value.Type != RTextTokenTypes.Space && token.Value.Type != RTextTokenTypes.Comma && token.Value.Type != RTextTokenTypes.Label) || (token.Value.Type == RTextTokenTypes.Label && isCaretInsideToken))
             {
                 //if token is space or comma or label, add the new text after it!
-                Win32.SendMessage(sci, SciMsg.SCI_SETSELECTION, token.Value.BufferPosition, token.Value.BufferPosition + token.Value.Context.Length);
+                _win32.ISendMessage(sci, SciMsg.SCI_SETSELECTION, token.Value.BufferPosition, token.Value.BufferPosition + token.Value.Context.Length);
             }
             else
             {
-                Win32.SendMessage(sci, SciMsg.SCI_SETSELECTION, aCaretPos, aCaretPos);
+                _win32.ISendMessage(sci, SciMsg.SCI_SETSELECTION, aCaretPos, aCaretPos);
             }
-            Win32.SendMessage(sci, SciMsg.SCI_REPLACESEL, insertionText);
+            _win32.ISendMessage(sci, SciMsg.SCI_REPLACESEL, insertionText);
         }                      
 
         public IntPtr CurrentScintilla
         {
-            get { return Plugin.GetCurrentScintilla(); }
+            get { return GetCurrentScintilla(Plugin.nppData); }
         }
 
         public IntPtr NppHandle
@@ -538,67 +547,67 @@ namespace RTextNppPlugin.Utilities
 
         public int GetCaretPosition()
         {
-            IntPtr sci = Plugin.GetCurrentScintilla();
-            int currentPos = (int)Win32.SendMessage(sci, SciMsg.SCI_GETCURRENTPOS, 0, 0);
+            IntPtr sci = GetCurrentScintilla(Plugin.nppData);
+            int currentPos = (int)_win32.ISendMessage(sci, SciMsg.SCI_GETCURRENTPOS, 0, 0);
             return currentPos;
         }
 
         public int GetCaretLineNumber()
         {
-            IntPtr sci = Plugin.GetCurrentScintilla();
-            int currentPos = (int)Win32.SendMessage(sci, SciMsg.SCI_GETCURRENTPOS, 0, 0);
+            IntPtr sci = GetCurrentScintilla(Plugin.nppData);
+            int currentPos = (int)_win32.ISendMessage(sci, SciMsg.SCI_GETCURRENTPOS, 0, 0);
 
-            return (int)Win32.SendMessage(sci, SciMsg.SCI_LINEFROMPOSITION, currentPos, 0);
+            return (int)_win32.ISendMessage(sci, SciMsg.SCI_LINEFROMPOSITION, currentPos, 0);
         }
 
         public void SetCaretPosition(int pos)
         {
-            IntPtr sci = Plugin.GetCurrentScintilla();
-            Win32.SendMessage(sci, SciMsg.SCI_SETCURRENTPOS, pos, 0);
+            IntPtr sci = GetCurrentScintilla(Plugin.nppData);
+            _win32.ISendMessage(sci, SciMsg.SCI_SETCURRENTPOS, pos, 0);
         }
 
         public void ClearSelection()
         {
-            IntPtr sci = Plugin.GetCurrentScintilla();
-            int currentPos = (int)Win32.SendMessage(sci, SciMsg.SCI_GETCURRENTPOS, 0, 0);
-            Win32.SendMessage(sci, SciMsg.SCI_SETSELECTIONSTART, currentPos, 0);
-            Win32.SendMessage(sci, SciMsg.SCI_SETSELECTIONEND, currentPos, 0); ;
+            IntPtr sci = GetCurrentScintilla(Plugin.nppData);
+            int currentPos = (int)_win32.ISendMessage(sci, SciMsg.SCI_GETCURRENTPOS, 0, 0);
+            _win32.ISendMessage(sci, SciMsg.SCI_SETSELECTIONSTART, currentPos, 0);
+            _win32.ISendMessage(sci, SciMsg.SCI_SETSELECTIONEND, currentPos, 0); ;
         }
 
         public void SetSelection(int start, int end)
         {
-            IntPtr sci = Plugin.GetCurrentScintilla();
-            Win32.SendMessage(sci, SciMsg.SCI_SETSELECTIONSTART, start, 0);
-            Win32.SendMessage(sci, SciMsg.SCI_SETSELECTIONEND, end, 0); ;
+            IntPtr sci = GetCurrentScintilla(Plugin.nppData);
+            _win32.ISendMessage(sci, SciMsg.SCI_SETSELECTIONSTART, start, 0);
+            _win32.ISendMessage(sci, SciMsg.SCI_SETSELECTIONEND, end, 0); ;
         }
 
         public int GrabFocus()
         {
-            IntPtr sci = Plugin.GetCurrentScintilla();
-            int currentPos = (int)Win32.SendMessage(sci, SciMsg.SCI_GRABFOCUS, 0, 0);
+            IntPtr sci = GetCurrentScintilla(Plugin.nppData);
+            int currentPos = (int)_win32.ISendMessage(sci, SciMsg.SCI_GRABFOCUS, 0, 0);
             return currentPos;
         }
 
         public void ScrollToCaret()
         {
-            IntPtr sci = Plugin.GetCurrentScintilla();
-            Win32.SendMessage(sci, SciMsg.SCI_SCROLLCARET, 0, 0);
-            Win32.SendMessage(sci, SciMsg.SCI_LINESCROLL, 0, 1); //bottom scrollbar can hide the line
-            Win32.SendMessage(sci, SciMsg.SCI_SCROLLCARET, 0, 0);
+            IntPtr sci = GetCurrentScintilla(Plugin.nppData);
+            _win32.ISendMessage(sci, SciMsg.SCI_SCROLLCARET, 0, 0);
+            _win32.ISendMessage(sci, SciMsg.SCI_LINESCROLL, 0, 1); //bottom scrollbar can hide the line
+            _win32.ISendMessage(sci, SciMsg.SCI_SCROLLCARET, 0, 0);
         }
 
         public void OpenFile(string file)
         {
             IntPtr sci = Plugin.nppData._nppHandle;
-            Win32.SendMessage(sci, NppMsg.NPPM_DOOPEN, 0, file);
+            _win32.ISendMessage(sci, NppMsg.NPPM_DOOPEN, 0, file);
         }
 
         public void GoToLine(int line)
         {
-            IntPtr sci = Plugin.GetCurrentScintilla();
-            //Win32.SendMessage(sci, SciMsg.SCI_ENSUREVISIBLE, line - 1, 0);
-            Win32.SendMessage(sci, SciMsg.SCI_GOTOLINE, line + 20, 0);
-            Win32.SendMessage(sci, SciMsg.SCI_GOTOLINE, line - 1, 0);
+            IntPtr sci = GetCurrentScintilla(Plugin.nppData);
+            //_win32.ISendMessage(sci, SciMsg.SCI_ENSUREVISIBLE, line - 1, 0);
+            _win32.ISendMessage(sci, SciMsg.SCI_GOTOLINE, line + 20, 0);
+            _win32.ISendMessage(sci, SciMsg.SCI_GOTOLINE, line - 1, 0);
             /*
              SCI_GETFIRSTVISIBLELINE = 2152,
         SCI_GETLINE = 2153,
@@ -624,7 +633,7 @@ namespace RTextNppPlugin.Utilities
 
         public Rectangle GetClientRect()
         {
-            IntPtr sci = Plugin.GetCurrentScintilla();
+            IntPtr sci = GetCurrentScintilla(Plugin.nppData);
 
             Rectangle r = new Rectangle();
             GetWindowRect(sci, ref r);
@@ -634,7 +643,7 @@ namespace RTextNppPlugin.Utilities
         public string TextBeforePosition(int position, int maxLength)
         {
             int bufCapacity = maxLength + 1;
-            IntPtr hCurrentEditView = Plugin.GetCurrentScintilla();
+            IntPtr hCurrentEditView = GetCurrentScintilla(Plugin.nppData);
             int currentPos = position;
             int beginPos = currentPos - maxLength;
             int startPos = (beginPos > 0) ? beginPos : 0;
@@ -644,7 +653,7 @@ namespace RTextNppPlugin.Utilities
             {
                 using (var tr = new Sci_TextRange(startPos, currentPos, bufCapacity))
                 {
-                    Win32.SendMessage(hCurrentEditView, SciMsg.SCI_GETTEXTRANGE, 0, tr.NativePointer);
+                    _win32.ISendMessage(hCurrentEditView, SciMsg.SCI_GETTEXTRANGE, 0, tr.NativePointer);
                     return tr.lpstrText;
                 }
             }
@@ -654,8 +663,8 @@ namespace RTextNppPlugin.Utilities
 
         public string TextBeforeCursor(int maxLength)
         {
-            IntPtr hCurrentEditView = Plugin.GetCurrentScintilla();
-            int currentPos = (int)Win32.SendMessage(hCurrentEditView, SciMsg.SCI_GETCURRENTPOS, 0, 0);
+            IntPtr hCurrentEditView = GetCurrentScintilla(Plugin.nppData);
+            int currentPos = (int)_win32.ISendMessage(hCurrentEditView, SciMsg.SCI_GETCURRENTPOS, 0, 0);
 
             return TextBeforePosition(currentPos, maxLength);
         }
@@ -665,7 +674,7 @@ namespace RTextNppPlugin.Utilities
         /// </summary>
         public int GetTextHeight(int line)
         {
-            return (int)Win32.SendMessage(CurrentScintilla, SciMsg.SCI_TEXTHEIGHT, line, 0);
+            return (int)_win32.ISendMessage(CurrentScintilla, SciMsg.SCI_TEXTHEIGHT, line, 0);
         }
 
         [DllImport("user32.dll")]

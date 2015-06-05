@@ -65,6 +65,7 @@
       <HintPath>..\packages\NUnitTestAdapter.1.2\lib\NUnit.VisualStudio.TestAdapter.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="PresentationCore" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Windows.Forms" />
@@ -95,8 +96,12 @@
     <Compile Include="Utilities\DispatcherUtil.cs" />
     <Compile Include="Utilities\FIleModificationObserverTests.cs" />
     <Compile Include="Utilities\FileUtilitiesTests.cs" />
+    <Compile Include="Utilities\MouseHookTests.cs" />
+    <Compile Include="Utilities\ProcessUtilitiesTests.cs" />
     <Compile Include="Utilities\SettingsTests.cs" />
+    <Compile Include="Utilities\StringExtensionsTests.cs" />
     <Compile Include="Utilities\TestWithActiveDispatcher.cs" />
+    <Compile Include="Utilities\MouseEventExtArgsTest.cs" />
     <Compile Include="Utilities\WpfControlHostTests.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -123,6 +128,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\WorkspaceRoot.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="WpfControls\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

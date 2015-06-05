@@ -6,7 +6,7 @@ using System.Linq;
 namespace Tests.Utilities
 {
     using NUnit.Framework;
-    using RTextNppPlugin.Parsing;
+    using RTextNppPlugin.RText.Parsing;
     using RTextNppPlugin.Utilities;
     using Moq;
     using MoqExtensions;

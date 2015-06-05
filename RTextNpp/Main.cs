@@ -7,13 +7,14 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using RTextNppPlugin.Forms;
-using RTextNppPlugin.Parsing;
+using RTextNppPlugin.RText.Parsing;
 using RTextNppPlugin.RText;
 using RTextNppPlugin.Utilities;
 using RTextNppPlugin.Utilities.WpfControlHost;
 using RTextNppPlugin.Utilities.Settings;
 using RTextNppPlugin.WpfControls;
 using WindowsSubclassWrapper;
+using RTextNppPlugin.DllExport;
 
 namespace RTextNppPlugin
 {
@@ -69,13 +70,14 @@ namespace RTextNppPlugin
     partial class Plugin
     {
         #region [Fields]
+        private static IWin32 _win32                                                    = new Win32();
         private static ISettings _settings                                              = new Settings(Npp.Instance);
         private static ConnectorManager _connectorManager                               = new ConnectorManager(_settings, Npp.Instance);
         private static PersistentWpfControlHost<ConsoleOutputForm> _consoleOutput       = new PersistentWpfControlHost<ConsoleOutputForm>(Settings.RTextNppSettings.ConsoleWindowActive, new ConsoleOutputForm(_connectorManager), _settings, Npp.Instance);        
         private static Options _options                                                 = new Options(_settings);
         private static FileModificationObserver _fileObserver                           = new FileModificationObserver(_settings, Npp.Instance);
         private static Dictionary<ShortcutKey, Tuple<string, Action>> internalShortcuts = new Dictionary<ShortcutKey, Tuple<string, Action>>();
-        private static AutoCompletionWindow _autoCompletionForm                         = new AutoCompletionWindow(_connectorManager);
+        private static AutoCompletionWindow _autoCompletionForm                         = new AutoCompletionWindow(_connectorManager, _win32);
         private static Bitmap tbBmp                                                     = Properties.Resources.ConsoleIcon;
         private static Bitmap tbBmp_tbTab                                               = Properties.Resources.ConsoleIcon;
         private static Icon tbIcon                                                      = null;
@@ -357,7 +359,7 @@ namespace RTextNppPlugin
                 }
                 else
                 {
-                    Win32.SendMessage(Plugin.nppData._nppHandle, (NppMsg)WinMsg.WM_COMMAND, (int)NppMenuCmd.IDM_EDIT_AUTOCOMPLETE, 0);
+                    _win32.ISendMessage(Plugin.nppData._nppHandle, (NppMsg)WinMsg.WM_COMMAND, (int)NppMenuCmd.IDM_EDIT_AUTOCOMPLETE, 0);
                 }
             });
         }        
@@ -367,7 +369,7 @@ namespace RTextNppPlugin
          */
         static void ModifyOptions()
         {
-            Win32.SendMessage(nppData._nppHandle, NppMsg.NPPM_MODELESSDIALOG, (int)NppMsg.MODELESSDIALOGADD, _options.Handle.ToInt32());
+            _win32.ISendMessage(nppData._nppHandle, NppMsg.NPPM_MODELESSDIALOG, (int)NppMsg.MODELESSDIALOGADD, _options.Handle.ToInt32());
             if (_options.ShowDialog(Control.FromHandle(nppData._nppHandle)) == DialogResult.OK)
             {
                 _options.SaveSettings();
@@ -376,7 +378,7 @@ namespace RTextNppPlugin
             {
                 _options.RestoreSettings();
             }
-            Win32.SendMessage(nppData._nppHandle, NppMsg.NPPM_MODELESSDIALOG, (int)NppMsg.MODELESSDIALOGREMOVE, _options.Handle.ToInt32());
+            _win32.ISendMessage(nppData._nppHandle, NppMsg.NPPM_MODELESSDIALOG, (int)NppMsg.MODELESSDIALOGREMOVE, _options.Handle.ToInt32());
         }
 
         static void ShowConsoleOutput()
@@ -409,18 +411,18 @@ namespace RTextNppPlugin
                 IntPtr _ptrNppTbData = Marshal.AllocHGlobal(Marshal.SizeOf(_nppTbData));
                 Marshal.StructureToPtr(_nppTbData, _ptrNppTbData, false);
                 _consoleOutput.CmdId = _funcItems.Items[(int)Constants.NppMenuCommands.ConsoleWindow]._cmdID;
-                Win32.SendMessage(nppData._nppHandle, NppMsg.NPPM_DMMREGASDCKDLG, 0, _ptrNppTbData);
-                Win32.SendMessage(nppData._nppHandle, NppMsg.NPPM_SETMENUITEMCHECK, _funcItems.Items[0]._cmdID, 1);
+                _win32.ISendMessage(nppData._nppHandle, NppMsg.NPPM_DMMREGASDCKDLG, 0, _ptrNppTbData);
+                _win32.ISendMessage(nppData._nppHandle, NppMsg.NPPM_SETMENUITEMCHECK, _funcItems.Items[0]._cmdID, 1);
             }
             else
             {
                 if (!_consoleOutput.Visible)
                 {
-                    Win32.SendMessage(nppData._nppHandle, NppMsg.NPPM_DMMSHOW, 0, _consoleOutput.Handle);
+                    _win32.ISendMessage(nppData._nppHandle, NppMsg.NPPM_DMMSHOW, 0, _consoleOutput.Handle);
                 }
                 else
                 {
-                    Win32.SendMessage(nppData._nppHandle, NppMsg.NPPM_DMMHIDE, 0, _consoleOutput.Handle);
+                    _win32.ISendMessage(nppData._nppHandle, NppMsg.NPPM_DMMHIDE, 0, _consoleOutput.Handle);
                 }
             }
             _consoleOutput.Focus();
@@ -479,7 +481,7 @@ namespace RTextNppPlugin
             tbIcons.hToolbarBmp = tbBmp.GetHbitmap();
             IntPtr pTbIcons = Marshal.AllocHGlobal(Marshal.SizeOf(tbIcons));
             Marshal.StructureToPtr(tbIcons, pTbIcons, false);
-            Win32.SendMessage(nppData._nppHandle, NppMsg.NPPM_ADDTOOLBARICON, _funcItems.Items[(int)Constants.NppMenuCommands.ConsoleWindow]._cmdID, pTbIcons);
+            _win32.ISendMessage(nppData._nppHandle, NppMsg.NPPM_ADDTOOLBARICON, _funcItems.Items[(int)Constants.NppMenuCommands.ConsoleWindow]._cmdID, pTbIcons);
             Marshal.FreeHGlobal(pTbIcons);
         }        
 
@@ -594,12 +596,12 @@ namespace RTextNppPlugin
             if ( _settings.Get<bool>(Settings.RTextNppSettings.ConsoleWindowActive))
             {
                 ShowConsoleOutput();
-                Win32.SendMessage(nppData._nppHandle, NppMsg.NPPM_SETMENUITEMCHECK, _funcItems.Items[0]._cmdID, 1);
+                _win32.ISendMessage(nppData._nppHandle, NppMsg.NPPM_SETMENUITEMCHECK, _funcItems.Items[0]._cmdID, 1);
             }
             //Logging.Logger.Instance.Append("User settings loaded.", Logging.Logger.MessageType.Info);
 
             _nppMsgInterceptpr       = new NppMessageInterceptor(nppData._nppHandle);
-            _scintillaMsgInterceptor = new ScintillaMessageInterceptor(Plugin.GetCurrentScintilla());            
+            _scintillaMsgInterceptor = new ScintillaMessageInterceptor(Npp.Instance.GetCurrentScintilla(Plugin.nppData));
         }
 
         /**

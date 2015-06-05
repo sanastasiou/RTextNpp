@@ -19,6 +19,7 @@ using System.Runtime.InteropServices;
 using System.Reflection;
 using RTextNppPlugin.Utilities;
 using RTextNppPlugin;
+using RTextNppPlugin.DllExport;
 
 namespace CSScriptIntellisense
 {
@@ -168,7 +169,7 @@ namespace CSScriptIntellisense
         protected int CoreHookProc(int code, IntPtr wParam, IntPtr lParam)
         {
             if (code < 0)
-                return CallNextHookEx(m_hhook, code, wParam, lParam);
+                return base.ICallNextHookEx(m_hhook, code, wParam, lParam);
 
             // Let clients determine what to do
             HookEventArgs e = new HookEventArgs();
@@ -179,7 +180,7 @@ namespace CSScriptIntellisense
             System.Diagnostics.Trace.WriteLine(String.Format("Hook called : code {0}", e.HookCode));
 
             // Yield to the next hook in the chain
-            return CallNextHookEx(m_hhook, code, wParam, lParam);
+            return base.ICallNextHookEx(m_hhook, code, wParam, lParam);
         }
         // ************************************************************************
 
@@ -189,7 +190,7 @@ namespace CSScriptIntellisense
         {
             if (!IsInstalled)
             {
-                m_hhook = SetWindowsHookEx(
+                m_hhook = base.ISetWindowsHookEx(
                     m_hookType,
                     m_filterFunc,
                     IntPtr.Zero,
@@ -204,7 +205,7 @@ namespace CSScriptIntellisense
         {
             if (IsInstalled)
             {
-                UnhookWindowsHookEx(m_hhook);
+                base.IUnhookWindowsHookEx(m_hhook);
                 m_hhook = IntPtr.Zero;
             }
         }

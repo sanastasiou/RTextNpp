@@ -5,7 +5,7 @@ namespace ContextExtraction.AutoCompletion
 {
     using Moq;
     using NUnit.Framework;
-    using RTextNppPlugin.Parsing;
+    using RTextNppPlugin.RText.Parsing;
     using RTextNppPlugin.Utilities;
 
     [TestFixture]

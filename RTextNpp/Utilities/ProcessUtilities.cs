@@ -14,30 +14,32 @@ namespace RTextNppPlugin.Utilities
          *
          * \param   parentProcessId Identifier for the parent process.
          */
+        [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
         internal static void KillAllProcessesSpawnedBy(int pid)
         {
-            // NOTE: Process Ids are reused!
-            ManagementObjectSearcher searcher = new ManagementObjectSearcher(
-                "SELECT * " +
-                "FROM Win32_Process " +
-                "WHERE ParentProcessId=" + pid);
-            ManagementObjectCollection collection = searcher.Get();
-
-            foreach (ManagementObject mo in collection)
-            {
-                KillAllProcessesSpawnedBy(Convert.ToInt32(mo["ProcessID"]));
-            }
             try
             {
+                // NOTE: Process Ids are reused!
+                ManagementObjectSearcher searcher = new ManagementObjectSearcher(
+                    "SELECT * " +
+                    "FROM Win32_Process " +
+                    "WHERE ParentProcessId=" + pid);
+                ManagementObjectCollection collection = searcher.Get();
+
+                foreach (ManagementObject mo in collection)
+                {
+                    KillAllProcessesSpawnedBy(Convert.ToInt32(mo["ProcessID"]));
+                }
+
                 Process proc = Process.GetProcessById(pid);
                 if (!proc.HasExited)
                 {
                     proc.Kill();
                 }
             }
-            catch (ArgumentException)
+            catch
             {
-                // Process already exited.
+                // Process already exited, or doesn't exist
             }
         }
     }

@@ -7,182 +7,24 @@ using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
 using CSScriptIntellisense;
-using RTextNppPlugin.Parsing;
+using RTextNppPlugin.RText.Parsing;
 using RTextNppPlugin.Utilities;
 using RTextNppPlugin.ViewModels;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using RTextNppPlugin.RText;
+using RTextNppPlugin.DllExport;
 
 
 namespace RTextNppPlugin.WpfControls
 {
-    class AutoCompletionMouseMonitor : GlobalMouseHook
-    {
-        private event EventHandler<MouseEventExtArgs> _MouseClick;
-
-        internal event EventHandler<MouseEventExtArgs> MouseClick
-        {
-            add
-            {
-                if (_MouseClick == null)
-                {
-                    EnsureSubscribedToGlobalMouseEvents();
-                    _MouseClick += value;
-                }
-            }
-            remove
-            {
-                if (_MouseClick != null)
-                {
-                    _MouseClick -= value;
-                    TryUnsubscribeFromGlobalMouseEvents();
-                }
-            }
-        }
-
-        private event EventHandler<MouseEventExtArgs> _MouseWheel;
-
-        internal event EventHandler<MouseEventExtArgs> MouseWheel
-        {
-            add
-            {
-                if (_MouseWheel == null)
-                {
-                    EnsureSubscribedToGlobalMouseEvents();
-                    _MouseWheel += value;
-                }
-            }
-            remove
-            {
-                if (_MouseWheel != null)
-                {
-                    _MouseWheel -= value;
-                    TryUnsubscribeFromGlobalMouseEvents();
-                }
-            }
-        }
-
-        private event EventHandler<MouseEventExtArgs> _MouseDoubleClick;
-
-        internal event EventHandler<MouseEventExtArgs> MouseDoubleClick
-        {
-            add
-            {
-                if (_MouseDoubleClick != null)
-                {
-                    EnsureSubscribedToGlobalMouseEvents();
-                    _MouseDoubleClick += value;
-                }
-            }
-            remove
-            {
-                if (_MouseDoubleClick != null)
-                {
-                    _MouseDoubleClick -= value;
-                    TryUnsubscribeFromGlobalMouseEvents();
-                }
-            }
-        }
-
-        public override int MouseHookProc(int nCode, IntPtr wParam, IntPtr lParam)
-        {
-            if (nCode >= 0)
-            {
-                VisualUtilities.MouseMessages aMsg = (VisualUtilities.MouseMessages)wParam.ToInt32();
-                //Marshall the data from callback.
-                MouseLLHookStruct mouseHookStruct = (MouseLLHookStruct)Marshal.PtrToStructure(lParam, typeof(MouseLLHookStruct));
-
-                //detect button clicked
-                System.Windows.Forms.MouseButtons button = System.Windows.Forms.MouseButtons.None;
-                short mouseDelta = 0;
-                int clickCount = 0;
-                switch (aMsg)
-                {
-                    case VisualUtilities.MouseMessages.WM_LBUTTONDOWN:
-                        button = System.Windows.Forms.MouseButtons.Left;
-                        clickCount = 1;
-                        break;
-                    case VisualUtilities.MouseMessages.WM_RBUTTONDOWN:
-                        button = System.Windows.Forms.MouseButtons.Right;
-                        clickCount = 1;
-                        break;
-                    case VisualUtilities.MouseMessages.WM_NCXBUTTONDBLCLK:
-                        button = System.Windows.Forms.MouseButtons.Left;
-                        clickCount = 2;
-                        break;
-                    case VisualUtilities.MouseMessages.WM_NCXBUTTONDOWN:
-                        button = System.Windows.Forms.MouseButtons.Left;
-                        clickCount = 1;
-                        break;
-                    case VisualUtilities.MouseMessages.WM_NCMBUTTONDBLCLK:
-                        button = System.Windows.Forms.MouseButtons.Middle;
-                        clickCount = 2;
-                        break;
-                    case VisualUtilities.MouseMessages.WM_NCMBUTTONDOWN:
-                        button = System.Windows.Forms.MouseButtons.Middle;
-                        clickCount = 1;
-                        break;
-                    case VisualUtilities.MouseMessages.WM_NCRBUTTONDBLCLK:
-                        button = System.Windows.Forms.MouseButtons.Right;
-                        clickCount = 1;
-                        break;
-                    case VisualUtilities.MouseMessages.WM_NCRBUTTONDOWN:
-                        button = System.Windows.Forms.MouseButtons.Right;
-                        clickCount = 1;
-                        break;
-                    case VisualUtilities.MouseMessages.WM_NCLBUTTONDBLCLK:
-                        button = System.Windows.Forms.MouseButtons.Left;
-                        clickCount = 2;
-                        break;
-                    case VisualUtilities.MouseMessages.WM_NCLBUTTONDOWN:
-                        button = System.Windows.Forms.MouseButtons.Left;
-                        clickCount = 1;
-                        break;
-                    default:
-                        return CallNextHookEx(_MouseHookHandle, nCode, wParam, lParam);
-                }
-
-                //generate event 
-                MouseEventExtArgs e = new MouseEventExtArgs(button, 1, mouseHookStruct.Point.X, mouseHookStruct.Point.Y, mouseDelta);
-
-                if (_MouseClick != null && clickCount == 1)
-                {
-                    _MouseClick.Invoke(null, e);
-                }
-                if (_MouseDoubleClick != null && clickCount == 2)
-                {
-                    _MouseDoubleClick.Invoke(null, e);
-                }
-
-                if (e.Handled)
-                {
-                    return -1;
-                }
-            }
-
-            //call next hook
-            return CallNextHookEx(_MouseHookHandle, nCode, wParam, lParam);
-        }
-
-        override protected void TryUnsubscribeFromGlobalMouseEvents()
-        {
-            //if no subsribers are registered unsubsribe from hook
-            if (_MouseClick    == null &&
-                _MouseWheel    == null)
-            {
-                ForceUnsunscribeFromGlobalMouseEvents();
-            }
-        }
-    }
-
     public partial class AutoCompletionWindow : System.Windows.Window, IDisposable, IWin32MessageReceptor, IWindowPosition
     {
         #region [DataMembers]
 
         DelayedEventHandler _delayedFilterEventHandler              = null;
         KeyInterceptor _keyMonitor                                  = new KeyInterceptor();
-        AutoCompletionMouseMonitor _autoCompletionMouseMonitor      = new AutoCompletionMouseMonitor();
+        GlobalClickInterceptor _autoCompletionMouseMonitor          = null;
         ToolTip _previouslyOpenedToolTip                            = null;
         DelayedEventHandler _delayedToolTipHandler                  = null;
 
@@ -227,9 +69,10 @@ namespace RTextNppPlugin.WpfControls
         }
         #endregion        
 
-        internal AutoCompletionWindow(ConnectorManager cmanager)
+        internal AutoCompletionWindow(ConnectorManager cmanager, IWin32 win32Helper)
         {
             InitializeComponent();
+            _autoCompletionMouseMonitor = new GlobalClickInterceptor(win32Helper);
             DataContext = new ViewModels.AutoCompletionViewModel(cmanager);
             _keyMonitor.KeysToIntercept.Add((int)System.Windows.Forms.Keys.Down);
             _keyMonitor.KeysToIntercept.Add((int)System.Windows.Forms.Keys.Up);
@@ -521,13 +364,11 @@ namespace RTextNppPlugin.WpfControls
         private void InstallMouseMonitorHooks()
         {
             _autoCompletionMouseMonitor.MouseClick += OnAutoCompletionMouseMonitorMouseClick;
-            _autoCompletionMouseMonitor.MouseWheel += OnAutoCompletionMouseMonitorMouseWheelMoved;
         }
 
         private void UninstallMouseMonitorHooks()
         {
             _autoCompletionMouseMonitor.MouseClick -= OnAutoCompletionMouseMonitorMouseClick;
-            _autoCompletionMouseMonitor.MouseWheel -= OnAutoCompletionMouseMonitorMouseWheelMoved;
         }
         
         private void ShowDelayedToolTip(ToolTip tp)

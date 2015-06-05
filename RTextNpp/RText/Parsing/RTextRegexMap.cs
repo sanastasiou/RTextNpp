@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-namespace RTextNppPlugin.Parsing
+namespace RTextNppPlugin.RText.Parsing
 {
     public static class RTextRegexMap
     {

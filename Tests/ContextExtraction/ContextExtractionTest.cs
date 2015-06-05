@@ -4,7 +4,7 @@ using System.Linq;
 namespace ContextExtraction.ExtractionTests
 {
     using NUnit.Framework;
-    using RTextNppPlugin.Parsing;
+    using RTextNppPlugin.RText.Parsing;
 
     [TestFixture]
     public class Initialization

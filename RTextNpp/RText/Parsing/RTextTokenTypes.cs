@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace RTextNppPlugin.Parsing
+namespace RTextNppPlugin.RText.Parsing
 {
     /**
      * @enum    RTextTokenTypes

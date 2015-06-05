@@ -7,7 +7,7 @@ using System.Text.RegularExpressions;
 using AJ.Common;
 using RTextNppPlugin.Logging;
 
-namespace RTextNppPlugin.Parsing
+namespace RTextNppPlugin.RText.Parsing
 {
     public class ContextExtractor : IContextExtractor
     {

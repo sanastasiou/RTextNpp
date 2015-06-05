@@ -1,4 +1,5 @@
 ﻿using System;
+using RTextNppPlugin.DllExport;
 
 namespace RTextNppPlugin
 {
@@ -38,13 +39,6 @@ namespace RTextNppPlugin
                 funcItem._pShKey = shortcut;
             funcItem._init2Check = checkOnInit;
             _funcItems.Add(funcItem);
-        }
-
-        internal static IntPtr GetCurrentScintilla()
-        {
-            int curScintilla;
-            Win32.SendMessage(nppData._nppHandle, NppMsg.NPPM_GETCURRENTSCINTILLA, 0, out curScintilla);
-            return (curScintilla == 0) ? nppData._scintillaMainHandle : nppData._scintillaSecondHandle;
         }
 
         /**

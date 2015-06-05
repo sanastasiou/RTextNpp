@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using RTextNppPlugin.DllExport;
 using RTextNppPlugin.Utilities;
 using RTextNppPlugin.Utilities.Settings;
+using RTextNppPlugin.Logging;
 
 namespace RTextNppPlugin.RText
 {
@@ -47,7 +49,7 @@ namespace RTextNppPlugin.RText
         internal ConnectorManager(ISettings settings, INpp nppHelper)
         {
             _settings    = settings;
-            _processList = new Dictionary<string, Utilities.RTextBackendProcess>();
+            _processList = new Dictionary<string, RTextBackendProcess>();
             _nppHelper   = nppHelper;
         }
 
@@ -74,17 +76,17 @@ namespace RTextNppPlugin.RText
                 string rTextFileLocation = FileUtilities.FindWorkspaceRoot(file);
                 if (String.IsNullOrEmpty(rTextFileLocation))
                 {
-                    Logging.Logger.Instance.Append(Logging.Logger.MessageType.Error, Constants.GENERAL_CHANNEL, "Could not find .rtext file for automate file {0}", file);
+                    Logger.Instance.Append(Logger.MessageType.Error, Constants.GENERAL_CHANNEL, "Could not find .rtext file for automate file {0}", file);
                 }
                 else
                 {
                     string processKey = rTextFileLocation + Path.GetExtension(file);
-                    Logging.Logger.Instance.Append(Logging.Logger.MessageType.Info, processKey, "Workspace root for file : {0} is : {1}", file, rTextFileLocation);
+                    Logger.Instance.Append(Logger.MessageType.Info, processKey, "Workspace root for file : {0} is : {1}", file, rTextFileLocation);
 
                     //maybe process already exists..
                     if (!_processList.ContainsKey(processKey))
                     {
-                        _processList.Add(processKey, new Utilities.RTextBackendProcess(rTextFileLocation, Path.GetExtension(file), _settings));
+                        _processList.Add(processKey, new RTextBackendProcess(rTextFileLocation, Path.GetExtension(file), _settings));
                     }
                     if (_processList[processKey].HasExited)
                     {
@@ -139,7 +141,7 @@ namespace RTextNppPlugin.RText
         #endregion
 
         #region Data Members
-        private Dictionary<string, Utilities.RTextBackendProcess> _processList;
+        private Dictionary<string, RTextBackendProcess> _processList;
         private NppData _nppData;
         private readonly ISettings _settings = null;
         private readonly INpp _nppHelper     = null;
