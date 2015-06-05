@@ -246,10 +246,6 @@ namespace RTextNppPlugin.RText
         }
         #endregion
 
-        #region EventHandlers
-        
-        #endregion
-
         #region Helpers
 
         /**

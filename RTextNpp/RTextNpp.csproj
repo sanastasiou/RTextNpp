@@ -124,6 +124,7 @@
     <Compile Include="Utilities\StringExtensions.cs" />
     <Compile Include="Utilities\Visual.cs" />
     <Compile Include="Utilities\WinHook.cs" />
+    <Compile Include="Utilities\WinMessageInterceptor.cs" />
     <Compile Include="Utilities\WpfControlHost\PersistentWpfControlHost.cs" />
     <Compile Include="Utilities\WpfControlHost\WpfControlHostBase.cs" />
     <Compile Include="ViewModels\AutoCompletionViewModel.cs" />
