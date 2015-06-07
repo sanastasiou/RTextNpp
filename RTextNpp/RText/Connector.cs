@@ -337,7 +337,6 @@ namespace RTextNppPlugin.RText
                         _currentState.ExecuteCommand(StateEngine.Command.Disconnected);
                         mLastResponse = null;
                     }
-                    mReceivingThreadCancellationSource.Cancel();
                     return mLastResponse;
                 }));
                 receiverTask.Start();
@@ -354,6 +353,10 @@ namespace RTextNppPlugin.RText
                 }
                
                 var result = await Task.WhenAny<IResponseBase>(receiverTask, errorTask);
+                if (!mReceivingThreadCancellationSource.IsCancellationRequested)
+                {
+                    mReceivingThreadCancellationSource.Cancel();
+                }
                 return result.Result;
             }
             catch (ArgumentNullException ex)
@@ -459,9 +462,9 @@ namespace RTextNppPlugin.RText
         private void OnSufficientResponseLengthAcquired()
         {
             mConnection.LengthMatched   = false;
-            string aJSONmessage            = mConnection.ReceivedMessage.ToString(mConnection.JSONLength.ToString().Length, mConnection.JSONLength);
+            string aJSONmessage         = mConnection.ReceivedMessage.ToString(mConnection.JSONLength.ToString().Length, mConnection.JSONLength);
             mConnection.ReceivedMessage = new StringBuilder(mConnection.ReceivedMessage.ToString(mConnection.RequiredLength,
-                                                               mConnection.ReceivedMessage.Length - mConnection.RequiredLength));
+                                                            mConnection.ReceivedMessage.Length - mConnection.RequiredLength));
             //handle various responses
             AnalyzeResponse(aJSONmessage);
             TryDeserialize();

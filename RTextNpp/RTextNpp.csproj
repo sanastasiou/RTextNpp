@@ -153,6 +153,9 @@
     <Reference Include="FileSystemWatcherCLRWrapper">
       <HintPath>..\ThirdParty\FileSystemWatcher\FileSystemWatcherCLRWrapper.dll</HintPath>
     </Reference>
+    <Reference Include="FuzzyString">
+      <HintPath>..\ThirdParty\FuzzyMatcher\FuzzyString.dll</HintPath>
+    </Reference>
     <Reference Include="Jil">
       <HintPath>..\packages\Jil.2.10.0\lib\net45\Jil.dll</HintPath>
     </Reference>

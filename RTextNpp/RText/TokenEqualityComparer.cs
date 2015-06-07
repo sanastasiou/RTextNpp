@@ -106,9 +106,35 @@ namespace RTextNppPlugin.RText
                                              select token;
             var minCount = Math.Min(aPreviousListWithoutSpaces.Count(), aCurrentListWithoutSpaces.Count());
             var maxCount = Math.Max(aPreviousListWithoutSpaces.Count(), aCurrentListWithoutSpaces.Count());
-            bool isMinimumContextEqual = aPreviousListWithoutSpaces.Take(minCount).SequenceEqual(aCurrentListWithoutSpaces.Take(minCount));
-            //single token difference is means identical context
-            return ((tokenDifference = (maxCount - minCount)) <= 1) && isMinimumContextEqual;
+            if (minCount != maxCount)
+            {
+                bool isMinimumContextEqual = aPreviousListWithoutSpaces.Take(minCount).SequenceEqual(aCurrentListWithoutSpaces.Take(minCount));
+                //single token difference is means identical context
+                return ((tokenDifference = (maxCount - minCount)) <= 1) && isMinimumContextEqual;
+            }
+            else
+            {
+                tokenDifference = 0;
+                if(minCount > 1)
+                {
+                    bool isMinimumContextEqual = aPreviousListWithoutSpaces.Take(minCount - 1).SequenceEqual(aCurrentListWithoutSpaces.Take(minCount - 1));
+                    return isMinimumContextEqual && AreTokensConsideredEqual(aPreviousListWithoutSpaces.Last(), aCurrentListWithoutSpaces.Last());
+                }
+                else
+                {
+                    return AreTokensConsideredEqual(aPreviousListWithoutSpaces.Last(), aCurrentListWithoutSpaces.Last());
+                }
+            }
+        }
+
+        private bool AreTokensConsideredEqual(Tokenizer.TokenTag rhs, Tokenizer.TokenTag lhs)
+        {
+            return !String.IsNullOrEmpty(rhs.Context) &&
+                   !String.IsNullOrEmpty(lhs.Context) &&
+                   lhs.Type == rhs.Type &&
+                   lhs.BufferPosition == rhs.BufferPosition &&
+                   (rhs.Context.ToLower().Contains(lhs.Context.ToLower()) ||
+                    lhs.Context.ToLower().Contains(rhs.Context.ToLower()));
         }
 
         #endregion

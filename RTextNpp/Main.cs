@@ -37,8 +37,8 @@ namespace RTextNppPlugin
         private static ScintillaMessageInterceptor _scintillaMainMsgInterceptor         = null;  //!< Intercepts scintilla messages.
         private static ScintillaMessageInterceptor _scintillaSecondMsgInterceptor       = null;  //!< Intercepts scintilla messages from second scintilla handle.
         private static NotepadMessageInterceptor _nppMsgInterceptpr                     = null;  //!< Intercepts notepad ++ messages.
-        private static bool _hasMainScintillaFocus                                      = true;  //!< Indicates if the main editor has focus.
-        private static bool _hasSecondScintillaFocus                                    = true;  //!< Indicates if the second editor has focus.
+        private static bool _hasMainScintillaFocus                                      = false; //!< Indicates if the main editor has focus.
+        private static bool _hasSecondScintillaFocus                                    = false; //!< Indicates if the second editor has focus.
         private static bool _isMenuLoopInactive                                         = false; //!< Indicates that npp menu loop is active.
         #endregion
 
@@ -188,14 +188,6 @@ namespace RTextNppPlugin
             }
         }
 
-        public static void CanclePendingAutoCompletionCommand()
-        {
-            if(_autoCompletionForm.IsAutoCompletionCommandPending)
-            {
-                _autoCompletionForm.Hide();
-            }
-        }
-
         public static void OnCharTyped(char c)
         {
             if (!Char.IsControl(c) && !Char.IsWhiteSpace(c))
@@ -285,8 +277,8 @@ namespace RTextNppPlugin
                             //if a token is found then the window should appear at the start of it, else it should appear at the caret
                             Point aCaretPoint = Npp.Instance.GetCaretScreenLocationForForm();
                             if (aTokenizer.TriggerToken.HasValue && 
-                                aTokenizer.TriggerToken.Value.Type != RTextTokenTypes.Comma &&
-                                aTokenizer.TriggerToken.Value.Type != RTextTokenTypes.Space &&
+                                aTokenizer.TriggerToken.Value.Type  != RTextTokenTypes.Comma &&
+                                aTokenizer.TriggerToken.Value.Type  != RTextTokenTypes.Space &&
                                 (aTokenizer.TriggerToken.Value.Type != RTextTokenTypes.Label ||
                                 (aTokenizer.TriggerToken.Value.Type == RTextTokenTypes.Label && 
                                  aCurrentPosition < (aTokenizer.TriggerToken.Value.BufferPosition + aTokenizer.TriggerToken.Value.Context.Length))))

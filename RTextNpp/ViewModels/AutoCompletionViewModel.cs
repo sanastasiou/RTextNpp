@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Windows.Threading;
+using FuzzyString;
 using Microsoft.VisualStudio.Language.Intellisense;
 using RTextNppPlugin.Logging;
 using RTextNppPlugin.RText;
@@ -117,14 +120,6 @@ namespace RTextNppPlugin.ViewModels
 
         #region [Interface]
 
-        public enum MatchingType
-        {
-            STARTS_WITH,
-            CONTAINS,
-            FUZZY,
-            NONE
-        };
-
         public enum CharProcessResult
         {
             ForceClose,
@@ -214,11 +209,6 @@ namespace RTextNppPlugin.ViewModels
             }
         }
 
-        public BulkObservableCollection<Completion> UnderlyingList
-        {
-            get { return _completionList; } 
-        }
-
         public bool Pending { get; private set; }
 
         public int FilteredCount
@@ -273,6 +263,14 @@ namespace RTextNppPlugin.ViewModels
             }
         }
 
+        public BulkObservableCollection<Completion> UnderlyingList
+        {
+            get
+            {
+                return _completionList;
+            }
+        }
+
         public FilteredObservableCollection<Completion> CompletionList
         {
             get
@@ -316,6 +314,7 @@ namespace RTextNppPlugin.ViewModels
 
             if (areContextEquals)
             {
+                Trace.WriteLine("Using cache...");
                 _completionList.AddRange(_cachedOptions);
                 Filter();
                 return;
@@ -350,7 +349,6 @@ namespace RTextNppPlugin.ViewModels
                     case ConnectorStates.Idle:
                         Pending = true;
                         AutoCompleteResponse aResponse = await _connector.ExecuteAsync<AutoCompleteAndReferenceRequest>(aRequest, Constants.SYNCHRONOUS_COMMANDS_TIMEOUT, Command.Execute) as AutoCompleteResponse;
-
                         if (aResponse == null)
                         {
                             if (_connector.IsCommandCancelled)
@@ -407,7 +405,6 @@ namespace RTextNppPlugin.ViewModels
                         Logger.Instance.Append(Logger.MessageType.FatalError, _connector.Workspace, "Undefined connector state reached. Please notify support.");
                         _isWarningCompletionActive = true;
                         break;
-
                 }
             }
             else
@@ -445,13 +442,34 @@ namespace RTextNppPlugin.ViewModels
             
             if(TriggerPoint.HasValue && !String.IsNullOrWhiteSpace(TriggerPoint.Value.Context))
             {
-                _previousHint = TriggerPoint.Value.Context;
-                _filteredList.Filter(x => x.InsertionText.StartsWith(_previousHint, StringComparison.OrdinalIgnoreCase) || x.InsertionText.Contains(_previousHint, StringComparison.OrdinalIgnoreCase));
+                _previousHint       = TriggerPoint.Value.Context;                                                
+                int aprefixCount    = 0;
+                int aContainedCount = 0;
+                int aFuzzyCount     = 0;
+
+
+                _filteredList.Filter((x) =>
+                {
+                    if (x.InsertionText.StartsWith(_previousHint, StringComparison.OrdinalIgnoreCase))
+                    {
+                        ++aprefixCount;
+                        return true;
+                    }
+                    else if (x.InsertionText.Contains(_previousHint, StringComparison.OrdinalIgnoreCase))
+                    {
+                        ++aContainedCount;
+                        return true;
+                    }
+                    else if ((_completionList.Count() < 2000) && x.InsertionText.ApproximatelyEquals(_previousHint, FuzzyStringComparisonTolerance.Strong, APPROXIMATION_CRITERIA))
+                    {
+                        ++aFuzzyCount;
+                        return true;
+                    }
+                    return false;
+                });
 
                 if ((FilteredCount = _filteredList.Count) == 0)
                 {
-                    //if count is null - previous selection is no longer valid!
-                    //fuzzy matching
                     _filteredList.StopFiltering();
                     if (SelectedCompletion != null)
                     {
@@ -476,7 +494,7 @@ namespace RTextNppPlugin.ViewModels
                     }
                     if (SelectedCompletion != null)
                     {
-                        SelectedCompletion.IsFuzzy = true;
+                        SelectedCompletion.IsFuzzy    = true;
                         SelectedCompletion.IsSelected = false;
                     }
 
@@ -485,11 +503,17 @@ namespace RTextNppPlugin.ViewModels
                 else
                 {
                     //select with priority to prefix
-                    SelectedCompletion = _filteredList.Where(x => x.InsertionText.StartsWith(_previousHint, StringComparison.OrdinalIgnoreCase)).OrderByDescending( x=> x.InsertionText.Length).FirstOrDefault();
-                    if(SelectedCompletion == null)
+                    if(aprefixCount > 0)
                     {
-                        //match is contained
-                        SelectedCompletion = _filteredList.Where(x => x.InsertionText.Contains(_previousHint, StringComparison.OrdinalIgnoreCase)).OrderByDescending(x => x.InsertionText.Length).First();
+                        SelectedCompletion = _filteredList.Where(x => x.InsertionText.StartsWith(_previousHint, StringComparison.OrdinalIgnoreCase)).OrderBy(x => x.InsertionText.Length).First();
+                    }
+                    else if(aContainedCount > 0)
+                    {
+                        SelectedCompletion = _filteredList.Where(x => x.InsertionText.Contains(_previousHint, StringComparison.OrdinalIgnoreCase)).OrderBy(x => x.InsertionText.Length).First();
+                    }                    
+                    else
+                    {
+                        SelectedCompletion = _filteredList.OrderBy(x => x.InsertionText.Length).First();
                     }
                     SelectedIndex = _filteredList.IndexOf(SelectedCompletion);
 
@@ -505,8 +529,8 @@ namespace RTextNppPlugin.ViewModels
                 }
                 SelectedCompletion.IsFuzzy    = true;
                 SelectedCompletion.IsSelected = false;
-                FilteredCount = _completionList.Count;
-                SelectedIndex = -1;
+                FilteredCount                 = _completionList.Count;
+                SelectedIndex                 = -1;
             }
             _isFiltering = false;
         }
@@ -588,22 +612,29 @@ namespace RTextNppPlugin.ViewModels
         #endregion
 
         #region [Data Members]
-        private readonly BulkObservableCollection<Completion> _completionList   = new BulkObservableCollection<Completion>(); //!< Underlying completion list.
-        private readonly FilteredObservableCollection<Completion> _filteredList = null;                                       //!< UI completion list based on underlying list.
-        private readonly ConnectorManager _cManager                             = null;                                       //!< Connector manager.
-        private Tokenizer.TokenTag? _triggerToken                               = null;                                       //!< Current completion list trigger token.
-        private MatchingType _lastMatchingType                                  = MatchingType.NONE;                          //!< Last matching completion type.        
-        private int _count                                                      = 0;                                          //!< Options count.
-        private double _zoomLevel                                               = 1.0;                                        //!< Auto completion window zoom level.
-        private Completion _selectedCompletion                                  = null;                                       //!< Currently selected option.
-        private string _previousHint                                            = String.Empty;                               //!< Last string which matched an auto completion option.
-        private List<Completion> _cachedOptions                                 = null;                                       //!< Last set of options.
-        private bool _isWarningCompletionActive                                 = false;                                      //!< Indicates if a warning option was active.
-        private int _selectedIndex                                              = 0;                                          //!< Indicates the selected index of the filtered option list.
-        private bool _isFiltering                                               = false;                                      //!< Indicates if filtering function is currently active.        
-        private IEnumerable<string> _cachedContext                              = null;                                       //!< Holds the last context used for an auto completion request.
-        private Connector _connector                                            = null;                                       //!< Connector for this auto completion session.
-        private TokenEqualityComparer _equalityComparer                         = new TokenEqualityComparer();                //!< Compares two tokens list for similiary.
+        private readonly BulkObservableCollection<Completion> _completionList      = new BulkObservableCollection<Completion>(); //!< Underlying completion list.
+        private readonly FilteredObservableCollection<Completion> _filteredList    = null;                                       //!< UI completion list based on underlying list.
+        private readonly ConnectorManager _cManager                                = null;                                       //!< Connector manager.
+        private Tokenizer.TokenTag? _triggerToken                                  = null;                                       //!< Current completion list trigger token.
+        private int _count                                                         = 0;                                          //!< Options count.
+        private double _zoomLevel                                                  = 1.0;                                        //!< Auto completion window zoom level.
+        private Completion _selectedCompletion                                     = null;                                       //!< Currently selected option.
+        private string _previousHint                                               = String.Empty;                               //!< Last string which matched an auto completion option.
+        private List<Completion> _cachedOptions                                    = null;                                       //!< Last set of options.
+        private bool _isWarningCompletionActive                                    = false;                                      //!< Indicates if a warning option was active.
+        private int _selectedIndex                                                 = 0;                                          //!< Indicates the selected index of the filtered option list.
+        private bool _isFiltering                                                  = false;                                      //!< Indicates if filtering function is currently active.        
+        private IEnumerable<string> _cachedContext                                 = null;                                       //!< Holds the last context used for an auto completion request.
+        private Connector _connector                                               = null;                                       //!< Connector for this auto completion session.
+        private TokenEqualityComparer _equalityComparer                            = new TokenEqualityComparer();                //!< Compares two tokens list for similiary.
+        private readonly FuzzyStringComparisonOptions[] APPROXIMATION_CRITERIA = new FuzzyStringComparisonOptions[]              //!< Used for fuzzy matching of auto completion options.
+        { 
+            FuzzyStringComparisonOptions.UseHammingDistance,
+            FuzzyStringComparisonOptions.UseJaccardDistance,
+            FuzzyStringComparisonOptions.UseOverlapCoefficient,
+            FuzzyStringComparisonOptions.UseSorensenDiceDistance,
+            FuzzyStringComparisonOptions.UseLongestCommonSubstring
+        };
         #endregion
     }
 }

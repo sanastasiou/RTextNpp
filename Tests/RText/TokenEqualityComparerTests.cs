@@ -35,7 +35,7 @@ namespace Tests.Utilities
             new Tokenizer.TokenTag { BufferPosition = 0, Context = "        ", EndColumn = 8, Line = 4, StartColumn = 0, Type = RTextTokenTypes.Space }
         };
 
-        const string file = "dummy.atm";
+        const string FILE_DUMMY = "dummy.atm";
 
         [Test]
         public void TestSpace([Range(0, 8)] int caretPosition)
@@ -55,8 +55,8 @@ namespace Tests.Utilities
             AutoCompletionTokenizer aTokenizer = new AutoCompletionTokenizer(4, caretPosition, nppMock.Object);
 
             //prime the comparer
-            Assert.IsFalse(aComparer.AreTokenStreamsEqual(expectedTokensSpace, 0, file));
-            Assert.IsTrue(aComparer.AreTokenStreamsEqual(aTokenizer.LineTokens, caretPosition, file));
+            Assert.IsFalse(aComparer.AreTokenStreamsEqual(expectedTokensSpace, 0, FILE_DUMMY));
+            Assert.IsTrue(aComparer.AreTokenStreamsEqual(aTokenizer.LineTokens, caretPosition, FILE_DUMMY));
         }
 
         [Test]
@@ -77,8 +77,8 @@ namespace Tests.Utilities
             AutoCompletionTokenizer aTokenizer = new AutoCompletionTokenizer(4, caretPosition, nppMock.Object);
 
             //prime the comparer
-            Assert.IsFalse(aComparer.AreTokenStreamsEqual(expectedTokensSpace, 0, file));
-            Assert.IsTrue(aComparer.AreTokenStreamsEqual(aTokenizer.LineTokens, caretPosition, file));
+            Assert.IsFalse(aComparer.AreTokenStreamsEqual(expectedTokensSpace, 0, FILE_DUMMY));
+            Assert.IsTrue(aComparer.AreTokenStreamsEqual(aTokenizer.LineTokens, caretPosition, FILE_DUMMY));
         }
 
         [Test]
@@ -99,8 +99,8 @@ namespace Tests.Utilities
             AutoCompletionTokenizer aTokenizer = new AutoCompletionTokenizer(4, caretPosition, nppMock.Object);
 
             //prime the comparer
-            Assert.IsFalse(aComparer.AreTokenStreamsEqual(expectedTokensSpace, 0, file));
-            Assert.IsFalse(aComparer.AreTokenStreamsEqual(aTokenizer.LineTokens, caretPosition, file));
+            Assert.IsFalse(aComparer.AreTokenStreamsEqual(expectedTokensSpace, 0, FILE_DUMMY));
+            Assert.IsFalse(aComparer.AreTokenStreamsEqual(aTokenizer.LineTokens, caretPosition, FILE_DUMMY));
         }
 
         List<Tokenizer.TokenTag> expectedTokensTriggerCommand = new List<Tokenizer.TokenTag>
@@ -127,8 +127,8 @@ namespace Tests.Utilities
             AutoCompletionTokenizer aTokenizer = new AutoCompletionTokenizer(4, caretPosition, nppMock.Object);
 
             //prime the comparer
-            Assert.IsFalse(aComparer.AreTokenStreamsEqual(expectedTokensTriggerCommand, 30, file));
-            Assert.IsFalse(aComparer.AreTokenStreamsEqual(aTokenizer.LineTokens, caretPosition, file));
+            Assert.IsFalse(aComparer.AreTokenStreamsEqual(expectedTokensTriggerCommand, 30, FILE_DUMMY));
+            Assert.IsFalse(aComparer.AreTokenStreamsEqual(aTokenizer.LineTokens, caretPosition, FILE_DUMMY));
         }
 
         [Test]
@@ -149,8 +149,8 @@ namespace Tests.Utilities
             AutoCompletionTokenizer aTokenizer = new AutoCompletionTokenizer(4, caretPosition, nppMock.Object);
 
             //prime the comparer
-            Assert.IsFalse(aComparer.AreTokenStreamsEqual(expectedTokensTriggerCommand, 0, file));
-            Assert.IsFalse(aComparer.AreTokenStreamsEqual(aTokenizer.LineTokens, caretPosition, file));
+            Assert.IsFalse(aComparer.AreTokenStreamsEqual(expectedTokensTriggerCommand, 0, FILE_DUMMY));
+            Assert.IsFalse(aComparer.AreTokenStreamsEqual(aTokenizer.LineTokens, caretPosition, FILE_DUMMY));
         }
 
         List<Tokenizer.TokenTag> expectedTokensTriggerIdentifier = new List<Tokenizer.TokenTag>
@@ -179,8 +179,8 @@ namespace Tests.Utilities
             AutoCompletionTokenizer aTokenizer = new AutoCompletionTokenizer(4, caretPosition, nppMock.Object);
 
             //prime the comparer
-            Assert.IsFalse(aComparer.AreTokenStreamsEqual(expectedTokensTriggerIdentifier, 55, file));
-            Assert.IsFalse(aComparer.AreTokenStreamsEqual(aTokenizer.LineTokens, caretPosition, file));
+            Assert.IsFalse(aComparer.AreTokenStreamsEqual(expectedTokensTriggerIdentifier, 55, FILE_DUMMY));
+            Assert.IsFalse(aComparer.AreTokenStreamsEqual(aTokenizer.LineTokens, caretPosition, FILE_DUMMY));
         }
 
         List<Tokenizer.TokenTag> expectedTokensTriggerComma = new List<Tokenizer.TokenTag>
@@ -210,8 +210,8 @@ namespace Tests.Utilities
             AutoCompletionTokenizer aTokenizer = new AutoCompletionTokenizer(4, caretPosition, nppMock.Object);
 
             //prime the comparer
-            Assert.IsFalse(aComparer.AreTokenStreamsEqual(aTokenizer.LineTokens, 57, file));
-            Assert.IsTrue(aComparer.AreTokenStreamsEqual(aTokenizer.LineTokens, caretPosition, file));
+            Assert.IsFalse(aComparer.AreTokenStreamsEqual(aTokenizer.LineTokens, 57, FILE_DUMMY));
+            Assert.IsTrue(aComparer.AreTokenStreamsEqual(aTokenizer.LineTokens, caretPosition, FILE_DUMMY));
         }
 
         [Test]
@@ -232,15 +232,15 @@ namespace Tests.Utilities
             AutoCompletionTokenizer aTokenizer = new AutoCompletionTokenizer(4, caretPosition, nppMock.Object);
 
             //prime the comparer
-            Assert.IsFalse(aComparer.AreTokenStreamsEqual(expectedTokensTriggerLabel, 62, file));
+            Assert.IsFalse(aComparer.AreTokenStreamsEqual(expectedTokensTriggerLabel, 62, FILE_DUMMY));
 
             if(caretPosition == 62)
             {
-                Assert.IsTrue(aComparer.AreTokenStreamsEqual(aTokenizer.LineTokens, caretPosition, file));
+                Assert.IsTrue(aComparer.AreTokenStreamsEqual(aTokenizer.LineTokens, caretPosition, FILE_DUMMY));
             }
             else
             {
-                Assert.IsFalse(aComparer.AreTokenStreamsEqual(aTokenizer.LineTokens, caretPosition, file));
+                Assert.IsFalse(aComparer.AreTokenStreamsEqual(aTokenizer.LineTokens, caretPosition, FILE_DUMMY));
             }
         }
 
@@ -273,8 +273,8 @@ namespace Tests.Utilities
             AutoCompletionTokenizer aTokenizer = new AutoCompletionTokenizer(4, caretPosition, nppMock.Object);
 
             //prime the comparer
-            Assert.IsFalse(aComparer.AreTokenStreamsEqual(expectedTokensTriggerLabel, 62, file));
-            Assert.IsFalse(aComparer.AreTokenStreamsEqual(aTokenizer.LineTokens, caretPosition, file));
+            Assert.IsFalse(aComparer.AreTokenStreamsEqual(expectedTokensTriggerLabel, 62, FILE_DUMMY));
+            Assert.IsFalse(aComparer.AreTokenStreamsEqual(aTokenizer.LineTokens, caretPosition, FILE_DUMMY));
         }
 
         List<Tokenizer.TokenTag> expectedTokensTriggerReference = new List<Tokenizer.TokenTag>
@@ -288,6 +288,64 @@ namespace Tests.Utilities
             new Tokenizer.TokenTag { BufferPosition = 57, Context = "type:", EndColumn = 62, Line = 4, StartColumn = 57, Type = RTextTokenTypes.Label },
             new Tokenizer.TokenTag { BufferPosition = 62, Context = " ", EndColumn = 63, Line = 4, StartColumn = 62, Type = RTextTokenTypes.Space },
             new Tokenizer.TokenTag { BufferPosition = 63, Context = "/AUTOSAR/DataTypes/Boolean", EndColumn = 89, Line = 4, StartColumn = 63, Type = RTextTokenTypes.Reference }
+        };
+
+        List<Tokenizer.TokenTag> expectedTokensTriggerReferenceReferenceIncomplete = new List<Tokenizer.TokenTag>
+        {
+            new Tokenizer.TokenTag { BufferPosition = 0, Context = "        ", EndColumn = 8, Line = 4, StartColumn = 0, Type = RTextTokenTypes.Space },
+            new Tokenizer.TokenTag { BufferPosition = 8, Context = "CalprmElementPrototype", EndColumn = 30, Line = 4, StartColumn = 8, Type = RTextTokenTypes.Command },
+            new Tokenizer.TokenTag { BufferPosition = 30, Context = " ", EndColumn = 31, Line = 4, StartColumn = 30, Type = RTextTokenTypes.Space },
+            new Tokenizer.TokenTag { BufferPosition = 31, Context = "cpCahEnableTagePassenger", EndColumn = 55, Line = 4, StartColumn = 31, Type = RTextTokenTypes.RTextName },
+            new Tokenizer.TokenTag { BufferPosition = 55, Context = ",", EndColumn = 56, Line = 4, StartColumn = 55, Type = RTextTokenTypes.Comma },
+            new Tokenizer.TokenTag { BufferPosition = 56, Context = " ", EndColumn = 57, Line = 4, StartColumn = 56, Type = RTextTokenTypes.Space },
+            new Tokenizer.TokenTag { BufferPosition = 57, Context = "type:", EndColumn = 62, Line = 4, StartColumn = 57, Type = RTextTokenTypes.Label },
+            new Tokenizer.TokenTag { BufferPosition = 62, Context = " ", EndColumn = 63, Line = 4, StartColumn = 62, Type = RTextTokenTypes.Space },
+            new Tokenizer.TokenTag { BufferPosition = 63, Context = "/AUTOSAR/DataTypes/Boo", EndColumn = 89, Line = 4, StartColumn = 63, Type = RTextTokenTypes.Reference }
+        };
+
+        List<Tokenizer.TokenTag> expectedTokensTriggerReferenceReferenceAugmented = new List<Tokenizer.TokenTag>
+        {
+            new Tokenizer.TokenTag { BufferPosition = 0, Context = "        ", EndColumn = 8, Line = 4, StartColumn = 0, Type = RTextTokenTypes.Space },
+            new Tokenizer.TokenTag { BufferPosition = 8, Context = "CalprmElementPrototype", EndColumn = 30, Line = 4, StartColumn = 8, Type = RTextTokenTypes.Command },
+            new Tokenizer.TokenTag { BufferPosition = 30, Context = " ", EndColumn = 31, Line = 4, StartColumn = 30, Type = RTextTokenTypes.Space },
+            new Tokenizer.TokenTag { BufferPosition = 31, Context = "cpCahEnableTagePassenger", EndColumn = 55, Line = 4, StartColumn = 31, Type = RTextTokenTypes.RTextName },
+            new Tokenizer.TokenTag { BufferPosition = 55, Context = ",", EndColumn = 56, Line = 4, StartColumn = 55, Type = RTextTokenTypes.Comma },
+            new Tokenizer.TokenTag { BufferPosition = 56, Context = " ", EndColumn = 57, Line = 4, StartColumn = 56, Type = RTextTokenTypes.Space },
+            new Tokenizer.TokenTag { BufferPosition = 57, Context = "type:", EndColumn = 62, Line = 4, StartColumn = 57, Type = RTextTokenTypes.Label },
+            new Tokenizer.TokenTag { BufferPosition = 62, Context = " ", EndColumn = 63, Line = 4, StartColumn = 62, Type = RTextTokenTypes.Space },
+            new Tokenizer.TokenTag { BufferPosition = 63, Context = "/AUTOSAR/DataTypes/BooleanValue", EndColumn = 89, Line = 4, StartColumn = 63, Type = RTextTokenTypes.Reference }
+        };
+
+        List<Tokenizer.TokenTag> expectedTokensTriggerReferenceReferenceFalseType = new List<Tokenizer.TokenTag>
+        {
+            new Tokenizer.TokenTag { BufferPosition = 0, Context = "        ", EndColumn = 8, Line = 4, StartColumn = 0, Type = RTextTokenTypes.Space },
+            new Tokenizer.TokenTag { BufferPosition = 8, Context = "CalprmElementPrototype", EndColumn = 30, Line = 4, StartColumn = 8, Type = RTextTokenTypes.Command },
+            new Tokenizer.TokenTag { BufferPosition = 30, Context = " ", EndColumn = 31, Line = 4, StartColumn = 30, Type = RTextTokenTypes.Space },
+            new Tokenizer.TokenTag { BufferPosition = 31, Context = "cpCahEnableTagePassenger", EndColumn = 55, Line = 4, StartColumn = 31, Type = RTextTokenTypes.RTextName },
+            new Tokenizer.TokenTag { BufferPosition = 55, Context = ",", EndColumn = 56, Line = 4, StartColumn = 55, Type = RTextTokenTypes.Comma },
+            new Tokenizer.TokenTag { BufferPosition = 56, Context = " ", EndColumn = 57, Line = 4, StartColumn = 56, Type = RTextTokenTypes.Space },
+            new Tokenizer.TokenTag { BufferPosition = 57, Context = "type:", EndColumn = 62, Line = 4, StartColumn = 57, Type = RTextTokenTypes.Label },
+            new Tokenizer.TokenTag { BufferPosition = 62, Context = " ", EndColumn = 63, Line = 4, StartColumn = 62, Type = RTextTokenTypes.Space },
+            new Tokenizer.TokenTag { BufferPosition = 63, Context = "/AUTOSAR/DataTypes/BooleanValue", EndColumn = 89, Line = 4, StartColumn = 63, Type = RTextTokenTypes.Command }
+        };
+
+        List<Tokenizer.TokenTag> expectedTokensTriggerReferenceReferenceMinimumContextNotEqual = new List<Tokenizer.TokenTag>
+        {
+            new Tokenizer.TokenTag { BufferPosition = 0, Context = "        ", EndColumn = 8, Line = 4, StartColumn = 0, Type = RTextTokenTypes.Space },
+            new Tokenizer.TokenTag { BufferPosition = 8, Context = "CalprmElementPrototype", EndColumn = 30, Line = 4, StartColumn = 8, Type = RTextTokenTypes.Command },
+            new Tokenizer.TokenTag { BufferPosition = 30, Context = " ", EndColumn = 31, Line = 4, StartColumn = 30, Type = RTextTokenTypes.Space },
+            new Tokenizer.TokenTag { BufferPosition = 31, Context = "cpCahEnableTagePassenger", EndColumn = 55, Line = 4, StartColumn = 31, Type = RTextTokenTypes.RTextName },
+            new Tokenizer.TokenTag { BufferPosition = 55, Context = ",", EndColumn = 56, Line = 4, StartColumn = 55, Type = RTextTokenTypes.Comma },
+            new Tokenizer.TokenTag { BufferPosition = 56, Context = " ", EndColumn = 57, Line = 4, StartColumn = 56, Type = RTextTokenTypes.Space },
+            new Tokenizer.TokenTag { BufferPosition = 57, Context = "type:", EndColumn = 62, Line = 4, StartColumn = 57, Type = RTextTokenTypes.Error },
+            new Tokenizer.TokenTag { BufferPosition = 62, Context = " ", EndColumn = 63, Line = 4, StartColumn = 62, Type = RTextTokenTypes.Space },
+            new Tokenizer.TokenTag { BufferPosition = 63, Context = "/AUTOSAR/DataTypes/BooleanValue", EndColumn = 89, Line = 4, StartColumn = 63, Type = RTextTokenTypes.Reference }
+        };
+
+        List<Tokenizer.TokenTag> expectedTokensTriggerReferenceReferenceSingleToken = new List<Tokenizer.TokenTag>
+        {
+            new Tokenizer.TokenTag { BufferPosition = 0, Context = "        ", EndColumn = 8, Line = 4, StartColumn = 0, Type = RTextTokenTypes.Space },
+            new Tokenizer.TokenTag { BufferPosition = 8, Context = "CalprmElementPrototype", EndColumn = 30, Line = 4, StartColumn = 8, Type = RTextTokenTypes.Command }
         };
 
         [Test, Sequential]
@@ -308,12 +366,37 @@ namespace Tests.Utilities
             AutoCompletionTokenizer aTokenizer = new AutoCompletionTokenizer(4, caretPosition, nppMock.Object);
 
             //prime the comparer - token is the reference
-            Assert.IsFalse(aComparer.AreTokenStreamsEqual(aTokenizer.LineTokens, caretPosition, file));
+            Assert.IsFalse(aComparer.AreTokenStreamsEqual(aTokenizer.LineTokens, caretPosition, FILE_DUMMY));
             //caret inside label
             aTokenizer = new AutoCompletionTokenizer(4, primePosition, nppMock.Object);
-            Assert.IsFalse(aComparer.AreTokenStreamsEqual(aTokenizer.LineTokens, primePosition, file));
+            Assert.IsFalse(aComparer.AreTokenStreamsEqual(aTokenizer.LineTokens, primePosition, FILE_DUMMY));
             //caret inside label
-            Assert.IsTrue(aComparer.AreTokenStreamsEqual(aTokenizer.LineTokens, primePosition, file));
+            Assert.IsTrue(aComparer.AreTokenStreamsEqual(aTokenizer.LineTokens, primePosition, FILE_DUMMY));
+        }
+
+        [Test]
+        public void TestNewRequestIfTokensIsExtendedOrDeleted()
+        {
+            TokenEqualityComparer aComparer = new TokenEqualityComparer();
+
+            //prime the comparer - token is the reference
+            Assert.IsFalse(aComparer.AreTokenStreamsEqual(expectedTokensTriggerReference, 80, FILE_DUMMY));
+
+            Assert.IsTrue(aComparer.AreTokenStreamsEqual(expectedTokensTriggerReferenceReferenceIncomplete, 80, FILE_DUMMY));
+            //caret inside label
+            Assert.IsTrue(aComparer.AreTokenStreamsEqual(expectedTokensTriggerReferenceReferenceAugmented, 80, FILE_DUMMY));
+            Assert.IsFalse(aComparer.AreTokenStreamsEqual(expectedTokensTriggerReferenceReferenceFalseType, 80, FILE_DUMMY));
+            Assert.IsFalse(aComparer.AreTokenStreamsEqual(expectedTokensTriggerReferenceReferenceMinimumContextNotEqual, 80, FILE_DUMMY));
+        }
+
+        [Test]
+        public void TestNewRequestIfTokensIsExtendedOrDeletedSingleToken()
+        {
+            TokenEqualityComparer aComparer = new TokenEqualityComparer();
+
+            //prime the comparer - token is the reference
+            Assert.IsFalse(aComparer.AreTokenStreamsEqual(expectedTokensTriggerReferenceReferenceSingleToken, 80, FILE_DUMMY));
+            Assert.IsTrue(aComparer.AreTokenStreamsEqual(expectedTokensTriggerReferenceReferenceSingleToken, 80, FILE_DUMMY));
         }
     }
 }

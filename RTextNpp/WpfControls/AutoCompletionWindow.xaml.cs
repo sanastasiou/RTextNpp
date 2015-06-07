@@ -79,7 +79,7 @@ namespace RTextNppPlugin.WpfControls
             _keyMonitor.KeysToIntercept.Add((int)System.Windows.Forms.Keys.PageUp);
             _keyMonitor.KeysToIntercept.Add((int)System.Windows.Forms.Keys.PageDown);
             _keyMonitor.KeyDown += OnKeyMonitorKeyDown;
-            _delayedFilterEventHandler = new DelayedEventHandler(new ActionWrapper(PostProcessKeyPressed), 100);
+            _delayedFilterEventHandler = new DelayedEventHandler(new ActionWrapper(PostProcessKeyPressed), 150);
             _delayedToolTipHandler     = new DelayedEventHandler(new ActionWrapper<System.Windows.Controls.ToolTip>(OnToolTipDelayedHandlerExpired, null), 1000, System.Windows.Threading.DispatcherPriority.ApplicationIdle);
             IsOnTop = false;
         }
@@ -141,15 +141,18 @@ namespace RTextNppPlugin.WpfControls
         internal void PostProcessKeyPressed()
         {
             //handle this on UI thread since it will alter UI
-            Dispatcher.Invoke(new Action(GetModel().Filter));
-            if(GetModel().SelectedCompletion != null)
+            Dispatcher.Invoke((System.Windows.Forms.MethodInvoker)(() =>
             {
-                ICollectionView view = CollectionViewSource.GetDefaultView(GetModel().CompletionList);
-                if (view.CurrentItem != null)
+                GetModel().Filter();
+                if (GetModel().SelectedCompletion != null)
                 {
-                    AutoCompletionDatagrid.ScrollIntoView(view.CurrentItem);
-                }
-            }
+                    ICollectionView view = CollectionViewSource.GetDefaultView(GetModel().CompletionList);
+                    if (view.CurrentItem != null)
+                    {
+                        AutoCompletionDatagrid.ScrollIntoView(view.CurrentItem);
+                    }
+                }                
+            }));
         }
 
         internal AutoCompletionViewModel.CharProcessResult CharProcessAction { get; private set; }
