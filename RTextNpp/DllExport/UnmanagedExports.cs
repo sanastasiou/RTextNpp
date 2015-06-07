@@ -90,6 +90,7 @@ namespace RTextNppPlugin
                 case (uint)NppMsg.NPPN_BUFFERACTIVATED:
                     Plugin.OnFileOpened();
                     Plugin.OnZoomLevelModified();
+                    Plugin.OnBufferActivated();
                     Logging.Logger.Instance.Append("File {0} is modification status : {1}", Npp.Instance.GetCurrentFilePath(), Npp.Instance.IsFileModified(Npp.Instance.GetCurrentFilePath()));
                     break;
                 case (uint)SciMsg.SCN_SAVEPOINTLEFT:

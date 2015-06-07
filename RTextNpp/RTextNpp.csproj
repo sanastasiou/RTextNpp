@@ -68,6 +68,7 @@
     <Compile Include="RText\Protocol\LinkTargetsResponse.cs" />
     <Compile Include="RText\Protocol\LoadResponse.cs" />
     <Compile Include="RText\Protocol\ProgressResponse.cs" />
+    <Compile Include="RText\ReferenceRequestObserver.cs" />
     <Compile Include="RText\SocketConnection.cs" />
     <Compile Include="RText\StateEngine\ConnectorCommands.cs" />
     <Compile Include="RText\StateEngine\ConnectorStates.cs" />

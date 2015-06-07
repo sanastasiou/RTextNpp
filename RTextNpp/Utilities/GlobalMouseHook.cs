@@ -24,7 +24,7 @@ namespace RTextNppPlugin.Utilities
             _win32Helper = win32Helper;
         }
 
-        abstract internal int MouseHookProc(int nCode, IntPtr wParam, IntPtr lParam);
+        abstract internal int MouseHookProc(int nCode, UIntPtr wParam, IntPtr lParam);
 
         protected void EnsureSubscribedToGlobalMouseEvents()
         {
@@ -100,11 +100,11 @@ namespace RTextNppPlugin.Utilities
         {
         }
 
-        internal override int MouseHookProc(int nCode, IntPtr wParam, IntPtr lParam)
+        internal override int MouseHookProc(int nCode, UIntPtr wParam, IntPtr lParam)
         {
             if (nCode >= 0)
             {
-                VisualUtilities.MouseMessages aMsg = (VisualUtilities.MouseMessages)wParam.ToInt32();
+                VisualUtilities.MouseMessages aMsg = (VisualUtilities.MouseMessages)wParam.ToUInt32();
                 //Marshall the data from callback.
                 MouseLLHookStruct mouseHookStruct = (MouseLLHookStruct)Marshal.PtrToStructure(lParam, typeof(MouseLLHookStruct));
 

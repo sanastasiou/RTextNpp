@@ -83,8 +83,8 @@ namespace CSScriptIntellisense
     public class HookEventArgs : EventArgs
     {
         public int HookCode;    // Hook code
-        public IntPtr wParam;    // WPARAM argument
-        public IntPtr lParam;    // LPARAM argument
+        public UIntPtr wParam;  // WPARAM argument
+        public IntPtr lParam;   // LPARAM argument
     }
     #endregion
 
@@ -166,7 +166,7 @@ namespace CSScriptIntellisense
     
         // ************************************************************************
         // Default filter function
-        protected int CoreHookProc(int code, IntPtr wParam, IntPtr lParam)
+        protected int CoreHookProc(int code, UIntPtr wParam, IntPtr lParam)
         {
             if (code < 0)
                 return base.ICallNextHookEx(m_hhook, code, wParam, lParam);

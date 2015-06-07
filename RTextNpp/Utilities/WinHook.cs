@@ -10,11 +10,11 @@ using RTextNppPlugin.Utilities;
 
 namespace CSScriptIntellisense
 {
-    public class WinHook<T> : LocalWindowsHook, IDisposable where T : new()
+    internal class WinHook<T> : LocalWindowsHook, IDisposable where T : new()
     {
         static T instance;
 
-        public static T Instance
+        internal static T Instance
         {
             get
             {
@@ -35,7 +35,7 @@ namespace CSScriptIntellisense
             Dispose(false);
         }
 
-        protected void Dispose(bool disposing)
+        internal void Dispose(bool disposing)
         {
             if (IsInstalled)
                 Uninstall();
@@ -55,7 +55,7 @@ namespace CSScriptIntellisense
             Dispose(true);
         }
 
-        protected int Proc(int code, IntPtr wParam, IntPtr lParam)
+        protected int Proc(int code, UIntPtr wParam, IntPtr lParam)
         {
             if (code == 0) //Win32.HC_ACTION
             {
@@ -68,22 +68,22 @@ namespace CSScriptIntellisense
             return base.ICallNextHookEx(m_hhook, code, wParam, lParam);
         }
 
-        virtual protected bool HandleHookEvent(IntPtr wParam, IntPtr lParam)
+        virtual protected bool HandleHookEvent(UIntPtr wParam, IntPtr lParam)
         {
             throw new NotSupportedException();
         }
     }
 
-    public class MouseMonitor : WinHook<MouseMonitor>
+    internal class MouseMonitor : WinHook<MouseMonitor>
     {
-        public event Action MouseMove;
-        public event Func<VisualUtilities.MouseMessages, bool> MouseClicked;
-        public event Action MouseReleased;
-        public event Func<int, bool> MouseWheelMoved;        
+        internal event Action MouseMove;
+        internal event Func<VisualUtilities.MouseMessages, bool> MouseClicked;
+        internal event Action MouseReleased;
+        internal event Func<int, bool> MouseWheelMoved;
 
-        override protected bool HandleHookEvent(IntPtr wParam, IntPtr lParam)
+        override protected bool HandleHookEvent(UIntPtr wParam, IntPtr lParam)
         {
-            VisualUtilities.MouseMessages aMsg = (VisualUtilities.MouseMessages)wParam.ToInt32();
+            VisualUtilities.MouseMessages aMsg = (VisualUtilities.MouseMessages)wParam.ToUInt32();
             switch (aMsg)
             {
                 case VisualUtilities.MouseMessages.WM_LBUTTONDOWN:
@@ -96,30 +96,30 @@ namespace CSScriptIntellisense
                 case VisualUtilities.MouseMessages.WM_NCRBUTTONDOWN:
                 case VisualUtilities.MouseMessages.WM_NCLBUTTONDBLCLK:
                 case VisualUtilities.MouseMessages.WM_NCLBUTTONDOWN:
-                    if(MouseClicked != null)
+                    if (MouseClicked != null)
                     {
                         return MouseClicked(aMsg);
                     }
                     break;
                 case VisualUtilities.MouseMessages.WM_LBUTTONUP:
                 case VisualUtilities.MouseMessages.WM_RBUTTONUP:
-                    if(MouseReleased != null)
+                    if (MouseReleased != null)
                     {
                         MouseReleased();
                     }
                     break;
                 case VisualUtilities.MouseMessages.WM_MOUSEMOVE:
                 case VisualUtilities.MouseMessages.WM_NCMOUSEMOVE:
-                    if(MouseMove != null)
+                    if (MouseMove != null)
                     {
                         MouseMove();
                     }
                     break;
                 case VisualUtilities.MouseMessages.WM_MOUSEWHEEL:
                     MouseHookStructEx aMouseData = (MouseHookStructEx)Marshal.PtrToStructure(lParam, typeof(MouseHookStructEx));
-                    var wheelMovement            = GetWheelDeltaWParam(aMouseData.MouseData);
+                    var wheelMovement = GetWheelDeltaWParam(aMouseData.MouseData);
 
-                    if(MouseWheelMoved != null)
+                    if (MouseWheelMoved != null)
                     {
                         return MouseWheelMoved(wheelMovement);
                     }
@@ -131,7 +131,7 @@ namespace CSScriptIntellisense
             return false;
         }
 
-        public new void Install()
+        internal new void Install()
         {
             base.Install(VisualUtilities.HookType.WH_MOUSE);
         }
@@ -139,27 +139,27 @@ namespace CSScriptIntellisense
         private int GetWheelDeltaWParam(int mouseData) { return (short)(mouseData >> 16); }
     }
 
-    public struct Modifiers
+    internal struct Modifiers
     {
-        public bool IsCtrl;
-        public bool IsShift;
-        public bool IsAlt;
-        public bool IsCapsLock;
-        public bool IsInsert;
+        internal bool IsCtrl;
+        internal bool IsShift;
+        internal bool IsAlt;
+        internal bool IsCapsLock;
+        internal bool IsInsert;
     }
-
-    public class KeyInterceptor : WinHook<KeyInterceptor>
+   
+    internal class KeyInterceptor : WinHook<KeyInterceptor>
     {
         [DllImport("USER32.dll")]
         static extern short GetKeyState(int nVirtKey);
 
-        public static bool IsPressed(Keys key)
+        internal static bool IsPressed(Keys key)
         {
             const int KEY_PRESSED = 0x8000;
             return Convert.ToBoolean(GetKeyState((int)key) & KEY_PRESSED);
         }
 
-        public static Modifiers GetModifiers()
+        internal static Modifiers GetModifiers()
         {
             return new Modifiers
             {
@@ -171,45 +171,52 @@ namespace CSScriptIntellisense
             };
         }
 
-        public delegate void KeyDownHandler(Keys key, int repeatCount, ref bool handled);
+        internal delegate void KeyDownHandler(Keys key, int repeatCount, ref bool handled);
 
-        public List<int> KeysToIntercept = new List<int>();
+        internal List<int> KeysToIntercept = new List<int>();
 
-        public new void Install()
+        internal new void Install()
         {
             base.Install(VisualUtilities.HookType.WH_KEYBOARD);
         }
 
-        public event KeyDownHandler KeyDown;
+        internal event KeyDownHandler KeyDown;
+        internal event KeyDownHandler KeyUp;
 
-        public void Add(params Keys[] keys)
+        internal void Add(params Keys[] keys)
         {
             foreach (int key in keys)
                 if (!KeysToIntercept.Contains(key))
                     KeysToIntercept.Add(key);
         }
 
-        public void RemoveAll()
+        internal void RemoveAll()
         {
             KeysToIntercept.Clear();
         }
 
-        public const int KF_UP = 0x8000;
-        public const long KB_TRANSITION_FLAG = 0x80000000;
+        private const long KB_TRANSITION_FLAG = 0x80000000;
 
-        override protected bool HandleHookEvent(IntPtr wParam, IntPtr lParam)
+        override protected bool HandleHookEvent(UIntPtr wParam, IntPtr lParam)
         {
-            int key = (int)wParam;
-            int context = (int)lParam;
+            int key     = (int)wParam;
+            uint context = (uint)lParam;
 
             if (KeysToIntercept.Contains(key))
             {
-                bool down = ((context & KB_TRANSITION_FLAG) != KB_TRANSITION_FLAG);
-                int repeatCount = (context & 0xFF00);
+                bool down = ((context & KB_TRANSITION_FLAG) == 0);
+                bool up   = ((context & KB_TRANSITION_FLAG) == KB_TRANSITION_FLAG);
+                int repeatCount = (int)(context & 0xFF00);
                 if (down && KeyDown != null)
                 {
                     bool handled = false;
                     KeyDown((Keys)key, repeatCount, ref handled);
+                    return handled;
+                }
+                if (up && KeyUp != null)
+                {
+                    bool handled = false;
+                    KeyUp((Keys)key, repeatCount, ref handled);
                     return handled;
                 }
             }

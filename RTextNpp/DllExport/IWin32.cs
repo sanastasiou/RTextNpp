@@ -3,7 +3,7 @@ namespace RTextNppPlugin.DllExport
 {
     interface IWin32
     {
-        int ICallNextHookEx(IntPtr hhook, int code, IntPtr wParam, IntPtr lParam);
+        int ICallNextHookEx(IntPtr hhook, int code, UIntPtr wParam, IntPtr lParam);
         int ICheckMenuItem(IntPtr hmenu, int uIDCheckItem, int uCheck);
         IntPtr IGetMenu(IntPtr hWnd);
         int IGetPrivateProfileInt(string lpAppName, string lpKeyName, int nDefault, string lpFileName);

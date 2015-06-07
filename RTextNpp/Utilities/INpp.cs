@@ -36,7 +36,20 @@ namespace RTextNppPlugin.Utilities
         string GetCurrentFile();
         int GetFirstVisibleLine();
         int GetLengthToEndOfLine(int currentCharacterColumn);
+
+        /**
+         * \brief   Gets the line fromt the current caret position.
+         *
+         * \return  The line as a string.
+         */
         string GetLine();
+        /**
+         * \brief   Gets a line from a line number.
+         *
+         * \param   line    The line number.
+         *
+         * \return  The line string.
+         */
         string GetLine(int line);
         System.Text.StringBuilder GetLineAsStringBuilder(int line);
         int GetLineCount();

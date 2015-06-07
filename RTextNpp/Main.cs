@@ -40,6 +40,7 @@ namespace RTextNppPlugin
         private static bool _hasMainScintillaFocus                                      = false; //!< Indicates if the main editor has focus.
         private static bool _hasSecondScintillaFocus                                    = false; //!< Indicates if the second editor has focus.
         private static bool _isMenuLoopInactive                                         = false; //!< Indicates that npp menu loop is active.
+        private static ReferenceRequestObserver _referenceRequestObserver               = new ReferenceRequestObserver(Npp.Instance, _settings); //!< Handles reference requests triggers.
         #endregion
 
         #region [Startup/CleanUp]
@@ -59,6 +60,7 @@ namespace RTextNppPlugin
             }
 
             CSScriptIntellisense.KeyInterceptor.Instance.KeyDown += OnKeyInterceptorKeyDown;
+            CSScriptIntellisense.KeyInterceptor.Instance.KeyUp   += OnKeyInterceptorKeyUp;
             
             foreach(var key in Enum.GetValues(typeof(Keys)))
             {
@@ -73,11 +75,29 @@ namespace RTextNppPlugin
             #endif
         }
 
+        internal static void OnBufferActivated()
+        {
+            _referenceRequestObserver.CancelPendingRequest();
+        }
+
+        static void OnKeyInterceptorKeyUp(Keys key, int repeatCount, ref bool handled)
+        {
+            CSScriptIntellisense.Modifiers modifiers = CSScriptIntellisense.KeyInterceptor.GetModifiers();
+            if (!modifiers.IsAlt || !modifiers.IsCtrl)
+            {
+                _referenceRequestObserver.IsAltCtrlPressed = false;
+            }
+        }
+
         static void OnKeyInterceptorKeyDown(Keys key, int repeatCount, ref bool handled)
         {
             if (FileUtilities.IsRTextFile(_settings, Npp.Instance) && (Npp.Instance.GetSelections() == 1) && HasScintillaFocus() && !_isMenuLoopInactive)
             {
                 CSScriptIntellisense.Modifiers modifiers = CSScriptIntellisense.KeyInterceptor.GetModifiers();                
+                if(modifiers.IsAlt && modifiers.IsCtrl)
+                {
+                    _referenceRequestObserver.IsAltCtrlPressed = true;
+                }
                 foreach (var shortcut in internalShortcuts.Keys)
                 {
                     if ((byte)key == shortcut._key)
@@ -241,6 +261,7 @@ namespace RTextNppPlugin
             _fileObserver.CleanBackup();
             _connectorManager.ReleaseConnectors();
             CSScriptIntellisense.KeyInterceptor.Instance.KeyDown -= OnKeyInterceptorKeyDown;
+            CSScriptIntellisense.KeyInterceptor.Instance.KeyUp   -= OnKeyInterceptorKeyUp;
             _scintillaMainMsgInterceptor.ScintillaFocusChanged   -= OnMainScintillaFocusChanged;
             _scintillaSecondMsgInterceptor.ScintillaFocusChanged -= OnSecondScintillaFocusChanged;
             _scintillaMainMsgInterceptor.MouseWheelMoved         -= OnScintillaMouseWheelMoved;

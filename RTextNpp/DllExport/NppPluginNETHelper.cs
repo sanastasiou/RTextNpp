@@ -2090,7 +2090,7 @@ namespace RTextNppPlugin.DllExport
     {
         // ************************************************************************
         // Filter function delegate
-        public delegate int HookProc(int code, IntPtr wParam, IntPtr lParam);
+        public delegate int HookProc(int code, UIntPtr wParam, IntPtr lParam);
 
         #region [Interface]
         public virtual IntPtr IGetMenu(IntPtr hWnd)
@@ -2151,7 +2151,7 @@ namespace RTextNppPlugin.DllExport
             return UnhookWindowsHookEx(hhook);
         }
 
-        public virtual int ICallNextHookEx(IntPtr hhook, int code, IntPtr wParam, IntPtr lParam)
+        public virtual int ICallNextHookEx(IntPtr hhook, int code, UIntPtr wParam, IntPtr lParam)
         {
             return CallNextHookEx(hhook, code, wParam, lParam);
         }
@@ -2240,7 +2240,7 @@ namespace RTextNppPlugin.DllExport
         // ************************************************************************
         // Win32: CallNextHookEx()
         [DllImport("user32.dll", CharSet = CharSet.Auto, CallingConvention = CallingConvention.StdCall)]
-        private static extern int CallNextHookEx(IntPtr hhook, int code, IntPtr wParam, IntPtr lParam);
+        private static extern int CallNextHookEx(IntPtr hhook, int code, UIntPtr wParam, IntPtr lParam);
         // ************************************************************************
 
         [DllImport("user32")]

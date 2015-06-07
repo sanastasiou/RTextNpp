@@ -439,7 +439,7 @@ namespace RTextNppPlugin.Utilities
 
             Point point = Cursor.Position;
             ScreenToClient(sci, ref point);
-            
+
             int pos = (int)_win32.ISendMessage(sci, SciMsg.SCI_CHARPOSITIONFROMPOINTCLOSE, point.X, point.Y);
 
             return pos;
