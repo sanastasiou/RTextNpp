@@ -40,7 +40,7 @@ namespace RTextNppPlugin
         private static bool _hasMainScintillaFocus                                      = false; //!< Indicates if the main editor has focus.
         private static bool _hasSecondScintillaFocus                                    = false; //!< Indicates if the second editor has focus.
         private static bool _isMenuLoopInactive                                         = false; //!< Indicates that npp menu loop is active.
-        private static ReferenceRequestObserver _referenceRequestObserver               = new ReferenceRequestObserver(Npp.Instance, _settings); //!< Handles reference requests triggers.
+        private static ReferenceRequestObserver _referenceRequestObserver               = new ReferenceRequestObserver(Npp.Instance, _settings, _win32); //!< Handles reference requests triggers.
         #endregion
 
         #region [Startup/CleanUp]
