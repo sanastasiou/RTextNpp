@@ -496,6 +496,11 @@ namespace RTextNppPlugin
             }
         }
 
+        internal static void OnHotSpotClicked()
+        {
+            Trace.WriteLine("Hotspot clicked...");
+        }
+
         #endregion
 
         #region [Helpers]

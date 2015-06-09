@@ -5,10 +5,10 @@ using System.Diagnostics;
 namespace RTextNppPlugin.RText
 {
     using CSScriptIntellisense;
+    using DllExport;
     using RText.Parsing;
     using Utilities;
     using Utilities.Settings;
-    using DllExport;
     class ReferenceRequestObserver
     {
         #region [Data Members]
@@ -47,7 +47,7 @@ namespace RTextNppPlugin.RText
             _mouseMovementObserver.MouseMove += OnMouseMovementObserverMouseMove;
             _mouseMovementObserver.Install();
             IsAltCtrlPressed = false;
-            _mouseMovementDelayedEventHandler = new DelayedEventHandler(new ActionWrapper(MouseMovementStabilized), 500);
+            _mouseMovementDelayedEventHandler = new DelayedEventHandler(new ActionWrapper(MouseMovementStabilized), 250);
         }
 
         internal bool IsAltCtrlPressed 
@@ -60,6 +60,7 @@ namespace RTextNppPlugin.RText
                     if(!_isAltCtrlPressed)
                     {
                         CancelPendingRequest();
+                        HideUnderlinedToken();
                     }
                 }
             }
@@ -72,18 +73,37 @@ namespace RTextNppPlugin.RText
         }
         #endregion
 
-        private void UnderlineToken(Tokenizer.TokenTag t)
+        private void UnderlineToken()
         {
-            //_win32Helper.ISendMessage(Plugin.nppData._scintillaMainHandle, SciMsg.SCI_STYLESETHOTSPOT, 3, 1);
-            //_win32Helper.ISendMessage(Plugin.nppData._scintillaSecondHandle, SciMsg.SCI_STYLESETHOTSPOT, 3, 1);
-            //_win32Helper.ISendMessage(Plugin.nppData._scintillaMainHandle, SciMsg.SCI_STYLESETFORE, 1, 0xFFFFFF);
-            //_win32Helper.ISendMessage(Plugin.nppData._scintillaSecondHandle, SciMsg.SCI_STYLESETFORE, 1, 0xFFFFFF);
-            //_win32Helper.ISendMessage(Plugin.nppData._scintillaMainHandle, SciMsg.SCI_SETHOTSPOTACTIVEUNDERLINE, 1, 0);
-            //_win32Helper.ISendMessage(Plugin.nppData._scintillaSecondHandle, SciMsg.SCI_SETHOTSPOTACTIVEUNDERLINE, 1, 0);
-            //_win32Helper.ISendMessage(Plugin.nppData._scintillaMainHandle, SciMsg.SCI_SETHOTSPOTSINGLELINE, 1, 0);
-            //_win32Helper.ISendMessage(Plugin.nppData._scintillaSecondHandle, SciMsg.SCI_SETHOTSPOTSINGLELINE, 1, 0);
-            //_win32Helper.ISendMessage(_nppHelper.GetCurrentScintilla(Plugin.nppData), SciMsg.SCI_STARTSTYLING, t.BufferPosition, 0);
-            //_win32Helper.ISendMessage(_nppHelper.GetCurrentScintilla(Plugin.nppData), SciMsg.SCI_SETSTYLING, t.EndColumn - t.StartColumn, 3);
+            _win32Helper.ISendMessage(Plugin.nppData._scintillaMainHandle,   SciMsg.SCI_STYLESETHOTSPOT, (int)_previousReeferenceToken.Type, 1);
+            _win32Helper.ISendMessage(Plugin.nppData._scintillaSecondHandle, SciMsg.SCI_STYLESETHOTSPOT, (int)_previousReeferenceToken.Type, 1);
+
+            _win32Helper.ISendMessage(Plugin.nppData._scintillaMainHandle, SciMsg.SCI_SETHOTSPOTACTIVEUNDERLINE, 1, 0);
+            _win32Helper.ISendMessage(Plugin.nppData._scintillaSecondHandle, SciMsg.SCI_SETHOTSPOTACTIVEUNDERLINE, 1, 0);
+            _win32Helper.ISendMessage(Plugin.nppData._scintillaMainHandle, SciMsg.SCI_SETHOTSPOTSINGLELINE, 1, 0);
+            _win32Helper.ISendMessage(Plugin.nppData._scintillaSecondHandle, SciMsg.SCI_SETHOTSPOTSINGLELINE, 1, 0);
+
+
+
+            _win32Helper.ISendMessage(Plugin.nppData._scintillaMainHandle, SciMsg.SCI_SETHOTSPOTACTIVEFORE, 1, 0xFFFFFF);
+            _win32Helper.ISendMessage(Plugin.nppData._scintillaSecondHandle, SciMsg.SCI_SETHOTSPOTACTIVEFORE, 1, 0xFFFFFF);
+            _win32Helper.ISendMessage(_nppHelper.GetCurrentScintilla(Plugin.nppData), SciMsg.SCI_STARTSTYLING, _previousReeferenceToken.BufferPosition, 0);
+            _win32Helper.ISendMessage(_nppHelper.GetCurrentScintilla(Plugin.nppData), SciMsg.SCI_SETSTYLING, _previousReeferenceToken.EndColumn - _previousReeferenceToken.StartColumn, 3);
+        }
+
+        private void HideUnderlinedToken()
+        {
+            if (_highLightToken)
+            {                
+                Trace.WriteLine("Hiding underlining");
+                _win32Helper.ISendMessage(Plugin.nppData._scintillaMainHandle, SciMsg.SCI_STYLESETHOTSPOT, (int)_previousReeferenceToken.Type, 0);
+                _win32Helper.ISendMessage(Plugin.nppData._scintillaSecondHandle, SciMsg.SCI_STYLESETHOTSPOT, (int)_previousReeferenceToken.Type, 0);
+                _win32Helper.ISendMessage(_nppHelper.GetCurrentScintilla(Plugin.nppData), SciMsg.SCI_STARTSTYLING, _previousReeferenceToken.BufferPosition, 0);
+                _win32Helper.ISendMessage(_nppHelper.GetCurrentScintilla(Plugin.nppData), SciMsg.SCI_SETSTYLING, _previousReeferenceToken.EndColumn - _previousReeferenceToken.StartColumn, (int)_previousReeferenceToken.Type);
+                _highLightToken = false;
+                System.Windows.Forms.Cursor.Position = new System.Drawing.Point(System.Windows.Forms.Cursor.Position.X - 1, System.Windows.Forms.Cursor.Position.Y);
+                System.Windows.Forms.Cursor.Position = new System.Drawing.Point(System.Windows.Forms.Cursor.Position.X + 1, System.Windows.Forms.Cursor.Position.Y);
+            }
         }
 
         private void MouseMovementStabilized()
@@ -91,15 +111,19 @@ namespace RTextNppPlugin.RText
             Tokenizer.TokenTag aTokenUnderCursor = FindTokenUnderCursor();
             if(!aTokenUnderCursor.Equals(_previousReeferenceToken) && !String.IsNullOrEmpty(aTokenUnderCursor.Context) && _actualToken.Equals(aTokenUnderCursor))
             {
-                Trace.WriteLine("Highlighting Token...");
-                UnderlineToken(aTokenUnderCursor);
+                _previousReeferenceToken = aTokenUnderCursor;
+                UnderlineToken();
                 _highLightToken = true;
                 if(OnLinkReferenceRequested != null)
                 {
                     OnLinkReferenceRequested(this, new ReferenceRequestEvent {  ReferenceToken = aTokenUnderCursor});
                 }
             }
-            _previousReeferenceToken = aTokenUnderCursor;
+            else if(!aTokenUnderCursor.Equals(_previousReeferenceToken))
+            {
+                //either null or empty, or cursor points somewhere else
+                HideUnderlinedToken();
+            }
         }
 
         private Tokenizer.TokenTag FindTokenUnderCursor()
@@ -130,7 +154,7 @@ namespace RTextNppPlugin.RText
                 {
                     if(!_actualToken.Equals(_previousReeferenceToken))
                     {
-                        Trace.WriteLine("Remove highlighting from token...");
+                        HideUnderlinedToken();
                         _highLightToken = false;
                         if(OnDismissReferenceLinks != null)
                         {
@@ -144,9 +168,9 @@ namespace RTextNppPlugin.RText
                 if (OnDismissReferenceLinks != null && _highLightToken)
                 {
                     OnDismissReferenceLinks(this);
-                    _highLightToken = false;
-                    Trace.WriteLine("Remove highlighting from token...");
-                }                
+                }
+                _highLightToken = false;
+                HideUnderlinedToken();
             }
         }
     }

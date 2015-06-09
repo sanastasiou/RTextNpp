@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace RTextNppPlugin.RText.Parsing
+﻿namespace RTextNppPlugin.RText.Parsing
 {
     /**
      * @enum    RTextTokenTypes
@@ -13,6 +7,7 @@ namespace RTextNppPlugin.RText.Parsing
      */
     public enum RTextTokenTypes
     {
+        Error,
         Comment,
         Notation,
         Reference,
@@ -23,14 +18,13 @@ namespace RTextNppPlugin.RText.Parsing
         Label,
         Command,
         RTextName,
+        Template,
         LeftBracket,
         RightBrakcet,
         LeftAngleBrakcet,
         RightAngleBracket,
         Comma,
         Space,
-        Template,
-        Error,
         NewLine        
     }
 }
