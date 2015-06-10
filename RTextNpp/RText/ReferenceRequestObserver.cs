@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 
 
 namespace RTextNppPlugin.RText
@@ -94,8 +93,7 @@ namespace RTextNppPlugin.RText
         private void HideUnderlinedToken()
         {
             if (_highLightToken)
-            {                
-                Trace.WriteLine("Hiding underlining");
+            {                                
                 _win32Helper.ISendMessage(Plugin.nppData._scintillaMainHandle, SciMsg.SCI_STYLESETHOTSPOT, (int)_previousReeferenceToken.Type, 0);
                 _win32Helper.ISendMessage(Plugin.nppData._scintillaSecondHandle, SciMsg.SCI_STYLESETHOTSPOT, (int)_previousReeferenceToken.Type, 0);
                 _win32Helper.ISendMessage(_nppHelper.GetCurrentScintilla(Plugin.nppData), SciMsg.SCI_STARTSTYLING, _previousReeferenceToken.BufferPosition, 0);
