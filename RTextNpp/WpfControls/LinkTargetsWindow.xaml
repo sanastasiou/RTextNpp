@@ -1,4 +1,4 @@
-﻿<Window x:Class="ESRLabs.RTextEditor.Intellisense.LinkTargetsWindow"
+﻿<Window x:Class="RTextNppPlugin.WpfControls.LinkTargetsWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
@@ -7,6 +7,7 @@
         xmlns:plugin_ns="clr-namespace:RTextNppPlugin"
         xmlns:sys="clr-namespace:System;assembly=mscorlib"
         xmlns:converters="clr-namespace:RTextNppPlugin.WpfControls.Converters"
+        x:ClassModifier="internal"
         mc:Ignorable="d"
         WindowStyle="None"
         ResizeMode="NoResize"
@@ -48,8 +49,8 @@
             <DockPanel.LayoutTransform>
                 <ScaleTransform CenterX="0" 
                                 CenterY="0"
-                                ScaleX="{Binding IWpfZoomLevel}"
-                                ScaleY="{Binding IWpfZoomLevel}"/>
+                                ScaleX="{Binding ZoomLevel}"
+                                ScaleY="{Binding ZoomLevel}"/>
             </DockPanel.LayoutTransform>
             <StackPanel Orientation="Horizontal" DockPanel.Dock="Bottom" Style="{StaticResource ResourceKey=StackPanelStyle}">
                 <Image Source="{StaticResource ResourceKey=MySource}" Height="16" Width="16"/>

@@ -39,8 +39,8 @@ namespace RTextNppPlugin
         private static NotepadMessageInterceptor _nppMsgInterceptpr                     = null;  //!< Intercepts notepad ++ messages.
         private static bool _hasMainScintillaFocus                                      = false; //!< Indicates if the main editor has focus.
         private static bool _hasSecondScintillaFocus                                    = false; //!< Indicates if the second editor has focus.
-        private static bool _isMenuLoopInactive                                         = false; //!< Indicates that npp menu loop is active.
-        private static ReferenceRequestObserver _referenceRequestObserver               = new ReferenceRequestObserver(Npp.Instance, _settings, _win32); //!< Handles reference requests triggers.
+        private static bool _isMenuLoopInactive                                         = false; //!< Indicates that npp menu loop is active.        
+        private static LinkTargetsWindow _linkTargetsWindow                             = new LinkTargetsWindow(Npp.Instance, _win32, _settings); //!< Display reference links.
         #endregion
 
         #region [Startup/CleanUp]
@@ -77,7 +77,7 @@ namespace RTextNppPlugin
 
         internal static void OnBufferActivated()
         {
-            _referenceRequestObserver.CancelPendingRequest();
+            _linkTargetsWindow.CancelPendingRequest();
         }
 
         static void OnKeyInterceptorKeyUp(Keys key, int repeatCount, ref bool handled)
@@ -85,7 +85,7 @@ namespace RTextNppPlugin
             CSScriptIntellisense.Modifiers modifiers = CSScriptIntellisense.KeyInterceptor.GetModifiers();
             if (!modifiers.IsAlt || !modifiers.IsCtrl)
             {
-                _referenceRequestObserver.IsAltCtrlPressed = false;
+                _linkTargetsWindow.IsKeyboardShortCutActive(false);
             }
         }
 
@@ -96,7 +96,7 @@ namespace RTextNppPlugin
                 CSScriptIntellisense.Modifiers modifiers = CSScriptIntellisense.KeyInterceptor.GetModifiers();                
                 if(modifiers.IsAlt && modifiers.IsCtrl)
                 {
-                    _referenceRequestObserver.IsAltCtrlPressed = true;
+                    _linkTargetsWindow.IsKeyboardShortCutActive(true);
                 }
                 foreach (var shortcut in internalShortcuts.Keys)
                 {

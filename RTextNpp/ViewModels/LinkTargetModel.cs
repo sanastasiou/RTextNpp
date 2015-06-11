@@ -2,6 +2,8 @@
 using System.ComponentModel;
 using System.IO;
 using System.Text;
+using Microsoft.VisualStudio.Language.Intellisense;
+using RTextNppPlugin.WpfControls;
 
 namespace RTextNppPlugin.ViewModels
 {
@@ -22,54 +24,36 @@ namespace RTextNppPlugin.ViewModels
         }
     }
 
-    class ReferenceLinkViewModel : INotifyPropertyChanged
+    class ReferenceLinkViewModel : BindableObject
     {
-        private ObservableCollection<LinkTargetModel> mTargets = new ObservableCollection<LinkTargetModel>();
-        private StringBuilder mBusyString = new StringBuilder("Bla");
-        private double mZoomLevel = 100.0;
+        private BulkObservableCollection<LinkTargetModel> _targets = new BulkObservableCollection<LinkTargetModel>();
+        private StringBuilder _busyString                          = new StringBuilder();
+        private double _zoomLevel                                  = 100.0;
 
-        /**
-         * @fn  private void RaisePropertyChanged(string caller)
-         *
-         * @brief   Raises the property changed event for a specific property.
-         *
-         * @author  Stefanos Anastasiou
-         * @date    23.01.2013
-         *
-         * @param   caller  The caller.
-         */
-        private void RaisePropertyChanged(string caller)
-        {
-            if (PropertyChanged != null)
-            {
-                PropertyChanged(this, new PropertyChangedEventArgs(caller));
-            }
-        }
-
-        public ObservableCollection<LinkTargetModel> Targets
+        public BulkObservableCollection<LinkTargetModel> Targets
         {
             get
             {
-                return mTargets;
+                return _targets;
             }
             set
             {
-                mTargets = value;
+                _targets = value;
             }
         }
 
-        public double IWpfZoomLevel
+        public double ZoomLevel
         {
             get
             {
-                return mZoomLevel;
+                return _zoomLevel;
             }
             set
             {
-                if ( value != mZoomLevel )
+                if (value != _zoomLevel)
                 {
-                    mZoomLevel = value;
-                    RaisePropertyChanged("IWpfZoomLevel");
+                    _zoomLevel = value;
+                    base.RaisePropertyChanged("ZoomLevel");
                 }
             }
         }
@@ -78,19 +62,17 @@ namespace RTextNppPlugin.ViewModels
         {
             get
             {
-                return mBusyString.ToString();
+                return _busyString.ToString();
             }
             set
             {
-                if (!value.Equals(mBusyString.ToString()))
+                if (!value.Equals(_busyString.ToString()))
                 {
-                    mBusyString.Clear();
-                    mBusyString.Append(value);
-                    RaisePropertyChanged("BackendBusyString");
+                    _busyString.Clear();
+                    _busyString.Append(value);
+                    base.RaisePropertyChanged("BackendBusyString");
                 }
             }
         }
-
-        public event PropertyChangedEventHandler PropertyChanged;
     }
 }

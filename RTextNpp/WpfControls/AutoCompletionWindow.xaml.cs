@@ -1,19 +1,17 @@
 ﻿using System;
 using System.ComponentModel;
-using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
 using CSScriptIntellisense;
+using RTextNppPlugin.DllExport;
+using RTextNppPlugin.RText;
 using RTextNppPlugin.RText.Parsing;
 using RTextNppPlugin.Utilities;
 using RTextNppPlugin.ViewModels;
-using System.Diagnostics;
-using System.Threading.Tasks;
-using RTextNppPlugin.RText;
-using RTextNppPlugin.DllExport;
 
 
 namespace RTextNppPlugin.WpfControls
@@ -101,13 +99,13 @@ namespace RTextNppPlugin.WpfControls
         void OnAutoCompletionMouseMonitorMouseClick(object sender, MouseEventExtArgs e)
         {     
             //if an auto completion is taking to long, then it will not be visible, in this case hide is called to cancel the auto completion request
-            if (!IsMouseInsideFrameworkElement(Content as System.Windows.FrameworkElement))
+            if (!VisualUtilities.IsMouseInsideFrameworkElement(Content as System.Windows.FrameworkElement))
             {
                 Hide();
             }           
             else
-            {                
-                if (IsMouseInsideFrameworkElement(AutoCompletionDatagrid as System.Windows.FrameworkElement))
+            {
+                if (VisualUtilities.IsMouseInsideFrameworkElement(AutoCompletionDatagrid as System.Windows.FrameworkElement))
                 {
                     //if a completion is suggested but not selected, clicking on it should select it
                     //since index is not changed, this cannot be done with index selection changed event 
@@ -292,33 +290,7 @@ namespace RTextNppPlugin.WpfControls
         private AutoCompletionViewModel GetModel()
         {
             return ((AutoCompletionViewModel)DataContext);
-        }
-
-        /**
-         * @return  true if mouse inside window, false if not.
-         */
-        private bool IsMouseInsideFrameworkElement(System.Windows.FrameworkElement element)
-        {
-            double dWidth  = -1;
-            double dHeight = -1;
-            if (element != null)
-            {
-                dWidth  = element.ActualWidth;
-                dHeight = element.ActualHeight;
-            }
-            System.Windows.Point aPoint = Mouse.GetPosition(element);
-            
-            double xStart = 0.0;
-            double xEnd = xStart + dWidth;
-            double yStart = 0.0;
-            double yEnd = yStart + dHeight;
-            
-            if (aPoint.X < xStart || aPoint.X >= xEnd || aPoint.Y < yStart || aPoint.Y >= yEnd)
-            {
-                return false;
-            }
-            return true;
-        }
+        }       
 
         /**
          * Scroll list.

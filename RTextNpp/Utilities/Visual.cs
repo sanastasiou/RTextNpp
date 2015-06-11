@@ -392,6 +392,29 @@ namespace RTextNppPlugin.Utilities
                 }
             }
             return child;
-        } 
+        }
+
+        public static bool IsMouseInsideFrameworkElement(System.Windows.FrameworkElement element)
+        {
+            double dWidth = -1;
+            double dHeight = -1;
+            if (element != null)
+            {
+                dWidth = element.ActualWidth;
+                dHeight = element.ActualHeight;
+            }
+            System.Windows.Point aPoint = System.Windows.Input.Mouse.GetPosition(element);
+
+            double xStart = 0.0;
+            double xEnd = xStart + dWidth;
+            double yStart = 0.0;
+            double yEnd = yStart + dHeight;
+
+            if (aPoint.X < xStart || aPoint.X >= xEnd || aPoint.Y < yStart || aPoint.Y >= yEnd)
+            {
+                return false;
+            }
+            return true;
+        }
     }
 }

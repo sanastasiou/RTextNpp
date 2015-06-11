@@ -17,7 +17,7 @@ namespace RTextNppPlugin.RText
         private DelayedEventHandler _mouseMovementDelayedEventHandler = null;
         private Tokenizer.TokenTag _previousReeferenceToken           = default(Tokenizer.TokenTag);
         private Tokenizer.TokenTag _actualToken                       = default(Tokenizer.TokenTag);
-        private bool _isAltCtrlPressed                                = false;
+        private bool _isKeyboardShortCutActive                        = false;
         private bool _highLightToken                                  = false;
         private IWin32 _win32Helper                                   = null;
         #endregion
@@ -45,18 +45,18 @@ namespace RTextNppPlugin.RText
             _win32Helper     = win32helper;
             _mouseMovementObserver.MouseMove += OnMouseMovementObserverMouseMove;
             _mouseMovementObserver.Install();
-            IsAltCtrlPressed = false;
+            IsKeyboardShortCutActive = false;
             _mouseMovementDelayedEventHandler = new DelayedEventHandler(new ActionWrapper(MouseMovementStabilized), 250);
         }
 
-        internal bool IsAltCtrlPressed 
+        internal bool IsKeyboardShortCutActive 
         { 
             set
             {
-                if(value != _isAltCtrlPressed)
+                if(value != _isKeyboardShortCutActive)
                 {
-                    _isAltCtrlPressed = value;
-                    if(!_isAltCtrlPressed)
+                    _isKeyboardShortCutActive = value;
+                    if(!_isKeyboardShortCutActive)
                     {
                         CancelPendingRequest();
                         HideUnderlinedToken();
@@ -144,7 +144,7 @@ namespace RTextNppPlugin.RText
 
         private void OnMouseMovementObserverMouseMove()
         {
-            if (_isAltCtrlPressed && FileUtilities.IsRTextFile(_settings, _nppHelper))
+            if (_isKeyboardShortCutActive && FileUtilities.IsRTextFile(_settings, _nppHelper))
             {
                 _mouseMovementDelayedEventHandler.TriggerHandler();
                 _actualToken = FindTokenUnderCursor();

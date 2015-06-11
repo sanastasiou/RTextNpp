@@ -9,200 +9,154 @@ using System.Windows.Input;
 using System.Windows.Media;
 using RTextNppPlugin.RText.Protocol;
 using RTextNppPlugin.ViewModels;
+using RTextNppPlugin.Utilities;
+using RTextNppPlugin.DllExport;
+using RTextNppPlugin.Utilities.Settings;
+using RTextNppPlugin.RText;
 
-namespace ESRLabs.RTextEditor.Intellisense
+namespace RTextNppPlugin.WpfControls
 {
     /**
      * @class   LinkTargetsWindow
      *
      * @brief   Interaction logic for the find references window.
      *
-     * @author  Stefanos Anastasiou
-     * @date    26.01.2013
      */
-    public partial class LinkTargetsWindow : Window, IDisposable
+    internal partial class LinkTargetsWindow : Window
     {
-        #region [Interface]
+        #region [Events]
         /**
-         * @fn  public delegate void HypelinkClicked(object source, HypelinkClickedEventArgs e);
+         * @fn  internal delegate void HypelinkClicked(object source, HypelinkClickedEventArgs e);
          *
          * @brief   Notifies subscribers that a hyperlinked reference was clicked.
          *
-         * @author  Stefanos Anastasiou
-         * @date    26.01.2013
          *
          * @param   source  Source for the.
          * @param   e       Hypelink clicked event information.
          */
-        public delegate void HypelinkClicked(object source, HypelinkClickedEventArgs e);
+        internal delegate void HypelinkClicked(object source, HypelinkClickedEventArgs e);
         //!< Event queue for all listeners interested in OnHyperlinkedClicked events.
-        public event HypelinkClicked OnHyperlinkedClicked;  
+        internal event HypelinkClicked OnHyperlinkedClicked;
 
         /**
          * @class   HypelinkClickedEventArgs
          *
          * @brief   Additional information for hypelink clicked events.
          *
-         * @author  Stefanos Anastasiou
-         * @date    31.01.2013
          */
-        public class HypelinkClickedEventArgs : EventArgs
+        internal class HypelinkClickedEventArgs : EventArgs
         {
-            public string File { get; set; }
-            public int Line { get; set; }
+            internal string File { get; set; }
+            internal int Line { get; set; }
         }
+        #endregion
 
-        /**
-         * @fn  public LinkTargetsWindow()
-         *
-         * @brief   Default constructor.
-         *
-         * @author  Stefanos Anastasiou
-         * @date    31.01.2013
-         */
-        public LinkTargetsWindow()
+        #region [Data Members]
+        private INpp _nppHelper                                    = null;  //!< Handles communication with scintilla or npp.
+        private IWin32 _win32Helper                                = null;  //!< Handles low level API calls.
+        private ISettings _settings                                = null;  //!< Reads or write plugin settings.
+        private ReferenceRequestObserver _referenceRequestObserver = null;  //!< Handles reference requests triggers.
+        #endregion
+
+        #region [Interface]
+
+        internal LinkTargetsWindow(INpp nppHelper, IWin32 win32Helper, ISettings settingsHelper)
         {
             InitializeComponent();
+            _nppHelper   = nppHelper;
+            _win32Helper = win32Helper;
+            _settings    = settingsHelper;
+            _referenceRequestObserver = new ReferenceRequestObserver(_nppHelper, _settings, _win32Helper);
         }
 
-        /**
-         * @fn  public bool isMouseInsideWindow(MouseEventArgs e)
-         *
-         * @brief   Query if mouse is inside reference window.
-         *
-         * @author  Stefanos Anastasiou
-         * @date    03.01.2013
-         *
-         * @param   e   Mouse event information.
-         *
-         * @return  true if mouse inside window, false if not.
-         */
-        public bool isMouseInsideWindow(System.Windows.Input.MouseEventArgs e)
+        internal void CancelPendingRequest()
         {
-            double dWidth = -1;
-            double dHeight = -1;
-            FrameworkElement pnlClient = this.Content as FrameworkElement;
-            if (pnlClient != null)
-            {
-                dWidth = pnlClient.ActualWidth;
-                dHeight = pnlClient.ActualHeight;
-            }
-            Point aPoint = e.GetPosition(this);
-            double xStart = 0.0;
-            double xEnd = xStart + dWidth;
-            double yStart = 0.0;
-            double yEnd = yStart + dHeight;
-            if (aPoint.X < xStart || aPoint.X > xEnd || aPoint.Y < yStart || aPoint.Y > yEnd)
-            {
-                return false;
-            }
-            return true;
+            _referenceRequestObserver.CancelPendingRequest();
         }
 
+        internal void IsKeyboardShortCutActive(bool isActive)
+        {
+            _referenceRequestObserver.IsKeyboardShortCutActive = isActive;
+        }
+        
         /**
-         * @fn  public void refreshLinkSource(IList<Protocol.Target> targets)
-         *
          * @brief   Refreshes the references link source. "new" cannot be used since the databinding will be lost.
-         *
-         * @author  Stefanos Anastasiou
-         * @date    03.01.2013
          *
          * @param   targets The targets.
          */
-        public void refreshLinkSource(IList<Target> targets)
+        internal void refreshLinkSource(IEnumerable<Target> targets)
         {
-            var aLinkTargetModels = targets.Select(target => new LinkTargetModel(target.display, target.desc, Int32.Parse( target.line), target.file.Replace('/', '\\'))).ToList();
-            ((ReferenceLinkViewModel)this.LinkTargetDatagrid.DataContext).Targets.Clear();
-            foreach (var model in aLinkTargetModels)
-            {
-                ((ReferenceLinkViewModel)this.LinkTargetDatagrid.DataContext).Targets.Add(model);
-            }
+            var aLinkTargetModels = targets.AsParallel().Select(target => new LinkTargetModel(target.display, target.desc, Int32.Parse(target.line), target.file));
+            var viewModel = (ReferenceLinkViewModel)LinkTargetDatagrid.DataContext;
+            viewModel.Targets.Clear();
+            viewModel.Targets.AddRange(aLinkTargetModels);
         }
 
         /**
-         * @fn  public void setPopupText(string text)
-         *
          * @brief   Sets popup text. This text appears when the backend is busy, not started etc., instead of the actual datagrid.
-         *
-         * @author  Stefanos Anastasiou
-         * @date    22.01.2013
          *
          * @param   text    The text.
          */
-        public void setPopupText(string text)
+        internal void setPopupText(string text)
         {
-            ((ReferenceLinkViewModel)this.LinkTargetDatagrid.DataContext).BackendBusyString = text;
+            ((ReferenceLinkViewModel)LinkTargetDatagrid.DataContext).BackendBusyString = text;
         }
 
         /**
-         * @fn  public void setZoomLevel(double level)
          *
          * @brief   Sets the zoom level of the current IWpfTextView so that the reference link window also scales according to the user settings.
          *
-         * @author  Stefanos Anastasiou
-         * @date    30.01.2013
-         *
          * @param   level   The zoom level.
          */
-        public void setZoomLevel(double level)
+        internal void SetZoomLevel(double level)
         {
-            ((ReferenceLinkViewModel)this.LinkTargetDatagrid.DataContext).IWpfZoomLevel = level;
+            ((ReferenceLinkViewModel)LinkTargetDatagrid.DataContext).ZoomLevel = level;
         }
 
         #endregion
 
         #region Helpers
         /**
-         * \fn  internal void navigateList(System.Windows.Forms.Keys key)
-         *
          * \brief   Moves the selected index of the reference list when the user pressed the up and down arrows.
-         *
-         * \author  Stefanos Anastasiou
-         * \date    24.01.2013
          *
          * \param   key The pressed key.
          */
         private void navigateList(System.Windows.Forms.Keys key)
         {
-            var aTargets = ((ReferenceLinkViewModel)this.LinkTargetDatagrid.DataContext).Targets;
+            var aTargets = ((ReferenceLinkViewModel)LinkTargetDatagrid.DataContext).Targets;
             if (aTargets.Count > 0)
             {
-                var aIndex = this.LinkTargetDatagrid.SelectedIndex;
+                var aIndex = LinkTargetDatagrid.SelectedIndex;
                 switch (key)
                 {
                     case Keys.Up:
                         if (aIndex == 0)
                         {
-                            this.LinkTargetDatagrid.SelectedIndex = aTargets.Count - 1;
+                            LinkTargetDatagrid.SelectedIndex = aTargets.Count - 1;
                         }
                         else
                         {
-                            this.LinkTargetDatagrid.SelectedIndex = --this.LinkTargetDatagrid.SelectedIndex;
+                            LinkTargetDatagrid.SelectedIndex = --LinkTargetDatagrid.SelectedIndex;
                         }
                         break;
                     case Keys.Down:
                         if (aIndex == (aTargets.Count - 1))
                         {
-                            this.LinkTargetDatagrid.SelectedIndex = 0;
+                            LinkTargetDatagrid.SelectedIndex = 0;
                         }
                         else
                         {
-                            this.LinkTargetDatagrid.SelectedIndex = ++this.LinkTargetDatagrid.SelectedIndex;
+                            LinkTargetDatagrid.SelectedIndex = ++LinkTargetDatagrid.SelectedIndex;
                         }
                         break;
                     default:
                         return;
                 }
-                this.LinkTargetDatagrid.ScrollIntoView(this.LinkTargetDatagrid.SelectedItem);
+                LinkTargetDatagrid.ScrollIntoView(LinkTargetDatagrid.SelectedItem);
             }
         }
         /**
-         * @fn  private void FileClicked(object sender, RoutedEventArgs e)
-         *
          * @brief   File clicked. Occurs when a hyperlinked filepath is clicked.
-         *
-         * @author  Stefanos Anastasiou
-         * @date    03.01.2013
          *
          * @param   sender  Source of the event.
          * @param   e       Routed event information.
@@ -215,35 +169,25 @@ namespace ESRLabs.RTextEditor.Intellisense
 
         #region EventHandlers
         /**
-         * @fn  private void OnRowMouseEnter(object sender, RoutedEventArgs e)
-         *
          * @brief   Occurs when the user enter the area of a datagrid row.
-         *
-         * @author  Stefanos Anastasiou
-         * @date    26.01.2013
          *
          * @param   sender  Source of the event.
          * @param   e       Event information to send to registered event handlers.
          */
         private void OnRowMouseEnter(object sender, RoutedEventArgs e)
         {
-            System.Windows.Input.Mouse.OverrideCursor = System.Windows.Input.Cursors.Hand;
+            Mouse.OverrideCursor = System.Windows.Input.Cursors.Hand;
         }
 
         /**
-         * @fn  private void OnRowMouseLeave(object sender, RoutedEventArgs e)
-         *
          * @brief   Occurs when the user leave the area of a datagrid row.
-         *
-         * @author  Stefanos Anastasiou
-         * @date    26.01.2013
          *
          * @param   sender  Source of the event.
          * @param   e       Event information to send to registered event handlers.
          */
         private void OnRowMouseLeave(object sender, RoutedEventArgs e)
         {
-            System.Windows.Input.Mouse.OverrideCursor = null;
+            Mouse.OverrideCursor = null;
         }
         #endregion
 
@@ -258,37 +202,21 @@ namespace ESRLabs.RTextEditor.Intellisense
         {
             if (Visibility == System.Windows.Visibility.Visible)
             {
-                var aTargets = ((ReferenceLinkViewModel)this.LinkTargetDatagrid.DataContext).Targets;
+                var aTargets = ((ReferenceLinkViewModel)LinkTargetDatagrid.DataContext).Targets;
                 if (aTargets != null && aTargets.Count > 0)
                 {
                     //select first element
-                    this.LinkTargetDatagrid.SelectedIndex = -1;
-                    this.LinkTargetDatagrid.Focus();
+                    LinkTargetDatagrid.SelectedIndex = -1;
+                    LinkTargetDatagrid.Focus();
                 }
             }
             else
             {
-                this.LinkTargetDatagrid.SelectedIndex = -1;
+                LinkTargetDatagrid.SelectedIndex = -1;
             }
         }
 
         #region Overriden Window Members
-        /**
-         * @fn  protected override void OnActivated(EventArgs e)
-         *
-         * @brief   Raises the activated event.
-         *
-         * @author  Stefanos Anastasiou
-         * @date    26.01.2013
-         *
-         * @param   e   An <see cref="T:System.EventArgs" /> that contains the event data.
-         *
-         * ### summary  Raises the <see cref="E:System.Windows.Window.Activated" /> event.
-         */
-        protected override void OnActivated(EventArgs e)
-        {
-            
-        }
 
         /**
          * @fn  protected override void OnPreviewMouseLeftButtonDown(MouseButtonEventArgs e)
@@ -303,10 +231,10 @@ namespace ESRLabs.RTextEditor.Intellisense
         protected override void OnPreviewMouseLeftButtonDown(MouseButtonEventArgs e)
         {
             base.OnPreviewMouseLeftButtonDown(e);
-            Point pt = System.Windows.Input.Mouse.GetPosition(this.LinkTargetDatagrid);
+            Point pt = Mouse.GetPosition(LinkTargetDatagrid);
             System.Windows.Controls.DataGridRow aRow = null;
             //Do the hittest to find the DataGridCell
-            VisualTreeHelper.HitTest(this.LinkTargetDatagrid, null, (result) =>
+            VisualTreeHelper.HitTest(LinkTargetDatagrid, null, (result) =>
             {
                 // Find the ancestor element form the hittested element
                 // e.g., find the DataGridCell if we hittest on the inner TextBlock
@@ -322,65 +250,50 @@ namespace ESRLabs.RTextEditor.Intellisense
             }, new PointHitTestParameters(pt));
             if (aRow != null)
             {
-                this.FileClicked(((ReferenceLinkViewModel)this.LinkTargetDatagrid.DataContext).Targets[aRow.GetIndex()]);
+                FileClicked(((ReferenceLinkViewModel)LinkTargetDatagrid.DataContext).Targets[aRow.GetIndex()]);
                 e.Handled = true;
             }
         }
+        
+        #endregion
+
+        #region [Helpers]
 
         private void navigateList(Key key)
         {
-            var aTargets = ((ReferenceLinkViewModel)this.LinkTargetDatagrid.DataContext).Targets;
+            var aTargets = ((ReferenceLinkViewModel)LinkTargetDatagrid.DataContext).Targets;
             if (aTargets.Count > 0)
             {
-                var aIndex = this.LinkTargetDatagrid.SelectedIndex;
+                var aIndex = LinkTargetDatagrid.SelectedIndex;
                 switch (key)
                 {
                     case Key.Up:
                         if (aIndex == 0)
                         {
-                            this.LinkTargetDatagrid.SelectedIndex = aTargets.Count - 1;
+                            LinkTargetDatagrid.SelectedIndex = aTargets.Count - 1;
                         }
                         else
                         {
-                            this.LinkTargetDatagrid.SelectedIndex = --this.LinkTargetDatagrid.SelectedIndex;
+                            LinkTargetDatagrid.SelectedIndex = --LinkTargetDatagrid.SelectedIndex;
                         }
                         break;
                     case Key.Down:
                         if (aIndex == (aTargets.Count - 1))
                         {
-                            this.LinkTargetDatagrid.SelectedIndex = 0;
+                            LinkTargetDatagrid.SelectedIndex = 0;
                         }
                         else
                         {
-                            this.LinkTargetDatagrid.SelectedIndex = ++this.LinkTargetDatagrid.SelectedIndex;
+                            LinkTargetDatagrid.SelectedIndex = ++LinkTargetDatagrid.SelectedIndex;
                         }
                         break;
                     default:
                         return;
                 }
-                this.LinkTargetDatagrid.ScrollIntoView(this.LinkTargetDatagrid.SelectedItem);
+                LinkTargetDatagrid.ScrollIntoView(LinkTargetDatagrid.SelectedItem);
             }
         }
 
-        #endregion
-
-        #region IDisposable Members
-        /**
-         * @fn  public void Dispose()
-         *
-         * @brief   Performs application-defined tasks associated with freeing, releasing, or resetting
-         *          unmanaged resources.
-         *
-         * @author  Stefanos Anastasiou
-         * @date    26.01.2013
-         *
-         * ### summary  Performs application-defined tasks associated with freeing, releasing, or
-         *              resetting unmanaged resources.
-         */
-        public void Dispose()
-        {
-           // UnhookWindowsHookEx(keyboardHookId);
-        }
         #endregion
     }
 }
