@@ -130,6 +130,7 @@
     <Compile Include="Utilities\WpfControlHost\WpfControlHostBase.cs" />
     <Compile Include="ViewModels\AutoCompletionViewModel.cs" />
     <Compile Include="ViewModels\ConsoleViewModel.cs" />
+    <Compile Include="ViewModels\LinkTargetModel.cs" />
     <Compile Include="ViewModels\WorkspaceViewModelBase.cs" />
     <Compile Include="ViewModels\IConsoleViewModel.cs" />
     <Compile Include="ViewModels\WorkspaceViewModel.cs" />
@@ -148,6 +149,9 @@
     <Compile Include="WpfControls\Converters.cs" />
     <Compile Include="WpfControls\AutoCompletionWindow.xaml.cs">
       <DependentUpon>AutoCompletionWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="WpfControls\LinkTargetsWindow.xaml.cs">
+      <DependentUpon>LinkTargetsWindow.xaml</DependentUpon>
     </Compile>
   </ItemGroup>
   <ItemGroup>
@@ -230,6 +234,10 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="WpfControls\AutoCompletionWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="WpfControls\LinkTargetsWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

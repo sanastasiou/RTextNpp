@@ -3,6 +3,28 @@ using System.Windows.Data;
 
 namespace RTextNppPlugin.WpfControls.Converters
 {
+    [ValueConversion(typeof(object), typeof(string))]
+    public class GreaterThanValueConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+        {
+            try
+            {
+                return ((Int32)value > Int32.Parse(parameter as string));
+            }
+            catch
+            {
+                return true;
+            }
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter,
+                        System.Globalization.CultureInfo culture)
+        {
+            return null;
+        }
+    }
+
     internal class PercentageConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)

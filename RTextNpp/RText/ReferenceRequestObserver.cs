@@ -87,7 +87,7 @@ namespace RTextNppPlugin.RText
             _win32Helper.ISendMessage(Plugin.nppData._scintillaMainHandle, SciMsg.SCI_SETHOTSPOTACTIVEFORE, 1, 0xFFFFFF);
             _win32Helper.ISendMessage(Plugin.nppData._scintillaSecondHandle, SciMsg.SCI_SETHOTSPOTACTIVEFORE, 1, 0xFFFFFF);
             _win32Helper.ISendMessage(_nppHelper.GetCurrentScintilla(Plugin.nppData), SciMsg.SCI_STARTSTYLING, _previousReeferenceToken.BufferPosition, 0);
-            _win32Helper.ISendMessage(_nppHelper.GetCurrentScintilla(Plugin.nppData), SciMsg.SCI_SETSTYLING, _previousReeferenceToken.EndColumn - _previousReeferenceToken.StartColumn, 3);
+            _win32Helper.ISendMessage(_nppHelper.GetCurrentScintilla(Plugin.nppData), SciMsg.SCI_SETSTYLING, _previousReeferenceToken.EndColumn - _previousReeferenceToken.StartColumn, (int)_previousReeferenceToken.Type);
         }
 
         private void HideUnderlinedToken()
