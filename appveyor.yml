@@ -10,6 +10,7 @@ branches:
   # whitelist
   only:
     - master
+    - FeatureSetup
  
 # Do not build on tags (GitHub only)
 skip_tags: true
