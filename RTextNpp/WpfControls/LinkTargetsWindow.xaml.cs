@@ -57,6 +57,8 @@ namespace RTextNppPlugin.WpfControls
         private IWin32 _win32Helper                                = null;  //!< Handles low level API calls.
         private ISettings _settings                                = null;  //!< Reads or write plugin settings.
         private ReferenceRequestObserver _referenceRequestObserver = null;  //!< Handles reference requests triggers.
+        private bool _isWarningActive                              = false; //!< Indicates that some kind of warning is true or false.
+        private IEnumerable<string> _cachedContext                 = null;  //!< Holds the last context used for reference lookup request.
         #endregion
 
         #region [Interface]
@@ -214,6 +216,27 @@ namespace RTextNppPlugin.WpfControls
 
         private async Task TryHighlightItemUnderMouse(Tokenizer.TokenTag aTokenUnderCursor)
         {
+            string aContextBlock = _nppHelper.GetTextBetween(0, Npp.Instance.GetLineEnd(aTokenUnderCursor.Line));
+            ContextExtractor aExtractor = new ContextExtractor(aContextBlock, Npp.Instance.GetLengthToEndOfLine(_nppHelper.GetColumn()));
+            bool aAreContextEquals     = false;
+
+            //get all tokens before the trigger token - if all previous tokens and all context lines match do not request new auto completion options
+            if (!_referenceRequestObserver.UnderlinedToken.Equals( default(Tokenizer.TokenTag)) && _cachedContext != null && !_isWarningActive)
+            {
+                if (_cachedContext.Count() == 1 && aExtractor.ContextList.Count() == 1)
+                {
+                    aAreContextEquals = aTokenUnderCursor.Equals(_referenceRequestObserver.UnderlinedToken);
+                }
+                else
+                {
+                    //if context is identical and tokens are also identical do not trigger auto completion request
+                    aAreContextEquals = (_cachedContext.Take(_cachedContext.Count() - 1).SequenceEqual(aExtractor.ContextList.Take(_cachedContext.Count() - 1)) &&
+                                         aTokenUnderCursor.Equals(_referenceRequestObserver.UnderlinedToken));
+                }
+            }
+
+            //store cache
+            _cachedContext = aExtractor.ContextList;
             Trace.WriteLine("Trying to find references...");
         }
 

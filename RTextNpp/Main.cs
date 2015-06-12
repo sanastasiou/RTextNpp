@@ -284,15 +284,13 @@ namespace RTextNppPlugin
                     if (!_autoCompletionForm.IsVisible)
                     {
                         int aCurrentPosition = Npp.Instance.GetCaretPosition();
-                        int aStartPosition   = Npp.Instance.GetLineStart(Npp.Instance.GetLineNumber());
-                        int aColumn          = (aCurrentPosition - aStartPosition);
 
                         if (aCurrentPosition >= 0)
                         {
                             int aLineNumber = Npp.Instance.GetLineNumber();
                             //get text from start till current line end
                             string aContextBlock = Npp.Instance.GetTextBetween(0, Npp.Instance.GetLineEnd(aLineNumber));
-                            ContextExtractor aExtractor = new ContextExtractor(aContextBlock, Npp.Instance.GetLengthToEndOfLine(aColumn));
+                            ContextExtractor aExtractor = new ContextExtractor(aContextBlock, Npp.Instance.GetLengthToEndOfLine(Npp.Instance.GetColumn()));
                             //if auto completion is inside comment, notation, name, string just return
                             AutoCompletionTokenizer aTokenizer = new AutoCompletionTokenizer(aLineNumber, aCurrentPosition, Npp.Instance);                            
                             //if a token is found then the window should appear at the start of it, else it should appear at the caret
