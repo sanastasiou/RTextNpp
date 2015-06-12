@@ -68,8 +68,9 @@ namespace RTextNppPlugin.WpfControls
             _win32Helper = win32Helper;
             _settings    = settingsHelper;
             _referenceRequestObserver = new ReferenceRequestObserver(_nppHelper, _settings, _win32Helper);
+            _referenceRequestObserver.MouseMove += OnReferenceRequestObserverMouseMove;
         }
-
+       
         internal void CancelPendingRequest()
         {
             _referenceRequestObserver.CancelPendingRequest();
@@ -215,7 +216,15 @@ namespace RTextNppPlugin.WpfControls
         {
             Trace.WriteLine("Trying to find references...");
         }
-        #endregion
+
+        private void OnReferenceRequestObserverMouseMove()
+        {
+            var aTokenUnderCursor = Tokenizer.FindTokenUnderCursor(_nppHelper);
+            Dispatcher.Invoke((MethodInvoker)(async () =>
+            {
+                await TryHighlightItemUnderMouse(aTokenUnderCursor);
+            }));
+        }
 
         /**
          * \brief   Raises the dependency property changed event when visibility is changed.
@@ -241,6 +250,7 @@ namespace RTextNppPlugin.WpfControls
                 LinkTargetDatagrid.SelectedIndex = -1;
             }
         }
+        #endregion
 
         #region Overriden Window Members
 

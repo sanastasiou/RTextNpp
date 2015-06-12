@@ -5,6 +5,7 @@ using System.Xml.Linq;
 
 namespace RTextNppPlugin.RText
 {
+    using System;
     using CSScriptIntellisense;
     using DllExport;
     using RText.Parsing;
@@ -23,16 +24,32 @@ namespace RTextNppPlugin.RText
         private IWin32 _win32Helper                                   = null;
         #endregion
 
+        #region [Events]
+        internal event Action MouseMove;
+
+        #endregion
+
         #region [Interface]
         internal ReferenceRequestObserver(INpp nppHelper, ISettings settings, IWin32 win32helper)
         {
             _nppHelper       = nppHelper;
             _settings        = settings;
             _win32Helper     = win32helper;
-            _mouseMovementObserver.MouseMove += OnMouseMovementObserverMouseMove;
-            _mouseMovementObserver.Install();
+            _mouseMovementObserver.MouseMove += OnMouseMovementObserverMouseMove;            
             IsKeyboardShortCutActive = false;
             _mouseMovementDelayedEventHandler = new DelayedEventHandler(new ActionWrapper(MouseMovementStabilized), 250);
+        }
+
+        private void Enable(bool enable)
+        {
+            if(enable && !_mouseMovementObserver.IsInstalled)
+            {
+                _mouseMovementObserver.Install();
+            }
+            else
+            {
+                _mouseMovementObserver.Uninstall();
+            }
         }
 
         internal bool IsKeyboardShortCutActive 
@@ -42,6 +59,7 @@ namespace RTextNppPlugin.RText
                 if(value != _isKeyboardShortCutActive)
                 {
                     _isKeyboardShortCutActive = value;
+                    Enable(value);
                     if(!_isKeyboardShortCutActive)
                     {
                         CancelPendingRequest();
@@ -150,6 +168,10 @@ namespace RTextNppPlugin.RText
 
         private void OnMouseMovementObserverMouseMove()
         {
+            if (MouseMove != null)
+            {
+                MouseMove();
+            }
             //if (_isKeyboardShortCutActive && FileUtilities.IsRTextFile(_settings, _nppHelper))
             //{
             //    _mouseMovementDelayedEventHandler.TriggerHandler();
