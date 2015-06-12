@@ -60,6 +60,24 @@ namespace RTextNppPlugin.RText.Parsing
 
         #region[Interface]
 
+        internal static Tokenizer.TokenTag FindTokenUnderCursor(INpp nppHelper)
+        {
+            int aBufferPosition = nppHelper.GetPositionFromMouseLocation();
+            if (aBufferPosition != -1)
+            {
+                int aCurrentLine = nppHelper.GetLineNumber(aBufferPosition);
+                Tokenizer aTokenizer = new Tokenizer(aCurrentLine, nppHelper);
+                foreach (var t in aTokenizer.Tokenize())
+                {
+                    if (t.BufferPosition <= aBufferPosition && t.EndPosition >= aBufferPosition)
+                    {
+                        return t;
+                    }
+                }
+            }
+            return default(Tokenizer.TokenTag);
+        }
+
         internal Tokenizer(int line, INpp nppHelper)
         {
             _lineNumber = line;

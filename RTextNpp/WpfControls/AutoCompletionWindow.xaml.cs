@@ -82,14 +82,6 @@ namespace RTextNppPlugin.WpfControls
             IsOnTop = false;
         }
 
-        internal bool IsAutoCompletionCommandPending
-        {
-            get
-            {
-                return GetModel().Pending;
-            }
-        }
-
         void OnAutoCompletionMouseMonitorMouseWheelMoved(object sender, MouseEventExtArgs e)
         {
             ScrollList(e.Delta > 0 ? System.Windows.Forms.Keys.Up : System.Windows.Forms.Keys.Down, 3);
@@ -141,15 +133,18 @@ namespace RTextNppPlugin.WpfControls
             //handle this on UI thread since it will alter UI
             Dispatcher.Invoke((System.Windows.Forms.MethodInvoker)(() =>
             {
-                GetModel().Filter();
-                if (GetModel().SelectedCompletion != null)
+                if (!GetModel().Pending)
                 {
-                    ICollectionView view = CollectionViewSource.GetDefaultView(GetModel().CompletionList);
-                    if (view.CurrentItem != null)
+                    GetModel().Filter();
+                    if (GetModel().SelectedCompletion != null)
                     {
-                        AutoCompletionDatagrid.ScrollIntoView(view.CurrentItem);
+                        ICollectionView view = CollectionViewSource.GetDefaultView(GetModel().CompletionList);
+                        if (view.CurrentItem != null)
+                        {
+                            AutoCompletionDatagrid.ScrollIntoView(view.CurrentItem);
+                        }
                     }
-                }                
+                }
             }));
         }
 

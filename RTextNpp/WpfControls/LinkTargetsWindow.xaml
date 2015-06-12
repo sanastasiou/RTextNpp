@@ -18,6 +18,7 @@
         IsHitTestVisible="True"
         ShowActivated="False"
         Topmost="False"
+        MouseLeave="OnLinkTargetsWindowMouseLeaveAsync"
         SizeToContent="WidthAndHeight">
 
     <Border BorderBrush="Black" Name="LinkBorder">

@@ -1,18 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Forms;
 using System.Windows.Input;
 using System.Windows.Media;
-using RTextNppPlugin.RText.Protocol;
-using RTextNppPlugin.ViewModels;
-using RTextNppPlugin.Utilities;
 using RTextNppPlugin.DllExport;
-using RTextNppPlugin.Utilities.Settings;
 using RTextNppPlugin.RText;
+using RTextNppPlugin.RText.Parsing;
+using RTextNppPlugin.RText.Protocol;
+using RTextNppPlugin.Utilities;
+using RTextNppPlugin.Utilities.Settings;
+using RTextNppPlugin.ViewModels;
+using System.Diagnostics;
 
 namespace RTextNppPlugin.WpfControls
 {
@@ -74,9 +75,29 @@ namespace RTextNppPlugin.WpfControls
             _referenceRequestObserver.CancelPendingRequest();
         }
 
+        /**
+         * Asynchronous call when keyboard shortcut for reference link changes.
+         *
+         * \param   isActive    true if this LinkTargetsWindow is active.
+         *
+         * \remark  If the keyboard shortcut is active the plugin will try to find the references,
+         *          when the cursor is placed over a valid reference token, e.g. Identifier, reference etc.
+         */
         internal void IsKeyboardShortCutActive(bool isActive)
         {
             _referenceRequestObserver.IsKeyboardShortCutActive = isActive;
+            if(isActive)
+            {
+                var aTokenUnderCursor = Tokenizer.FindTokenUnderCursor(_nppHelper);
+                Dispatcher.Invoke((MethodInvoker)(async () =>
+                {
+                    await TryHighlightItemUnderMouse(aTokenUnderCursor);
+                }));                
+            }
+            else
+            {
+                Hide();
+            }
         }
         
         /**
@@ -189,6 +210,11 @@ namespace RTextNppPlugin.WpfControls
         {
             Mouse.OverrideCursor = null;
         }
+
+        private async Task TryHighlightItemUnderMouse(Tokenizer.TokenTag aTokenUnderCursor)
+        {
+            Trace.WriteLine("Trying to find references...");
+        }
         #endregion
 
         /**
@@ -295,5 +321,16 @@ namespace RTextNppPlugin.WpfControls
         }
 
         #endregion
+
+        private async void OnLinkTargetsWindowMouseLeaveAsync(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+            //only hide the window if the mouse has also left the actual underlined token
+            var aTokenUnderCursor = Tokenizer.FindTokenUnderCursor(_nppHelper);
+            if (!aTokenUnderCursor.Equals(_referenceRequestObserver.UnderlinedToken))
+            {
+                Hide();
+                await TryHighlightItemUnderMouse(aTokenUnderCursor);
+            }
+        }
     }
 }

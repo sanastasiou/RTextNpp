@@ -1,6 +1,4 @@
-﻿using System;
-using System.IO;
-using System.Xml;
+﻿using System.IO;
 using System.Linq;
 using System.Xml.Linq;
 
@@ -19,26 +17,10 @@ namespace RTextNppPlugin.RText
         private ISettings _settings                                   = null;
         private MouseMonitor _mouseMovementObserver                   = new MouseMonitor();
         private DelayedEventHandler _mouseMovementDelayedEventHandler = null;
-        private Tokenizer.TokenTag _previousReeferenceToken           = default(Tokenizer.TokenTag);
-        private Tokenizer.TokenTag _actualToken                       = default(Tokenizer.TokenTag);
+        private Tokenizer.TokenTag _previousReeferenceToken           = default(Tokenizer.TokenTag);        
         private bool _isKeyboardShortCutActive                        = false;
         private bool _highLightToken                                  = false;
         private IWin32 _win32Helper                                   = null;
-        #endregion
-
-        #region [Events]
-        internal class ReferenceRequestEvent
-        {
-            internal Tokenizer.TokenTag ReferenceToken { get; set; }
-        }
-
-        internal delegate void LinkReferenceRequested(ReferenceRequestObserver source, ReferenceRequestEvent e);
-
-        internal event LinkReferenceRequested OnLinkReferenceRequested;
-
-        internal delegate void DismissReferenceLinks(ReferenceRequestObserver source);
-
-        internal event DismissReferenceLinks OnDismissReferenceLinks;
         #endregion
 
         #region [Interface]
@@ -66,6 +48,18 @@ namespace RTextNppPlugin.RText
                         HideUnderlinedToken();
                     }
                 }
+            }
+        }
+
+        public Tokenizer.TokenTag UnderlinedToken
+        {
+            get
+            {
+                return _previousReeferenceToken;
+            }
+            private set
+            {
+                _previousReeferenceToken = value;
             }
         }
 
@@ -140,70 +134,40 @@ namespace RTextNppPlugin.RText
 
         private void MouseMovementStabilized()
         {
-            Tokenizer.TokenTag aTokenUnderCursor = FindTokenUnderCursor();
-            if(!aTokenUnderCursor.Equals(_previousReeferenceToken) && !String.IsNullOrEmpty(aTokenUnderCursor.Context) && _actualToken.Equals(aTokenUnderCursor))
-            {
-                _previousReeferenceToken = aTokenUnderCursor;
-                UnderlineToken();
-                _highLightToken = true;
-                if(OnLinkReferenceRequested != null)
-                {
-                    OnLinkReferenceRequested(this, new ReferenceRequestEvent {  ReferenceToken = aTokenUnderCursor});
-                }
-            }
-            else if(!aTokenUnderCursor.Equals(_previousReeferenceToken))
-            {
-                //either null or empty, or cursor points somewhere else
-                HideUnderlinedToken();
-            }
-        }
-
-        private Tokenizer.TokenTag FindTokenUnderCursor()
-        {
-            int aBufferPosition = _nppHelper.GetPositionFromMouseLocation();
-            if (aBufferPosition != -1)
-            {
-                int aCurrentLine = _nppHelper.GetLineNumber(aBufferPosition);
-                Tokenizer aTokenizer = new Tokenizer(aCurrentLine, _nppHelper);
-                foreach (var t in aTokenizer.Tokenize())
-                {
-                    if (t.BufferPosition <= aBufferPosition && t.EndPosition >= aBufferPosition)
-                    {
-                        return t;
-                    }
-                }
-            }
-            return default(Tokenizer.TokenTag);
+            //Tokenizer.TokenTag aTokenUnderCursor = FindTokenUnderCursor();
+            //if(!aTokenUnderCursor.Equals(_previousReeferenceToken) && !String.IsNullOrEmpty(aTokenUnderCursor.Context) && _actualToken.Equals(aTokenUnderCursor))
+            //{
+            //    _previousReeferenceToken = aTokenUnderCursor;
+            //    UnderlineToken();
+            //    _highLightToken = true;
+            //}
+            //else if(!aTokenUnderCursor.Equals(_previousReeferenceToken))
+            //{
+            //    //either null or empty, or cursor points somewhere else
+            //    HideUnderlinedToken();
+            //}
         }
 
         private void OnMouseMovementObserverMouseMove()
         {
-            if (_isKeyboardShortCutActive && FileUtilities.IsRTextFile(_settings, _nppHelper))
-            {
-                _mouseMovementDelayedEventHandler.TriggerHandler();
-                _actualToken = FindTokenUnderCursor();
-                if(_highLightToken)
-                {
-                    if(!_actualToken.Equals(_previousReeferenceToken))
-                    {
-                        HideUnderlinedToken();
-                        _highLightToken = false;
-                        if(OnDismissReferenceLinks != null)
-                        {
-                            OnDismissReferenceLinks(this);
-                        }
-                    }
-                }
-            }
-            else
-            {
-                if (OnDismissReferenceLinks != null && _highLightToken)
-                {
-                    OnDismissReferenceLinks(this);
-                }
-                _highLightToken = false;
-                HideUnderlinedToken();
-            }
-        }
+            //if (_isKeyboardShortCutActive && FileUtilities.IsRTextFile(_settings, _nppHelper))
+            //{
+            //    _mouseMovementDelayedEventHandler.TriggerHandler();
+            //    _actualToken = FindTokenUnderCursor();
+            //    if(_highLightToken)
+            //    {
+            //        if(!_actualToken.Equals(_previousReeferenceToken))
+            //        {
+            //            HideUnderlinedToken();
+            //            _highLightToken = false;
+            //        }
+            //    }
+            //}
+            //else
+            //{
+            //    _highLightToken = false;
+            //    HideUnderlinedToken();
+            //}
+        }        
     }
 }

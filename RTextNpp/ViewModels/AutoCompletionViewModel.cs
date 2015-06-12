@@ -279,12 +279,14 @@ namespace RTextNppPlugin.ViewModels
 
         async public Task AugmentAutoCompletion(ContextExtractor extractor, Point caretPoint, AutoCompletionTokenizer tokenizer)
         {
+            Pending = true;
             CharProcessAction = CharProcessResult.NoAction;
             _completionList.Clear();
 
             if (!tokenizer.TriggerToken.HasValue)
             {
                 CharProcessAction = CharProcessResult.ForceClose;
+                Pending = false;
                 return;
             }
 
@@ -313,6 +315,7 @@ namespace RTextNppPlugin.ViewModels
             if (areContextEquals)
             {
                 _completionList.AddRange(_cachedOptions);
+                Pending = false;
                 Filter();
                 return;
             }
@@ -385,6 +388,7 @@ namespace RTextNppPlugin.ViewModels
                                 else
                                 {
                                     _completionList.AddRange(labeledList.OrderBy(x => x.InsertionText));
+                                    Pending = false;
                                     Filter();
                                 }
                                 _cachedOptions = new List<Completion>(_completionList);
@@ -396,7 +400,6 @@ namespace RTextNppPlugin.ViewModels
                             }
                             _isWarningCompletionActive = false;
                         }
-                        Pending = false;
                         break;
                     default:
                         Logger.Instance.Append(Logger.MessageType.FatalError, _connector.Workspace, "Undefined connector state reached. Please notify support.");
@@ -623,8 +626,8 @@ namespace RTextNppPlugin.ViewModels
         private bool _isFiltering                                                  = false;                                      //!< Indicates if filtering function is currently active.        
         private IEnumerable<string> _cachedContext                                 = null;                                       //!< Holds the last context used for an auto completion request.
         private Connector _connector                                               = null;                                       //!< Connector for this auto completion session.
-        private TokenEqualityComparer _equalityComparer                            = new TokenEqualityComparer();                //!< Compares two tokens list for similiary.
-        private readonly FuzzyStringComparisonOptions[] APPROXIMATION_CRITERIA = new FuzzyStringComparisonOptions[]              //!< Used for fuzzy matching of auto completion options.
+        private TokenEqualityComparer _equalityComparer                            = new TokenEqualityComparer();                //!< Compares two tokens list for similiary.        
+        private readonly FuzzyStringComparisonOptions[] APPROXIMATION_CRITERIA     = new FuzzyStringComparisonOptions[]          //!< Used for fuzzy matching of auto completion options.
         { 
             FuzzyStringComparisonOptions.UseHammingDistance,
             FuzzyStringComparisonOptions.UseJaccardDistance,
