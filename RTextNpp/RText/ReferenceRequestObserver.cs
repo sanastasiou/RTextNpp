@@ -1,4 +1,8 @@
 ﻿using System;
+using System.IO;
+using System.Xml;
+using System.Linq;
+using System.Xml.Linq;
 
 
 namespace RTextNppPlugin.RText
@@ -74,6 +78,7 @@ namespace RTextNppPlugin.RText
 
         private void UnderlineToken()
         {
+            int aReferenceColor = GetReferenceLinkColor();
             _win32Helper.ISendMessage(Plugin.nppData._scintillaMainHandle,   SciMsg.SCI_STYLESETHOTSPOT, (int)_previousReeferenceToken.Type, 1);
             _win32Helper.ISendMessage(Plugin.nppData._scintillaSecondHandle, SciMsg.SCI_STYLESETHOTSPOT, (int)_previousReeferenceToken.Type, 1);
 
@@ -84,10 +89,39 @@ namespace RTextNppPlugin.RText
 
 
 
-            _win32Helper.ISendMessage(Plugin.nppData._scintillaMainHandle, SciMsg.SCI_SETHOTSPOTACTIVEFORE, 1, 0xFFFFFF);
-            _win32Helper.ISendMessage(Plugin.nppData._scintillaSecondHandle, SciMsg.SCI_SETHOTSPOTACTIVEFORE, 1, 0xFFFFFF);
+            _win32Helper.ISendMessage(Plugin.nppData._scintillaMainHandle, SciMsg.SCI_SETHOTSPOTACTIVEFORE, 1, aReferenceColor);
+            _win32Helper.ISendMessage(Plugin.nppData._scintillaSecondHandle, SciMsg.SCI_SETHOTSPOTACTIVEFORE, 1, aReferenceColor);
             _win32Helper.ISendMessage(_nppHelper.GetCurrentScintilla(Plugin.nppData), SciMsg.SCI_STARTSTYLING, _previousReeferenceToken.BufferPosition, 0);
             _win32Helper.ISendMessage(_nppHelper.GetCurrentScintilla(Plugin.nppData), SciMsg.SCI_SETSTYLING, _previousReeferenceToken.EndColumn - _previousReeferenceToken.StartColumn, (int)_previousReeferenceToken.Type);
+        }
+
+        private int GetReferenceLinkColor()
+        {
+            string aPluginTokenizerConfigFile = _nppHelper.GetConfigDir() + "\\" + Constants.PluginName + ".xml";
+            if(File.Exists(aPluginTokenizerConfigFile))
+            {
+                XDocument aColorFile = XDocument.Load(aPluginTokenizerConfigFile);
+
+                var underLineTokenConfig = (from wordStyles in aColorFile.Root.Descendants("WordsStyle")
+                                            where (string)wordStyles.Attribute("name") == Constants.REFERENCE_LINK_NAME
+                                            select wordStyles).First();
+                string aFgColor = (string)underLineTokenConfig.Attribute("fgColor");
+                //need to prepare string in case 0x0000FF is present, information will be lost if we convert this to rgb since an int will just replace leading zeros
+                aFgColor = aFgColor.Replace("00", "01");
+                //for some reason scitnilla expects bgr instead of rgb, documentation is wrong
+                int rgb = int.Parse(aFgColor, System.Globalization.NumberStyles.AllowHexSpecifier);
+                int g = (rgb >> 8) & 0xFF;
+                int r = (rgb >> 16) & 0xFF;
+                int b = rgb & 0xFF;
+                int bgr = b;
+                bgr <<= 8;
+                bgr |= g;
+                bgr <<= 8;
+                bgr |= r;
+                return bgr;
+            }
+
+            return 0x0000FF;
         }
 
         private void HideUnderlinedToken()
