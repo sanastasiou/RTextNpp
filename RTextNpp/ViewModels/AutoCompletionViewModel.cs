@@ -302,7 +302,7 @@ namespace RTextNppPlugin.ViewModels
                 else
                 {
                     //if context is identical and tokens are also identical do not trigger auto completion request
-                    areContextEquals = (_cachedContext.Take(_cachedContext.Count() - 1).SequenceEqual(extractor.ContextList.Take(_cachedContext.Count() - 1)) &&
+                    areContextEquals = (_cachedContext.Take(_cachedContext.Count() - 1).SequenceEqual(extractor.ContextList.Take(extractor.ContextList.Count() - 1)) &&
                                         _equalityComparer.AreTokenStreamsEqual(tokenizer.LineTokens, Npp.Instance.GetCaretPosition(), Npp.Instance.GetCurrentFilePath()));
                 }
             }

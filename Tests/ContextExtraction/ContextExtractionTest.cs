@@ -171,5 +171,16 @@ AUTOSAR {
             Assert.AreEqual(ContextLinesSample.Count(), c.ContextList.Count());
             Assert.IsTrue(c.ContextList.SequenceEqual(ContextLinesSample));
         }
+
+        const string ErrorContext = "#Some comment...\n@file-extension: ecuextract";
+
+        //todo - ensure that no context can be extracted from such a string
+        [Test]
+        public void CheckErroneousContext()
+        {
+            ContextExtractor c = new ContextExtractor(ErrorContext, ErrorContext.Length);
+
+            Assert.AreEqual(c.ContextList.Count(), 0);
+        }
     }
 }
