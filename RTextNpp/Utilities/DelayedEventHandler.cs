@@ -18,7 +18,7 @@ namespace RTextNppPlugin.Utilities
 
         internal DelayedEventHandler(IActionWrapper action, double milliseconds, DispatcherPriority priority = DispatcherPriority.ApplicationIdle)
         {
-            _action         = action;
+            _action          = action;
             _timer           = new DispatcherTimer(priority);
             _timer.Interval  = TimeSpan.FromMilliseconds(milliseconds);
             _timer.Tick      += OnIntervalTick;
@@ -44,6 +44,14 @@ namespace RTextNppPlugin.Utilities
             _timer.IsEnabled = false;
         }
 
+        internal bool IsRunning
+        {
+            get
+            {
+                return _timer.IsEnabled;
+            }
+        }
+
         #endregion
 
         #region [Event Handlers]
@@ -51,7 +59,10 @@ namespace RTextNppPlugin.Utilities
         void OnIntervalTick(object sender, EventArgs e)
         {
             Cancel();
-            _action.DoAction();
+            if (_action != null)
+            {
+                _action.DoAction();
+            }
         }              
         #endregion
     }    

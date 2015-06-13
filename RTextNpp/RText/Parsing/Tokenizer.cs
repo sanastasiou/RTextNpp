@@ -35,7 +35,13 @@ namespace RTextNppPlugin.RText.Parsing
                                     );
             }
 
-            public int EndPosition
+            internal bool CanTokenHaveReference()
+            {
+                return (Type == RTextTokenTypes.Reference ||
+                        Type == RTextTokenTypes.RTextName);
+            }
+
+            internal int EndPosition
             {
                 get
                 {

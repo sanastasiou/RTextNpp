@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
@@ -13,7 +14,6 @@ using RTextNppPlugin.RText.Protocol;
 using RTextNppPlugin.Utilities;
 using RTextNppPlugin.Utilities.Settings;
 using RTextNppPlugin.ViewModels;
-using System.Diagnostics;
 
 namespace RTextNppPlugin.WpfControls
 {
@@ -23,7 +23,7 @@ namespace RTextNppPlugin.WpfControls
      * @brief   Interaction logic for the find references window.
      *
      */
-    internal partial class LinkTargetsWindow : Window
+    internal partial class LinkTargetsWindow : Window, ILinkTargetsWindow
     {
         #region [Events]
         /**
@@ -59,6 +59,7 @@ namespace RTextNppPlugin.WpfControls
         private ReferenceRequestObserver _referenceRequestObserver = null;  //!< Handles reference requests triggers.
         private bool _isWarningActive                              = false; //!< Indicates that some kind of warning is true or false.
         private IEnumerable<string> _cachedContext                 = null;  //!< Holds the last context used for reference lookup request.
+        private DelayedEventHandler _referenceRequestDispatcher    = null;  //!< Debounces link reference requests and dispatches the reuqests to the backend.
         #endregion
 
         #region [Interface]
@@ -66,16 +67,16 @@ namespace RTextNppPlugin.WpfControls
         internal LinkTargetsWindow(INpp nppHelper, IWin32 win32Helper, ISettings settingsHelper)
         {
             InitializeComponent();
-            _nppHelper   = nppHelper;
-            _win32Helper = win32Helper;
-            _settings    = settingsHelper;
-            _referenceRequestObserver = new ReferenceRequestObserver(_nppHelper, _settings, _win32Helper);
-            _referenceRequestObserver.MouseMove += OnReferenceRequestObserverMouseMove;
+            _nppHelper                           = nppHelper;
+            _win32Helper                         = win32Helper;
+            _settings                            = settingsHelper;
+            _referenceRequestObserver            = new ReferenceRequestObserver(_nppHelper, _settings, _win32Helper, this);
+            _referenceRequestDispatcher          = new DelayedEventHandler(new ActionWrapper<Tokenizer.TokenTag>(TryHighlightItemUnderMouse, default(Tokenizer.TokenTag)), 500);
         }
        
         internal void CancelPendingRequest()
         {
-            _referenceRequestObserver.CancelPendingRequest();
+            _referenceRequestDispatcher.Cancel();
         }
 
         /**
@@ -89,16 +90,9 @@ namespace RTextNppPlugin.WpfControls
         internal void IsKeyboardShortCutActive(bool isActive)
         {
             _referenceRequestObserver.IsKeyboardShortCutActive = isActive;
-            if(isActive)
-            {
-                var aTokenUnderCursor = Tokenizer.FindTokenUnderCursor(_nppHelper);
-                Dispatcher.Invoke((MethodInvoker)(async () =>
-                {
-                    await TryHighlightItemUnderMouse(aTokenUnderCursor);
-                }));                
-            }
-            else
-            {
+            if(!isActive)
+            {                
+                _referenceRequestDispatcher.Cancel();
                 Hide();
             }
         }
@@ -214,39 +208,82 @@ namespace RTextNppPlugin.WpfControls
             Mouse.OverrideCursor = null;
         }
 
-        private async Task TryHighlightItemUnderMouse(Tokenizer.TokenTag aTokenUnderCursor)
+        private async Task SendLinkReferenceRequestAsync(Tokenizer.TokenTag aTokenUnderCursor)
         {
-            string aContextBlock = _nppHelper.GetTextBetween(0, Npp.Instance.GetLineEnd(aTokenUnderCursor.Line));
-            ContextExtractor aExtractor = new ContextExtractor(aContextBlock, Npp.Instance.GetLengthToEndOfLine(_nppHelper.GetColumn()));
-            bool aAreContextEquals     = false;
-
-            //get all tokens before the trigger token - if all previous tokens and all context lines match do not request new auto completion options
-            if (!_referenceRequestObserver.UnderlinedToken.Equals( default(Tokenizer.TokenTag)) && _cachedContext != null && !_isWarningActive)
+            if (aTokenUnderCursor.CanTokenHaveReference())
             {
-                if (_cachedContext.Count() == 1 && aExtractor.ContextList.Count() == 1)
+                Task<Tuple<bool, IEnumerable<string>>> contextEqualityTask = new Task<Tuple<bool, IEnumerable<string>>>(new Func<Tuple<bool, IEnumerable<string>>>(() =>
                 {
-                    aAreContextEquals = aTokenUnderCursor.Equals(_referenceRequestObserver.UnderlinedToken);
+                    string aContextBlock = _nppHelper.GetTextBetween(0, Npp.Instance.GetLineEnd(aTokenUnderCursor.Line));
+                    ContextExtractor aExtractor = new ContextExtractor(aContextBlock, Npp.Instance.GetLengthToEndOfLine(_nppHelper.GetColumn()));
+                    bool aAreContextEquals = false;
+
+                    //get all tokens before the trigger token - if all previous tokens and all context lines match do not request new auto completion options
+                    if (!_referenceRequestObserver.UnderlinedToken.Equals(default(Tokenizer.TokenTag)) && _cachedContext != null && !_isWarningActive)
+                    {
+                        if (_cachedContext.Count() == 1 && aExtractor.ContextList.Count() == 1)
+                        {
+                            aAreContextEquals = aTokenUnderCursor.Equals(_referenceRequestObserver.UnderlinedToken);
+                        }
+                        else
+                        {
+                            //if context is identical and tokens are also identical do not trigger auto completion request
+                            aAreContextEquals = (_cachedContext.Take(_cachedContext.Count() - 1).SequenceEqual(aExtractor.ContextList.Take(aExtractor.ContextList.Count() - 1)) &&
+                                                 aTokenUnderCursor.Equals(_referenceRequestObserver.UnderlinedToken));
+                        }
+                    }
+                    return new Tuple<bool, IEnumerable<string>>(aAreContextEquals, aExtractor.ContextList);
+                }));
+
+                contextEqualityTask.Start();
+                await contextEqualityTask;
+
+                //store cache
+                _cachedContext                            = contextEqualityTask.Result.Item2;
+                _referenceRequestObserver.UnderlinedToken = aTokenUnderCursor;
+                if (!contextEqualityTask.Result.Item1)
+                {
+                    Trace.WriteLine("Trying to find references...");
                 }
                 else
                 {
-                    //if context is identical and tokens are also identical do not trigger auto completion request
-                    aAreContextEquals = (_cachedContext.Take(_cachedContext.Count() - 1).SequenceEqual(aExtractor.ContextList.Take(_cachedContext.Count() - 1)) &&
-                                         aTokenUnderCursor.Equals(_referenceRequestObserver.UnderlinedToken));
+                    //use cached response
                 }
             }
-
-            //store cache
-            _cachedContext = aExtractor.ContextList;
-            Trace.WriteLine("Trying to find references...");
+            else
+            {
+                _referenceRequestDispatcher.Cancel();
+                Hide();
+            }
         }
 
-        private void OnReferenceRequestObserverMouseMove()
+        private void TryHighlightItemUnderMouse(Tokenizer.TokenTag aTokenUnderCursor)
         {
-            var aTokenUnderCursor = Tokenizer.FindTokenUnderCursor(_nppHelper);
             Dispatcher.Invoke((MethodInvoker)(async () =>
             {
-                await TryHighlightItemUnderMouse(aTokenUnderCursor);
-            }));
+                await SendLinkReferenceRequestAsync(aTokenUnderCursor);
+            }));          
+        }
+
+        public void IssueReferenceLinkRequestCommand(Tokenizer.TokenTag aTokenUnderCursor)
+        {
+            if (String.IsNullOrWhiteSpace(aTokenUnderCursor.Context) || !_referenceRequestObserver.IsKeyboardShortCutActive)
+            {
+                _referenceRequestDispatcher.Cancel();
+                Hide();
+            }
+            else
+            {
+                if (_referenceRequestDispatcher.IsRunning)
+                {
+                    _referenceRequestDispatcher.TriggerHandler(new ActionWrapper<Tokenizer.TokenTag>(TryHighlightItemUnderMouse, aTokenUnderCursor));
+                }
+                else
+                {
+                    TryHighlightItemUnderMouse(aTokenUnderCursor);
+                    _referenceRequestDispatcher.TriggerHandler(null);
+                }
+            }
         }
 
         /**
@@ -355,14 +392,14 @@ namespace RTextNppPlugin.WpfControls
 
         #endregion
 
-        private async void OnLinkTargetsWindowMouseLeaveAsync(object sender, System.Windows.Input.MouseEventArgs e)
+        private void OnLinkTargetsWindowMouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
         {
             //only hide the window if the mouse has also left the actual underlined token
             var aTokenUnderCursor = Tokenizer.FindTokenUnderCursor(_nppHelper);
             if (!aTokenUnderCursor.Equals(_referenceRequestObserver.UnderlinedToken))
             {
                 Hide();
-                await TryHighlightItemUnderMouse(aTokenUnderCursor);
+                IssueReferenceLinkRequestCommand(aTokenUnderCursor);                
             }
         }
     }
