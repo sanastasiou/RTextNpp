@@ -89,13 +89,16 @@ namespace RTextNppPlugin.RText.Parsing
             int block_nesting     = 0;
             int last_element_line = 0;
 
-            //last line is always a context line
-            _contextLines.Push(joinedLines[_currentIndex].ToString());
+            if (joinedLines[_currentIndex] != null)
+            {
+                //last line is always a context line
+                _contextLines.Push(joinedLines[_currentIndex].ToString());
+            }
             //start from second to last line and go up
             for (int i = _currentIndex - 1; i >= 0; --i)
             {
-                string aStrippedLine = joinedLines[i].ToString().Trim();
-                if (String.IsNullOrEmpty(aStrippedLine)) continue;
+                string aStrippedLine = String.Empty;
+                if ((joinedLines[i] == null) || String.IsNullOrEmpty((aStrippedLine = joinedLines[i].ToString().Trim()))) continue;
                 else
                 {
                     ++non_ignored_lines;
