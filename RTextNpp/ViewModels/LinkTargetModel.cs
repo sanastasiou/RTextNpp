@@ -40,6 +40,11 @@ namespace RTextNppPlugin.ViewModels
             }
         }
 
+        internal bool IsEmpty()
+        {
+            return _targets.Count == 0;
+        }
+
         internal void UpdateLinkTargets(IEnumerable<Target> targets)
         {
             _targets.Clear();

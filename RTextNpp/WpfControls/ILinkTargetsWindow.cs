@@ -7,5 +7,7 @@ namespace RTextNppPlugin.WpfControls
         void IssueReferenceLinkRequestCommand(Tokenizer.TokenTag aTokenUnderCursor);
 
         bool IsMouseInsidedWindow();
+
+        void Hide();
     }
 }

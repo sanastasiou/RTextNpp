@@ -692,9 +692,13 @@ namespace RTextNppPlugin.Utilities
             GetKeyboardState(lpKeyState);
             byte[] lpChar = new byte[2];
             if (ToAscii(uVirtKey, uScanCode, lpKeyState, lpChar, 0) == 1)
+            {
                 return (char)lpChar[0];
+            }
             else
+            {
                 return new char();
+            }
         }        
     }
 }

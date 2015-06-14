@@ -51,12 +51,6 @@ namespace RTextNppPlugin.RText
             }
         }
 
-        private void CancelHighlighting()
-        {
-            _highLightToken = false;
-            HideUnderlinedToken();
-        }
-
         internal bool IsKeyboardShortCutActive 
         { 
             set
@@ -64,16 +58,15 @@ namespace RTextNppPlugin.RText
                 if(value != _isKeyboardShortCutActive)
                 {
                     _isKeyboardShortCutActive = value;
-                    Enable(value);
                     if(!_isKeyboardShortCutActive)
                     {
                         HideUnderlinedToken();
                     }
                     else
                     {
-                        _refWindow.IssueReferenceLinkRequestCommand(Tokenizer.FindTokenUnderCursor(_nppHelper));
-                        System.Diagnostics.Trace.WriteLine("IssueReferenceLinksCommand - IsKeyboardShortCutActive");
+                        _refWindow.IssueReferenceLinkRequestCommand(Tokenizer.FindTokenUnderCursor(_nppHelper));                        
                     }
+                    Enable(value);
                 }
             }
             get
@@ -90,13 +83,17 @@ namespace RTextNppPlugin.RText
             }
             set
             {
-                _previousReferenceToken = value;
+                if (!_previousReferenceToken.Equals(value))
+                {
+                    _previousReferenceToken = value;
+                    HideUnderlinedToken();
+                }
             }
         }
 
         #endregion
 
-        private void UnderlineToken()
+        internal void UnderlineToken()
         {
             int aReferenceColor = GetReferenceLinkColor();
             _win32Helper.ISendMessage(Plugin.nppData._scintillaMainHandle,   SciMsg.SCI_STYLESETHOTSPOT, (int)_previousReferenceToken.Type, 1);
@@ -107,12 +104,11 @@ namespace RTextNppPlugin.RText
             _win32Helper.ISendMessage(Plugin.nppData._scintillaMainHandle, SciMsg.SCI_SETHOTSPOTSINGLELINE, 1, 0);
             _win32Helper.ISendMessage(Plugin.nppData._scintillaSecondHandle, SciMsg.SCI_SETHOTSPOTSINGLELINE, 1, 0);
 
-
-
             _win32Helper.ISendMessage(Plugin.nppData._scintillaMainHandle, SciMsg.SCI_SETHOTSPOTACTIVEFORE, 1, aReferenceColor);
             _win32Helper.ISendMessage(Plugin.nppData._scintillaSecondHandle, SciMsg.SCI_SETHOTSPOTACTIVEFORE, 1, aReferenceColor);
             _win32Helper.ISendMessage(_nppHelper.GetCurrentScintilla(Plugin.nppData), SciMsg.SCI_STARTSTYLING, _previousReferenceToken.BufferPosition, 0);
             _win32Helper.ISendMessage(_nppHelper.GetCurrentScintilla(Plugin.nppData), SciMsg.SCI_SETSTYLING, _previousReferenceToken.EndColumn - _previousReferenceToken.StartColumn, (int)_previousReferenceToken.Type);
+            _highLightToken = true;
         }
 
         private int GetReferenceLinkColor()
@@ -140,11 +136,11 @@ namespace RTextNppPlugin.RText
                 bgr |= r;
                 return bgr;
             }
-
-            return 0x0000FF;
+            //return blue
+            return 0xFF0000;
         }
 
-        private void HideUnderlinedToken()
+        internal void HideUnderlinedToken()
         {
             if (_highLightToken)
             {                                
@@ -152,9 +148,10 @@ namespace RTextNppPlugin.RText
                 _win32Helper.ISendMessage(Plugin.nppData._scintillaSecondHandle, SciMsg.SCI_STYLESETHOTSPOT, (int)_previousReferenceToken.Type, 0);
                 _win32Helper.ISendMessage(_nppHelper.GetCurrentScintilla(Plugin.nppData), SciMsg.SCI_STARTSTYLING, _previousReferenceToken.BufferPosition, 0);
                 _win32Helper.ISendMessage(_nppHelper.GetCurrentScintilla(Plugin.nppData), SciMsg.SCI_SETSTYLING, _previousReferenceToken.EndColumn - _previousReferenceToken.StartColumn, (int)_previousReferenceToken.Type);
-                _highLightToken = false;
+                
                 System.Windows.Forms.Cursor.Position = new System.Drawing.Point(System.Windows.Forms.Cursor.Position.X - 1, System.Windows.Forms.Cursor.Position.Y);
                 System.Windows.Forms.Cursor.Position = new System.Drawing.Point(System.Windows.Forms.Cursor.Position.X + 1, System.Windows.Forms.Cursor.Position.Y);
+                _highLightToken = false;
             }
         }
 
@@ -167,18 +164,18 @@ namespace RTextNppPlugin.RText
                     var aRefToken = Tokenizer.FindTokenUnderCursor(_nppHelper);
                     if (aRefToken.CanTokenHaveReference() && !aRefToken.Equals(_previousReferenceToken))
                     {
-                        _refWindow.IssueReferenceLinkRequestCommand(aRefToken);
-                        System.Diagnostics.Trace.WriteLine("IssueReferenceLinksCommand - OnMouseMovementObserverMouseMove");
+                        _refWindow.IssueReferenceLinkRequestCommand(aRefToken);                        
                     }
-                    else
+                    else if(!aRefToken.CanTokenHaveReference())
                     {
-                        CancelHighlighting();
+                        HideUnderlinedToken();
+                        _refWindow.Hide();
                     }
                 }
             }
             else
             {
-                CancelHighlighting();
+                HideUnderlinedToken();
             }
         }        
     }

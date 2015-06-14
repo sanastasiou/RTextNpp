@@ -68,6 +68,7 @@ namespace RTextNppPlugin.WpfControls
         private Connector _connector                               = null;                 //!< Connector which is relevant to the actual focused file.
         private KeyInterceptor _keyMonitor                         = new KeyInterceptor(); //!< Monitors key presses.
         private bool _isOnTop                                      = false;                //!< Indicates if the link reference window is on top of a token or not.
+        private const int YPOSITION_OFFSET                         = 2;                    //!< Window needs to be placed with a Y offset, because otherwise the cursor might indicate a token between the gab of the current token and the window.
         #endregion
 
         #region [Interface]
@@ -76,7 +77,7 @@ namespace RTextNppPlugin.WpfControls
 
         public bool IsMouseInsidedWindow()
         {
-            return (IsVisible && VisualUtilities.IsMouseInsideFrameworkElement(this));
+            return (IsVisible && VisualUtilities.IsMouseInsideFrameworkElement(Content as FrameworkElement));
         }
 
 
@@ -159,7 +160,7 @@ namespace RTextNppPlugin.WpfControls
                     aCaretPoint = Npp.Instance.GetCaretScreenLocationRelativeToPosition(_referenceRequestObserver.UnderlinedToken.BufferPosition);
                 }
                 Left = aCaretPoint.X;
-                Top = aCaretPoint.Y;
+                Top  = aCaretPoint.Y - YPOSITION_OFFSET;
             }
             Dispatcher.BeginInvoke(new Action<double>(GetModel().OnZoomLevelChanged), level);
         }
@@ -224,7 +225,7 @@ namespace RTextNppPlugin.WpfControls
          */
         private void OnContainerSizeChanged(object sender, SizeChangedEventArgs e)
         {
-            VisualUtilities.RepositionWindow(e, this, ref _isOnTop, _nppHelper);
+            VisualUtilities.RepositionWindow(e, this, ref _isOnTop, _nppHelper, YPOSITION_OFFSET);
         }
 
         private void OnKeyMonitorKeyDown(System.Windows.Forms.Keys key, int repeatCount, ref bool handled)
@@ -323,7 +324,7 @@ namespace RTextNppPlugin.WpfControls
                 //determine window position
                 var aCaretPoint = _nppHelper.GetCaretScreenLocationRelativeToPosition(aTokenUnderCursor.BufferPosition);
                 Left            = aCaretPoint.X;
-                Top             = aCaretPoint.Y;
+                Top             = aCaretPoint.Y - YPOSITION_OFFSET;
 
                 if (!contextEqualityTask.Result.Item1)
                 {
@@ -348,10 +349,20 @@ namespace RTextNppPlugin.WpfControls
                     GetModel().UpdateLinkTargets(_cachedReferenceLinks.targets); 
                 }
                 Utilities.VisualUtilities.SetOwnerFromNppPlugin(this);
+                _referenceRequestObserver.UnderlineToken();
                 Show();
+                ForceRedraw();
+            }
+        }
+
+        private void ForceRedraw()
+        {
+            if (!GetModel().IsEmpty())
+            {
                 var collectionView = CollectionViewSource.GetDefaultView(GetModel().Targets);
                 collectionView.MoveCurrentToFirst();
                 LinkTargetDatagrid.ScrollIntoView(collectionView.CurrentItem);
+
             }
         }
 
@@ -440,14 +451,13 @@ namespace RTextNppPlugin.WpfControls
                 LinkTargetDatagrid.SelectedIndex = -1;
                 _isOnTop                         = false;
                 _keyMonitor.Uninstall();
+                _referenceRequestObserver.HideUnderlinedToken();
             }
         }
 
         private void OnWindowLocationChanged(object sender, EventArgs e)
         {
-            var collectionView = CollectionViewSource.GetDefaultView(GetModel().Targets);
-            collectionView.MoveCurrentToFirst();
-            LinkTargetDatagrid.ScrollIntoView(collectionView.CurrentItem);
+            ForceRedraw();
         }        
         #endregion
 
