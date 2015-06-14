@@ -4,9 +4,11 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Data;
 using System.Windows.Forms;
 using System.Windows.Input;
 using System.Windows.Media;
+using CSScriptIntellisense;
 using RTextNppPlugin.DllExport;
 using RTextNppPlugin.Logging;
 using RTextNppPlugin.RText;
@@ -55,15 +57,16 @@ namespace RTextNppPlugin.WpfControls
         #endregion
 
         #region [Data Members]
-        private INpp _nppHelper                                    = null;  //!< Handles communication with scintilla or npp.
-        private IWin32 _win32Helper                                = null;  //!< Handles low level API calls.
-        private ISettings _settings                                = null;  //!< Reads or write plugin settings.
-        private ReferenceRequestObserver _referenceRequestObserver = null;  //!< Handles reference requests triggers.       
-        private IEnumerable<string> _cachedContext                 = null;  //!< Holds the last context used for reference lookup request.
-        private DelayedEventHandler _referenceRequestDispatcher    = null;  //!< Debounces link reference requests and dispatches the reuqests to the backend.
-        private LinkTargetsResponse _cachedReferenceLinks          = null;  //!< Holds a cache of reference links from a previous backend request.
-        private ConnectorManager _cManager                         = null;  //!< Instance of ConnectorManager instance.
-        private Connector _connector                               = null;  //!< Connector which is relevant to the actual focused file.
+        private INpp _nppHelper                                    = null;                 //!< Handles communication with scintilla or npp.
+        private IWin32 _win32Helper                                = null;                 //!< Handles low level API calls.
+        private ISettings _settings                                = null;                 //!< Reads or write plugin settings.
+        private ReferenceRequestObserver _referenceRequestObserver = null;                 //!< Handles reference requests triggers.       
+        private IEnumerable<string> _cachedContext                 = null;                 //!< Holds the last context used for reference lookup request.
+        private DelayedEventHandler _referenceRequestDispatcher    = null;                 //!< Debounces link reference requests and dispatches the reuqests to the backend.
+        private LinkTargetsResponse _cachedReferenceLinks          = null;                 //!< Holds a cache of reference links from a previous backend request.
+        private ConnectorManager _cManager                         = null;                 //!< Instance of ConnectorManager instance.
+        private Connector _connector                               = null;                 //!< Connector which is relevant to the actual focused file.
+        private KeyInterceptor _keyMonitor                         = new KeyInterceptor(); //!< Monitors key presses.
         #endregion
 
         #region [Interface]
@@ -108,6 +111,11 @@ namespace RTextNppPlugin.WpfControls
             _referenceRequestObserver   = new ReferenceRequestObserver(_nppHelper, _settings, _win32Helper, this);
             _referenceRequestDispatcher = new DelayedEventHandler(new ActionWrapper<Tokenizer.TokenTag>(TryHighlightItemUnderMouse, default(Tokenizer.TokenTag)), 500);
             _cManager                   = cmanager;
+            _keyMonitor.KeyDown         += OnKeyMonitorKeyDown;
+            _keyMonitor.KeysToIntercept.Add((int)System.Windows.Forms.Keys.Down);
+            _keyMonitor.KeysToIntercept.Add((int)System.Windows.Forms.Keys.Up);
+            _keyMonitor.KeysToIntercept.Add((int)System.Windows.Forms.Keys.PageUp);
+            _keyMonitor.KeysToIntercept.Add((int)System.Windows.Forms.Keys.PageDown);
         }
        
         internal void CancelPendingRequest()
@@ -152,7 +160,7 @@ namespace RTextNppPlugin.WpfControls
                 Left = aCaretPoint.X;
                 Top = aCaretPoint.Y;
             }
-            Dispatcher.BeginInvoke(new Action<int>(GetModel().OnZoomLevelChanged), level);
+            Dispatcher.BeginInvoke(new Action<double>(GetModel().OnZoomLevelChanged), level);
         }
 
         #endregion
@@ -210,6 +218,29 @@ namespace RTextNppPlugin.WpfControls
         #endregion
 
         #region EventHandlers
+        private void OnKeyMonitorKeyDown(System.Windows.Forms.Keys key, int repeatCount, ref bool handled)
+        {
+            var collectionView = CollectionViewSource.GetDefaultView(GetModel().Targets);
+            int aNewPosition = 0;
+            switch (key)
+            {
+                case System.Windows.Forms.Keys.Up:
+                case System.Windows.Forms.Keys.Down:
+                    handled = true;
+                    aNewPosition = VisualUtilities.ScrollList(key, collectionView, LinkTargetDatagrid);
+                    break;
+                case System.Windows.Forms.Keys.PageDown:
+                case System.Windows.Forms.Keys.PageUp:
+                    aNewPosition = VisualUtilities.ScrollList(key, collectionView, LinkTargetDatagrid, 25);
+                    handled = true;
+                    break;
+                default:
+                    return;
+            }
+
+            LinkTargetDatagrid.ScrollIntoView(collectionView.CurrentItem);
+        }
+
         /**
          * @brief   Occurs when the user enter the area of a datagrid row.
          *
@@ -383,6 +414,7 @@ namespace RTextNppPlugin.WpfControls
         {
             if (Visibility == System.Windows.Visibility.Visible)
             {
+                _keyMonitor.Install();
                 var aTargets = ((ReferenceLinkViewModel)LinkTargetDatagrid.DataContext).Targets;
                 if (aTargets != null && aTargets.Count > 0)
                 {
@@ -394,6 +426,7 @@ namespace RTextNppPlugin.WpfControls
             else
             {
                 LinkTargetDatagrid.SelectedIndex = -1;
+                _keyMonitor.Uninstall();
             }
         }
         #endregion

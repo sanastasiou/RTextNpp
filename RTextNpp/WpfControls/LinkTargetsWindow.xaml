@@ -33,14 +33,14 @@
     <Window.DataContext>
         <viewmodels:ReferenceLinkViewModel/>
     </Window.DataContext>
-    <Window.LayoutTransform>
-        <ScaleTransform CenterX="0" 
-                        CenterY="0"
-                        ScaleX="{Binding ZoomLevel}"
-                        ScaleY="{Binding ZoomLevel}"/>
-    </Window.LayoutTransform>
     <Border BorderBrush="Black" Name="LinkBorder">
         <DockPanel LastChildFill="True" Name="LinkDockPanel">
+            <DockPanel.LayoutTransform>
+                <ScaleTransform CenterX="0" 
+                                CenterY="0"
+                                ScaleX="{Binding ZoomLevel}"
+                                ScaleY="{Binding ZoomLevel}"/>
+            </DockPanel.LayoutTransform>
             <DockPanel.Resources>                
                 <BitmapImage x:Key="MySource" UriSource="/RTextNpp;Component/Resources/warning.png"/>
                 <Style x:Key="ReferenceDatagridStyle" TargetType="DataGrid">

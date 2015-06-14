@@ -1,5 +1,7 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Interop;
 using System.Windows.Media;
 
@@ -394,6 +396,13 @@ namespace RTextNppPlugin.Utilities
             return child;
         }
 
+        /**
+         * \brief   Query if the mouse pointer is inside an UI element.
+         *
+         * \param   element The element.
+         *
+         * \return  true if mouse is inside framework element, false if not.
+         */
         public static bool IsMouseInsideFrameworkElement(System.Windows.FrameworkElement element)
         {
             double dWidth = -1;
@@ -415,6 +424,52 @@ namespace RTextNppPlugin.Utilities
                 return false;
             }
             return true;
+        }
+
+        /**
+         * \brief   Scroll list.
+         *
+         * \param   key         The key which is pressed.
+         * \param   view        The view.
+         * \param   container   The container.
+         * \param   offset      (Optional) the offset with which to scroll.
+         *
+         * \return  An int indicating the new container position after the scroll has been done.
+         */
+        public static int ScrollList(System.Windows.Forms.Keys key, ICollectionView view, ItemsControl container, int offset = 1)
+        {
+            int aNewPosition = 0;
+            switch (key)
+            {
+                case System.Windows.Forms.Keys.PageDown:
+                case System.Windows.Forms.Keys.Down:
+                    if (view.CurrentPosition + offset < container.Items.Count)
+                    {
+                        aNewPosition = view.CurrentPosition + offset;
+                        view.MoveCurrentToPosition(aNewPosition);
+                    }
+                    else
+                    {
+                        aNewPosition = container.Items.Count - 1;
+                        view.MoveCurrentToLast();
+                    }
+                    break;
+                case System.Windows.Forms.Keys.PageUp:
+                case System.Windows.Forms.Keys.Up:
+                    if (view.CurrentPosition - offset >= 0)
+                    {
+                        aNewPosition = view.CurrentPosition - offset;
+                        view.MoveCurrentToPosition(view.CurrentPosition - offset);
+
+                    }
+                    else
+                    {
+                        aNewPosition = 0;
+                        view.MoveCurrentToFirst();
+                    }
+                    break;
+            }
+            return aNewPosition;
         }
     }
 }

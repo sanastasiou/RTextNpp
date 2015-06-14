@@ -156,12 +156,12 @@ namespace RTextNppPlugin.ViewModels
             }
         }
 
-        public void OnZoomLevelChanged(int newZoomLevel)
+        public void OnZoomLevelChanged(double newZoomLevel)
         {
             //calculate actual zoom level , based on Scintilla zoom factors...
             
             //try 8% increments / decrements
-            ZoomLevel = (1 + (Constants.ZOOM_FACTOR * newZoomLevel));            
+            ZoomLevel = (1.0 + (Constants.ZOOM_FACTOR * newZoomLevel));            
         }
 
         public double ZoomLevel

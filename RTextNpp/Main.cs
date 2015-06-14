@@ -66,7 +66,6 @@ namespace RTextNppPlugin
             {
                 CSScriptIntellisense.KeyInterceptor.Instance.Add((Keys)key);
             }
-
             _currentZoomLevel = Npp.Instance.GetZoomLevel();
             _autoCompletionForm.OnZoomLevelChanged(_currentZoomLevel);
             #if DEBUG
@@ -118,6 +117,10 @@ namespace RTextNppPlugin
                 //if any modifier key is pressed - ignore this key press
                 if (modifiers.IsCtrl || modifiers.IsAlt)
                 {
+                    if(_autoCompletionForm.IsVisible)
+                    {
+                        CommitAutoCompletion(false);
+                    }
                     return;
                 }
 
