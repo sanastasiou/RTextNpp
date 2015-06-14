@@ -71,15 +71,8 @@ namespace RTextNppPlugin.RText
                     }
                     else
                     {
-                        var aRefToken = Tokenizer.FindTokenUnderCursor(_nppHelper);
-                        if (aRefToken.CanTokenHaveReference() && FileUtilities.IsRTextFile(_settings, _nppHelper))
-                        {
-                            _refWindow.IssueReferenceLinkRequestCommand(aRefToken);
-                        }
-                        else
-                        {
-                            CancelHighlighting();
-                        }
+                        _refWindow.IssueReferenceLinkRequestCommand(Tokenizer.FindTokenUnderCursor(_nppHelper));
+                        System.Diagnostics.Trace.WriteLine("IssueReferenceLinksCommand - IsKeyboardShortCutActive");
                     }
                 }
             }
@@ -167,16 +160,20 @@ namespace RTextNppPlugin.RText
 
         private void OnMouseMovementObserverMouseMove()
         {
-            if (_isKeyboardShortCutActive && FileUtilities.IsRTextFile(_settings, _nppHelper))
+            if (_isKeyboardShortCutActive)
             {
-                var aRefToken = Tokenizer.FindTokenUnderCursor(_nppHelper);
-                if (aRefToken.CanTokenHaveReference())
+                if (!_refWindow.IsMouseInsidedWindow())
                 {
-                    _refWindow.IssueReferenceLinkRequestCommand(aRefToken);
-                }
-                else
-                {
-                    CancelHighlighting();
+                    var aRefToken = Tokenizer.FindTokenUnderCursor(_nppHelper);
+                    if (aRefToken.CanTokenHaveReference() && !aRefToken.Equals(_previousReferenceToken))
+                    {
+                        _refWindow.IssueReferenceLinkRequestCommand(aRefToken);
+                        System.Diagnostics.Trace.WriteLine("IssueReferenceLinksCommand - OnMouseMovementObserverMouseMove");
+                    }
+                    else
+                    {
+                        CancelHighlighting();
+                    }
                 }
             }
             else

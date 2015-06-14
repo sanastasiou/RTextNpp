@@ -441,7 +441,6 @@ namespace RTextNppPlugin.RText
          *
          * \brief   Reads a synchronous stream asynchornously. .NET bug workaround.
          *
-         *
          * \param   stream  The stream.
          * \param   token   The cancellation token.
          */

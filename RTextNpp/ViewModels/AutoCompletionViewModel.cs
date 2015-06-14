@@ -161,7 +161,7 @@ namespace RTextNppPlugin.ViewModels
             //calculate actual zoom level , based on Scintilla zoom factors...
             
             //try 8% increments / decrements
-            ZoomLevel = (1 + (0.08 * newZoomLevel));            
+            ZoomLevel = (1 + (Constants.ZOOM_FACTOR * newZoomLevel));            
         }
 
         public double ZoomLevel

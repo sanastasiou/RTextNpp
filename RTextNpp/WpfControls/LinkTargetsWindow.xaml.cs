@@ -58,8 +58,7 @@ namespace RTextNppPlugin.WpfControls
         private INpp _nppHelper                                    = null;  //!< Handles communication with scintilla or npp.
         private IWin32 _win32Helper                                = null;  //!< Handles low level API calls.
         private ISettings _settings                                = null;  //!< Reads or write plugin settings.
-        private ReferenceRequestObserver _referenceRequestObserver = null;  //!< Handles reference requests triggers.
-        private bool _isWarningActive                              = false; //!< Indicates that some kind of warning is true or false.
+        private ReferenceRequestObserver _referenceRequestObserver = null;  //!< Handles reference requests triggers.       
         private IEnumerable<string> _cachedContext                 = null;  //!< Holds the last context used for reference lookup request.
         private DelayedEventHandler _referenceRequestDispatcher    = null;  //!< Debounces link reference requests and dispatches the reuqests to the backend.
         private LinkTargetsResponse _cachedReferenceLinks          = null;  //!< Holds a cache of reference links from a previous backend request.
@@ -69,15 +68,46 @@ namespace RTextNppPlugin.WpfControls
 
         #region [Interface]
 
+        #region ILinkTargetsWindow Members
+
+        public bool IsMouseInsidedWindow()
+        {
+            return (IsVisible && VisualUtilities.IsMouseInsideFrameworkElement(this));
+        }
+
+
+        public void IssueReferenceLinkRequestCommand(Tokenizer.TokenTag aTokenUnderCursor)
+        {
+            if (String.IsNullOrWhiteSpace(aTokenUnderCursor.Context) || !_referenceRequestObserver.IsKeyboardShortCutActive)
+            {
+                _referenceRequestDispatcher.Cancel();
+                Hide();
+            }
+            else
+            {
+                if (_referenceRequestDispatcher.IsRunning)
+                {
+                    _referenceRequestDispatcher.TriggerHandler(new ActionWrapper<Tokenizer.TokenTag>(TryHighlightItemUnderMouse, aTokenUnderCursor));
+                }
+                else
+                {
+                    TryHighlightItemUnderMouse(aTokenUnderCursor);
+                    _referenceRequestDispatcher.TriggerHandler(null);
+                }
+            }
+        }
+
+        #endregion
+
         internal LinkTargetsWindow(INpp nppHelper, IWin32 win32Helper, ISettings settingsHelper, ConnectorManager cmanager)
         {
             InitializeComponent();
-            _nppHelper                           = nppHelper;
-            _win32Helper                         = win32Helper;
-            _settings                            = settingsHelper;
-            _referenceRequestObserver            = new ReferenceRequestObserver(_nppHelper, _settings, _win32Helper, this);
-            _referenceRequestDispatcher          = new DelayedEventHandler(new ActionWrapper<Tokenizer.TokenTag>(TryHighlightItemUnderMouse, default(Tokenizer.TokenTag)), 500);
-            _cManager                            = cmanager;
+            _nppHelper                  = nppHelper;
+            _win32Helper                = win32Helper;
+            _settings                   = settingsHelper;
+            _referenceRequestObserver   = new ReferenceRequestObserver(_nppHelper, _settings, _win32Helper, this);
+            _referenceRequestDispatcher = new DelayedEventHandler(new ActionWrapper<Tokenizer.TokenTag>(TryHighlightItemUnderMouse, default(Tokenizer.TokenTag)), 500);
+            _cManager                   = cmanager;
         }
        
         internal void CancelPendingRequest()
@@ -104,19 +134,6 @@ namespace RTextNppPlugin.WpfControls
         }
         
         /**
-         * @brief   Refreshes the references link source. "new" cannot be used since the databinding will be lost.
-         *
-         * @param   targets The targets.
-         */
-        internal void refreshLinkSource(IEnumerable<Target> targets)
-        {
-            var aLinkTargetModels = targets.AsParallel().Select(target => new LinkTargetModel(target.display, target.desc, Int32.Parse(target.line), target.file));
-            var viewModel = (ReferenceLinkViewModel)LinkTargetDatagrid.DataContext;
-            viewModel.Targets.Clear();
-            viewModel.Targets.AddRange(aLinkTargetModels);
-        }
-
-        /**
          *
          * @brief   Sets the zoom level so that the reference link window also scales according to the user settings.
          *
@@ -124,7 +141,18 @@ namespace RTextNppPlugin.WpfControls
          */
         internal void OnZoomLevelChanged(double level)
         {
-            ((ReferenceLinkViewModel)LinkTargetDatagrid.DataContext).ZoomLevel = level;
+            if (IsVisible)
+            {
+                //in case the form is visible - move it to the new place...
+                var aCaretPoint = Npp.Instance.GetCaretScreenLocationForForm();
+                if (_referenceRequestObserver.UnderlinedToken.Context != null)
+                {
+                    aCaretPoint = Npp.Instance.GetCaretScreenLocationRelativeToPosition(_referenceRequestObserver.UnderlinedToken.BufferPosition);
+                }
+                Left = aCaretPoint.X;
+                Top = aCaretPoint.Y;
+            }
+            Dispatcher.BeginInvoke(new Action<int>(GetModel().OnZoomLevelChanged), level);
         }
 
         #endregion
@@ -206,7 +234,7 @@ namespace RTextNppPlugin.WpfControls
 
         private async Task SendLinkReferenceRequestAsync(Tokenizer.TokenTag aTokenUnderCursor)
         {
-            if (aTokenUnderCursor.CanTokenHaveReference())
+            if (aTokenUnderCursor.CanTokenHaveReference() && FileUtilities.IsRTextFile(_settings, _nppHelper))
             {
                 Task<Tuple<bool, ContextExtractor>> contextEqualityTask = new Task<Tuple<bool, ContextExtractor>>(new Func<Tuple<bool, ContextExtractor>>(() =>
                 {
@@ -215,7 +243,7 @@ namespace RTextNppPlugin.WpfControls
                     bool aAreContextEquals = false;
 
                     //get all tokens before the trigger token - if all previous tokens and all context lines match do not request new auto completion options
-                    if (!_referenceRequestObserver.UnderlinedToken.Equals(default(Tokenizer.TokenTag)) && _cachedContext != null && !_isWarningActive)
+                    if (!_referenceRequestObserver.UnderlinedToken.Equals(default(Tokenizer.TokenTag)) && _cachedContext != null)
                     {
                         if (_cachedContext.Count() == 1 && aExtractor.ContextList.Count() == 1)
                         {
@@ -245,15 +273,23 @@ namespace RTextNppPlugin.WpfControls
                     context       = _cachedContext,
                     invocation_id = -1
                 };            
+
+                if(aRequest.context.Count() == 0)
+                {
+                    //prevent backend from crashing due to a bug
+                    return;
+                }
+
+                //determine window position
+                var aCaretPoint = _nppHelper.GetCaretScreenLocationRelativeToPosition(aTokenUnderCursor.BufferPosition);
+                Left            = aCaretPoint.X;
+                Top             = aCaretPoint.Y;
+
                 if (!contextEqualityTask.Result.Item1)
                 {
-                    _cachedReferenceLinks = await RequestReferenceLinksAsync(aRequest);
+                    _cachedReferenceLinks = await RequestReferenceLinksAsync(aRequest);                    
                 }
-                //update view model with new references
-                if(_cachedReferenceLinks != null)
-                {
-                    UpdateViewModel();
-                }
+                UpdateViewModel();
             }
             else
             {
@@ -264,7 +300,15 @@ namespace RTextNppPlugin.WpfControls
 
         private void UpdateViewModel()
         {
-            Trace.WriteLine("Updating view model...");
+            if (!IsVisible)
+            {
+                //update view model with new references
+                if (_cachedReferenceLinks != null)
+                {
+                    GetModel().UpdateLinkTargets(_cachedReferenceLinks.targets); 
+                }
+                Show();
+            }
         }
 
         private ReferenceLinkViewModel GetModel()
@@ -281,14 +325,12 @@ namespace RTextNppPlugin.WpfControls
                 {
                     case ConnectorStates.Disconnected:
                         GetModel().CreateWarning(Properties.Resources.ERR_BACKEND_CONNECTING, Properties.Resources.ERR_BACKEND_CONNECTING_DESC);
-                        _isWarningActive = true;
                         await _connector.ExecuteAsync<AutoCompleteAndReferenceRequest>(request, Constants.SYNCHRONOUS_COMMANDS_TIMEOUT, Command.Execute);
                         break;
                     case ConnectorStates.Busy:
                     case ConnectorStates.Loading:
                     case ConnectorStates.Connecting:
-                        GetModel().CreateWarning(Properties.Resources.ERR_BACKEND_BUSY, Properties.Resources.ERR_BACKEND_BUSY_DESC);
-                        _isWarningActive = true;
+                        GetModel().CreateWarning(Properties.Resources.ERR_BACKEND_BUSY, Properties.Resources.ERR_BACKEND_BUSY_DESC);                        
                         break;
                     case ConnectorStates.Idle:
                         var aResponse = await _connector.ExecuteAsync<AutoCompleteAndReferenceRequest>(request, Constants.SYNCHRONOUS_COMMANDS_TIMEOUT, Command.Execute) as LinkTargetsResponse;
@@ -301,29 +343,22 @@ namespace RTextNppPlugin.WpfControls
                             else
                             {
                                 GetModel().CreateWarning(Properties.Resources.ERR_REF_LINK_NULL_RESPONSE, Properties.Resources.ERR_REF_LINK_NULL_RESPONSE_DESC);
-                                _isWarningActive = true;
                             }
                         }
                         else
                         {
-                            if (_isWarningActive)
-                            {
-                                GetModel().Clear();
-                                _isWarningActive = false;
-                                GetModel().RemoveWarning();
-                            }
+                            GetModel().Clear();
+                            GetModel().RemoveWarning();                            
                             return aResponse;
                         }
                         break;
                     default:
                         Logger.Instance.Append(Logger.MessageType.FatalError, _connector.Workspace, "Undefined connector state reached. Please notify support.");
-                        _isWarningActive = true;
                         break;
                 }
             }
             else
             {
-                _isWarningActive = true;
                 GetModel().CreateWarning(Properties.Resources.CONNECTOR_INSTANCE_NULL, Properties.Resources.CONNECTOR_INSTANCE_NULL_DESC);
             }
             return null;
@@ -335,27 +370,6 @@ namespace RTextNppPlugin.WpfControls
             {
                 await SendLinkReferenceRequestAsync(aTokenUnderCursor);
             }));          
-        }
-
-        public void IssueReferenceLinkRequestCommand(Tokenizer.TokenTag aTokenUnderCursor)
-        {
-            if (String.IsNullOrWhiteSpace(aTokenUnderCursor.Context) || !_referenceRequestObserver.IsKeyboardShortCutActive)
-            {
-                _referenceRequestDispatcher.Cancel();
-                Hide();
-            }
-            else
-            {
-                if (_referenceRequestDispatcher.IsRunning)
-                {
-                    _referenceRequestDispatcher.TriggerHandler(new ActionWrapper<Tokenizer.TokenTag>(TryHighlightItemUnderMouse, aTokenUnderCursor));
-                }
-                else
-                {
-                    TryHighlightItemUnderMouse(aTokenUnderCursor);
-                    _referenceRequestDispatcher.TriggerHandler(null);
-                }
-            }
         }
 
         /**
@@ -471,8 +485,9 @@ namespace RTextNppPlugin.WpfControls
             if (!aTokenUnderCursor.Equals(_referenceRequestObserver.UnderlinedToken))
             {
                 Hide();
-                IssueReferenceLinkRequestCommand(aTokenUnderCursor);                
+                IssueReferenceLinkRequestCommand(aTokenUnderCursor);
+                System.Diagnostics.Trace.WriteLine("IssueReferenceLinksCommand - OnLinkTargetsWindowMouseLeave");
             }
-        }
+        }        
     }
 }

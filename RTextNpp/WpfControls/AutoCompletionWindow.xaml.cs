@@ -71,15 +71,15 @@ namespace RTextNppPlugin.WpfControls
         {
             InitializeComponent();
             _autoCompletionMouseMonitor = new GlobalClickInterceptor(win32Helper);
-            DataContext = new ViewModels.AutoCompletionViewModel(cmanager);
+            DataContext                 = new ViewModels.AutoCompletionViewModel(cmanager);
+            _keyMonitor.KeyDown         += OnKeyMonitorKeyDown;
+            _delayedFilterEventHandler  = new DelayedEventHandler(new ActionWrapper(PostProcessKeyPressed), 150);
+            _delayedToolTipHandler      = new DelayedEventHandler(new ActionWrapper<System.Windows.Controls.ToolTip>(OnToolTipDelayedHandlerExpired, null), 1000, System.Windows.Threading.DispatcherPriority.ApplicationIdle);
+            IsOnTop                     = false;
             _keyMonitor.KeysToIntercept.Add((int)System.Windows.Forms.Keys.Down);
             _keyMonitor.KeysToIntercept.Add((int)System.Windows.Forms.Keys.Up);
             _keyMonitor.KeysToIntercept.Add((int)System.Windows.Forms.Keys.PageUp);
             _keyMonitor.KeysToIntercept.Add((int)System.Windows.Forms.Keys.PageDown);
-            _keyMonitor.KeyDown += OnKeyMonitorKeyDown;
-            _delayedFilterEventHandler = new DelayedEventHandler(new ActionWrapper(PostProcessKeyPressed), 150);
-            _delayedToolTipHandler     = new DelayedEventHandler(new ActionWrapper<System.Windows.Controls.ToolTip>(OnToolTipDelayedHandlerExpired, null), 1000, System.Windows.Threading.DispatcherPriority.ApplicationIdle);
-            IsOnTop = false;
         }
 
         void OnAutoCompletionMouseMonitorMouseWheelMoved(object sender, MouseEventExtArgs e)

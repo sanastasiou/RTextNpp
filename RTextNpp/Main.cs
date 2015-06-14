@@ -69,7 +69,6 @@ namespace RTextNppPlugin
 
             _currentZoomLevel = Npp.Instance.GetZoomLevel();
             _autoCompletionForm.OnZoomLevelChanged(_currentZoomLevel);
-            Logging.Logger.Instance.Append("Configuration directory : {0}", Npp.Instance.GetConfigDir());
             #if DEBUG
             Debugger.Launch();
             #endif
@@ -298,9 +297,8 @@ namespace RTextNppPlugin
                             if (aTokenizer.TriggerToken.HasValue && 
                                 aTokenizer.TriggerToken.Value.Type  != RTextTokenTypes.Comma &&
                                 aTokenizer.TriggerToken.Value.Type  != RTextTokenTypes.Space &&
-                                (aTokenizer.TriggerToken.Value.Type != RTextTokenTypes.Label ||
-                                (aTokenizer.TriggerToken.Value.Type == RTextTokenTypes.Label && 
-                                 aCurrentPosition < (aTokenizer.TriggerToken.Value.BufferPosition + aTokenizer.TriggerToken.Value.Context.Length))))
+                                (aTokenizer.TriggerToken.Value.Type != RTextTokenTypes.Label ||                                 
+                                 aCurrentPosition < (aTokenizer.TriggerToken.Value.BufferPosition + aTokenizer.TriggerToken.Value.Context.Length)))
                             {
                                 aCaretPoint = Npp.Instance.GetCaretScreenLocationRelativeToPosition(aTokenizer.TriggerToken.Value.BufferPosition);
                             }

@@ -5,5 +5,7 @@ namespace RTextNppPlugin.WpfControls
     interface ILinkTargetsWindow
     {
         void IssueReferenceLinkRequestCommand(Tokenizer.TokenTag aTokenUnderCursor);
+
+        bool IsMouseInsidedWindow();
     }
 }

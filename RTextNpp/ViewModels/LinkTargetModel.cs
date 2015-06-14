@@ -1,18 +1,18 @@
 ﻿using System;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
+using System.Collections.Generic;
 using System.IO;
-using System.Text;
+using System.Linq;
 using Microsoft.VisualStudio.Language.Intellisense;
+using RTextNppPlugin.RText.Protocol;
 using RTextNppPlugin.WpfControls;
 
 namespace RTextNppPlugin.ViewModels
 {
-    class LinkTargetModel
+    internal class LinkTargetModel
     {
         public string Display { get; private set; }
         public string Description { get; private set; }
-        public  int Line { get; private set; }
+        public int Line { get; private set; }
         public string File { get; private set; }
         public string FilePath { get; private set; }
         public LinkTargetModel(string display, string description, int line, string file)
@@ -25,12 +25,12 @@ namespace RTextNppPlugin.ViewModels
         }
     }
 
-    class ReferenceLinkViewModel : BindableObject
+    internal class ReferenceLinkViewModel : BindableObject
     {
         private BulkObservableCollection<LinkTargetModel> _targets = new BulkObservableCollection<LinkTargetModel>();
         private string _errorMsg                                   = String.Empty;
         private string _errorTooltip                               = String.Empty;
-        private double _zoomLevel                                  = 100.0;
+        private double _zoomLevel                                  = 1.0;
 
         public BulkObservableCollection<LinkTargetModel> Targets
         {
@@ -38,10 +38,21 @@ namespace RTextNppPlugin.ViewModels
             {
                 return _targets;
             }
-            set
-            {
-                _targets = value;
-            }
+        }
+
+        internal void UpdateLinkTargets(IEnumerable<Target> targets)
+        {
+            _targets.Clear();
+            var aLinkTargetModels = targets.AsParallel().Select(target => new LinkTargetModel(target.display, target.desc, Int32.Parse(target.line), target.file));
+            _targets.AddRange(aLinkTargetModels);
+        }
+
+        internal void OnZoomLevelChanged(int newZoomLevel)
+        {
+            //calculate actual zoom level , based on Scintilla zoom factors...
+
+            //try 8% increments / decrements
+            ZoomLevel = (1 + (Constants.ZOOM_FACTOR * newZoomLevel));
         }
 
         public double ZoomLevel

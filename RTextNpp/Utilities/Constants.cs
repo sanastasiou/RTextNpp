@@ -45,6 +45,7 @@ namespace RTextNppPlugin
         public const double MAX_AUXILIARY_WINDOWS_WIDTH  = 600.0;               //!< Max width of auto completion and link reference windows.
         public const double MAX_AUTO_COMPLETION_TOOLTIP_WIDTH = 300.0;          //!< Max width of auto completion tooltip.
         public const string REFERENCE_LINK_NAME = "REFERENCE_LINK";             //!< Reference link name for lexer style.
+        public const double ZOOM_FACTOR = 0.08;                                 //!< Relation between actual zoom and scintilla zoom factor for various plugin windows.
 
         #region NppMenuCommand
         public enum NppMenuCommands : int
