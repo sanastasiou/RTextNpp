@@ -8,9 +8,11 @@ using System.Windows.Forms;
 using System.Windows.Input;
 using System.Windows.Media;
 using RTextNppPlugin.DllExport;
+using RTextNppPlugin.Logging;
 using RTextNppPlugin.RText;
 using RTextNppPlugin.RText.Parsing;
 using RTextNppPlugin.RText.Protocol;
+using RTextNppPlugin.RText.StateEngine;
 using RTextNppPlugin.Utilities;
 using RTextNppPlugin.Utilities.Settings;
 using RTextNppPlugin.ViewModels;
@@ -60,11 +62,14 @@ namespace RTextNppPlugin.WpfControls
         private bool _isWarningActive                              = false; //!< Indicates that some kind of warning is true or false.
         private IEnumerable<string> _cachedContext                 = null;  //!< Holds the last context used for reference lookup request.
         private DelayedEventHandler _referenceRequestDispatcher    = null;  //!< Debounces link reference requests and dispatches the reuqests to the backend.
+        private LinkTargetsResponse _cachedReferenceLinks          = null;  //!< Holds a cache of reference links from a previous backend request.
+        private ConnectorManager _cManager                         = null;  //!< Instance of ConnectorManager instance.
+        private Connector _connector                               = null;  //!< Connector which is relevant to the actual focused file.
         #endregion
 
         #region [Interface]
 
-        internal LinkTargetsWindow(INpp nppHelper, IWin32 win32Helper, ISettings settingsHelper)
+        internal LinkTargetsWindow(INpp nppHelper, IWin32 win32Helper, ISettings settingsHelper, ConnectorManager cmanager)
         {
             InitializeComponent();
             _nppHelper                           = nppHelper;
@@ -72,6 +77,7 @@ namespace RTextNppPlugin.WpfControls
             _settings                            = settingsHelper;
             _referenceRequestObserver            = new ReferenceRequestObserver(_nppHelper, _settings, _win32Helper, this);
             _referenceRequestDispatcher          = new DelayedEventHandler(new ActionWrapper<Tokenizer.TokenTag>(TryHighlightItemUnderMouse, default(Tokenizer.TokenTag)), 500);
+            _cManager                            = cmanager;
         }
        
         internal void CancelPendingRequest()
@@ -111,22 +117,12 @@ namespace RTextNppPlugin.WpfControls
         }
 
         /**
-         * @brief   Sets popup text. This text appears when the backend is busy, not started etc., instead of the actual datagrid.
          *
-         * @param   text    The text.
-         */
-        internal void setPopupText(string text)
-        {
-            ((ReferenceLinkViewModel)LinkTargetDatagrid.DataContext).BackendBusyString = text;
-        }
-
-        /**
-         *
-         * @brief   Sets the zoom level of the current IWpfTextView so that the reference link window also scales according to the user settings.
+         * @brief   Sets the zoom level so that the reference link window also scales according to the user settings.
          *
          * @param   level   The zoom level.
          */
-        internal void SetZoomLevel(double level)
+        internal void OnZoomLevelChanged(double level)
         {
             ((ReferenceLinkViewModel)LinkTargetDatagrid.DataContext).ZoomLevel = level;
         }
@@ -212,7 +208,7 @@ namespace RTextNppPlugin.WpfControls
         {
             if (aTokenUnderCursor.CanTokenHaveReference())
             {
-                Task<Tuple<bool, IEnumerable<string>>> contextEqualityTask = new Task<Tuple<bool, IEnumerable<string>>>(new Func<Tuple<bool, IEnumerable<string>>>(() =>
+                Task<Tuple<bool, ContextExtractor>> contextEqualityTask = new Task<Tuple<bool, ContextExtractor>>(new Func<Tuple<bool, ContextExtractor>>(() =>
                 {
                     string aContextBlock = _nppHelper.GetTextBetween(0, Npp.Instance.GetLineEnd(aTokenUnderCursor.Line));
                     ContextExtractor aExtractor = new ContextExtractor(aContextBlock, Npp.Instance.GetLengthToEndOfLine(_nppHelper.GetColumn()));
@@ -232,22 +228,31 @@ namespace RTextNppPlugin.WpfControls
                                                  aTokenUnderCursor.Equals(_referenceRequestObserver.UnderlinedToken));
                         }
                     }
-                    return new Tuple<bool, IEnumerable<string>>(aAreContextEquals, aExtractor.ContextList);
+                    return new Tuple<bool, ContextExtractor>(aAreContextEquals, aExtractor);
                 }));
 
                 contextEqualityTask.Start();
                 await contextEqualityTask;
 
                 //store cache
-                _cachedContext                            = contextEqualityTask.Result.Item2;
+                _cachedContext                            = contextEqualityTask.Result.Item2.ContextList;
                 _referenceRequestObserver.UnderlinedToken = aTokenUnderCursor;
+
+                AutoCompleteAndReferenceRequest aRequest = new AutoCompleteAndReferenceRequest
+                {
+                    column        = contextEqualityTask.Result.Item2.ContextColumn,
+                    command       = Constants.Commands.LINK_TARGETS,
+                    context       = _cachedContext,
+                    invocation_id = -1
+                };            
                 if (!contextEqualityTask.Result.Item1)
                 {
-                    Trace.WriteLine("Trying to find references...");
+                    _cachedReferenceLinks = await RequestReferenceLinksAsync(aRequest);
                 }
-                else
+                //update view model with new references
+                if(_cachedReferenceLinks != null)
                 {
-                    //use cached response
+                    UpdateViewModel();
                 }
             }
             else
@@ -255,6 +260,73 @@ namespace RTextNppPlugin.WpfControls
                 _referenceRequestDispatcher.Cancel();
                 Hide();
             }
+        }
+
+        private void UpdateViewModel()
+        {
+            Trace.WriteLine("Updating view model...");
+        }
+
+        private ReferenceLinkViewModel GetModel()
+        {
+            return ((ReferenceLinkViewModel)DataContext);
+        }
+
+        private async Task<LinkTargetsResponse> RequestReferenceLinksAsync(AutoCompleteAndReferenceRequest request)
+        {
+            _connector = _cManager.Connector;
+            if (_connector != null)
+            {
+                switch (_connector.CurrentState.State)
+                {
+                    case ConnectorStates.Disconnected:
+                        GetModel().CreateWarning(Properties.Resources.ERR_BACKEND_CONNECTING, Properties.Resources.ERR_BACKEND_CONNECTING_DESC);
+                        _isWarningActive = true;
+                        await _connector.ExecuteAsync<AutoCompleteAndReferenceRequest>(request, Constants.SYNCHRONOUS_COMMANDS_TIMEOUT, Command.Execute);
+                        break;
+                    case ConnectorStates.Busy:
+                    case ConnectorStates.Loading:
+                    case ConnectorStates.Connecting:
+                        GetModel().CreateWarning(Properties.Resources.ERR_BACKEND_BUSY, Properties.Resources.ERR_BACKEND_BUSY_DESC);
+                        _isWarningActive = true;
+                        break;
+                    case ConnectorStates.Idle:
+                        var aResponse = await _connector.ExecuteAsync<AutoCompleteAndReferenceRequest>(request, Constants.SYNCHRONOUS_COMMANDS_TIMEOUT, Command.Execute) as LinkTargetsResponse;
+                        if (aResponse == null)
+                        {
+                            if (_connector.IsCommandCancelled)
+                            {
+                                return null;
+                            }
+                            else
+                            {
+                                GetModel().CreateWarning(Properties.Resources.ERR_REF_LINK_NULL_RESPONSE, Properties.Resources.ERR_REF_LINK_NULL_RESPONSE_DESC);
+                                _isWarningActive = true;
+                            }
+                        }
+                        else
+                        {
+                            if (_isWarningActive)
+                            {
+                                GetModel().Clear();
+                                _isWarningActive = false;
+                                GetModel().RemoveWarning();
+                            }
+                            return aResponse;
+                        }
+                        break;
+                    default:
+                        Logger.Instance.Append(Logger.MessageType.FatalError, _connector.Workspace, "Undefined connector state reached. Please notify support.");
+                        _isWarningActive = true;
+                        break;
+                }
+            }
+            else
+            {
+                _isWarningActive = true;
+                GetModel().CreateWarning(Properties.Resources.CONNECTOR_INSTANCE_NULL, Properties.Resources.CONNECTOR_INSTANCE_NULL_DESC);
+            }
+            return null;
         }
 
         private void TryHighlightItemUnderMouse(Tokenizer.TokenTag aTokenUnderCursor)

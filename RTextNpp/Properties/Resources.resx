@@ -219,4 +219,12 @@
   <data name="RTextNpp_dll" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\RTextNpp.dll.config;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
+  <data name="ERR_REF_LINK_NULL_RESPONSE" xml:space="preserve">
+    <value>RText backend service reference link request failed.</value>
+    <comment>Backend did not correctly responded to a reference link request.</comment>
+  </data>
+  <data name="ERR_REF_LINK_NULL_RESPONSE_DESC" xml:space="preserve">
+    <value>If the problem persists please contact support.</value>
+    <comment>Hint to contact support and inform about the error.</comment>
+  </data>
 </root>

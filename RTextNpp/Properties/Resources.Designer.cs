@@ -219,6 +219,24 @@ namespace RTextNppPlugin.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to RText backend service reference link request failed..
+        /// </summary>
+        internal static string ERR_REF_LINK_NULL_RESPONSE {
+            get {
+                return ResourceManager.GetString("ERR_REF_LINK_NULL_RESPONSE", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to If the problem persists please contact support..
+        /// </summary>
+        internal static string ERR_REF_LINK_NULL_RESPONSE_DESC {
+            get {
+                return ResourceManager.GetString("ERR_REF_LINK_NULL_RESPONSE_DESC", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
         internal static System.Drawing.Bitmap extension_method {

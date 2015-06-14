@@ -20,12 +20,11 @@
         Topmost="False"
         MouseLeave="OnLinkTargetsWindowMouseLeave"
         SizeToContent="WidthAndHeight">
-
+    <Window.DataContext>
+        <viewmodels:ReferenceLinkViewModel/>
+    </Window.DataContext>
     <Border BorderBrush="Black" Name="LinkBorder">
         <DockPanel LastChildFill="True" Name="LinkDockPanel">
-            <DockPanel.DataContext>
-                <viewmodels:ReferenceLinkViewModel/>
-            </DockPanel.DataContext>
             <DockPanel.Resources>
                 <converters:GreaterThanValueConverter x:Key="GreaterThanConverter"/>
                 <BitmapImage x:Key="MySource" UriSource="/RTextNpp;Component/Resources/warning.png"/>
@@ -55,7 +54,7 @@
             </DockPanel.LayoutTransform>
             <StackPanel Orientation="Horizontal" DockPanel.Dock="Bottom" Style="{StaticResource ResourceKey=StackPanelStyle}">
                 <Image Source="{StaticResource ResourceKey=MySource}" Height="16" Width="16"/>
-                <Label Content="{Binding BackendBusyString}"/>
+                <Label Content="{Binding ErrorMsg}" ToolTipService.ToolTip="{Binding ErrorTooltip}"/>
             </StackPanel>
             <DataGrid DockPanel.Dock="Bottom"
                       ItemsSource="{Binding Targets}"

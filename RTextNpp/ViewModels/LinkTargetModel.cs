@@ -1,4 +1,5 @@
-﻿using System.Collections.ObjectModel;
+﻿using System;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
 using System.Text;
@@ -27,7 +28,8 @@ namespace RTextNppPlugin.ViewModels
     class ReferenceLinkViewModel : BindableObject
     {
         private BulkObservableCollection<LinkTargetModel> _targets = new BulkObservableCollection<LinkTargetModel>();
-        private StringBuilder _busyString                          = new StringBuilder();
+        private string _errorMsg                                   = String.Empty;
+        private string _errorTooltip                               = String.Empty;
         private double _zoomLevel                                  = 100.0;
 
         public BulkObservableCollection<LinkTargetModel> Targets
@@ -58,21 +60,57 @@ namespace RTextNppPlugin.ViewModels
             }
         }
 
-        public string BackendBusyString
+        internal void CreateWarning(string error, string tooltip)
+        {
+            if (!String.IsNullOrEmpty(error))
+            {
+                _targets.Clear();
+                ErrorMsg     = error;
+                ErrorTooltip = tooltip;
+            }
+        }
+
+        public string ErrorTooltip
         {
             get
             {
-                return _busyString.ToString();
+                return _errorTooltip;
+            }
+            set
+            {                
+                if (!value.Equals(_errorTooltip))
+                {
+                    _errorTooltip = value;
+                    base.RaisePropertyChanged("ErrorTooltip");
+                }
+            }
+        }
+
+        public string ErrorMsg
+        {
+            get
+            {
+                return _errorMsg.ToString();
             }
             set
             {
-                if (!value.Equals(_busyString.ToString()))
+                if (!value.Equals(_errorMsg))
                 {
-                    _busyString.Clear();
-                    _busyString.Append(value);
-                    base.RaisePropertyChanged("BackendBusyString");
+                    _errorMsg = value;
+                    base.RaisePropertyChanged("ErrorMsg");
                 }
             }
+        }
+
+        internal void Clear()
+        {
+            _targets.Clear();
+        }
+
+        internal void RemoveWarning()
+        {
+            ErrorMsg     = String.Empty;
+            ErrorTooltip = String.Empty;
         }
     }
 }
