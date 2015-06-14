@@ -20,14 +20,15 @@ namespace RTextNppPlugin
     partial class Plugin
     {
         #region [Fields]
+        private static INpp _nppHelper                                                  = Npp.Instance;
         private static IWin32 _win32                                                    = new Win32();
-        private static ISettings _settings                                              = new Settings(Npp.Instance);
-        private static ConnectorManager _connectorManager                               = new ConnectorManager(_settings, Npp.Instance);
-        private static PersistentWpfControlHost<ConsoleOutputForm> _consoleOutput       = new PersistentWpfControlHost<ConsoleOutputForm>(Settings.RTextNppSettings.ConsoleWindowActive, new ConsoleOutputForm(_connectorManager), _settings, Npp.Instance);        
+        private static ISettings _settings                                              = new Settings(_nppHelper);
+        private static ConnectorManager _connectorManager                               = new ConnectorManager(_settings, _nppHelper);
+        private static PersistentWpfControlHost<ConsoleOutputForm> _consoleOutput       = new PersistentWpfControlHost<ConsoleOutputForm>(Settings.RTextNppSettings.ConsoleWindowActive, new ConsoleOutputForm(_connectorManager), _settings, _nppHelper);        
         private static Options _options                                                 = new Options(_settings);
-        private static FileModificationObserver _fileObserver                           = new FileModificationObserver(_settings, Npp.Instance);
+        private static FileModificationObserver _fileObserver                           = new FileModificationObserver(_settings, _nppHelper);
         private static Dictionary<ShortcutKey, Tuple<string, Action>> internalShortcuts = new Dictionary<ShortcutKey, Tuple<string, Action>>();
-        private static AutoCompletionWindow _autoCompletionForm                         = new AutoCompletionWindow(_connectorManager, _win32);
+        private static AutoCompletionWindow _autoCompletionForm                         = new AutoCompletionWindow(_connectorManager, _win32, _nppHelper);
         private static Bitmap tbBmp                                                     = Properties.Resources.ConsoleIcon;
         private static Bitmap tbBmp_tbTab                                               = Properties.Resources.ConsoleIcon;
         private static Icon tbIcon                                                      = null;
@@ -40,7 +41,7 @@ namespace RTextNppPlugin
         private static bool _hasMainScintillaFocus                                      = false; //!< Indicates if the main editor has focus.
         private static bool _hasSecondScintillaFocus                                    = false; //!< Indicates if the second editor has focus.
         private static bool _isMenuLoopInactive                                         = false; //!< Indicates that npp menu loop is active.        
-        private static LinkTargetsWindow _linkTargetsWindow                             = new LinkTargetsWindow(Npp.Instance, _win32, _settings, _connectorManager); //!< Display reference links.
+        private static LinkTargetsWindow _linkTargetsWindow                             = new LinkTargetsWindow(_nppHelper, _win32, _settings, _connectorManager); //!< Display reference links.
         #endregion
 
         #region [Startup/CleanUp]

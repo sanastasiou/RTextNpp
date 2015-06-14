@@ -1,27 +1,28 @@
-﻿<Window x:Class="RTextNppPlugin.WpfControls.LinkTargetsWindow"
-        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-        xmlns:viewmodels="clr-namespace:RTextNppPlugin.ViewModels"
-        xmlns:plugin_ns="clr-namespace:RTextNppPlugin"
-        xmlns:sys="clr-namespace:System;assembly=mscorlib"
-        xmlns:converters="clr-namespace:RTextNppPlugin.WpfControls.Converters"
-        xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
-        xmlns:behaviors="clr-namespace:RTextNppPlugin.WpfControls.Behaviors"
-        x:ClassModifier="internal"
-        mc:Ignorable="d"
-        WindowStyle="None"
-        ResizeMode="NoResize"
-        Background="white"
-        ShowInTaskbar="False"
-        AllowsTransparency="True"
-        IsVisibleChanged="OnReferenceLinksVisibleChanged"
-        IsHitTestVisible="True"
-        ShowActivated="False"
-        Topmost="False"
-        MouseLeave="OnLinkTargetsWindowMouseLeave"
-        SizeToContent="WidthAndHeight">
+﻿<Window x:Class            ="RTextNppPlugin.WpfControls.LinkTargetsWindow"
+        xmlns              ="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x            ="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:mc           ="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+        xmlns:d            ="http://schemas.microsoft.com/expression/blend/2008" 
+        xmlns:viewmodels   ="clr-namespace:RTextNppPlugin.ViewModels"
+        xmlns:plugin_ns    ="clr-namespace:RTextNppPlugin"
+        xmlns:sys          ="clr-namespace:System;assembly=mscorlib"
+        xmlns:converters   ="clr-namespace:RTextNppPlugin.WpfControls.Converters"
+        xmlns:i            ="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
+        xmlns:behaviors    ="clr-namespace:RTextNppPlugin.WpfControls.Behaviors"
+        x:ClassModifier    ="internal"
+        mc:Ignorable       ="d"
+        WindowStyle        ="None"
+        ResizeMode         ="NoResize"
+        Background         ="white"
+        ShowInTaskbar      ="False"
+        AllowsTransparency ="True"
+        IsVisibleChanged   ="OnReferenceLinksVisibleChanged"
+        IsHitTestVisible   ="True"
+        LocationChanged    ="OnWindowLocationChanged"
+        ShowActivated      ="False"
+        Topmost            ="False"
+        MouseLeave         ="OnLinkTargetsWindowMouseLeave"
+        SizeToContent      ="WidthAndHeight">
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -33,8 +34,13 @@
     <Window.DataContext>
         <viewmodels:ReferenceLinkViewModel/>
     </Window.DataContext>
-    <Border BorderBrush="Black" Name="LinkBorder">
-        <DockPanel LastChildFill="True" Name="LinkDockPanel">
+    <Border BorderBrush ="Black"
+            Name        ="LinkBorder"
+            Padding     ="0"            
+            SizeChanged ="OnContainerSizeChanged"
+            Focusable   ="False"
+            Margin      ="0">
+        <DockPanel LastChildFill="True" Name="LinkDockPanel" Focusable="False">
             <DockPanel.LayoutTransform>
                 <ScaleTransform CenterX="0" 
                                 CenterY="0"
@@ -61,26 +67,27 @@
                     </Style.Triggers>
                 </Style>
             </DockPanel.Resources>
-            <StackPanel Orientation="Horizontal" DockPanel.Dock="Bottom" Style="{StaticResource ResourceKey=StackPanelStyle}" Margin="0">
-                <Image Source="{StaticResource ResourceKey=MySource}" Height="16" Width="16" Margin="0"/>
-                <Label Content="{Binding ErrorMsg}" ToolTipService.ToolTip="{Binding ErrorTooltip}" Padding="0" Margin="0" ToolTipService.Placement="Right"/>
+            <StackPanel Orientation="Horizontal" DockPanel.Dock="Bottom" Style="{StaticResource ResourceKey=StackPanelStyle}" Margin="0" Focusable="False">
+                <Image Source="{StaticResource ResourceKey=MySource}" Height="16" Width="16" Margin="0" Focusable="False"/>
+                <Label Content="{Binding ErrorMsg}" ToolTipService.ToolTip="{Binding ErrorTooltip}" Padding="0" Margin="0" ToolTipService.Placement="Right" Focusable="False"/>
             </StackPanel>
-            <DataGrid DockPanel.Dock="Bottom"
-                      ItemsSource="{Binding Targets}"
-                      Style="{StaticResource ResourceKey=ReferenceDatagridStyle}"
-                      Name="LinkTargetDatagrid"
-                      ScrollViewer.CanContentScroll="True" 
-                      ScrollViewer.HorizontalScrollBarVisibility="Auto" 
-                      ScrollViewer.VerticalScrollBarVisibility="Auto"
-                      AlternationCount="2"
-                      SelectionMode="Single"
-                      AllowDrop="False"
-                      SelectionUnit="FullRow"
-                      MaxWidth="{x:Static plugin_ns:Constants.MAX_AUXILIARY_WINDOWS_WIDTH}"
-                      MaxHeight="{x:Static plugin_ns:Constants.MAX_AUXILIARY_WINDOWS_HEIGHT}" 
-                      AutoGenerateColumns="false"
-                      VirtualizingStackPanel.IsVirtualizing="True"
-                      IsReadOnly="True">
+            <DataGrid DockPanel.Dock                             ="Bottom"
+                      ItemsSource                                ="{Binding Targets}"
+                      Style                                      ="{StaticResource ResourceKey=ReferenceDatagridStyle}"
+                      Name                                       ="LinkTargetDatagrid"
+                      ScrollViewer.CanContentScroll              ="True" 
+                      ScrollViewer.HorizontalScrollBarVisibility ="Auto" 
+                      ScrollViewer.VerticalScrollBarVisibility   ="Auto"
+                      AlternationCount                           ="2"
+                      Focusable                                  ="False"
+                      SelectionMode                              ="Single"
+                      AllowDrop                                  ="False"
+                      SelectionUnit                              ="FullRow"
+                      MaxWidth                                   ="{x:Static plugin_ns:Constants.MAX_AUXILIARY_WINDOWS_WIDTH}"
+                      MaxHeight                                  ="{x:Static plugin_ns:Constants.MAX_AUXILIARY_WINDOWS_HEIGHT}" 
+                      AutoGenerateColumns                        ="false"
+                      VirtualizingStackPanel.IsVirtualizing      ="True"
+                      IsReadOnly                                 ="True">
                 <i:Interaction.Behaviors>
                     <behaviors:UpdateWidthOnColumnResizedBehavior/>
                 </i:Interaction.Behaviors>
@@ -95,7 +102,7 @@
                                 </DataTrigger>
                         </Style.Triggers>
                     </Style>
-                    <StackPanel x:Key="linkToolTip" Orientation="Vertical">
+                    <StackPanel x:Key="linkToolTip" Orientation="Vertical" Focusable="False">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock FontWeight="Bold" Text="Type: " Width="70"/>
                             <TextBlock Text="{Binding Display}"/>
@@ -120,14 +127,15 @@
                         <EventSetter Event="DataGridRow.MouseEnter" Handler="OnRowMouseEnter"/>
                         <EventSetter Event="DataGridRow.MouseLeave" Handler="OnRowMouseLeave"/>
                         <Setter Property="Foreground" Value="Blue"/>
+                        <Setter Property="Focusable" Value="False"/>
                         <Style.Triggers>
                             <Trigger Property="AlternationIndex" Value="1">
                                 <Setter Property="Background" Value="Gainsboro"/>
                             </Trigger>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter Property="Background" Value="Khaki"/>
-                                <Setter Property="FontWeight" Value="Bold"/>
-                                <Setter Property="Foreground" Value="Red"/>
+                                <Setter Property ="Background" Value="Khaki"/>
+                                <Setter Property ="FontWeight" Value="Bold"/>
+                                <Setter Property ="Foreground" Value="Red"/>
                             </Trigger>
                         </Style.Triggers>
                     </Style>
@@ -137,6 +145,7 @@
                         <DataGridTextColumn.ElementStyle>
                             <Style>
                                 <Setter Property="ToolTipService.ToolTip" Value="{StaticResource ResourceKey=linkToolTip}"/>
+                                <Setter Property="ToolTipService.Placement" Value="Right"/>
                             </Style>
                         </DataGridTextColumn.ElementStyle>
                     </DataGridTextColumn>
@@ -144,6 +153,7 @@
                         <DataGridTextColumn.ElementStyle>
                             <Style>
                                 <Setter Property="ToolTipService.ToolTip" Value="{Binding FilePath}"/>
+                                <Setter Property="ToolTipService.Placement" Value="Right"/>
                             </Style>
                         </DataGridTextColumn.ElementStyle>
                     </DataGridTextColumn>

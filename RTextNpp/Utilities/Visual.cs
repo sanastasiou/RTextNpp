@@ -12,18 +12,6 @@ namespace RTextNppPlugin.Utilities
         bool OnMessageReceived(uint msg, UIntPtr wParam, IntPtr lParam);
     }
 
-    public interface IWindowPosition
-    {
-        bool IsOnTop { get; set; }
-        double CurrentHeight { get; }
-
-        double Width { get; }
-
-        double Left { get; set; }
-
-        double Top { get; set; }
-    }
-
     public class VisualUtilities
     {
         public enum WM_ACTIVATE_WPARAM : int
@@ -338,18 +326,18 @@ namespace RTextNppPlugin.Utilities
             WM_REFLECT                     = WM_USER + 0x1C00,
         }
 
-        public static void SetOwnerFromNppPlugin(System.Windows.Window window)
+        internal static void SetOwnerFromNppPlugin(System.Windows.Window window)
         {
             WindowInteropHelper helper = new WindowInteropHelper(window);            
             helper.Owner = Plugin.nppData._nppHandle;
         }
 
-        public static HwndSource HwndSourceFromIntPtr(IntPtr handle)
+        internal static HwndSource HwndSourceFromIntPtr(IntPtr handle)
         {
             return HwndSource.FromHwnd(handle);
         }
 
-        public static IntPtr HwndFromWpfWindow(System.Windows.Window window)
+        internal static IntPtr HwndFromWpfWindow(System.Windows.Window window)
         {
             var wih = new WindowInteropHelper(window);
             return wih.Handle;
@@ -365,7 +353,7 @@ namespace RTextNppPlugin.Utilities
          *
          * \return  The found visual parent&lt; t&gt;
          */
-        public static T FindVisualParent<T>(DependencyObject child ) where T : DependencyObject
+        internal static T FindVisualParent<T>(DependencyObject child) where T : DependencyObject
         {
             DependencyObject parentObject = VisualTreeHelper.GetParent(child);
             if (parentObject == null) return null;
@@ -376,7 +364,7 @@ namespace RTextNppPlugin.Utilities
                 return FindVisualParent<T>(parentObject);
         }
 
-        public static T GetVisualChild<T>(Visual parent) where T : Visual
+        internal static T GetVisualChild<T>(Visual parent) where T : Visual
         {
             T child = default(T);
             int numVisuals = VisualTreeHelper.GetChildrenCount(parent);
@@ -403,7 +391,7 @@ namespace RTextNppPlugin.Utilities
          *
          * \return  true if mouse is inside framework element, false if not.
          */
-        public static bool IsMouseInsideFrameworkElement(System.Windows.FrameworkElement element)
+        internal static bool IsMouseInsideFrameworkElement(System.Windows.FrameworkElement element)
         {
             double dWidth = -1;
             double dHeight = -1;
@@ -436,7 +424,7 @@ namespace RTextNppPlugin.Utilities
          *
          * \return  An int indicating the new container position after the scroll has been done.
          */
-        public static int ScrollList(System.Windows.Forms.Keys key, ICollectionView view, ItemsControl container, int offset = 1)
+        internal static int ScrollList(System.Windows.Forms.Keys key, ICollectionView view, ItemsControl container, int offset = 1)
         {
             int aNewPosition = 0;
             switch (key)
@@ -470,6 +458,34 @@ namespace RTextNppPlugin.Utilities
                     break;
             }
             return aNewPosition;
+        }
+
+        internal static void RepositionWindow(SizeChangedEventArgs e, Window w, ref bool isOnTop, INpp nppHelper)
+        {
+            if (isOnTop && w.IsVisible)
+            {
+                var aHeightDiff = e.PreviousSize.Height - e.NewSize.Height;
+                w.Top += aHeightDiff;
+            }
+            else if (!isOnTop && w.IsVisible)
+            {
+                if (!((e.NewSize.Height + w.Top) <= nppHelper.GetClientRectFromControl(nppHelper.NppHandle).Bottom))
+                {
+                    //bottom exceeded - put list on top of word
+                    w.Top = Npp.Instance.GetCaretScreenLocationForFormAboveWord().Y;
+                    //problem here - we need to take into account the initial length of the list, otherwise our initial point is wrong if the list is not full
+                    w.Top -= (int)(e.NewSize.Height);
+                    isOnTop = true;
+                }
+            }
+            //position list in such a way that it doesn't get split into two monitors
+            var rectFromPoint = nppHelper.GetClientRectFromPoint(new System.Drawing.Point((int)w.Left, (int)w.Top));
+            //if the width of the auto completion window overlaps the right edge of the screen, then move the window at the left until no overlap is present
+            if (rectFromPoint.Right < w.Left + e.NewSize.Width)
+            {
+                double dif = (w.Left + e.NewSize.Width) - rectFromPoint.Right;
+                w.Left -= (int)dif;
+            }            
         }
     }
 }

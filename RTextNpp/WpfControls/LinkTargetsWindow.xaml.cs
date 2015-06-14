@@ -67,6 +67,7 @@ namespace RTextNppPlugin.WpfControls
         private ConnectorManager _cManager                         = null;                 //!< Instance of ConnectorManager instance.
         private Connector _connector                               = null;                 //!< Connector which is relevant to the actual focused file.
         private KeyInterceptor _keyMonitor                         = new KeyInterceptor(); //!< Monitors key presses.
+        private bool _isOnTop                                      = false;                //!< Indicates if the link reference window is on top of a token or not.
         #endregion
 
         #region [Interface]
@@ -218,6 +219,14 @@ namespace RTextNppPlugin.WpfControls
         #endregion
 
         #region EventHandlers
+        /**
+         * \brief   Resizes open auto completion list when the container's size change.
+         */
+        private void OnContainerSizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            VisualUtilities.RepositionWindow(e, this, ref _isOnTop, _nppHelper);
+        }
+
         private void OnKeyMonitorKeyDown(System.Windows.Forms.Keys key, int repeatCount, ref bool handled)
         {
             var collectionView = CollectionViewSource.GetDefaultView(GetModel().Targets);
@@ -338,7 +347,11 @@ namespace RTextNppPlugin.WpfControls
                 {
                     GetModel().UpdateLinkTargets(_cachedReferenceLinks.targets); 
                 }
+                Utilities.VisualUtilities.SetOwnerFromNppPlugin(this);
                 Show();
+                var collectionView = CollectionViewSource.GetDefaultView(GetModel().Targets);
+                collectionView.MoveCurrentToFirst();
+                LinkTargetDatagrid.ScrollIntoView(collectionView.CurrentItem);
             }
         }
 
@@ -407,8 +420,7 @@ namespace RTextNppPlugin.WpfControls
          * \brief   Raises the dependency property changed event when visibility is changed.
          *
          * \param   sender  Source of the event.
-         * \param   e       Event information to send to registered event handlers.
-         * \todo    Install, uninstall keyboard hook.                  
+         * \param   e       Event information to send to registered event handlers.              
          */
         private void OnReferenceLinksVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
@@ -426,9 +438,17 @@ namespace RTextNppPlugin.WpfControls
             else
             {
                 LinkTargetDatagrid.SelectedIndex = -1;
+                _isOnTop                         = false;
                 _keyMonitor.Uninstall();
             }
         }
+
+        private void OnWindowLocationChanged(object sender, EventArgs e)
+        {
+            var collectionView = CollectionViewSource.GetDefaultView(GetModel().Targets);
+            collectionView.MoveCurrentToFirst();
+            LinkTargetDatagrid.ScrollIntoView(collectionView.CurrentItem);
+        }        
         #endregion
 
         #region Overriden Window Members

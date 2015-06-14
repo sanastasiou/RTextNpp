@@ -16,7 +16,7 @@ using RTextNppPlugin.ViewModels;
 
 namespace RTextNppPlugin.WpfControls
 {
-    public partial class AutoCompletionWindow : System.Windows.Window, IDisposable, IWin32MessageReceptor, IWindowPosition
+    public partial class AutoCompletionWindow : System.Windows.Window, IDisposable, IWin32MessageReceptor
     {
         #region [DataMembers]
 
@@ -25,49 +25,15 @@ namespace RTextNppPlugin.WpfControls
         GlobalClickInterceptor _autoCompletionMouseMonitor          = null;
         ToolTip _previouslyOpenedToolTip                            = null;
         DelayedEventHandler _delayedToolTipHandler                  = null;
+        bool _isOnTop                                               = false;
+        INpp _nppHelper                                             = null;
 
         
         #endregion
 
         #region [Interface]
-
-        #region [IWindowPosition Members]
-        /**
-         * \brief   Gets or sets a value indicating whether this window appears on top of a token.
-         *
-         */
-        public bool IsOnTop { get; set; }
-
-        public double CurrentHeight { get { return Height; } }
-
-        new double Width { get { return base.Width; } }
-
-        new double Left
-        {
-            get
-            {
-                return base.Left;
-            }
-            set
-            {
-                base.Left = value;                
-            }
-        }
-
-        new double Top
-        {
-            get
-            {
-                return base.Top;
-            }
-            set
-            {
-                base.Top = value;
-            }
-        }
-        #endregion        
-
-        internal AutoCompletionWindow(ConnectorManager cmanager, IWin32 win32Helper)
+  
+        internal AutoCompletionWindow(ConnectorManager cmanager, IWin32 win32Helper, INpp nppHelper)
         {
             InitializeComponent();
             _autoCompletionMouseMonitor = new GlobalClickInterceptor(win32Helper);
@@ -75,7 +41,7 @@ namespace RTextNppPlugin.WpfControls
             _keyMonitor.KeyDown         += OnKeyMonitorKeyDown;
             _delayedFilterEventHandler  = new DelayedEventHandler(new ActionWrapper(PostProcessKeyPressed), 150);
             _delayedToolTipHandler      = new DelayedEventHandler(new ActionWrapper<System.Windows.Controls.ToolTip>(OnToolTipDelayedHandlerExpired, null), 1000, System.Windows.Threading.DispatcherPriority.ApplicationIdle);
-            IsOnTop                     = false;
+            _nppHelper                  = nppHelper;
             _keyMonitor.KeysToIntercept.Add((int)System.Windows.Forms.Keys.Down);
             _keyMonitor.KeysToIntercept.Add((int)System.Windows.Forms.Keys.Up);
             _keyMonitor.KeysToIntercept.Add((int)System.Windows.Forms.Keys.PageUp);
@@ -113,7 +79,7 @@ namespace RTextNppPlugin.WpfControls
                 {
                     //click is made outside of grid but inside window! - leave focus to editor i.e. make those areas not focusable
                     e.Handled = true;
-                    Npp.Instance.GrabFocus();
+                    _nppHelper.GrabFocus();
                 }
             }            
         }
@@ -160,10 +126,10 @@ namespace RTextNppPlugin.WpfControls
             if (IsVisible)
             {
                 //in case the form is visible - move it to the new place...
-                var aCaretPoint = Npp.Instance.GetCaretScreenLocationForForm();
+                var aCaretPoint = _nppHelper.GetCaretScreenLocationForForm();
                 if (GetModel().TriggerPoint.HasValue)
                 {
-                    aCaretPoint = Npp.Instance.GetCaretScreenLocationRelativeToPosition(GetModel().TriggerPoint.Value.BufferPosition);
+                    aCaretPoint = _nppHelper.GetCaretScreenLocationRelativeToPosition(GetModel().TriggerPoint.Value.BufferPosition);
                 }
                 Left = aCaretPoint.X;
                 Top  = aCaretPoint.Y;
@@ -186,7 +152,7 @@ namespace RTextNppPlugin.WpfControls
                 CharProcessAction = GetModel().CharProcessAction;
                 if(CharProcessAction == AutoCompletionViewModel.CharProcessResult.MoveToRight)
                 {
-                    Left = Npp.Instance.GetCaretScreenLocationForForm(Npp.Instance.GetCaretPosition()).X;
+                    Left = _nppHelper.GetCaretScreenLocationForForm(_nppHelper.GetCaretPosition()).X;
                     CharProcessAction = AutoCompletionViewModel.CharProcessResult.NoAction;
                 }
                 //only filter if auto completion form can still remain open
@@ -199,7 +165,7 @@ namespace RTextNppPlugin.WpfControls
         }
         #endregion
 
-        #region [Helpers]
+        #region [Helpers]        
 
         private void HideActiveTooltip(Border border)
         {
@@ -224,7 +190,7 @@ namespace RTextNppPlugin.WpfControls
             double aCalculatedOffset = 0.0;
             var scrollViewer = GetScrollViewer(AutoCompletionDatagrid);
             System.Diagnostics.Trace.WriteLine(String.Format("Window width : {0}\nBorder width : {1}\nViewport width : {2}", Width, AutoCompletionListBorder.ActualWidth, scrollViewer.ViewportWidth));
-            if ((Left + Width + Constants.MAX_AUTO_COMPLETION_TOOLTIP_WIDTH) > Npp.Instance.GetClientRectFromPoint(new System.Drawing.Point((int)Left, (int)Top)).Right)
+            if ((Left + Width + Constants.MAX_AUTO_COMPLETION_TOOLTIP_WIDTH) > _nppHelper.GetClientRectFromPoint(new System.Drawing.Point((int)Left, (int)Top)).Right)
             {
                 if (scrollViewer.ComputedHorizontalScrollBarVisibility == System.Windows.Visibility.Visible)
                 {
@@ -346,7 +312,7 @@ namespace RTextNppPlugin.WpfControls
                 AutoCompletionDatagrid.ScrollIntoView(GetModel().SelectedCompletion);
             }
             //keep caret blinking after a selection has been made by clicking
-            Npp.Instance.GrabFocus();
+            _nppHelper.GrabFocus();
         }
 
         private void OnAutoCompletionBorderBackgroundUpdated(object sender, DataTransferEventArgs e)
@@ -386,32 +352,9 @@ namespace RTextNppPlugin.WpfControls
         /**
          * \brief   Resizes open auto completion list when the container's size change.
          */
-        private void OnAutoCompletionContainerSizeChanged(object sender, SizeChangedEventArgs e)
+        private void OnContainerSizeChanged(object sender, SizeChangedEventArgs e)
         {
-            if (IsOnTop && IsVisible)
-            {
-                var aHeightDiff = e.PreviousSize.Height - e.NewSize.Height;
-                Top += aHeightDiff;
-            }
-            else if(!IsOnTop && IsVisible)
-            {
-                if (!((e.NewSize.Height + Top ) <= Npp.Instance.GetClientRectFromControl(Npp.Instance.NppHandle).Bottom))
-                {
-                    //bottom exceeded - put list on top of word
-                    Top = Npp.Instance.GetCaretScreenLocationForFormAboveWord().Y;
-                    //problem here - we need to take into account the initial length of the list, otherwise our initial point is wrong if the list is not full
-                    Top -= (int)(e.NewSize.Height);
-                    IsOnTop = true;
-                }
-            }
-            //position list in such a way that it doesn't get split into two monitors
-            var rectFromPoint = Npp.Instance.GetClientRectFromPoint(new System.Drawing.Point((int)Left, (int)Top));
-            //if the width of the auto completion window overlaps the right edge of the screen, then move the window at the left until no overlap is present
-            if (rectFromPoint.Right < Left + e.NewSize.Width)
-            {
-                double dif = (Left + e.NewSize.Width) - rectFromPoint.Right;
-                Left -= (int)dif;
-            }
+            VisualUtilities.RepositionWindow(e, this, ref _isOnTop, _nppHelper);
         }
 
         private void OnAutoCompletionFormVisibleChanged(object sender, System.Windows.DependencyPropertyChangedEventArgs e)
@@ -422,7 +365,7 @@ namespace RTextNppPlugin.WpfControls
                 AutoCompletionDatagrid.SelectedIndex = -1;
                 GetModel().OnAutoCompletionWindowCollapsing();
                 UninstallMouseMonitorHooks();
-                IsOnTop = false;
+                _isOnTop = false;
                 HidePreviouslyOpenedTooltip(null);
                 _delayedToolTipHandler.Cancel();
             }
@@ -439,7 +382,7 @@ namespace RTextNppPlugin.WpfControls
             if (TriggerPoint != null && !String.IsNullOrEmpty(Completion.InsertionText))
             {
                 //use current selected item to replace token
-                Npp.Instance.ReplaceWordFromToken(TriggerPoint, Completion.InsertionText);
+                _nppHelper.ReplaceWordFromToken(TriggerPoint, Completion.InsertionText);
             }
             Hide();
         }

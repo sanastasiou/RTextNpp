@@ -44,7 +44,7 @@ namespace RTextNppPlugin.ViewModels
         {
             _targets.Clear();
             var aLinkTargetModels = targets.AsParallel().Select(target => new LinkTargetModel(target.display, target.desc, Int32.Parse(target.line), target.file));
-            _targets.AddRange(aLinkTargetModels);
+            _targets.AddRange(aLinkTargetModels.OrderBy(x => x.FilePath));
         }
 
         internal void OnZoomLevelChanged(double newZoomLevel)
