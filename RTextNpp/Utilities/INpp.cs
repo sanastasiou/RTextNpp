@@ -31,10 +31,12 @@ namespace RTextNppPlugin.Utilities
         System.Drawing.Rectangle GetClientRect();
         System.Drawing.Rectangle GetClientRectFromControl(IntPtr hwnd);
         System.Drawing.Rectangle GetClientRectFromPoint(System.Drawing.Point p);
+        int GetColumn(int position);
         int GetColumn();
         string GetConfigDir();
         string GetCurrentFile();
         int GetFirstVisibleLine();
+        int GetLengthToEndOfLine(int currentCharacterColumn, int line);
         int GetLengthToEndOfLine(int currentCharacterColumn);
 
         /**

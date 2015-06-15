@@ -280,7 +280,7 @@ namespace RTextNppPlugin.WpfControls
                 Task<Tuple<bool, ContextExtractor>> contextEqualityTask = new Task<Tuple<bool, ContextExtractor>>(new Func<Tuple<bool, ContextExtractor>>(() =>
                 {
                     string aContextBlock = _nppHelper.GetTextBetween(0, Npp.Instance.GetLineEnd(aTokenUnderCursor.Line));
-                    ContextExtractor aExtractor = new ContextExtractor(aContextBlock, Npp.Instance.GetLengthToEndOfLine(_nppHelper.GetColumn()));
+                    ContextExtractor aExtractor = new ContextExtractor(aContextBlock, Npp.Instance.GetLengthToEndOfLine(_nppHelper.GetColumn(_nppHelper.GetPositionFromMouseLocation()), aTokenUnderCursor.Line));
                     bool aAreContextEquals = false;
 
                     //get all tokens before the trigger token - if all previous tokens and all context lines match do not request new auto completion options
@@ -302,6 +302,8 @@ namespace RTextNppPlugin.WpfControls
 
                 contextEqualityTask.Start();
                 await contextEqualityTask;
+
+                Trace.WriteLine(String.Format("Are contexts equal : {0}", contextEqualityTask.Result.Item1));
 
                 //store cache
                 _cachedContext                            = contextEqualityTask.Result.Item2.ContextList;
@@ -344,14 +346,17 @@ namespace RTextNppPlugin.WpfControls
             if (!IsVisible)
             {
                 //update view model with new references
-                if (_cachedReferenceLinks != null)
+                if (_cachedReferenceLinks != null && _cachedReferenceLinks.targets.Count > 0)
                 {
-                    GetModel().UpdateLinkTargets(_cachedReferenceLinks.targets); 
+                    GetModel().UpdateLinkTargets(_cachedReferenceLinks.targets);
+                    Utilities.VisualUtilities.SetOwnerFromNppPlugin(this);
+                    //token needs to be underlined as a hotspot only if the current count is 1
+                    if (_cachedReferenceLinks.targets.Count == 1)
+                    {
+                        _referenceRequestObserver.UnderlineToken();
+                    }
+                    Show();
                 }
-                Utilities.VisualUtilities.SetOwnerFromNppPlugin(this);
-                _referenceRequestObserver.UnderlineToken();
-                Show();
-                ForceRedraw();
             }
         }
 

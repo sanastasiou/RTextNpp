@@ -306,9 +306,20 @@ namespace RTextNppPlugin.Utilities
             return (int)_win32.ISendMessage(sci, SciMsg.SCI_LINEFROMPOSITION, position, 0);
         }
 
+        public int GetLengthToEndOfLine(int currentCharacterColumn, int line)
+        {
+            return GetLine(line).RemoveNewLine().Length - currentCharacterColumn;
+        }
+
         public int GetLengthToEndOfLine(int currentCharacterColumn)
         {
             return GetLine().RemoveNewLine().Length - currentCharacterColumn;
+        }
+
+        public int GetColumn(int position)
+        {
+            IntPtr sci = GetCurrentScintilla(Plugin.nppData);
+            return (int)_win32.ISendMessage(sci, SciMsg.SCI_GETCOLUMN, position, 0);
         }
 
         public int GetColumn()
@@ -440,9 +451,7 @@ namespace RTextNppPlugin.Utilities
             Point point = Cursor.Position;
             ScreenToClient(sci, ref point);
 
-            int pos = (int)_win32.ISendMessage(sci, SciMsg.SCI_CHARPOSITIONFROMPOINTCLOSE, point.X, point.Y);
-
-            return pos;
+            return (int)_win32.ISendMessage(sci, SciMsg.SCI_CHARPOSITIONFROMPOINTCLOSE, point.X, point.Y);
         }
 
         public void Exit()
