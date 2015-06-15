@@ -134,7 +134,6 @@
                             </Trigger>
                             <Trigger Property="IsMouseOver" Value="True">
                                 <Setter Property ="Background" Value="Khaki"/>
-                                <Setter Property ="FontWeight" Value="Bold"/>
                                 <Setter Property ="Foreground" Value="Red"/>
                             </Trigger>
                         </Style.Triggers>

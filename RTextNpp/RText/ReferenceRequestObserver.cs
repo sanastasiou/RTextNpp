@@ -7,8 +7,8 @@ namespace RTextNppPlugin.RText
 {
     using CSScriptIntellisense;
     using DllExport;
-    using RText.Parsing;
-    using RTextNppPlugin.WpfControls;
+    using Parsing;
+    using WpfControls;
     using Utilities;
     using Utilities.Settings;
     class ReferenceRequestObserver
@@ -22,6 +22,7 @@ namespace RTextNppPlugin.RText
         private bool _highLightToken                                  = false;                       //!< Whether a reference token is highlighted.
         private IWin32 _win32Helper                                   = null;                        //!< Handle to win32 helper instance.
         private ILinkTargetsWindow _refWindow                         = null;                        //!< Handle to reference window.
+        private DelayedEventHandler _mouseMoveDebouncer               = null;                        //!< Debounces mose movement for a short period of time so that CPU is not taxed.
         #endregion
 
         #region [Events]
@@ -37,6 +38,7 @@ namespace RTextNppPlugin.RText
             _mouseMovementObserver.MouseMove += OnMouseMovementObserverMouseMove;            
             IsKeyboardShortCutActive         = false;
             _refWindow                       = refWindow;
+            _mouseMoveDebouncer              = new DelayedEventHandler(new ActionWrapper(DoMouseMovementObserverMouseMove), 100);
         }
 
         private void Enable(bool enable)
@@ -48,6 +50,7 @@ namespace RTextNppPlugin.RText
             else
             {
                 _mouseMovementObserver.Uninstall();
+                _mouseMoveDebouncer.Cancel();
             }
         }
 
@@ -91,8 +94,6 @@ namespace RTextNppPlugin.RText
             }
         }
 
-        #endregion
-
         internal void UnderlineToken()
         {
             int aReferenceColor = GetReferenceLinkColor();
@@ -111,10 +112,28 @@ namespace RTextNppPlugin.RText
             _highLightToken = true;
         }
 
+        internal void HideUnderlinedToken()
+        {
+            if (_highLightToken)
+            {
+                _win32Helper.ISendMessage(Plugin.nppData._scintillaMainHandle, SciMsg.SCI_STYLESETHOTSPOT, (int)_previousReferenceToken.Type, 0);
+                _win32Helper.ISendMessage(Plugin.nppData._scintillaSecondHandle, SciMsg.SCI_STYLESETHOTSPOT, (int)_previousReferenceToken.Type, 0);
+                _win32Helper.ISendMessage(_nppHelper.GetCurrentScintilla(Plugin.nppData), SciMsg.SCI_STARTSTYLING, _previousReferenceToken.BufferPosition, 0);
+                _win32Helper.ISendMessage(_nppHelper.GetCurrentScintilla(Plugin.nppData), SciMsg.SCI_SETSTYLING, _previousReferenceToken.EndColumn - _previousReferenceToken.StartColumn, (int)_previousReferenceToken.Type);
+
+                System.Windows.Forms.Cursor.Position = new System.Drawing.Point(System.Windows.Forms.Cursor.Position.X - 1, System.Windows.Forms.Cursor.Position.Y);
+                System.Windows.Forms.Cursor.Position = new System.Drawing.Point(System.Windows.Forms.Cursor.Position.X + 1, System.Windows.Forms.Cursor.Position.Y);
+                _highLightToken = false;
+            }
+        }
+        #endregion
+
+        #region [Helprs]
+
         private int GetReferenceLinkColor()
         {
             string aPluginTokenizerConfigFile = _nppHelper.GetConfigDir() + "\\" + Constants.PluginName + ".xml";
-            if(File.Exists(aPluginTokenizerConfigFile))
+            if (File.Exists(aPluginTokenizerConfigFile))
             {
                 XDocument aColorFile = XDocument.Load(aPluginTokenizerConfigFile);
 
@@ -140,22 +159,12 @@ namespace RTextNppPlugin.RText
             return 0xFF0000;
         }
 
-        internal void HideUnderlinedToken()
+        private void OnMouseMovementObserverMouseMove()
         {
-            if (_highLightToken)
-            {                                
-                _win32Helper.ISendMessage(Plugin.nppData._scintillaMainHandle, SciMsg.SCI_STYLESETHOTSPOT, (int)_previousReferenceToken.Type, 0);
-                _win32Helper.ISendMessage(Plugin.nppData._scintillaSecondHandle, SciMsg.SCI_STYLESETHOTSPOT, (int)_previousReferenceToken.Type, 0);
-                _win32Helper.ISendMessage(_nppHelper.GetCurrentScintilla(Plugin.nppData), SciMsg.SCI_STARTSTYLING, _previousReferenceToken.BufferPosition, 0);
-                _win32Helper.ISendMessage(_nppHelper.GetCurrentScintilla(Plugin.nppData), SciMsg.SCI_SETSTYLING, _previousReferenceToken.EndColumn - _previousReferenceToken.StartColumn, (int)_previousReferenceToken.Type);
-                
-                System.Windows.Forms.Cursor.Position = new System.Drawing.Point(System.Windows.Forms.Cursor.Position.X - 1, System.Windows.Forms.Cursor.Position.Y);
-                System.Windows.Forms.Cursor.Position = new System.Drawing.Point(System.Windows.Forms.Cursor.Position.X + 1, System.Windows.Forms.Cursor.Position.Y);
-                _highLightToken = false;
-            }
+            _mouseMoveDebouncer.TriggerHandler();
         }
 
-        private void OnMouseMovementObserverMouseMove()
+        private void DoMouseMovementObserverMouseMove()
         {
             if (_isKeyboardShortCutActive)
             {
@@ -164,9 +173,9 @@ namespace RTextNppPlugin.RText
                     var aRefToken = Tokenizer.FindTokenUnderCursor(_nppHelper);
                     if (aRefToken.CanTokenHaveReference() && !aRefToken.Equals(_previousReferenceToken))
                     {
-                        _refWindow.IssueReferenceLinkRequestCommand(aRefToken);                        
+                        _refWindow.IssueReferenceLinkRequestCommand(aRefToken);
                     }
-                    else if(!aRefToken.CanTokenHaveReference())
+                    else if (!aRefToken.CanTokenHaveReference())
                     {
                         HideUnderlinedToken();
                         _refWindow.Hide();
@@ -177,6 +186,8 @@ namespace RTextNppPlugin.RText
             {
                 HideUnderlinedToken();
             }
-        }        
+        }
+
+        #endregion                
     }
 }
