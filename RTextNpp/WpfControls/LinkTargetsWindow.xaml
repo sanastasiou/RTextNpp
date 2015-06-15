@@ -6,7 +6,6 @@
         xmlns:viewmodels   ="clr-namespace:RTextNppPlugin.ViewModels"
         xmlns:plugin_ns    ="clr-namespace:RTextNppPlugin"
         xmlns:sys          ="clr-namespace:System;assembly=mscorlib"
-        xmlns:converters   ="clr-namespace:RTextNppPlugin.WpfControls.Converters"
         xmlns:i            ="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
         xmlns:behaviors    ="clr-namespace:RTextNppPlugin.WpfControls.Behaviors"
         x:ClassModifier    ="internal"
@@ -28,7 +27,6 @@
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="Styles.xaml"/>
             </ResourceDictionary.MergedDictionaries>
-            <converters:GreaterThanValueConverter x:Key="GreaterThanConverter"/>
         </ResourceDictionary>
     </Window.Resources>
     <Window.DataContext>
@@ -49,31 +47,14 @@
             </DockPanel.LayoutTransform>
             <DockPanel.Resources>                
                 <BitmapImage x:Key="MySource" UriSource="/RTextNpp;Component/Resources/warning.png"/>
-                <Style x:Key="ReferenceDatagridStyle" TargetType="DataGrid">
-                    <Setter Property="Visibility" Value="Visible"/>
-                    <Style.Triggers>
-                        <DataTrigger Binding="{Binding Targets.Count}" Value="0">
-                            <Setter Property="Visibility" Value="Collapsed"/>
-                        </DataTrigger>
-                    </Style.Triggers>
-                </Style>
-                <Style x:Key="StackPanelStyle" TargetType="StackPanel">
-                    <Setter Property="Visibility" Value="Visible"/>
-                    <Style.Triggers>
-                        <DataTrigger Binding="{Binding Targets.Count, Converter={StaticResource ResourceKey=GreaterThanConverter}, ConverterParameter=0}">
-                            <DataTrigger.Value>true</DataTrigger.Value>
-                            <Setter Property="Visibility" Value="Collapsed"/>
-                        </DataTrigger>
-                    </Style.Triggers>
-                </Style>
             </DockPanel.Resources>
-            <StackPanel Orientation="Horizontal" DockPanel.Dock="Bottom" Style="{StaticResource ResourceKey=StackPanelStyle}" Margin="0" Focusable="False">
+            <StackPanel Orientation="Horizontal" DockPanel.Dock="Bottom" Style="{StaticResource ResourceKey=LinkReferenceWindowCollpaseAtZeroCountStyle}" Margin="0" Focusable="False">
                 <Image Source="{StaticResource ResourceKey=MySource}" Height="16" Width="16" Margin="0" Focusable="False"/>
                 <Label Content="{Binding ErrorMsg}" ToolTipService.ToolTip="{Binding ErrorTooltip}" Padding="0" Margin="0" ToolTipService.Placement="Right" Focusable="False"/>
             </StackPanel>
             <DataGrid DockPanel.Dock                             ="Bottom"
                       ItemsSource                                ="{Binding Targets}"
-                      Style                                      ="{StaticResource ResourceKey=ReferenceDatagridStyle}"
+                      Style                                      ="{StaticResource ResourceKey=LinkReferenceWindowCollpaseAtOneCountStyle}"
                       Name                                       ="LinkTargetDatagrid"
                       ScrollViewer.CanContentScroll              ="True" 
                       ScrollViewer.HorizontalScrollBarVisibility ="Auto" 
@@ -91,59 +72,17 @@
                 <i:Interaction.Behaviors>
                     <behaviors:UpdateWidthOnColumnResizedBehavior/>
                 </i:Interaction.Behaviors>
-                <DataGrid.Resources>
-                    <Style x:Key="DescriptionStackPanelStyle" TargetType="StackPanel">
-                        <Style.Triggers>
-                            <DataTrigger Binding="{Binding Description}" Value="{x:Static sys:String.Empty}">
-                                <Setter Property="Visibility" Value="Collapsed"/>
-                            </DataTrigger>
-                            <DataTrigger Binding="{Binding Description}" Value="{x:Null}">
-                                    <Setter Property="Visibility" Value="Collapsed"/>
-                                </DataTrigger>
-                        </Style.Triggers>
-                    </Style>
-                    <StackPanel x:Key="linkToolTip" Orientation="Vertical" Focusable="False">
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock FontWeight="Bold" Text="Type: " Width="70"/>
-                            <TextBlock Text="{Binding Display}"/>
-                        </StackPanel>
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock FontWeight="Bold" Text="File: " Width="70"/>
-                            <TextBlock Text="{Binding FilePath}"/>
-                        </StackPanel>
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock FontWeight="Bold" Text="Line: " Width="70"/>
-                            <TextBlock Text="{Binding Line}"/>
-                        </StackPanel>
-                        <StackPanel Orientation="Horizontal" Style="{StaticResource ResourceKey=DescriptionStackPanelStyle}">
-                            <TextBlock FontWeight="Bold" Text="Description: " Width="70"/>
-                            <TextBlock Text="{Binding Description}"/>
-                        </StackPanel>
-                    </StackPanel>
-                </DataGrid.Resources>
                 <DataGrid.RowStyle>
-                    <Style TargetType="DataGridRow">
-                        <Setter Property="Background" Value="White"/>
+                    <Style BasedOn="{StaticResource ResourceKey=LinkReferenceWindowDataGridRowStyle}" TargetType="{x:Type DataGridRow}">
                         <EventSetter Event="DataGridRow.MouseEnter" Handler="OnRowMouseEnter"/>
                         <EventSetter Event="DataGridRow.MouseLeave" Handler="OnRowMouseLeave"/>
-                        <Setter Property="Foreground" Value="Blue"/>
-                        <Setter Property="Focusable" Value="False"/>
-                        <Style.Triggers>
-                            <Trigger Property="AlternationIndex" Value="1">
-                                <Setter Property="Background" Value="Gainsboro"/>
-                            </Trigger>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter Property ="Background" Value="Khaki"/>
-                                <Setter Property ="Foreground" Value="Red"/>
-                            </Trigger>
-                        </Style.Triggers>
                     </Style>
                 </DataGrid.RowStyle>
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="Type" Binding="{Binding Display}" IsReadOnly="True" CanUserSort="False">
                         <DataGridTextColumn.ElementStyle>
                             <Style>
-                                <Setter Property="ToolTipService.ToolTip" Value="{StaticResource ResourceKey=linkToolTip}"/>
+                                <Setter Property="ToolTipService.ToolTip" Value="{StaticResource ResourceKey=ReferenceLinkToolTip}"/>
                                 <Setter Property="ToolTipService.Placement" Value="Right"/>
                             </Style>
                         </DataGridTextColumn.ElementStyle>

@@ -180,6 +180,11 @@ namespace RTextNppPlugin.RText
                         HideUnderlinedToken();
                         _refWindow.Hide();
                     }
+                    else
+                    {
+                        //tokens are equal - issue command if underlining is not active
+                        _refWindow.Show();
+                    }
                 }
             }
             else

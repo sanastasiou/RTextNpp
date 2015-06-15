@@ -114,6 +114,10 @@ namespace RTextNppPlugin.ViewModels
                 {
                     _errorMsg = value;
                     base.RaisePropertyChanged("ErrorMsg");
+                    if(!String.IsNullOrEmpty(value))
+                    {
+                        Clear();
+                    }
                 }
             }
         }

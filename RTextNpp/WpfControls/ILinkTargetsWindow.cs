@@ -9,5 +9,7 @@ namespace RTextNppPlugin.WpfControls
         bool IsMouseInsidedWindow();
 
         void Hide();
+
+        void Show();
     }
 }

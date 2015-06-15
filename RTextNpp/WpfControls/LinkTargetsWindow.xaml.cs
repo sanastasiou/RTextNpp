@@ -332,31 +332,41 @@ namespace RTextNppPlugin.WpfControls
                 {
                     _cachedReferenceLinks = await RequestReferenceLinksAsync(aRequest);                    
                 }
-                UpdateViewModel();
+                Show();
             }
             else
-            {
-                _referenceRequestDispatcher.Cancel();
+            {                
                 Hide();
             }
+        }        
+
+        new public void Hide()
+        {
+            _referenceRequestDispatcher.Cancel();
+            base.Hide();
         }
 
-        private void UpdateViewModel()
+        new public void Show()
         {
-            if (!IsVisible)
+            //update view model with new references
+            if (_cachedReferenceLinks != null && _cachedReferenceLinks.targets.Count > 0)
             {
-                //update view model with new references
-                if (_cachedReferenceLinks != null && _cachedReferenceLinks.targets.Count > 0)
+                GetModel().UpdateLinkTargets(_cachedReferenceLinks.targets);
+                Utilities.VisualUtilities.SetOwnerFromNppPlugin(this);
+                //token needs to be underlined as a hotspot only if the current count is 1
+                if (_cachedReferenceLinks.targets.Count == 1)
                 {
-                    GetModel().UpdateLinkTargets(_cachedReferenceLinks.targets);
-                    Utilities.VisualUtilities.SetOwnerFromNppPlugin(this);
-                    //token needs to be underlined as a hotspot only if the current count is 1
-                    if (_cachedReferenceLinks.targets.Count == 1)
-                    {
-                        _referenceRequestObserver.UnderlineToken();
-                    }
-                    Show();
+                    _referenceRequestObserver.UnderlineToken();
                 }
+                base.Show();
+            }
+            else if (!String.IsNullOrEmpty(GetModel().ErrorMsg))
+            {
+                base.Show();
+            }
+            else if (_cachedReferenceLinks == null || _cachedReferenceLinks.targets.Count == 0)
+            {
+                Hide();
             }
         }
 
@@ -408,7 +418,7 @@ namespace RTextNppPlugin.WpfControls
                         else
                         {
                             GetModel().Clear();
-                            GetModel().RemoveWarning();                            
+                            GetModel().RemoveWarning();
                             return aResponse;
                         }
                         break;
