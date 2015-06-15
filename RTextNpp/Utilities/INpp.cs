@@ -26,6 +26,7 @@ namespace RTextNppPlugin.Utilities
         System.Drawing.Point GetCaretScreenLocation();
         System.Drawing.Point GetCaretScreenLocationForForm();
         System.Drawing.Point GetCaretScreenLocationForForm(int position);
+        System.Drawing.Point GetCaretScreenLocationForFormAboveWord(int position);
         System.Drawing.Point GetCaretScreenLocationForFormAboveWord();
         System.Drawing.Point GetCaretScreenLocationRelativeToPosition(int position);
         System.Drawing.Rectangle GetClientRect();

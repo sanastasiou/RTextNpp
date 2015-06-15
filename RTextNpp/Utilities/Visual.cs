@@ -460,8 +460,8 @@ namespace RTextNppPlugin.Utilities
             return aNewPosition;
         }
 
-        internal static void RepositionWindow(SizeChangedEventArgs e, Window w, ref bool isOnTop, INpp nppHelper, int offset = 0)
-        {
+        internal static void RepositionWindow(SizeChangedEventArgs e, Window w, ref bool isOnTop, INpp nppHelper, int wordY, int offset = 0)
+        {            
             if (isOnTop && w.IsVisible)
             {
                 var aHeightDiff = e.PreviousSize.Height - e.NewSize.Height;
@@ -472,7 +472,7 @@ namespace RTextNppPlugin.Utilities
                 if (!((e.NewSize.Height + w.Top) <= nppHelper.GetClientRectFromControl(nppHelper.NppHandle).Bottom))
                 {
                     //bottom exceeded - put list on top of word
-                    w.Top = Npp.Instance.GetCaretScreenLocationForFormAboveWord().Y;
+                    w.Top = wordY;
                     //problem here - we need to take into account the initial length of the list, otherwise our initial point is wrong if the list is not full
                     w.Top -= ((int)(e.NewSize.Height) - offset);
                     isOnTop = true;

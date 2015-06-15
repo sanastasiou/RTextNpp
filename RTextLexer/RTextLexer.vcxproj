@@ -14,7 +14,7 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{C9A9618E-2871-4933-A1F6-F33E7678AF97}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-	<TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <RootNamespace>RTextLexer</RootNamespace>
     <ProjectName>RTextLexer</ProjectName>
   </PropertyGroup>

@@ -354,7 +354,7 @@ namespace RTextNppPlugin.WpfControls
          */
         private void OnContainerSizeChanged(object sender, SizeChangedEventArgs e)
         {
-            VisualUtilities.RepositionWindow(e, this, ref _isOnTop, _nppHelper);
+            VisualUtilities.RepositionWindow(e, this, ref _isOnTop, _nppHelper, _nppHelper.GetCaretScreenLocationForFormAboveWord().Y);
         }
 
         private void OnAutoCompletionFormVisibleChanged(object sender, System.Windows.DependencyPropertyChangedEventArgs e)

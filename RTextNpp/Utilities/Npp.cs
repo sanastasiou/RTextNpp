@@ -432,6 +432,24 @@ namespace RTextNppPlugin.Utilities
             return GetCaretScreenLocation();
         }
 
+        /**
+         * Gets caret screen location for form above word.
+         *
+         * \param   position    The buffer position.
+         *
+         * \return  The caret screen location for form above word from a word starting at position.
+         */
+        public Point GetCaretScreenLocationForFormAboveWord(int position)
+        {
+            IntPtr sci = GetCurrentScintilla(Plugin.nppData);
+            int x = (int)_win32.ISendMessage(sci, SciMsg.SCI_POINTXFROMPOSITION, 0, position);
+            int y = (int)_win32.ISendMessage(sci, SciMsg.SCI_POINTYFROMPOSITION, 0, position);
+
+            Point point = new Point(x, y);
+            ClientToScreen(sci, ref point);
+            return point;
+        }
+
         public Point GetCaretScreenLocation()
         {
             IntPtr sci = GetCurrentScintilla(Plugin.nppData);

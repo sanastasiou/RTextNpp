@@ -182,8 +182,12 @@ namespace RTextNppPlugin.RText
                     }
                     else
                     {
+                        System.Diagnostics.Trace.WriteLine("Showing window due to mouse movement...");
                         //tokens are equal - issue command if underlining is not active
-                        _refWindow.Show();
+                        if (!_refWindow.IsVisible)
+                        {
+                            _refWindow.Show();
+                        }
                     }
                 }
             }

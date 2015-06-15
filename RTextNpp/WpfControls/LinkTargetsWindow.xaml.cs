@@ -225,7 +225,7 @@ namespace RTextNppPlugin.WpfControls
          */
         private void OnContainerSizeChanged(object sender, SizeChangedEventArgs e)
         {
-            VisualUtilities.RepositionWindow(e, this, ref _isOnTop, _nppHelper, YPOSITION_OFFSET);
+            VisualUtilities.RepositionWindow(e, this, ref _isOnTop, _nppHelper, _nppHelper.GetCaretScreenLocationForFormAboveWord(_referenceRequestObserver.UnderlinedToken.BufferPosition).Y, YPOSITION_OFFSET);
         }
 
         private void OnKeyMonitorKeyDown(System.Windows.Forms.Keys key, int repeatCount, ref bool handled)
@@ -338,7 +338,7 @@ namespace RTextNppPlugin.WpfControls
             {                
                 Hide();
             }
-        }        
+        }                
 
         new public void Hide()
         {
@@ -373,11 +373,10 @@ namespace RTextNppPlugin.WpfControls
         private void ForceRedraw()
         {
             if (!GetModel().IsEmpty())
-            {
+            {                
                 var collectionView = CollectionViewSource.GetDefaultView(GetModel().Targets);
                 collectionView.MoveCurrentToFirst();
                 LinkTargetDatagrid.ScrollIntoView(collectionView.CurrentItem);
-
             }
         }
 
