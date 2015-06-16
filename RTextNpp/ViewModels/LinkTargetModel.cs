@@ -12,10 +12,10 @@ namespace RTextNppPlugin.ViewModels
     {
         public string Display { get; private set; }
         public string Description { get; private set; }
-        public int Line { get; private set; }
+        public string Line { get; private set; }
         public string File { get; private set; }
         public string FilePath { get; private set; }
-        public LinkTargetModel(string display, string description, int line, string file)
+        public LinkTargetModel(string display, string description, string line, string file)
         {
             Display     = display;
             Description = description;
@@ -48,8 +48,8 @@ namespace RTextNppPlugin.ViewModels
         internal void UpdateLinkTargets(IEnumerable<Target> targets)
         {
             _targets.Clear();
-            var aLinkTargetModels = targets.AsParallel().Select(target => new LinkTargetModel(target.display, target.desc, Int32.Parse(target.line), target.file));
-            _targets.AddRange(aLinkTargetModels.OrderBy(x => x.FilePath));
+            var aLinkTargetModels = targets.Select(target => new LinkTargetModel(target.display, target.desc, target.line, target.file));
+            _targets.AddRange(aLinkTargetModels.OrderBy( x => x.File));
         }
 
         internal void OnZoomLevelChanged(double newZoomLevel)

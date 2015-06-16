@@ -79,7 +79,7 @@
                     </Style>
                 </DataGrid.RowStyle>
                 <DataGrid.Columns>
-                    <DataGridTextColumn Header="Type" Binding="{Binding Display}" IsReadOnly="True" CanUserSort="False">
+                    <DataGridTextColumn Header="Type" Binding="{Binding Display}" IsReadOnly="True" CanUserSort="True" SortMemberPath="Display">
                         <DataGridTextColumn.ElementStyle>
                             <Style>
                                 <Setter Property="ToolTipService.ToolTip" Value="{StaticResource ResourceKey=ReferenceLinkToolTip}"/>
@@ -87,7 +87,7 @@
                             </Style>
                         </DataGridTextColumn.ElementStyle>
                     </DataGridTextColumn>
-                    <DataGridTextColumn Header="File" IsReadOnly="True" Binding="{Binding File}" CanUserSort="True" SortMemberPath="FilePath">
+                    <DataGridTextColumn Header="File" IsReadOnly="True" Binding="{Binding File}" CanUserSort="True" SortMemberPath="File">
                         <DataGridTextColumn.ElementStyle>
                             <Style>
                                 <Setter Property="ToolTipService.ToolTip" Value="{Binding FilePath}"/>

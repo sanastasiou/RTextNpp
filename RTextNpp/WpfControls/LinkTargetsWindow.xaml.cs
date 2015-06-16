@@ -215,7 +215,7 @@ namespace RTextNppPlugin.WpfControls
          */
         private void FileClicked(LinkTargetModel target)
         {
-            OnHyperlinkedClicked(this, new HypelinkClickedEventArgs { File = target.FilePath, Line = target.Line });
+            OnHyperlinkedClicked(this, new HypelinkClickedEventArgs { File = target.File, Line = Int32.Parse(target.Line) });
         }
         #endregion
 
@@ -328,7 +328,7 @@ namespace RTextNppPlugin.WpfControls
                 Left            = aCaretPoint.X;
                 Top             = aCaretPoint.Y - YPOSITION_OFFSET;
 
-                if (!contextEqualityTask.Result.Item1)
+                if (!contextEqualityTask.Result.Item1 || _cachedReferenceLinks.targets.Count == 0)
                 {
                     _cachedReferenceLinks = await RequestReferenceLinksAsync(aRequest);                    
                 }
@@ -343,6 +343,7 @@ namespace RTextNppPlugin.WpfControls
         new public void Hide()
         {
             _referenceRequestDispatcher.Cancel();
+            GetModel().Clear();
             base.Hide();
         }
 
@@ -471,7 +472,7 @@ namespace RTextNppPlugin.WpfControls
 
         private void OnWindowLocationChanged(object sender, EventArgs e)
         {
-            ForceRedraw();
+            //ForceRedraw();
         }        
         #endregion
 

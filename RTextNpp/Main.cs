@@ -69,11 +69,13 @@ namespace RTextNppPlugin
             }
             _currentZoomLevel = Npp.Instance.GetZoomLevel();
             _autoCompletionForm.OnZoomLevelChanged(_currentZoomLevel);
+            _linkTargetsWindow.OnZoomLevelChanged(_currentZoomLevel);
+            _linkTargetsWindow.IsVisibleChanged += OnLinkTargetsWindowIsVisibleChanged;
             #if DEBUG
             Debugger.Launch();
             #endif
         }
-
+       
         internal static void OnBufferActivated()
         {
             _linkTargetsWindow.CancelPendingRequest();
@@ -270,6 +272,7 @@ namespace RTextNppPlugin
             _scintillaMainMsgInterceptor.MouseWheelMoved         -= OnScintillaMouseWheelMoved;
             _scintillaSecondMsgInterceptor.MouseWheelMoved       -= OnScintillaMouseWheelMoved;
             _nppMsgInterceptpr.MenuLoopStateChanged              -= OnMenuLoopStateChanged;
+            _linkTargetsWindow.IsVisibleChanged                  -= OnLinkTargetsWindowIsVisibleChanged;
         }
         #endregion
 
@@ -401,6 +404,15 @@ namespace RTextNppPlugin
         #endregion
 
         #region [Event Handlers]
+
+        private static void OnLinkTargetsWindowIsVisibleChanged(object sender, System.Windows.DependencyPropertyChangedEventArgs e)
+        {
+            if (_linkTargetsWindow.Visibility == System.Windows.Visibility.Hidden)
+            {
+                //give focus back to npp
+                _nppHelper.GrabFocus();
+            }
+        }
 
         private static void OnSecondScintillaFocusChanged(object source, ScintillaMessageInterceptor.ScintillaFocusChangedEventArgs e)
         {
