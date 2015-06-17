@@ -358,13 +358,15 @@ namespace RTextNppPlugin.WpfControls
                         _referenceRequestObserver.UnderlineToken();
                     }
                 }
-
-                //determine window position
-                var aCaretPoint = _nppHelper.GetCaretScreenLocationRelativeToPosition(_referenceRequestObserver.UnderlinedToken.BufferPosition);
-                Left            = aCaretPoint.X;
-                Top             = aCaretPoint.Y - YPOSITION_OFFSET;
-                base.Show();
-                ForceRedraw();
+                if(!IsVisible)
+                { 
+                    //determine window position
+                    var aCaretPoint = _nppHelper.GetCaretScreenLocationRelativeToPosition(_referenceRequestObserver.UnderlinedToken.BufferPosition);
+                    Left            = aCaretPoint.X;
+                    Top             = aCaretPoint.Y - YPOSITION_OFFSET;
+                    base.Show();
+                    ForceRedraw();
+                }
             }
             else if (_cachedReferenceLinks == null || _cachedReferenceLinks.targets.Count == 0)
             {
