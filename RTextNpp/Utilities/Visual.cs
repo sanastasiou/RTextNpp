@@ -460,22 +460,31 @@ namespace RTextNppPlugin.Utilities
             return aNewPosition;
         }
 
-        internal static void RepositionWindow(SizeChangedEventArgs e, Window w, ref bool isOnTop, INpp nppHelper, int wordY, int offset = 0)
-        {            
-            if (isOnTop && w.IsVisible)
+        internal static void RepositionWindow(SizeChangedEventArgs e, Window w, ref bool isOnTop, INpp nppHelper, double wordY, int offset = 0)
+        {
+            bool isTopChanged  = false;
+            bool isLeftChanged = false;
+            double newTop      = Double.NaN;
+            double newLeft     = Double.NaN;
+            if (isOnTop)
             {
                 var aHeightDiff = e.PreviousSize.Height - e.NewSize.Height;
-                w.Top += aHeightDiff + offset;
+                if (aHeightDiff > 0)
+                {
+                    newTop += aHeightDiff + offset;
+                    isTopChanged = true;
+                }
             }
-            else if (!isOnTop && w.IsVisible)
+            else
             {
                 if (!((e.NewSize.Height + w.Top) <= nppHelper.GetClientRectFromControl(nppHelper.NppHandle).Bottom))
                 {
-                    //bottom exceeded - put list on top of word
-                    w.Top = wordY;
-                    //problem here - we need to take into account the initial length of the list, otherwise our initial point is wrong if the list is not full
-                    w.Top -= ((int)(e.NewSize.Height) - offset);
-                    isOnTop = true;
+                    newTop = wordY - (e.NewSize.Height - offset);
+                    if (newTop >= nppHelper.GetClientRectFromControl(nppHelper.NppHandle).Top)
+                    {
+                        isOnTop      = true;
+                        isTopChanged = true;
+                    }
                 }
             }
             //position list in such a way that it doesn't get split into two monitors
@@ -484,8 +493,23 @@ namespace RTextNppPlugin.Utilities
             if (rectFromPoint.Right < w.Left + e.NewSize.Width)
             {
                 double dif = (w.Left + e.NewSize.Width) - rectFromPoint.Right;
-                w.Left -= (int)dif;
-            }            
+                newLeft -= dif;
+                isLeftChanged = true;
+            }
+
+            if (isTopChanged && !isLeftChanged)
+            {
+                w.Top = newTop;
+            }
+            else if(isLeftChanged && !isTopChanged)
+            {
+                w.Left = newLeft;
+            }
+            else if(isLeftChanged && isTopChanged)
+            {
+                w.Top  = newTop;
+                w.Left = newLeft;
+            }
         }
     }
 }

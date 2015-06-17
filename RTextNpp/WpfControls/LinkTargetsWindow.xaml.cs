@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
@@ -162,7 +161,10 @@ namespace RTextNppPlugin.WpfControls
                 Left = aCaretPoint.X;
                 Top  = aCaretPoint.Y - YPOSITION_OFFSET;
             }
-            Dispatcher.BeginInvoke(new Action<double>(GetModel().OnZoomLevelChanged), level);
+            Dispatcher.Invoke(new Action<double>( (x) => {
+                _isOnTop = false;
+                GetModel().OnZoomLevelChanged(x);                
+            }), level);
         }
 
         #endregion
@@ -215,7 +217,7 @@ namespace RTextNppPlugin.WpfControls
          */
         private void FileClicked(LinkTargetModel target)
         {
-            OnHyperlinkedClicked(this, new HypelinkClickedEventArgs { File = target.File, Line = Int32.Parse(target.Line) });
+            //OnHyperlinkedClicked(this, new HypelinkClickedEventArgs { File = target.File, Line = Int32.Parse(target.Line) });
         }
         #endregion
 
@@ -280,7 +282,7 @@ namespace RTextNppPlugin.WpfControls
                 Task<Tuple<bool, ContextExtractor>> contextEqualityTask = new Task<Tuple<bool, ContextExtractor>>(new Func<Tuple<bool, ContextExtractor>>(() =>
                 {
                     string aContextBlock = _nppHelper.GetTextBetween(0, Npp.Instance.GetLineEnd(aTokenUnderCursor.Line));
-                    ContextExtractor aExtractor = new ContextExtractor(aContextBlock, Npp.Instance.GetLengthToEndOfLine(_nppHelper.GetColumn(_nppHelper.GetPositionFromMouseLocation()), aTokenUnderCursor.Line));
+                    ContextExtractor aExtractor = new ContextExtractor(aContextBlock, Npp.Instance.GetLengthToEndOfLine(_nppHelper.GetColumn(aTokenUnderCursor.BufferPosition), aTokenUnderCursor.Line));
                     bool aAreContextEquals = false;
 
                     //get all tokens before the trigger token - if all previous tokens and all context lines match do not request new auto completion options
@@ -303,8 +305,6 @@ namespace RTextNppPlugin.WpfControls
                 contextEqualityTask.Start();
                 await contextEqualityTask;
 
-                Trace.WriteLine(String.Format("Are contexts equal : {0}", contextEqualityTask.Result.Item1));
-
                 //store cache
                 _cachedContext                            = contextEqualityTask.Result.Item2.ContextList;
                 _referenceRequestObserver.UnderlinedToken = aTokenUnderCursor;
@@ -322,12 +322,7 @@ namespace RTextNppPlugin.WpfControls
                     //prevent backend from crashing due to a bug
                     return;
                 }
-
-                //determine window position
-                var aCaretPoint = _nppHelper.GetCaretScreenLocationRelativeToPosition(aTokenUnderCursor.BufferPosition);
-                Left            = aCaretPoint.X;
-                Top             = aCaretPoint.Y - YPOSITION_OFFSET;
-
+                
                 if (!contextEqualityTask.Result.Item1 || _cachedReferenceLinks.targets.Count == 0)
                 {
                     _cachedReferenceLinks = await RequestReferenceLinksAsync(aRequest);                    
@@ -345,36 +340,44 @@ namespace RTextNppPlugin.WpfControls
             _referenceRequestDispatcher.Cancel();
             GetModel().Clear();
             base.Hide();
+            _isOnTop = false;
         }
 
         new public void Show()
         {
             //update view model with new references
-            if (_cachedReferenceLinks != null && _cachedReferenceLinks.targets.Count > 0)
+            if (!String.IsNullOrEmpty(GetModel().ErrorMsg) || (_cachedReferenceLinks != null && _cachedReferenceLinks.targets.Count > 0))
             {
-                GetModel().UpdateLinkTargets(_cachedReferenceLinks.targets);
-                Utilities.VisualUtilities.SetOwnerFromNppPlugin(this);
-                //token needs to be underlined as a hotspot only if the current count is 1
-                if (_cachedReferenceLinks.targets.Count == 1)
+                if (_cachedReferenceLinks != null)
                 {
-                    _referenceRequestObserver.UnderlineToken();
+                    GetModel().UpdateLinkTargets(_cachedReferenceLinks.targets);
+                    Utilities.VisualUtilities.SetOwnerFromNppPlugin(this);
+                    //token needs to be underlined as a hotspot only if the current count is 1
+                    if (_cachedReferenceLinks.targets.Count == 1)
+                    {
+                        _referenceRequestObserver.UnderlineToken();
+                    }
                 }
+
+                //determine window position
+                var aCaretPoint = _nppHelper.GetCaretScreenLocationRelativeToPosition(_referenceRequestObserver.UnderlinedToken.BufferPosition);
+                Left            = aCaretPoint.X;
+                Top             = aCaretPoint.Y - YPOSITION_OFFSET;
                 base.Show();
-            }
-            else if (!String.IsNullOrEmpty(GetModel().ErrorMsg))
-            {
-                base.Show();
+                ForceRedraw();
             }
             else if (_cachedReferenceLinks == null || _cachedReferenceLinks.targets.Count == 0)
             {
                 Hide();
+                return;
             }
+
         }
 
         private void ForceRedraw()
         {
             if (!GetModel().IsEmpty())
-            {                
+            {
                 var collectionView = CollectionViewSource.GetDefaultView(GetModel().Targets);
                 collectionView.MoveCurrentToFirst();
                 LinkTargetDatagrid.ScrollIntoView(collectionView.CurrentItem);
@@ -564,7 +567,6 @@ namespace RTextNppPlugin.WpfControls
             {
                 Hide();
                 IssueReferenceLinkRequestCommand(aTokenUnderCursor);
-                System.Diagnostics.Trace.WriteLine("IssueReferenceLinksCommand - OnLinkTargetsWindowMouseLeave");
             }
         }        
     }

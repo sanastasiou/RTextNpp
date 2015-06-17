@@ -57,7 +57,7 @@
                       Style                                      ="{StaticResource ResourceKey=LinkReferenceWindowCollpaseAtOneCountStyle}"
                       Name                                       ="LinkTargetDatagrid"
                       ScrollViewer.CanContentScroll              ="True" 
-                      ScrollViewer.HorizontalScrollBarVisibility ="Auto" 
+                      ScrollViewer.HorizontalScrollBarVisibility ="Visible" 
                       ScrollViewer.VerticalScrollBarVisibility   ="Auto"
                       AlternationCount                           ="2"
                       Focusable                                  ="False"

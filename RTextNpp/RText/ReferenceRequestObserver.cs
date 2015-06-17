@@ -8,9 +8,9 @@ namespace RTextNppPlugin.RText
     using CSScriptIntellisense;
     using DllExport;
     using Parsing;
-    using WpfControls;
     using Utilities;
     using Utilities.Settings;
+    using WpfControls;
     class ReferenceRequestObserver
     {
         #region [Data Members]
@@ -169,7 +169,7 @@ namespace RTextNppPlugin.RText
             if (_isKeyboardShortCutActive)
             {
                 if (!_refWindow.IsMouseInsidedWindow())
-                {
+                {                    
                     var aRefToken = Tokenizer.FindTokenUnderCursor(_nppHelper);
                     if (aRefToken.CanTokenHaveReference() && !aRefToken.Equals(_previousReferenceToken))
                     {
@@ -182,11 +182,10 @@ namespace RTextNppPlugin.RText
                     }
                     else
                     {
-                        System.Diagnostics.Trace.WriteLine("Showing window due to mouse movement...");
                         //tokens are equal - issue command if underlining is not active
                         if (!_refWindow.IsVisible)
                         {
-                            _refWindow.Show();
+                            _refWindow.IssueReferenceLinkRequestCommand(aRefToken);
                         }
                     }
                 }
