@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
@@ -68,6 +69,7 @@ namespace RTextNppPlugin.WpfControls
         private KeyInterceptor _keyMonitor                         = new KeyInterceptor(); //!< Monitors key presses.
         private bool _isOnTop                                      = false;                //!< Indicates if the link reference window is on top of a token or not.
         private const int YPOSITION_OFFSET                         = 2;                    //!< Window needs to be placed with a Y offset, because otherwise the cursor might indicate a token between the gab of the current token and the window.
+        private FrameworkElement _rowDetailsElement                = null;                 //!< Holds row details element.
         #endregion
 
         #region [Interface]
@@ -323,7 +325,7 @@ namespace RTextNppPlugin.WpfControls
                     return;
                 }
                 
-                if (!contextEqualityTask.Result.Item1 || _cachedReferenceLinks.targets.Count == 0)
+                if (!contextEqualityTask.Result.Item1 || _cachedReferenceLinks == null || _cachedReferenceLinks.targets.Count == 0)
                 {
                     _cachedReferenceLinks = await RequestReferenceLinksAsync(aRequest);                    
                 }
@@ -366,6 +368,7 @@ namespace RTextNppPlugin.WpfControls
                     Top             = aCaretPoint.Y - YPOSITION_OFFSET;
                     base.Show();
                     ForceRedraw();
+                    base.Focus();
                 }
             }
             else if (_cachedReferenceLinks == null || _cachedReferenceLinks.targets.Count == 0)
@@ -570,6 +573,62 @@ namespace RTextNppPlugin.WpfControls
                 Hide();
                 IssueReferenceLinkRequestCommand(aTokenUnderCursor);
             }
-        }        
+        }
+
+        private void AdjustWidthOfRowDetailsElement()
+        {
+            _rowDetailsElement.Width = _rowDetailsElement.MaxWidth = 0.0;
+            double currentColumnWidthSum = 0.0;
+            foreach (var column in LinkTargetDatagrid.Columns)
+            {
+                currentColumnWidthSum += column.ActualWidth;
+            }
+
+            var scrollViewer = Utilities.VisualUtilities.GetScrollViewer(LinkTargetDatagrid);
+
+            double aCurrentOffset = scrollViewer.HorizontalOffset;
+            double aExtendedWidth = scrollViewer.ExtentWidth;
+            double aViewPortWidth = scrollViewer.ViewportWidth;
+            double aMaxOffset = aExtendedWidth - aViewPortWidth;
+
+            Trace.WriteLine(String.Format("Extended Width : {0}\nViewport width : {1}\nCurrent column width : {2}", aExtendedWidth, aViewPortWidth, currentColumnWidthSum));
+
+            double aScrollviewerWidth = 0.0;
+            if (scrollViewer.ComputedVerticalScrollBarVisibility == System.Windows.Visibility.Visible)
+            {
+                aScrollviewerWidth = scrollViewer.ActualWidth - System.Windows.SystemParameters.ScrollWidth;
+            }
+            else
+            {
+                aScrollviewerWidth = scrollViewer.ActualWidth;
+            }
+            if (currentColumnWidthSum < aScrollviewerWidth)
+            {
+                _rowDetailsElement.Width = _rowDetailsElement.MaxWidth = currentColumnWidthSum;
+            }
+            else
+            {
+                _rowDetailsElement.Width = _rowDetailsElement.MaxWidth = aScrollviewerWidth;
+            }
+        }
+
+        private void OnLinkTargetDatagridLoadingRowDetails(object sender, System.Windows.Controls.DataGridRowDetailsEventArgs e)
+        {
+            _rowDetailsElement = e.DetailsElement;
+            AdjustWidthOfRowDetailsElement();            
+        }
+
+        private void OnLinkTargetsWindowMouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+            Focus();
+        }
+
+        private void OnLinkTargetDatagridSelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        {
+            if (_rowDetailsElement != null)
+            {
+                AdjustWidthOfRowDetailsElement();
+            }
+        }
     }
 }

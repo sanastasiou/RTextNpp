@@ -188,7 +188,7 @@ namespace RTextNppPlugin.WpfControls
         private double CalculateTooltipOffset()
         {
             double aCalculatedOffset = 0.0;
-            var scrollViewer = GetScrollViewer(AutoCompletionDatagrid);
+            var scrollViewer = Utilities.VisualUtilities.GetScrollViewer(AutoCompletionDatagrid);
             System.Diagnostics.Trace.WriteLine(String.Format("Window width : {0}\nBorder width : {1}\nViewport width : {2}", Width, AutoCompletionListBorder.ActualWidth, scrollViewer.ViewportWidth));
             if ((Left + Width + Constants.MAX_AUTO_COMPLETION_TOOLTIP_WIDTH) > _nppHelper.GetClientRectFromPoint(new System.Drawing.Point((int)Left, (int)Top)).Right)
             {
@@ -226,31 +226,7 @@ namespace RTextNppPlugin.WpfControls
 
             return aCalculatedOffset;
         }
-
-        /**
-         * Find the scrollbar out of a wpf control, e.g. DataGrid if it exists.
-         *
-         * \param   dep The dep.
-         *
-         * \return  The scrollbar.
-         */
-        private static ScrollViewer GetScrollViewer(DependencyObject dep)
-        {
-            for (int i = 0; i < VisualTreeHelper.GetChildrenCount(dep); i++)
-            {
-                var child =  VisualTreeHelper.GetChild(dep, i);
-                if (child != null && child is ScrollViewer)
-                    return child as ScrollViewer;
-                else
-                {
-                    ScrollViewer sub = GetScrollViewer(child);
-                    if (sub != null)
-                        return sub;
-                }
-            }
-            return null;
-        }
-
+        
         private AutoCompletionViewModel GetModel()
         {
             return ((AutoCompletionViewModel)DataContext);

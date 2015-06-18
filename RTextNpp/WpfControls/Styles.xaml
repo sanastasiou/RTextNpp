@@ -4,6 +4,7 @@
     xmlns:s            ="clr-namespace:System;assembly=mscorlib"
     xmlns:converters   ="clr-namespace:RTextNppPlugin.WpfControls.Converters"
     xmlns:sys          ="clr-namespace:System;assembly=mscorlib"
+    xmlns:viewmodels   ="clr-namespace:RTextNppPlugin.ViewModels"
 	xmlns:x            ="http://schemas.microsoft.com/winfx/2006/xaml">
     <!--Converters-->
     <converters:GreaterThanValueConverter x:Key="GreaterThanConverter"/>
@@ -191,33 +192,33 @@
         <Setter Property="Background" Value="White"/>
         <Setter Property="Foreground" Value="Blue"/>
         <Setter Property="Focusable" Value="False"/>
+        <Setter Property="IsSelected" Value="False"/>
         <Style.Triggers>
             <Trigger Property="AlternationIndex" Value="1">
                 <Setter Property="Background" Value="Gainsboro"/>
             </Trigger>
             <Trigger Property="IsMouseOver" Value="True">
                 <Setter Property ="Background" Value="Khaki"/>
-                <Setter Property ="Foreground" Value="Red"/>
+                <Setter Property ="Foreground" Value="Red"/>                
+                <Setter Property="IsSelected" Value="True"/>
             </Trigger>
         </Style.Triggers>
     </Style>
-
-    <StackPanel x:Key="ReferenceLinkToolTip" Orientation="Vertical" Focusable="False">
-        <StackPanel Orientation="Horizontal">
-            <TextBlock FontWeight="Bold" Text="Type: " Width="70"/>
-            <TextBlock Text="{Binding Display}"/>
+        
+    <DataTemplate x:Key="ReferenceLinksRowDetails">
+        <StackPanel Orientation="Vertical" MaxWidth="1" HorizontalAlignment="Left">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock FontWeight="Bold" Text="File: " Width="70"/>
+                <TextBlock Text="{Binding FilePath}"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <TextBlock FontWeight="Bold" Text="Line: " Width="70"/>
+                <TextBlock Text="{Binding Line}"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Style="{StaticResource ResourceKey=LinkReferenceWindowDescriptionStackPanelStyle}">
+                <TextBlock FontWeight="Bold" Text="Description: " Width="70"/>
+                <TextBlock Text="{Binding Description}"/>
+            </StackPanel>
         </StackPanel>
-        <StackPanel Orientation="Horizontal">
-            <TextBlock FontWeight="Bold" Text="File: " Width="70"/>
-            <TextBlock Text="{Binding FilePath}"/>
-        </StackPanel>
-        <StackPanel Orientation="Horizontal">
-            <TextBlock FontWeight="Bold" Text="Line: " Width="70"/>
-            <TextBlock Text="{Binding Line}"/>
-        </StackPanel>
-        <StackPanel Orientation="Horizontal" Style="{StaticResource ResourceKey=LinkReferenceWindowDescriptionStackPanelStyle}">
-            <TextBlock FontWeight="Bold" Text="Description: " Width="70"/>
-            <TextBlock Text="{Binding Description}"/>
-        </StackPanel>
-    </StackPanel>
+    </DataTemplate>
 </ResourceDictionary>

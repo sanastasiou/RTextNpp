@@ -512,33 +512,28 @@ namespace RTextNppPlugin.Utilities
             }
         }
 
-        //internal static void RepositionWindow(SizeChangedEventArgs e, Window w, ref bool isOnTop, INpp nppHelper, int wordY, int offset = 0)
-        //{
-        //    if (isOnTop)
-        //    {
-        //        var aHeightDiff = e.PreviousSize.Height - e.NewSize.Height;
-        //        w.Top += aHeightDiff + offset;
-        //    }
-        //    else
-        //    {
-        //        if (!((e.NewSize.Height + w.Top) <= nppHelper.GetClientRectFromControl(nppHelper.NppHandle).Bottom))
-        //        {
-        //            //bottom exceeded - put list on top of word
-        //            w.Top = wordY;
-        //            //problem here - we need to take into account the initial length of the list, otherwise our initial point is wrong if the list is not full
-        //            w.Top -= ((int)(e.NewSize.Height) - offset);
-        //            isOnTop = true;
-        //        }
-        //    }
-        //    //position list in such a way that it doesn't get split into two monitors
-        //    var rectFromPoint = nppHelper.GetClientRectFromPoint(new System.Drawing.Point((int)w.Left, (int)w.Top));
-        //    //if the width of the auto completion window overlaps the right edge of the screen, then move the window at the left until no overlap is present
-        //    if (rectFromPoint.Right < w.Left + e.NewSize.Width)
-        //    {
-        //        double dif = (w.Left + e.NewSize.Width) - rectFromPoint.Right;
-        //        w.Left -= (int)dif;
-        //    }
-        //}
-
+        /**
+         * Find the scrollbar out of a wpf control, e.g. DataGrid if it exists.
+         *
+         * \param   dep The dependency object.
+         *
+         * \return  The scrollbar.
+         */
+        internal static ScrollViewer GetScrollViewer(DependencyObject dep)
+        {
+            for (int i = 0; i < VisualTreeHelper.GetChildrenCount(dep); i++)
+            {
+                var child = VisualTreeHelper.GetChild(dep, i);
+                if (child != null && child is ScrollViewer)
+                    return child as ScrollViewer;
+                else
+                {
+                    ScrollViewer sub = GetScrollViewer(child);
+                    if (sub != null)
+                        return sub;
+                }
+            }
+            return null;
+        }
     }
 }

@@ -20,7 +20,8 @@
         LocationChanged    ="OnWindowLocationChanged"
         ShowActivated      ="False"
         Topmost            ="False"
-        MouseLeave         ="OnLinkTargetsWindowMouseLeave"
+        MouseLeave         ="OnLinkTargetsWindowMouseLeave"  
+        MouseEnter         ="OnLinkTargetsWindowMouseEnter"
         SizeToContent      ="WidthAndHeight">
     <Window.Resources>
         <ResourceDictionary>
@@ -60,14 +61,19 @@
                       ScrollViewer.HorizontalScrollBarVisibility ="Visible" 
                       ScrollViewer.VerticalScrollBarVisibility   ="Auto"
                       AlternationCount                           ="2"
-                      Focusable                                  ="False"
+                      Focusable                                  ="True"
                       SelectionMode                              ="Single"
                       AllowDrop                                  ="False"
                       SelectionUnit                              ="FullRow"
                       MaxWidth                                   ="{x:Static plugin_ns:Constants.MAX_AUXILIARY_WINDOWS_WIDTH}"
+                      MinWidth                                   ="{x:Static plugin_ns:Constants.MIN_AUXILIARY_WINDOWS_WIDTH}"
                       MaxHeight                                  ="{x:Static plugin_ns:Constants.MAX_AUXILIARY_WINDOWS_HEIGHT}" 
-                      AutoGenerateColumns                        ="false"
+                      AutoGenerateColumns                        ="False"
                       VirtualizingStackPanel.IsVirtualizing      ="True"
+                      RowDetailsTemplate                         ="{StaticResource ReferenceLinksRowDetails}"
+                      RowDetailsVisibilityMode                   ="VisibleWhenSelected"                      
+                      LoadingRowDetails                          ="OnLinkTargetDatagridLoadingRowDetails"
+                      SelectionChanged                           ="OnLinkTargetDatagridSelectionChanged"
                       IsReadOnly                                 ="True">
                 <i:Interaction.Behaviors>
                     <behaviors:UpdateWidthOnColumnResizedBehavior/>
@@ -79,22 +85,7 @@
                     </Style>
                 </DataGrid.RowStyle>
                 <DataGrid.Columns>
-                    <DataGridTextColumn Header="Type" Binding="{Binding Display}" IsReadOnly="True" CanUserSort="True" SortMemberPath="Display">
-                        <DataGridTextColumn.ElementStyle>
-                            <Style>
-                                <Setter Property="ToolTipService.ToolTip" Value="{StaticResource ResourceKey=ReferenceLinkToolTip}"/>
-                                <Setter Property="ToolTipService.Placement" Value="Right"/>
-                            </Style>
-                        </DataGridTextColumn.ElementStyle>
-                    </DataGridTextColumn>
-                    <DataGridTextColumn Header="File" IsReadOnly="True" Binding="{Binding File}" CanUserSort="True" SortMemberPath="File">
-                        <DataGridTextColumn.ElementStyle>
-                            <Style>
-                                <Setter Property="ToolTipService.ToolTip" Value="{Binding FilePath}"/>
-                                <Setter Property="ToolTipService.Placement" Value="Right"/>
-                            </Style>
-                        </DataGridTextColumn.ElementStyle>
-                    </DataGridTextColumn>
+                    <DataGridTextColumn Header="Type" Binding="{Binding Display}" IsReadOnly="True" CanUserSort="True" SortMemberPath="Display" CanUserResize="False"/>
                 </DataGrid.Columns>
             </DataGrid>
         </DockPanel>
