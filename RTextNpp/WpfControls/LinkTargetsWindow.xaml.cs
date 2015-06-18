@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
@@ -576,8 +575,7 @@ namespace RTextNppPlugin.WpfControls
         }
 
         private void AdjustWidthOfRowDetailsElement()
-        {
-            _rowDetailsElement.Width = _rowDetailsElement.MaxWidth = 0.0;
+        {            
             double currentColumnWidthSum = 0.0;
             foreach (var column in LinkTargetDatagrid.Columns)
             {
@@ -586,13 +584,7 @@ namespace RTextNppPlugin.WpfControls
 
             var scrollViewer = Utilities.VisualUtilities.GetScrollViewer(LinkTargetDatagrid);
 
-            double aCurrentOffset = scrollViewer.HorizontalOffset;
-            double aExtendedWidth = scrollViewer.ExtentWidth;
-            double aViewPortWidth = scrollViewer.ViewportWidth;
-            double aMaxOffset = aExtendedWidth - aViewPortWidth;
-
-            Trace.WriteLine(String.Format("Extended Width : {0}\nViewport width : {1}\nCurrent column width : {2}", aExtendedWidth, aViewPortWidth, currentColumnWidthSum));
-
+            double aCurrentOffset = scrollViewer.HorizontalOffset;            
             double aScrollviewerWidth = 0.0;
             if (scrollViewer.ComputedVerticalScrollBarVisibility == System.Windows.Visibility.Visible)
             {
@@ -601,15 +593,11 @@ namespace RTextNppPlugin.WpfControls
             else
             {
                 aScrollviewerWidth = scrollViewer.ActualWidth;
-            }
-            if (currentColumnWidthSum < aScrollviewerWidth)
-            {
-                _rowDetailsElement.Width = _rowDetailsElement.MaxWidth = currentColumnWidthSum;
-            }
-            else
-            {
-                _rowDetailsElement.Width = _rowDetailsElement.MaxWidth = aScrollviewerWidth;
-            }
+            }           
+
+            GetModel().RowDetailsWidth  = aScrollviewerWidth;
+            //width converter needed - max width needs to be increased to accomodate padding!
+            GetModel().RowDetailsOffset = new Thickness(aCurrentOffset, 0, 0, 0);
         }
 
         private void OnLinkTargetDatagridLoadingRowDetails(object sender, System.Windows.Controls.DataGridRowDetailsEventArgs e)

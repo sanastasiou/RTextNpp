@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Windows;
 using Microsoft.VisualStudio.Language.Intellisense;
 using RTextNppPlugin.RText.Protocol;
 using RTextNppPlugin.WpfControls;
@@ -31,12 +32,46 @@ namespace RTextNppPlugin.ViewModels
         private string _errorMsg                                   = String.Empty;
         private string _errorTooltip                               = String.Empty;
         private double _zoomLevel                                  = 1.0;
+        private double _rowDetailsWidth                            = 0.0;
+        private Thickness _thickness                               = new Thickness(0.0);
 
         public BulkObservableCollection<LinkTargetModel> Targets
         {
             get
             {
                 return _targets;
+            }
+        }
+
+        public Thickness RowDetailsOffset
+        {
+            get
+            {
+                return _thickness;
+            }
+            set
+            {
+                if(value != _thickness)
+                {
+                    _thickness = value;
+                    base.RaisePropertyChanged("RowDetailsOffset");
+                }
+            }
+        }
+
+        public double RowDetailsWidth
+        {
+            get
+            {
+                return _rowDetailsWidth;
+            }
+            set
+            {
+                if(value != _rowDetailsWidth)
+                {
+                    _rowDetailsWidth = value;
+                    base.RaisePropertyChanged("RowDetailsWidth");
+                }
             }
         }
 

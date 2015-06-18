@@ -7,7 +7,7 @@
         xmlns:plugin_ns    ="clr-namespace:RTextNppPlugin"
         xmlns:sys          ="clr-namespace:System;assembly=mscorlib"
         xmlns:i            ="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
-        xmlns:behaviors    ="clr-namespace:RTextNppPlugin.WpfControls.Behaviors"
+        xmlns:behaviors    ="clr-namespace:RTextNppPlugin.WpfControls.Behaviors"        
         x:ClassModifier    ="internal"
         mc:Ignorable       ="d"
         WindowStyle        ="None"
@@ -21,13 +21,13 @@
         ShowActivated      ="False"
         Topmost            ="False"
         MouseLeave         ="OnLinkTargetsWindowMouseLeave"  
-        MouseEnter         ="OnLinkTargetsWindowMouseEnter"
+        MouseEnter         ="OnLinkTargetsWindowMouseEnter"        
         SizeToContent      ="WidthAndHeight">
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="Styles.xaml"/>
-            </ResourceDictionary.MergedDictionaries>
+            </ResourceDictionary.MergedDictionaries>            
         </ResourceDictionary>
     </Window.Resources>
     <Window.DataContext>
@@ -69,11 +69,13 @@
                       MinWidth                                   ="{x:Static plugin_ns:Constants.MIN_AUXILIARY_WINDOWS_WIDTH}"
                       MaxHeight                                  ="{x:Static plugin_ns:Constants.MAX_AUXILIARY_WINDOWS_HEIGHT}" 
                       AutoGenerateColumns                        ="False"
-                      VirtualizingStackPanel.IsVirtualizing      ="True"
-                      RowDetailsTemplate                         ="{StaticResource ReferenceLinksRowDetails}"
+                      VirtualizingStackPanel.IsVirtualizing      ="True"                                            
                       RowDetailsVisibilityMode                   ="VisibleWhenSelected"                      
                       LoadingRowDetails                          ="OnLinkTargetDatagridLoadingRowDetails"
                       SelectionChanged                           ="OnLinkTargetDatagridSelectionChanged"
+                      RowDetailsTemplate                         ="{StaticResource LinkReferenceRowDetailsTemplate}"
+                      GridLinesVisibility                        ="None"
+                      HeadersVisibility                          ="Column"                      
                       IsReadOnly                                 ="True">
                 <i:Interaction.Behaviors>
                     <behaviors:UpdateWidthOnColumnResizedBehavior/>

@@ -204,19 +204,21 @@
             </Trigger>
         </Style.Triggers>
     </Style>
-        
-    <DataTemplate x:Key="ReferenceLinksRowDetails">
-        <StackPanel Orientation="Vertical" MaxWidth="1" HorizontalAlignment="Left">
+
+    <DataTemplate x:Key="LinkReferenceRowDetailsTemplate">
+        <StackPanel Orientation="Vertical" 
+                    HorizontalAlignment="Left" 
+                    Width="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}, Path=DataContext.RowDetailsWidth}">
             <StackPanel Orientation="Horizontal">
-                <TextBlock FontWeight="Bold" Text="File: " Width="70"/>
-                <TextBlock Text="{Binding FilePath}"/>
+                <TextBlock FontWeight="Bold" Text="File: " Width="40" Padding="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}, Path=DataContext.RowDetailsOffset}" />
+                <TextBlock Text="{Binding FilePath}" Padding="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}, Path=DataContext.RowDetailsOffset}" />
             </StackPanel>
             <StackPanel Orientation="Horizontal">
-                <TextBlock FontWeight="Bold" Text="Line: " Width="70"/>
+                <TextBlock FontWeight="Bold" Text="Line: " Width="40"/>
                 <TextBlock Text="{Binding Line}"/>
             </StackPanel>
             <StackPanel Orientation="Horizontal" Style="{StaticResource ResourceKey=LinkReferenceWindowDescriptionStackPanelStyle}">
-                <TextBlock FontWeight="Bold" Text="Description: " Width="70"/>
+                <TextBlock FontWeight="Bold" Text="Description: " Width="40"/>
                 <TextBlock Text="{Binding Description}"/>
             </StackPanel>
         </StackPanel>
