@@ -367,7 +367,7 @@ namespace RTextNppPlugin.WpfControls
                     Top             = aCaretPoint.Y - YPOSITION_OFFSET;
                     base.Show();
                     ForceRedraw();
-                    base.Focus();
+                    LinkTargetDatagrid.Focus();
                 }
             }
             else if (_cachedReferenceLinks == null || _cachedReferenceLinks.targets.Count == 0)
@@ -609,11 +609,15 @@ namespace RTextNppPlugin.WpfControls
 
         private void OnLinkTargetsWindowMouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
         {
-            Focus();
+            LinkTargetDatagrid.Focus();
         }
 
         private void OnLinkTargetDatagridSelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
         {
+            if (!IsFocused)
+            {
+                LinkTargetDatagrid.Focus();
+            }
             if (_rowDetailsElement != null)
             {
                 AdjustWidthOfRowDetailsElement();
