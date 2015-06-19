@@ -4,7 +4,7 @@ using System.Windows.Data;
 namespace RTextNppPlugin.WpfControls.Converters
 {
     [ValueConversion(typeof(object), typeof(string))]
-    public class GreaterThanValueConverter : IValueConverter
+    internal class GreaterThanValueConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
         {

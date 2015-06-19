@@ -593,11 +593,12 @@ namespace RTextNppPlugin.WpfControls
             else
             {
                 aScrollviewerWidth = scrollViewer.ActualWidth;
-            }           
+            }
 
-            GetModel().RowDetailsWidth  = aScrollviewerWidth;
-            //width converter needed - max width needs to be increased to accomodate padding!
+            GetModel().RowDetailsWidth  = aScrollviewerWidth + aCurrentOffset;
+            GetModel().LabelsWidth      = aCurrentOffset + Constants.INITIAL_WIDTH_LINK_REFERENCE_LABELS;
             GetModel().RowDetailsOffset = new Thickness(aCurrentOffset, 0, 0, 0);
+            GetModel().MaxLinkTextSize  = aScrollviewerWidth - Constants.INITIAL_WIDTH_LINK_REFERENCE_LABELS;
         }
 
         private void OnLinkTargetDatagridLoadingRowDetails(object sender, System.Windows.Controls.DataGridRowDetailsEventArgs e)

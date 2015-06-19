@@ -210,15 +210,15 @@
                     HorizontalAlignment="Left" 
                     Width="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}, Path=DataContext.RowDetailsWidth}">
             <StackPanel Orientation="Horizontal">
-                <TextBlock FontWeight="Bold" Text="File: " Width="40" Padding="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}, Path=DataContext.RowDetailsOffset}" />
-                <TextBlock Text="{Binding FilePath}" Padding="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}, Path=DataContext.RowDetailsOffset}" />
+                <TextBlock FontWeight="Bold" Text="File: " Width="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}, Path=DataContext.LabelsWidth}" Padding="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}, Path=DataContext.RowDetailsOffset}" />
+                <TextBlock Text="{Binding FilePath}" MaxWidth="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}, Path=DataContext.MaxLinkTextSize}" TextWrapping="Wrap" />
             </StackPanel>
             <StackPanel Orientation="Horizontal">
-                <TextBlock FontWeight="Bold" Text="Line: " Width="40"/>
+                <TextBlock FontWeight="Bold" Text="Line: " Width="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}, Path=DataContext.LabelsWidth}" Padding="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}, Path=DataContext.RowDetailsOffset}"/>
                 <TextBlock Text="{Binding Line}"/>
             </StackPanel>
             <StackPanel Orientation="Horizontal" Style="{StaticResource ResourceKey=LinkReferenceWindowDescriptionStackPanelStyle}">
-                <TextBlock FontWeight="Bold" Text="Description: " Width="40"/>
+                <TextBlock FontWeight="Bold" Text="Description: " Width="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}, Path=DataContext.LabelsWidth}" Padding="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}, Path=DataContext.RowDetailsOffset}"/>
                 <TextBlock Text="{Binding Description}"/>
             </StackPanel>
         </StackPanel>

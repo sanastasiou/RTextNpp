@@ -34,12 +34,46 @@ namespace RTextNppPlugin.ViewModels
         private double _zoomLevel                                  = 1.0;
         private double _rowDetailsWidth                            = 0.0;
         private Thickness _thickness                               = new Thickness(0.0);
+        private double _labelsWidth                                = Constants.INITIAL_WIDTH_LINK_REFERENCE_LABELS;
+        private double _maxLinkTextSize                            = 0.0;
 
         public BulkObservableCollection<LinkTargetModel> Targets
         {
             get
             {
                 return _targets;
+            }
+        }
+
+        public double MaxLinkTextSize
+        {
+            get
+            {
+                return _maxLinkTextSize;
+            }
+            set
+            {
+                if (value != _maxLinkTextSize)
+                {
+                    _maxLinkTextSize = value;
+                    base.RaisePropertyChanged("MaxLinkTextSize");
+                }
+            }
+        }
+
+        public double LabelsWidth
+        {
+            get
+            {
+                return _labelsWidth;
+            }
+            set
+            {
+                if(value != _labelsWidth)
+                {
+                    _labelsWidth = value;
+                    base.RaisePropertyChanged("LabelsWidth");
+                }
             }
         }
 
