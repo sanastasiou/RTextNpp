@@ -35,7 +35,8 @@ namespace RTextNppPlugin.Utilities.Settings
             AutoLoadWorkspace,
             AutoSaveFiles,
             AutoChangeWorkspace,
-            ExcludeExtensions
+            ExcludeExtensions,
+            ReferenceLinkColumnWidth
         }
 
         #region [Interface]

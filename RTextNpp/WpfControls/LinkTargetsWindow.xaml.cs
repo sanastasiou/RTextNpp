@@ -107,6 +107,7 @@ namespace RTextNppPlugin.WpfControls
         internal LinkTargetsWindow(INpp nppHelper, IWin32 win32Helper, ISettings settingsHelper, ConnectorManager cmanager)
         {
             InitializeComponent();
+            DataContext                 = new ReferenceLinkViewModel(settingsHelper);
             _nppHelper                  = nppHelper;
             _win32Helper                = win32Helper;
             _settings                   = settingsHelper;

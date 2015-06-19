@@ -29,10 +29,7 @@
                 <ResourceDictionary Source="Styles.xaml"/>
             </ResourceDictionary.MergedDictionaries>            
         </ResourceDictionary>
-    </Window.Resources>
-    <Window.DataContext>
-        <viewmodels:ReferenceLinkViewModel/>
-    </Window.DataContext>
+    </Window.Resources>    
     <Border BorderBrush     ="Black"
             Name            ="LinkBorder"
             Padding         ="0"            
@@ -65,8 +62,7 @@
                       SelectionMode                              ="Single"
                       AllowDrop                                  ="False"
                       SelectionUnit                              ="FullRow"
-                      MaxWidth                                   ="{x:Static plugin_ns:Constants.MAX_AUXILIARY_WINDOWS_WIDTH}"
-                      MinWidth                                   ="{x:Static plugin_ns:Constants.MIN_AUXILIARY_WINDOWS_WIDTH}"
+                      MaxWidth                                   ="{x:Static plugin_ns:Constants.MAX_AUXILIARY_WINDOWS_WIDTH}"                      
                       MaxHeight                                  ="{x:Static plugin_ns:Constants.MAX_AUXILIARY_WINDOWS_HEIGHT}" 
                       AutoGenerateColumns                        ="False"
                       VirtualizingStackPanel.IsVirtualizing      ="True"                                            
@@ -78,9 +74,6 @@
                       MouseEnter                                 ="OnLinkTargetsWindowMouseEnter"
                       HeadersVisibility                          ="Column"                      
                       IsReadOnly                                 ="True">
-                <i:Interaction.Behaviors>
-                    <behaviors:UpdateWidthOnColumnResizedBehavior/>
-                </i:Interaction.Behaviors>
                 <DataGrid.RowStyle>
                     <Style BasedOn="{StaticResource ResourceKey=LinkReferenceWindowDataGridRowStyle}" TargetType="{x:Type DataGridRow}">
                         <EventSetter Event="DataGridRow.MouseEnter" Handler="OnRowMouseEnter"/>
@@ -88,7 +81,14 @@
                     </Style>
                 </DataGrid.RowStyle>
                 <DataGrid.Columns>
-                    <DataGridTextColumn Header="References" Binding="{Binding Display}" IsReadOnly="True" CanUserSort="True" SortMemberPath="FilePath" CanUserResize="True" ToolTipService.ToolTip="Click to sort by file path."/>
+                    <DataGridTextColumn Header         ="References"                                         
+                                        Binding        ="{Binding Display}"
+                                        IsReadOnly     ="True" 
+                                        CanUserSort    ="True" 
+                                        SortMemberPath ="FilePath" 
+                                        CanUserResize  ="True"                                         
+                                        Width          ="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}, Path=DataContext.ReferenceLinkColumnWidth, Mode=TwoWay}"
+                                        MinWidth       ="{x:Static plugin_ns:Constants.MIN_AUXILIARY_WINDOWS_WIDTH}"/>
                 </DataGrid.Columns>
             </DataGrid>
         </DockPanel>

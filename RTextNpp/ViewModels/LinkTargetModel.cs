@@ -5,6 +5,7 @@ using System.Linq;
 using System.Windows;
 using Microsoft.VisualStudio.Language.Intellisense;
 using RTextNppPlugin.RText.Protocol;
+using RTextNppPlugin.Utilities.Settings;
 using RTextNppPlugin.WpfControls;
 
 namespace RTextNppPlugin.ViewModels
@@ -36,6 +37,31 @@ namespace RTextNppPlugin.ViewModels
         private Thickness _thickness                               = new Thickness(0.0);
         private double _labelsWidth                                = Constants.INITIAL_WIDTH_LINK_REFERENCE_LABELS;
         private double _maxLinkTextSize                            = 0.0;
+        private ISettings _settings                                = null;
+        private double _referenceLinkColumnWidth                   = 0.0;
+        
+        internal ReferenceLinkViewModel(ISettings settings)
+        {
+            _settings = settings;
+            _referenceLinkColumnWidth = _settings.Get<double>(Settings.RTextNppSettings.ReferenceLinkColumnWidth);
+        }
+
+        public double ReferenceLinkColumnWidth
+        {
+            get
+            {
+                return _referenceLinkColumnWidth;
+            }
+            set
+            {
+                if(value != _referenceLinkColumnWidth)
+                {
+                    _referenceLinkColumnWidth = value;
+                    base.RaisePropertyChanged("ReferenceLinkColumnWidth");
+                    _settings.Set(_referenceLinkColumnWidth, Settings.RTextNppSettings.ReferenceLinkColumnWidth);
+                }
+            }
+        }
 
         public BulkObservableCollection<LinkTargetModel> Targets
         {

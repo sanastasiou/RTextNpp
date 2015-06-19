@@ -211,15 +211,23 @@
                     Width="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}, Path=DataContext.RowDetailsWidth}">
             <StackPanel Orientation="Horizontal">
                 <TextBlock FontWeight="Bold" Text="File: " Width="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}, Path=DataContext.LabelsWidth}" Padding="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}, Path=DataContext.RowDetailsOffset}" />
-                <TextBlock Text="{Binding FilePath}" MaxWidth="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}, Path=DataContext.MaxLinkTextSize}" TextWrapping="Wrap" />
+                <TextBlock Text="{Binding FilePath}"
+                           MaxWidth="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}, Path=DataContext.MaxLinkTextSize}"
+                           TextWrapping="WrapWithOverflow" />
             </StackPanel>
             <StackPanel Orientation="Horizontal">
-                <TextBlock FontWeight="Bold" Text="Line: " Width="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}, Path=DataContext.LabelsWidth}" Padding="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}, Path=DataContext.RowDetailsOffset}"/>
-                <TextBlock Text="{Binding Line}"/>
+                <TextBlock FontWeight="Bold" Text="Line: "
+                           Width="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}, Path=DataContext.LabelsWidth}"
+                           Padding="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}, Path=DataContext.RowDetailsOffset}"/>
+                <TextBlock Text="{Binding Line}"
+                           MaxWidth="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}, Path=DataContext.MaxLinkTextSize}"
+                           TextWrapping="WrapWithOverflow"/>
             </StackPanel>
             <StackPanel Orientation="Horizontal" Style="{StaticResource ResourceKey=LinkReferenceWindowDescriptionStackPanelStyle}">
                 <TextBlock FontWeight="Bold" Text="Description: " Width="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}, Path=DataContext.LabelsWidth}" Padding="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}, Path=DataContext.RowDetailsOffset}"/>
-                <TextBlock Text="{Binding Description}"/>
+                <TextBlock Text="{Binding Description}"
+                           MaxWidth="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}, Path=DataContext.MaxLinkTextSize}"
+                           TextWrapping="WrapWithOverflow"/>
             </StackPanel>
         </StackPanel>
     </DataTemplate>
