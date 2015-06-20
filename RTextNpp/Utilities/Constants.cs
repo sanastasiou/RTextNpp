@@ -48,6 +48,7 @@ namespace RTextNppPlugin
         public const string REFERENCE_LINK_NAME = "REFERENCE_LINK";             //!< Reference link name for lexer style.
         public const double ZOOM_FACTOR = 0.08;                                 //!< Relation between actual zoom and scintilla zoom factor for various plugin windows.
         public const double INITIAL_WIDTH_LINK_REFERENCE_LABELS = 70.0;         //!< Initial width of link reference labels in row details template. This is used to align all labels.
+        public const double MAX_WIDTH_LINK_REFERENCE_LABELS = 600.0;            //!< Initial width of link reference labels in row details template. This is used to align all labels.
 
         #region NppMenuCommand
         public enum NppMenuCommands : int

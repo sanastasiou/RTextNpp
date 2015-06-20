@@ -5,6 +5,7 @@
     xmlns:converters   ="clr-namespace:RTextNppPlugin.WpfControls.Converters"
     xmlns:sys          ="clr-namespace:System;assembly=mscorlib"
     xmlns:viewmodels   ="clr-namespace:RTextNppPlugin.ViewModels"
+    xmlns:plugin_ns    ="clr-namespace:RTextNppPlugin"
 	xmlns:x            ="http://schemas.microsoft.com/winfx/2006/xaml">
     <!--Converters-->
     <converters:GreaterThanValueConverter x:Key="GreaterThanConverter"/>
@@ -204,31 +205,5 @@
             </Trigger>
         </Style.Triggers>
     </Style>
-
-    <DataTemplate x:Key="LinkReferenceRowDetailsTemplate">
-        <StackPanel Orientation="Vertical" 
-                    HorizontalAlignment="Left" 
-                    Width="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}, Path=DataContext.RowDetailsWidth}">
-            <StackPanel Orientation="Horizontal">
-                <TextBlock FontWeight="Bold" Text="File: " Width="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}, Path=DataContext.LabelsWidth}" Padding="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}, Path=DataContext.RowDetailsOffset}" />
-                <TextBlock Text="{Binding FilePath}"
-                           MaxWidth="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}, Path=DataContext.MaxLinkTextSize}"
-                           TextWrapping="WrapWithOverflow" />
-            </StackPanel>
-            <StackPanel Orientation="Horizontal">
-                <TextBlock FontWeight="Bold" Text="Line: "
-                           Width="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}, Path=DataContext.LabelsWidth}"
-                           Padding="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}, Path=DataContext.RowDetailsOffset}"/>
-                <TextBlock Text="{Binding Line}"
-                           MaxWidth="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}, Path=DataContext.MaxLinkTextSize}"
-                           TextWrapping="WrapWithOverflow"/>
-            </StackPanel>
-            <StackPanel Orientation="Horizontal" Style="{StaticResource ResourceKey=LinkReferenceWindowDescriptionStackPanelStyle}">
-                <TextBlock FontWeight="Bold" Text="Description: " Width="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}, Path=DataContext.LabelsWidth}" Padding="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}, Path=DataContext.RowDetailsOffset}"/>
-                <TextBlock Text="{Binding Description}"
-                           MaxWidth="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}, Path=DataContext.MaxLinkTextSize}"
-                           TextWrapping="WrapWithOverflow"/>
-            </StackPanel>
-        </StackPanel>
-    </DataTemplate>
+       
 </ResourceDictionary>

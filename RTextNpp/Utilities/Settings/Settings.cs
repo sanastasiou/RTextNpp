@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using RTextNppPlugin.Logging;
-using RTextNppPlugin.Utilities;
 
 namespace RTextNppPlugin.Utilities.Settings
 {
@@ -35,8 +32,7 @@ namespace RTextNppPlugin.Utilities.Settings
             AutoLoadWorkspace,
             AutoSaveFiles,
             AutoChangeWorkspace,
-            ExcludeExtensions,
-            ReferenceLinkColumnWidth
+            ExcludeExtensions
         }
 
         #region [Interface]

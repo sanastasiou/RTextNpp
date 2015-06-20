@@ -66,14 +66,15 @@
                       MaxHeight                                  ="{x:Static plugin_ns:Constants.MAX_AUXILIARY_WINDOWS_HEIGHT}" 
                       AutoGenerateColumns                        ="False"
                       VirtualizingStackPanel.IsVirtualizing      ="True"                                            
-                      RowDetailsVisibilityMode                   ="VisibleWhenSelected"                      
-                      LoadingRowDetails                          ="OnLinkTargetDatagridLoadingRowDetails"
-                      SelectionChanged                           ="OnLinkTargetDatagridSelectionChanged"
-                      RowDetailsTemplate                         ="{StaticResource LinkReferenceRowDetailsTemplate}"
+                      RowDetailsVisibilityMode                   ="VisibleWhenSelected"
+                      SelectionChanged                           ="OnLinkTargetDatagridSelectionChanged"                      
                       GridLinesVisibility                        ="None"                      
                       MouseEnter                                 ="OnLinkTargetsWindowMouseEnter"
                       HeadersVisibility                          ="Column"                      
                       IsReadOnly                                 ="True">
+                <i:Interaction.Behaviors>
+                    <behaviors:UpdateWidthOnColumnResizedBehavior/>
+                </i:Interaction.Behaviors>
                 <DataGrid.RowStyle>
                     <Style BasedOn="{StaticResource ResourceKey=LinkReferenceWindowDataGridRowStyle}" TargetType="{x:Type DataGridRow}">
                         <EventSetter Event="DataGridRow.MouseEnter" Handler="OnRowMouseEnter"/>
@@ -86,9 +87,49 @@
                                         IsReadOnly     ="True" 
                                         CanUserSort    ="True" 
                                         SortMemberPath ="FilePath" 
-                                        CanUserResize  ="True"                                         
-                                        Width          ="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}, Path=DataContext.ReferenceLinkColumnWidth, Mode=TwoWay}"
-                                        MinWidth       ="{x:Static plugin_ns:Constants.MIN_AUXILIARY_WINDOWS_WIDTH}"/>
+                                        CanUserResize  ="True"                                                                                                                        
+                                        MinWidth       ="{x:Static plugin_ns:Constants.MIN_AUXILIARY_WINDOWS_WIDTH}">
+                        <DataGridTextColumn.CellStyle>
+                            <Style TargetType="DataGridCell">
+                                <Setter Property="ToolTip">
+                                    <Setter.Value>
+                                        <ToolTip>
+                                            <ToolTip.Style>
+                                                <Style>
+                                                    <Setter Property="ToolTip.Padding" Value="0"/>
+                                                    <Setter Property="ToolTip.Margin" Value="0"/>
+                                                    <Setter Property="ToolTip.Placement" Value="Right" />
+                                                    <Setter Property="ToolTip.VerticalOffset" Value="-1"/>                                                    
+                                                </Style>
+                                            </ToolTip.Style>
+                                            <StackPanel Orientation="Vertical" 
+                                                        HorizontalAlignment="Left">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock FontWeight="Bold" Text="File: " Width="{x:Static plugin_ns:Constants.INITIAL_WIDTH_LINK_REFERENCE_LABELS}"/>
+                                                    <TextBlock Text="{Binding FilePath}"                                                               
+                                                               MaxWidth="{x:Static plugin_ns:Constants.MAX_WIDTH_LINK_REFERENCE_LABELS}"
+                                                               TextWrapping="Wrap" />
+                                                </StackPanel>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock FontWeight="Bold" Text="Line: "
+                                                               Width="{x:Static plugin_ns:Constants.INITIAL_WIDTH_LINK_REFERENCE_LABELS}"/>
+                                                    <TextBlock Text="{Binding Line}"                                                               
+                                                               MaxWidth="{x:Static plugin_ns:Constants.MAX_WIDTH_LINK_REFERENCE_LABELS}"
+                                                               TextWrapping="Wrap" />
+                                                </StackPanel>
+                                                <StackPanel Orientation="Horizontal" Style="{StaticResource ResourceKey=LinkReferenceWindowDescriptionStackPanelStyle}">
+                                                    <TextBlock FontWeight="Bold" Text="Description: " Width="{x:Static plugin_ns:Constants.INITIAL_WIDTH_LINK_REFERENCE_LABELS}"/>
+                                                    <TextBlock Text="{Binding Description}"                                                               
+                                                               MaxWidth="{x:Static plugin_ns:Constants.MAX_WIDTH_LINK_REFERENCE_LABELS}"
+                                                               TextWrapping="Wrap" />
+                                                </StackPanel>
+                                            </StackPanel>
+                                        </ToolTip>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </DataGridTextColumn.CellStyle>                        
+                    </DataGridTextColumn>
                 </DataGrid.Columns>
             </DataGrid>
         </DockPanel>

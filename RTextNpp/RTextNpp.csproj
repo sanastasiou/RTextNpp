@@ -151,9 +151,11 @@
       <DependentUpon>AutoCompletionWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="WpfControls\ILinkTargetsWindow.cs" />
+    <Compile Include="WpfControls\IWindowPosition.cs" />
     <Compile Include="WpfControls\LinkTargetsWindow.xaml.cs">
       <DependentUpon>LinkTargetsWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="WpfControls\ScrollviewerTooltipOffsetCalculator.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="FileSystemWatcherCLRWrapper">

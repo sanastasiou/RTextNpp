@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
@@ -67,8 +68,9 @@ namespace RTextNppPlugin.WpfControls
         private Connector _connector                               = null;                 //!< Connector which is relevant to the actual focused file.
         private KeyInterceptor _keyMonitor                         = new KeyInterceptor(); //!< Monitors key presses.
         private bool _isOnTop                                      = false;                //!< Indicates if the link reference window is on top of a token or not.
-        private const int YPOSITION_OFFSET                         = 2;                    //!< Window needs to be placed with a Y offset, because otherwise the cursor might indicate a token between the gab of the current token and the window.
-        private FrameworkElement _rowDetailsElement                = null;                 //!< Holds row details element.
+        private const int YPOSITION_OFFSET                         = 2;                    //!< Window needs to be placed with a Y offset, because otherwise the cursor might indicate a token between the gab of the current token and the window.        
+        ToolTip _previouslyOpenedToolTip                           = null;                 //!< Reference to previously opened tooltip.
+        DelayedEventHandler _delayedToolTipHandler                 = null;                 //!< Triggers tooltip opening with a delay.
         #endregion
 
         #region [Interface]
@@ -224,6 +226,30 @@ namespace RTextNppPlugin.WpfControls
         #endregion
 
         #region EventHandlers
+        private void OnLinkTargetsWindowMouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+            //only hide the window if the mouse has also left the actual underlined token
+            var aTokenUnderCursor = Tokenizer.FindTokenUnderCursor(_nppHelper);
+            if (!aTokenUnderCursor.Equals(_referenceRequestObserver.UnderlinedToken))
+            {
+                Hide();
+                IssueReferenceLinkRequestCommand(aTokenUnderCursor);
+            }
+        }
+
+        private void OnLinkTargetsWindowMouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+            LinkTargetDatagrid.Focus();
+        }
+
+        private void OnLinkTargetDatagridSelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        {
+            if (!IsFocused)
+            {
+                LinkTargetDatagrid.Focus();
+            }
+        }
+
         /**
          * \brief   Resizes open auto completion list when the container's size change.
          */
@@ -562,67 +588,6 @@ namespace RTextNppPlugin.WpfControls
             }
         }
 
-        #endregion
-
-        private void OnLinkTargetsWindowMouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
-        {
-            //only hide the window if the mouse has also left the actual underlined token
-            var aTokenUnderCursor = Tokenizer.FindTokenUnderCursor(_nppHelper);
-            if (!aTokenUnderCursor.Equals(_referenceRequestObserver.UnderlinedToken))
-            {
-                Hide();
-                IssueReferenceLinkRequestCommand(aTokenUnderCursor);
-            }
-        }
-
-        private void AdjustWidthOfRowDetailsElement()
-        {            
-            double currentColumnWidthSum = 0.0;
-            foreach (var column in LinkTargetDatagrid.Columns)
-            {
-                currentColumnWidthSum += column.ActualWidth;
-            }
-
-            var scrollViewer = Utilities.VisualUtilities.GetScrollViewer(LinkTargetDatagrid);
-
-            double aCurrentOffset = scrollViewer.HorizontalOffset;            
-            double aScrollviewerWidth = 0.0;
-            if (scrollViewer.ComputedVerticalScrollBarVisibility == System.Windows.Visibility.Visible)
-            {
-                aScrollviewerWidth = scrollViewer.ActualWidth - System.Windows.SystemParameters.ScrollWidth;
-            }
-            else
-            {
-                aScrollviewerWidth = scrollViewer.ActualWidth;
-            }
-
-            GetModel().RowDetailsWidth  = aScrollviewerWidth + aCurrentOffset;
-            GetModel().LabelsWidth      = aCurrentOffset + Constants.INITIAL_WIDTH_LINK_REFERENCE_LABELS;
-            GetModel().RowDetailsOffset = new Thickness(aCurrentOffset, 0, 0, 0);
-            GetModel().MaxLinkTextSize  = aScrollviewerWidth - Constants.INITIAL_WIDTH_LINK_REFERENCE_LABELS;
-        }
-
-        private void OnLinkTargetDatagridLoadingRowDetails(object sender, System.Windows.Controls.DataGridRowDetailsEventArgs e)
-        {
-            _rowDetailsElement = e.DetailsElement;
-            AdjustWidthOfRowDetailsElement();            
-        }
-
-        private void OnLinkTargetsWindowMouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
-        {
-            LinkTargetDatagrid.Focus();
-        }
-
-        private void OnLinkTargetDatagridSelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
-        {
-            if (!IsFocused)
-            {
-                LinkTargetDatagrid.Focus();
-            }
-            if (_rowDetailsElement != null)
-            {
-                AdjustWidthOfRowDetailsElement();
-            }
-        }
+        #endregion        
     }
 }

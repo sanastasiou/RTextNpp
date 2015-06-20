@@ -59,8 +59,8 @@
                       ScrollViewer.CanContentScroll="True" 
                       ScrollViewer.HorizontalScrollBarVisibility="Auto" 
                       ScrollViewer.VerticalScrollBarVisibility="Auto"                      
-                      Focusable="False"
-                      AlternationCount="2"
+                      Focusable="False"                      
+                      HorizontalAlignment="Left"
                       SelectedIndex="{Binding SelectedIndex}"
                       SelectionMode="Single"                                            
                       BorderThickness="1"
@@ -71,7 +71,7 @@
                       SelectionChanged="OnAutoCompletionDatagridSelectionChanged"
                       MaxWidth="{x:Static plugin_ns:Constants.MAX_AUXILIARY_WINDOWS_WIDTH}"
                       MaxHeight="{x:Static plugin_ns:Constants.MAX_AUXILIARY_WINDOWS_HEIGHT}"                      
-                      AutoGenerateColumns="false"
+                      AutoGenerateColumns="False"
                       HeadersVisibility="None"
                       GridLinesVisibility="None"
                       MouseDoubleClick="OnAutoCompletionDatagridMouseDoubleClick"
@@ -90,8 +90,7 @@
                     <DataGridTemplateColumn Header="Options" Width="SizeToCells" IsReadOnly="True" MinWidth="250">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>                                
-                                <Border ToolTipOpening="OnAutoCompletionBorderToolTipOpening"
-                                        Name="OptionContainer"                                        
+                                <Border ToolTipOpening="OnAutoCompletionBorderToolTipOpening"                                        
                                         TargetUpdated="OnAutoCompletionBorderBackgroundUpdated"                                        
                                         MouseEnter="OnAutoCompletionBorderMouseEnter">
                                     <Border.ToolTip>

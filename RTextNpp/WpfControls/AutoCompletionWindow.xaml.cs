@@ -5,18 +5,18 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
-using System.Windows.Media;
 using CSScriptIntellisense;
 using RTextNppPlugin.DllExport;
 using RTextNppPlugin.RText;
 using RTextNppPlugin.RText.Parsing;
 using RTextNppPlugin.Utilities;
 using RTextNppPlugin.ViewModels;
+using System.Linq;
 
 
 namespace RTextNppPlugin.WpfControls
 {
-    public partial class AutoCompletionWindow : System.Windows.Window, IDisposable, IWin32MessageReceptor
+    public partial class AutoCompletionWindow : System.Windows.Window, IDisposable, IWin32MessageReceptor, IWindowPosition
     {
         #region [DataMembers]
 
@@ -46,6 +46,11 @@ namespace RTextNppPlugin.WpfControls
             _keyMonitor.KeysToIntercept.Add((int)System.Windows.Forms.Keys.Up);
             _keyMonitor.KeysToIntercept.Add((int)System.Windows.Forms.Keys.PageUp);
             _keyMonitor.KeysToIntercept.Add((int)System.Windows.Forms.Keys.PageDown);
+        }
+
+        public bool IsEdgeOfScreenReached(double offset)
+        {
+            return ((Left + Width + offset) > _nppHelper.GetClientRectFromPoint(new System.Drawing.Point((int)Left, (int)Top)).Right);
         }
 
         void OnAutoCompletionMouseMonitorMouseWheelMoved(object sender, MouseEventExtArgs e)
@@ -189,29 +194,15 @@ namespace RTextNppPlugin.WpfControls
         {
             double aCalculatedOffset = 0.0;
             var scrollViewer = Utilities.VisualUtilities.GetScrollViewer(AutoCompletionDatagrid);
-            System.Diagnostics.Trace.WriteLine(String.Format("Window width : {0}\nBorder width : {1}\nViewport width : {2}", Width, AutoCompletionListBorder.ActualWidth, scrollViewer.ViewportWidth));
-            if ((Left + Width + Constants.MAX_AUTO_COMPLETION_TOOLTIP_WIDTH) > _nppHelper.GetClientRectFromPoint(new System.Drawing.Point((int)Left, (int)Top)).Right)
+
+            if (IsEdgeOfScreenReached(Constants.MAX_AUTO_COMPLETION_TOOLTIP_WIDTH))
             {
-                if (scrollViewer.ComputedHorizontalScrollBarVisibility == System.Windows.Visibility.Visible)
-                {
-                    //offset here is the amount of pixels that the scrollbar can move to the right for some reason tooltip doesn't work correctly when offset is present...
-                    //fix it by subtracting the current offset
-                    double aCurrentOffset = scrollViewer.HorizontalOffset;
-                    aCalculatedOffset += aCurrentOffset;
-                }
                 return aCalculatedOffset;
             }
-            if(scrollViewer.ComputedVerticalScrollBarVisibility == System.Windows.Visibility.Visible)
+
+            if (scrollViewer.ComputedVerticalScrollBarVisibility == System.Windows.Visibility.Visible)
             {
                 aCalculatedOffset += System.Windows.SystemParameters.ScrollWidth;
-            }
-            else if (scrollViewer.ComputedVerticalScrollBarVisibility == System.Windows.Visibility.Collapsed)
-            {
-                //wpf bug - when a scrollbar gets collapsed due to filtering some leftover remain :s
-                if (AutoCompletionListBorder.ActualWidth > scrollViewer.ViewportWidth)
-                {                    
-                    aCalculatedOffset += (System.Windows.SystemParameters.ScrollWidth - 11.0);
-                }
             }
             
             if(scrollViewer.ComputedHorizontalScrollBarVisibility == System.Windows.Visibility.Visible)
@@ -219,9 +210,18 @@ namespace RTextNppPlugin.WpfControls
                 //offset here is the amount of pixels that the scrollbar can move to the right
                 double aCurrentOffset = scrollViewer.HorizontalOffset;
                 double aExtendedWidth = scrollViewer.ExtentWidth;
-                double aViewPortWidth = scrollViewer.ViewportWidth;
-                double aMaxOffset     = aExtendedWidth - aViewPortWidth;
-                aCalculatedOffset     -= (aMaxOffset - aCurrentOffset);
+                double aActualWidth   = scrollViewer.ActualWidth;
+                double aMaxOffset     = aExtendedWidth - aActualWidth;
+                aCalculatedOffset     -= (aMaxOffset - aCurrentOffset + System.Windows.SystemParameters.ScrollWidth);
+            }
+            else
+            {
+                //both scroll bars not visible - column width has to be equal to scrollviewer actual width
+                //wpf bug - this is not the case , compensate to fix tooltip location
+                if(scrollViewer.ActualWidth > AutoCompletionDatagrid.Columns.Sum( x => x.ActualWidth))
+                {
+                    aCalculatedOffset = scrollViewer.ActualWidth - AutoCompletionDatagrid.Columns[0].ActualWidth;
+                }
             }
 
             return aCalculatedOffset;

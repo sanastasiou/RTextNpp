@@ -32,35 +32,12 @@ namespace RTextNppPlugin.ViewModels
         private BulkObservableCollection<LinkTargetModel> _targets = new BulkObservableCollection<LinkTargetModel>();
         private string _errorMsg                                   = String.Empty;
         private string _errorTooltip                               = String.Empty;
-        private double _zoomLevel                                  = 1.0;
-        private double _rowDetailsWidth                            = 0.0;
-        private Thickness _thickness                               = new Thickness(0.0);
-        private double _labelsWidth                                = Constants.INITIAL_WIDTH_LINK_REFERENCE_LABELS;
-        private double _maxLinkTextSize                            = 0.0;
+        private double _zoomLevel                                  = 1.0;        
         private ISettings _settings                                = null;
-        private double _referenceLinkColumnWidth                   = 0.0;
         
         internal ReferenceLinkViewModel(ISettings settings)
         {
-            _settings = settings;
-            _referenceLinkColumnWidth = _settings.Get<double>(Settings.RTextNppSettings.ReferenceLinkColumnWidth);
-        }
-
-        public double ReferenceLinkColumnWidth
-        {
-            get
-            {
-                return _referenceLinkColumnWidth;
-            }
-            set
-            {
-                if(value != _referenceLinkColumnWidth)
-                {
-                    _referenceLinkColumnWidth = value;
-                    base.RaisePropertyChanged("ReferenceLinkColumnWidth");
-                    _settings.Set(_referenceLinkColumnWidth, Settings.RTextNppSettings.ReferenceLinkColumnWidth);
-                }
-            }
+            _settings = settings;            
         }
 
         public BulkObservableCollection<LinkTargetModel> Targets
@@ -70,71 +47,7 @@ namespace RTextNppPlugin.ViewModels
                 return _targets;
             }
         }
-
-        public double MaxLinkTextSize
-        {
-            get
-            {
-                return _maxLinkTextSize;
-            }
-            set
-            {
-                if (value != _maxLinkTextSize)
-                {
-                    _maxLinkTextSize = value;
-                    base.RaisePropertyChanged("MaxLinkTextSize");
-                }
-            }
-        }
-
-        public double LabelsWidth
-        {
-            get
-            {
-                return _labelsWidth;
-            }
-            set
-            {
-                if(value != _labelsWidth)
-                {
-                    _labelsWidth = value;
-                    base.RaisePropertyChanged("LabelsWidth");
-                }
-            }
-        }
-
-        public Thickness RowDetailsOffset
-        {
-            get
-            {
-                return _thickness;
-            }
-            set
-            {
-                if(value != _thickness)
-                {
-                    _thickness = value;
-                    base.RaisePropertyChanged("RowDetailsOffset");
-                }
-            }
-        }
-
-        public double RowDetailsWidth
-        {
-            get
-            {
-                return _rowDetailsWidth;
-            }
-            set
-            {
-                if(value != _rowDetailsWidth)
-                {
-                    _rowDetailsWidth = value;
-                    base.RaisePropertyChanged("RowDetailsWidth");
-                }
-            }
-        }
-
+        
         internal bool IsEmpty()
         {
             return _targets.Count == 0;
