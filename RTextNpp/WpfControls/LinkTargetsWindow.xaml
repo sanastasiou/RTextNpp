@@ -8,6 +8,7 @@
         xmlns:sys          ="clr-namespace:System;assembly=mscorlib"
         xmlns:i            ="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
         xmlns:behaviors    ="clr-namespace:RTextNppPlugin.WpfControls.Behaviors"        
+        xmlns:utilities    ="clr-namespace:RTextNppPlugin.Utilities"
         x:ClassModifier    ="internal"
         mc:Ignorable       ="d"
         WindowStyle        ="None"
@@ -27,7 +28,8 @@
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="Styles.xaml"/>
-            </ResourceDictionary.MergedDictionaries>            
+            </ResourceDictionary.MergedDictionaries>
+            <utilities:BindingProxy x:Key="DataContextProxy" Data="{Binding}"/>
         </ResourceDictionary>
     </Window.Resources>    
     <Border BorderBrush     ="Black"
@@ -55,7 +57,7 @@
                       Style                                      ="{StaticResource ResourceKey=LinkReferenceWindowCollpaseAtOneCountStyle}"
                       Name                                       ="LinkTargetDatagrid"
                       ScrollViewer.CanContentScroll              ="True" 
-                      ScrollViewer.HorizontalScrollBarVisibility ="Visible" 
+                      ScrollViewer.HorizontalScrollBarVisibility ="Auto" 
                       ScrollViewer.VerticalScrollBarVisibility   ="Auto"
                       AlternationCount                           ="2"
                       Focusable                                  ="True"
@@ -65,12 +67,11 @@
                       MaxWidth                                   ="{x:Static plugin_ns:Constants.MAX_AUXILIARY_WINDOWS_WIDTH}"                      
                       MaxHeight                                  ="{x:Static plugin_ns:Constants.MAX_AUXILIARY_WINDOWS_HEIGHT}" 
                       AutoGenerateColumns                        ="False"
-                      VirtualizingStackPanel.IsVirtualizing      ="True"                                            
-                      RowDetailsVisibilityMode                   ="VisibleWhenSelected"
+                      VirtualizingStackPanel.IsVirtualizing      ="True"
                       SelectionChanged                           ="OnLinkTargetDatagridSelectionChanged"                      
                       GridLinesVisibility                        ="None"                      
                       MouseEnter                                 ="OnLinkTargetsWindowMouseEnter"
-                      HeadersVisibility                          ="Column"                      
+                      HeadersVisibility                          ="Column"
                       IsReadOnly                                 ="True">
                 <i:Interaction.Behaviors>
                     <behaviors:UpdateWidthOnColumnResizedBehavior/>
@@ -82,24 +83,29 @@
                     </Style>
                 </DataGrid.RowStyle>
                 <DataGrid.Columns>
-                    <DataGridTextColumn Header         ="References"                                         
-                                        Binding        ="{Binding Display}"
-                                        IsReadOnly     ="True" 
-                                        CanUserSort    ="True" 
-                                        SortMemberPath ="FilePath" 
-                                        CanUserResize  ="True"                                                                                                                        
-                                        MinWidth       ="{x:Static plugin_ns:Constants.MIN_AUXILIARY_WINDOWS_WIDTH}">
-                        <DataGridTextColumn.CellStyle>
-                            <Style TargetType="DataGridCell">
-                                <Setter Property="ToolTip">
-                                    <Setter.Value>
+                    <DataGridTemplateColumn Header         ="References"                                                                                     
+                                            IsReadOnly     ="True" 
+                                            CanUserSort    ="True" 
+                                            SortMemberPath ="FilePath"                                             
+                                            CanUserResize  ="True">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Border ToolTipOpening="OnBorderToolTipOpening"                                        
+                                        BorderThickness="0"
+                                        Padding="0"
+                                        Name="LinkBorder"
+                                        Margin="0"
+                                        Background="{Binding Path=Background, RelativeSource={RelativeSource AncestorType=DataGridRow}}"                                        
+                                        TargetUpdated="OnBorderBackgroundUpdated"                                        
+                                        MouseEnter="OnBorderMouseEnter">
+                                    <Border.ToolTip>
                                         <ToolTip>
                                             <ToolTip.Style>
                                                 <Style>
                                                     <Setter Property="ToolTip.Padding" Value="0"/>
                                                     <Setter Property="ToolTip.Margin" Value="0"/>
                                                     <Setter Property="ToolTip.Placement" Value="Right" />
-                                                    <Setter Property="ToolTip.VerticalOffset" Value="-1"/>                                                    
+                                                    <Setter Property="ToolTip.VerticalOffset" Value="-1"/>
                                                 </Style>
                                             </ToolTip.Style>
                                             <StackPanel Orientation="Vertical" 
@@ -123,13 +129,46 @@
                                                                MaxWidth="{x:Static plugin_ns:Constants.MAX_WIDTH_LINK_REFERENCE_LABELS}"
                                                                TextWrapping="Wrap" />
                                                 </StackPanel>
+                                                <StackPanel.LayoutTransform>
+                                                    <ScaleTransform CenterX="0" 
+                                                                    CenterY="0"                                                                
+                                                                    ScaleX="{Binding Data.ZoomLevel, Source={StaticResource DataContextProxy}}"
+                                                                    ScaleY="{Binding Data.ZoomLevel, Source={StaticResource DataContextProxy}}"/>
+                                                </StackPanel.LayoutTransform>
                                             </StackPanel>
                                         </ToolTip>
-                                    </Setter.Value>
-                                </Setter>
-                            </Style>
-                        </DataGridTextColumn.CellStyle>                        
-                    </DataGridTextColumn>
+                                    </Border.ToolTip>                                    
+                                    <!--<Border.Style>
+                                        <Style>
+                                            <Setter Property="Border.Background" Value="Transparent"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsSelected, NotifyOnTargetUpdated=True}" Value="True">
+                                                    <Setter Property="Border.Background" Value="LimeGreen"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Border.Style>-->
+                                    <StackPanel HorizontalAlignment="Stretch" Margin="0">
+                                        <Label Margin="0"
+                                               Padding="0"
+                                               Name="LinkLabel"
+                                               FontStyle="Normal"
+                                               FontWeight="Normal"
+                                               Foreground="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType=DataGridRow}}">
+                                            <TextBlock TextDecorations="{x:Null}" Text="{Binding Display}" Name="LinkTextBlock"/>
+                                        </Label>
+                                    </StackPanel>
+                                </Border>                                
+                                <DataTemplate.Triggers>
+                                    <DataTrigger Binding="{Binding Path=IsSelected, RelativeSource={RelativeSource AncestorType=DataGridRow}}" Value="True">
+                                        <Setter Property="Background" TargetName="LinkBorder" Value="#FFFF00"/>                                        
+                                        <Setter Property="Foreground" TargetName="LinkLabel" Value="#00FF00"/>
+                                        <Setter Property="TextDecorations" TargetName="LinkTextBlock" Value="Underline"/>
+                                    </DataTrigger>
+                                </DataTemplate.Triggers>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>                      
+                    </DataGridTemplateColumn>
                 </DataGrid.Columns>
             </DataGrid>
         </DockPanel>

@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Forms;
 using System.Windows.Input;
@@ -27,7 +28,7 @@ namespace RTextNppPlugin.WpfControls
      * @brief   Interaction logic for the find references window.
      *
      */
-    internal partial class LinkTargetsWindow : Window, ILinkTargetsWindow
+    internal partial class LinkTargetsWindow : Window, ILinkTargetsWindow, IWindowPosition
     {
         #region [Events]
         /**
@@ -57,20 +58,20 @@ namespace RTextNppPlugin.WpfControls
         #endregion
 
         #region [Data Members]
-        private INpp _nppHelper                                    = null;                 //!< Handles communication with scintilla or npp.
-        private IWin32 _win32Helper                                = null;                 //!< Handles low level API calls.
-        private ISettings _settings                                = null;                 //!< Reads or write plugin settings.
-        private ReferenceRequestObserver _referenceRequestObserver = null;                 //!< Handles reference requests triggers.       
-        private IEnumerable<string> _cachedContext                 = null;                 //!< Holds the last context used for reference lookup request.
-        private DelayedEventHandler _referenceRequestDispatcher    = null;                 //!< Debounces link reference requests and dispatches the reuqests to the backend.
-        private LinkTargetsResponse _cachedReferenceLinks          = null;                 //!< Holds a cache of reference links from a previous backend request.
-        private ConnectorManager _cManager                         = null;                 //!< Instance of ConnectorManager instance.
-        private Connector _connector                               = null;                 //!< Connector which is relevant to the actual focused file.
-        private KeyInterceptor _keyMonitor                         = new KeyInterceptor(); //!< Monitors key presses.
-        private bool _isOnTop                                      = false;                //!< Indicates if the link reference window is on top of a token or not.
-        private const int YPOSITION_OFFSET                         = 2;                    //!< Window needs to be placed with a Y offset, because otherwise the cursor might indicate a token between the gab of the current token and the window.        
-        ToolTip _previouslyOpenedToolTip                           = null;                 //!< Reference to previously opened tooltip.
-        DelayedEventHandler _delayedToolTipHandler                 = null;                 //!< Triggers tooltip opening with a delay.
+        private INpp _nppHelper                                        = null;                 //!< Handles communication with scintilla or npp.
+        private IWin32 _win32Helper                                    = null;                 //!< Handles low level API calls.
+        private ISettings _settings                                    = null;                 //!< Reads or write plugin settings.
+        private ReferenceRequestObserver _referenceRequestObserver     = null;                 //!< Handles reference requests triggers.       
+        private IEnumerable<string> _cachedContext                     = null;                 //!< Holds the last context used for reference lookup request.
+        private DelayedEventHandler _referenceRequestDispatcher        = null;                 //!< Debounces link reference requests and dispatches the reuqests to the backend.
+        private LinkTargetsResponse _cachedReferenceLinks              = null;                 //!< Holds a cache of reference links from a previous backend request.
+        private ConnectorManager _cManager                             = null;                 //!< Instance of ConnectorManager instance.
+        private Connector _connector                                   = null;                 //!< Connector which is relevant to the actual focused file.
+        private KeyInterceptor _keyMonitor                             = new KeyInterceptor(); //!< Monitors key presses.
+        private bool _isOnTop                                          = false;                //!< Indicates if the link reference window is on top of a token or not.
+        private const int YPOSITION_OFFSET                             = 2;                    //!< Window needs to be placed with a Y offset, because otherwise the cursor might indicate a token between the gab of the current token and the window.        
+        private DatagridScrollviewerTooltipOffsetCalculator _tpControl = null;                 //!< Control tooltip placement on right of the completion options.
+        
         #endregion
 
         #region [Interface]
@@ -121,6 +122,11 @@ namespace RTextNppPlugin.WpfControls
             _keyMonitor.KeysToIntercept.Add((int)System.Windows.Forms.Keys.Up);
             _keyMonitor.KeysToIntercept.Add((int)System.Windows.Forms.Keys.PageUp);
             _keyMonitor.KeysToIntercept.Add((int)System.Windows.Forms.Keys.PageDown);
+
+            _tpControl = new DatagridScrollviewerTooltipOffsetCalculator( Dispatcher,
+                                                                          this,
+                                                                          Constants.MAX_WIDTH_LINK_REFERENCE_LABELS,
+                                                                          LinkTargetDatagrid);
         }
        
         internal void CancelPendingRequest()
@@ -226,6 +232,30 @@ namespace RTextNppPlugin.WpfControls
         #endregion
 
         #region EventHandlers
+        private void OnBorderToolTipOpening(object sender, ToolTipEventArgs e)
+        {
+            var border          = sender as Border;
+            var Tp              = border.ToolTip as System.Windows.Controls.ToolTip;
+            Tp.HorizontalOffset = _tpControl.CalculateTooltipOffset();
+        }
+
+        private void OnBorderMouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+            Border border = (Border)sender;
+            _tpControl.CancelTooltipRequest(border.ToolTip as System.Windows.Controls.ToolTip);
+        }
+
+        private void OnBorderBackgroundUpdated(object sender, DataTransferEventArgs e)
+        {
+            var border  = sender as Border;
+            //var context = border.DataContext as AutoCompletionViewModel.Completion;
+            //var tp      = border.ToolTip as System.Windows.Controls.ToolTip;
+            //if (context.IsSelected)
+            //{
+            //    _tpControl.ShowTooltip(tp, border);
+            //}
+        }
+
         private void OnLinkTargetsWindowMouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
         {
             //only hide the window if the mouse has also left the actual underlined token
@@ -589,5 +619,14 @@ namespace RTextNppPlugin.WpfControls
         }
 
         #endregion        
+    
+        #region IWindowPosition Members
+
+        public bool IsEdgeOfScreenReached(double offset)
+        {
+            return ((Left + Width + offset) > _nppHelper.GetClientRectFromPoint(new System.Drawing.Point((int)Left, (int)Top)).Right);
+        }
+
+        #endregion
     }
 }

@@ -15,7 +15,7 @@ namespace RTextNppPlugin.WpfControls
         Dispatcher _dispatcher                     = null;        
         IWindowPosition _winPosition               = null;
         DataGrid _datagrid                         = null;
-        readonly double MAX_TOOLTIP_LENGTH; 
+        readonly double MAX_TOOLTIP_LENGTH;        
         #endregion
 
         #region [Interface]
@@ -59,6 +59,10 @@ namespace RTextNppPlugin.WpfControls
 
             if (_winPosition.IsEdgeOfScreenReached(MAX_TOOLTIP_LENGTH))
             {
+                if (aScrollViewer.ComputedHorizontalScrollBarVisibility == System.Windows.Visibility.Visible)
+                {
+                    return aCalculatedOffset + aScrollViewer.HorizontalOffset;
+                }
                 return aCalculatedOffset;
             }
 

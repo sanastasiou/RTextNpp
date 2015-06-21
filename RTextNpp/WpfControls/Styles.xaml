@@ -191,19 +191,14 @@
 
     <Style x:Key="LinkReferenceWindowDataGridRowStyle" TargetType="{x:Type DataGridRow}">
         <Setter Property="Background" Value="White"/>
-        <Setter Property="Foreground" Value="Blue"/>
-        <Setter Property="Focusable" Value="False"/>
         <Setter Property="IsSelected" Value="False"/>
         <Style.Triggers>
             <Trigger Property="AlternationIndex" Value="1">
                 <Setter Property="Background" Value="Gainsboro"/>
             </Trigger>
-            <Trigger Property="IsMouseOver" Value="True">
-                <Setter Property ="Background" Value="Khaki"/>
-                <Setter Property ="Foreground" Value="Red"/>                
+            <Trigger Property="IsMouseOver" Value="True">             
                 <Setter Property="IsSelected" Value="True"/>
             </Trigger>
         </Style.Triggers>
     </Style>
-       
 </ResourceDictionary>
