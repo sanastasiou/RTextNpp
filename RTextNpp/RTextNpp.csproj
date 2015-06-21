@@ -155,7 +155,7 @@
     <Compile Include="WpfControls\LinkTargetsWindow.xaml.cs">
       <DependentUpon>LinkTargetsWindow.xaml</DependentUpon>
     </Compile>
-    <Compile Include="WpfControls\ScrollviewerTooltipOffsetCalculator.cs" />
+    <Compile Include="WpfControls\DatagridScrollviewerTooltipOffsetCalculator.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="FileSystemWatcherCLRWrapper">

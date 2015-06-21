@@ -20,13 +20,12 @@ namespace RTextNppPlugin.WpfControls
     {
         #region [DataMembers]
 
-        DelayedEventHandler _delayedFilterEventHandler              = null;
-        KeyInterceptor _keyMonitor                                  = new KeyInterceptor();
-        GlobalClickInterceptor _autoCompletionMouseMonitor          = null;
-        ToolTip _previouslyOpenedToolTip                            = null;
-        DelayedEventHandler _delayedToolTipHandler                  = null;
-        bool _isOnTop                                               = false;
-        INpp _nppHelper                                             = null;
+        DelayedEventHandler _delayedFilterEventHandler              = null;                 //!< Control options filtering with a delay.
+        KeyInterceptor _keyMonitor                                  = new KeyInterceptor(); //!< Monitors key presses when auto completion is active.
+        GlobalClickInterceptor _autoCompletionMouseMonitor          = null;                 //!< Monitors click events to hide auto completion window.
+        bool _isOnTop                                               = false;                //!< Indicates if window is on top of a token.
+        INpp _nppHelper                                             = null;                 //!< Allows access to Notepad++ functions. 
+        DatagridScrollviewerTooltipOffsetCalculator _tpControl      = null;                 //!< Control tooltip placement on right of the completion options.
 
         
         #endregion
@@ -40,7 +39,10 @@ namespace RTextNppPlugin.WpfControls
             DataContext                 = new ViewModels.AutoCompletionViewModel(cmanager);
             _keyMonitor.KeyDown         += OnKeyMonitorKeyDown;
             _delayedFilterEventHandler  = new DelayedEventHandler(new ActionWrapper(PostProcessKeyPressed), 150);
-            _delayedToolTipHandler      = new DelayedEventHandler(new ActionWrapper<System.Windows.Controls.ToolTip>(OnToolTipDelayedHandlerExpired, null), 1000, System.Windows.Threading.DispatcherPriority.ApplicationIdle);
+            _tpControl                  = new DatagridScrollviewerTooltipOffsetCalculator(Dispatcher,                                                                                           
+                                                                                          this,
+                                                                                          Constants.MAX_AUTO_COMPLETION_TOOLTIP_WIDTH,
+                                                                                          AutoCompletionDatagrid);
             _nppHelper                  = nppHelper;
             _keyMonitor.KeysToIntercept.Add((int)System.Windows.Forms.Keys.Down);
             _keyMonitor.KeysToIntercept.Add((int)System.Windows.Forms.Keys.Up);
@@ -171,62 +173,7 @@ namespace RTextNppPlugin.WpfControls
         #endregion
 
         #region [Helpers]        
-
-        private void HideActiveTooltip(Border border)
-        {
-            ToolTip tp = border.ToolTip as ToolTip;
-            if (tp != null)
-            {
-                tp.IsOpen = false;
-            }
-        }
-
-        private void HidePreviouslyOpenedTooltip(ToolTip toolTip)
-        {
-            if (_previouslyOpenedToolTip != null)
-            {
-                _previouslyOpenedToolTip.IsOpen = false;
-            }
-            _previouslyOpenedToolTip = toolTip;
-        }
-
-        private double CalculateTooltipOffset()
-        {
-            double aCalculatedOffset = 0.0;
-            var scrollViewer = Utilities.VisualUtilities.GetScrollViewer(AutoCompletionDatagrid);
-
-            if (IsEdgeOfScreenReached(Constants.MAX_AUTO_COMPLETION_TOOLTIP_WIDTH))
-            {
-                return aCalculatedOffset;
-            }
-
-            if (scrollViewer.ComputedVerticalScrollBarVisibility == System.Windows.Visibility.Visible)
-            {
-                aCalculatedOffset += System.Windows.SystemParameters.ScrollWidth;
-            }
-            
-            if(scrollViewer.ComputedHorizontalScrollBarVisibility == System.Windows.Visibility.Visible)
-            {
-                //offset here is the amount of pixels that the scrollbar can move to the right
-                double aCurrentOffset = scrollViewer.HorizontalOffset;
-                double aExtendedWidth = scrollViewer.ExtentWidth;
-                double aActualWidth   = scrollViewer.ActualWidth;
-                double aMaxOffset     = aExtendedWidth - aActualWidth;
-                aCalculatedOffset     -= (aMaxOffset - aCurrentOffset + System.Windows.SystemParameters.ScrollWidth);
-            }
-            else
-            {
-                //both scroll bars not visible - column width has to be equal to scrollviewer actual width
-                //wpf bug - this is not the case , compensate to fix tooltip location
-                if(scrollViewer.ActualWidth > AutoCompletionDatagrid.Columns.Sum( x => x.ActualWidth))
-                {
-                    aCalculatedOffset = scrollViewer.ActualWidth - AutoCompletionDatagrid.Columns[0].ActualWidth;
-                }
-            }
-
-            return aCalculatedOffset;
-        }
-        
+               
         private AutoCompletionViewModel GetModel()
         {
             return ((AutoCompletionViewModel)DataContext);
@@ -240,22 +187,11 @@ namespace RTextNppPlugin.WpfControls
         private void UninstallMouseMonitorHooks()
         {
             _autoCompletionMouseMonitor.MouseClick -= OnAutoCompletionMouseMonitorMouseClick;
-        }
-        
-        private void ShowDelayedToolTip(ToolTip tp)
-        {
-            tp.HorizontalOffset = CalculateTooltipOffset();
-            tp.IsOpen           = true;
-        }
+        }       
 
         #endregion
 
         #region EventHandlers
-
-        private void OnToolTipDelayedHandlerExpired(ToolTip tp)
-        {
-            Dispatcher.Invoke(new Action<ToolTip>(ShowDelayedToolTip), tp);
-        }
 
         private void OnKeyMonitorKeyDown(System.Windows.Forms.Keys key, int repeatCount, ref bool handled)
         {
@@ -298,31 +234,21 @@ namespace RTextNppPlugin.WpfControls
             ToolTip tp = border.ToolTip as ToolTip;
             if (context.IsSelected)
             {
-                tp.PlacementTarget = border;
-                tp.Placement = System.Windows.Controls.Primitives.PlacementMode.Right;
-                HidePreviouslyOpenedTooltip(tp);
-                _delayedToolTipHandler.TriggerHandler(new ActionWrapper<System.Windows.Controls.ToolTip>(OnToolTipDelayedHandlerExpired, tp));
+                _tpControl.ShowTooltip(tp, border);
             }
         }
 
         private void OnAutoCompletionBorderMouseEnter(object sender, MouseEventArgs e)
         {
-            _delayedToolTipHandler.Cancel();
             Border border = (Border)sender;
-            HidePreviouslyOpenedTooltip(border.ToolTip as ToolTip);            
+            _tpControl.CancelTooltipRequest(border.ToolTip as ToolTip);
         }
 
         private void OnAutoCompletionBorderToolTipOpening(object sender, ToolTipEventArgs e)
         {
-            var border = sender as Border;
-            var Tp = border.ToolTip as ToolTip;
-            Tp.HorizontalOffset = CalculateTooltipOffset();
-        }
-
-        private void ToolTipOpenedHandler(object sender, RoutedEventArgs e)
-        {
-            ToolTip toolTip  = (ToolTip)sender;
-            HidePreviouslyOpenedTooltip(toolTip);
+            var border          = sender as Border;
+            var Tp              = border.ToolTip as ToolTip;
+            Tp.HorizontalOffset = _tpControl.CalculateTooltipOffset();
         }
 
         /**
@@ -342,8 +268,7 @@ namespace RTextNppPlugin.WpfControls
                 GetModel().OnAutoCompletionWindowCollapsing();
                 UninstallMouseMonitorHooks();
                 _isOnTop = false;
-                HidePreviouslyOpenedTooltip(null);
-                _delayedToolTipHandler.Cancel();
+                _tpControl.CancelTooltipRequest(null);                
             }
             else
             {
