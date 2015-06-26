@@ -247,12 +247,24 @@ namespace RTextNppPlugin.WpfControls
 
         private void OnBorderBackgroundUpdated(object sender, DataTransferEventArgs e)
         {
-            var border  = sender as Border;
-            //var context = border.DataContext as AutoCompletionViewModel.Completion;
-            //var tp      = border.ToolTip as System.Windows.Controls.ToolTip;
-            //if (context.IsSelected)
+            Trace.WriteLine("Updated..");
+            //var aDep = e.OriginalSource as DependencyObject;
+
+            //while ((aDep != null) && !(aDep is DataGridRow))
             //{
+            //    aDep = VisualTreeHelper.GetParent(aDep);
+            //}
+            
+            //var aRow = aDep as DataGridRow;            
+
+            //if (aRow != null && aRow.IsSelected)
+            //{
+            //    var border = sender as Border;
+            //    var tp     = border.ToolTip as System.Windows.Controls.ToolTip;
+
             //    _tpControl.ShowTooltip(tp, border);
+
+            //    GetModel().SelectedIndex = aRow.GetIndex();
             //}
         }
 
@@ -274,6 +286,11 @@ namespace RTextNppPlugin.WpfControls
 
         private void OnLinkTargetDatagridSelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
         {
+            var collectionView = CollectionViewSource.GetDefaultView(GetModel().Targets);
+            collectionView.MoveCurrentToPosition(GetModel().SelectedIndex);
+            //var a = GetModel().SelectedItem;
+            //var b = LinkTargetDatagrid.ContainerFromElement(LinkTargetDatagrid.SelectedItem as DependencyObject);
+
             if (!IsFocused)
             {
                 LinkTargetDatagrid.Focus();
@@ -290,7 +307,7 @@ namespace RTextNppPlugin.WpfControls
 
         private void OnKeyMonitorKeyDown(System.Windows.Forms.Keys key, int repeatCount, ref bool handled)
         {
-            var collectionView = CollectionViewSource.GetDefaultView(GetModel().Targets);
+            var collectionView = CollectionViewSource.GetDefaultView(GetModel().Targets);            
             int aNewPosition = 0;
             switch (key)
             {
@@ -308,6 +325,7 @@ namespace RTextNppPlugin.WpfControls
                     return;
             }
 
+            GetModel().SelectedIndex = aNewPosition;
             LinkTargetDatagrid.ScrollIntoView(collectionView.CurrentItem);
         }
 
@@ -417,7 +435,12 @@ namespace RTextNppPlugin.WpfControls
                     }
                 }
                 if(!IsVisible)
-                { 
+                {
+                    var collectionView = CollectionViewSource.GetDefaultView(GetModel().Targets);
+                    GetModel().SelectedIndex = -1;
+                    collectionView.MoveCurrentToPosition(GetModel().SelectedIndex);
+                    //LinkTargetDatagrid.ScrollIntoView(collectionView.CurrentItem);
+
                     //determine window position
                     var aCaretPoint = _nppHelper.GetCaretScreenLocationRelativeToPosition(_referenceRequestObserver.UnderlinedToken.BufferPosition);
                     Left            = aCaretPoint.X;
@@ -532,12 +555,7 @@ namespace RTextNppPlugin.WpfControls
                 _keyMonitor.Uninstall();
                 _referenceRequestObserver.HideUnderlinedToken();
             }
-        }
-
-        private void OnWindowLocationChanged(object sender, EventArgs e)
-        {
-            //ForceRedraw();
-        }        
+        }     
         #endregion
 
         #region Overriden Window Members

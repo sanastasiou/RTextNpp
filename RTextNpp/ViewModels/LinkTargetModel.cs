@@ -34,6 +34,8 @@ namespace RTextNppPlugin.ViewModels
         private string _errorTooltip                               = String.Empty;
         private double _zoomLevel                                  = 1.0;        
         private ISettings _settings                                = null;
+        private int _selectedIndex                                 = -1;
+        private object _selectedItem                               = null;
         
         internal ReferenceLinkViewModel(ISettings settings)
         {
@@ -48,9 +50,37 @@ namespace RTextNppPlugin.ViewModels
             }
         }
         
+        public object SelectedItem
+        {
+            get
+            {
+                return _selectedItem;
+            }
+            set
+            {
+                _selectedItem = value;
+            }
+        }
+
         internal bool IsEmpty()
         {
             return _targets.Count == 0;
+        }
+
+        public int SelectedIndex
+        {
+            get
+            {
+                return _selectedIndex;
+            }
+            set
+            {
+                if(_selectedIndex != value)
+                {
+                    _selectedIndex = value;
+                    base.RaisePropertyChanged("SelectedIndex");
+                }
+            }
         }
 
         internal void UpdateLinkTargets(IEnumerable<Target> targets)
