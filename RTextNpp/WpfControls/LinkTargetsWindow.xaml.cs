@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
@@ -7,7 +8,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Forms;
-using System.Windows.Input;
 using System.Windows.Media;
 using CSScriptIntellisense;
 using RTextNppPlugin.DllExport;
@@ -71,7 +71,8 @@ namespace RTextNppPlugin.WpfControls
         private bool _isOnTop                                          = false;                //!< Indicates if the link reference window is on top of a token or not.
         private const int YPOSITION_OFFSET                             = 2;                    //!< Window needs to be placed with a Y offset, because otherwise the cursor might indicate a token between the gab of the current token and the window.        
         private DatagridScrollviewerTooltipOffsetCalculator _tpControl = null;                 //!< Control tooltip placement on right of the completion options.
-        
+        private ICollectionView _collectionView                        = null;                 //!< Collection view of reference links.
+
         #endregion
 
         #region [Interface]
@@ -110,25 +111,26 @@ namespace RTextNppPlugin.WpfControls
         internal LinkTargetsWindow(INpp nppHelper, IWin32 win32Helper, ISettings settingsHelper, ConnectorManager cmanager)
         {
             InitializeComponent();
-            DataContext                 = new ReferenceLinkViewModel(settingsHelper);
-            _nppHelper                  = nppHelper;
-            _win32Helper                = win32Helper;
-            _settings                   = settingsHelper;
-            _referenceRequestObserver   = new ReferenceRequestObserver(_nppHelper, _settings, _win32Helper, this);
+            DataContext = new ReferenceLinkViewModel(settingsHelper);
+            _nppHelper = nppHelper;
+            _win32Helper = win32Helper;
+            _settings = settingsHelper;
+            _referenceRequestObserver = new ReferenceRequestObserver(_nppHelper, _settings, _win32Helper, this);
             _referenceRequestDispatcher = new DelayedEventHandler(new ActionWrapper<Tokenizer.TokenTag>(TryHighlightItemUnderMouse, default(Tokenizer.TokenTag)), 500);
-            _cManager                   = cmanager;
-            _keyMonitor.KeyDown         += OnKeyMonitorKeyDown;
+            _cManager = cmanager;
+            _keyMonitor.KeyDown += OnKeyMonitorKeyDown;
             _keyMonitor.KeysToIntercept.Add((int)System.Windows.Forms.Keys.Down);
             _keyMonitor.KeysToIntercept.Add((int)System.Windows.Forms.Keys.Up);
             _keyMonitor.KeysToIntercept.Add((int)System.Windows.Forms.Keys.PageUp);
             _keyMonitor.KeysToIntercept.Add((int)System.Windows.Forms.Keys.PageDown);
 
-            _tpControl = new DatagridScrollviewerTooltipOffsetCalculator( Dispatcher,
+            _tpControl = new DatagridScrollviewerTooltipOffsetCalculator(Dispatcher,
                                                                           this,
                                                                           Constants.MAX_WIDTH_LINK_REFERENCE_LABELS,
                                                                           LinkTargetDatagrid);
+            _collectionView = CollectionViewSource.GetDefaultView(GetModel().Targets);
         }
-       
+
         internal void CancelPendingRequest()
         {
             _referenceRequestDispatcher.Cancel();
@@ -145,13 +147,13 @@ namespace RTextNppPlugin.WpfControls
         internal void IsKeyboardShortCutActive(bool isActive)
         {
             _referenceRequestObserver.IsKeyboardShortCutActive = isActive;
-            if(!isActive)
-            {                
+            if (!isActive)
+            {
                 _referenceRequestDispatcher.Cancel();
                 Hide();
             }
         }
-        
+
         /**
          *
          * @brief   Sets the zoom level so that the reference link window also scales according to the user settings.
@@ -169,11 +171,12 @@ namespace RTextNppPlugin.WpfControls
                     aCaretPoint = Npp.Instance.GetCaretScreenLocationRelativeToPosition(_referenceRequestObserver.UnderlinedToken.BufferPosition);
                 }
                 Left = aCaretPoint.X;
-                Top  = aCaretPoint.Y - YPOSITION_OFFSET;
+                Top = aCaretPoint.Y - YPOSITION_OFFSET;
             }
-            Dispatcher.Invoke(new Action<double>( (x) => {
+            Dispatcher.Invoke(new Action<double>((x) =>
+            {
                 _isOnTop = false;
-                GetModel().OnZoomLevelChanged(x);                
+                GetModel().OnZoomLevelChanged(x);
             }), level);
         }
 
@@ -234,8 +237,8 @@ namespace RTextNppPlugin.WpfControls
         #region EventHandlers
         private void OnBorderToolTipOpening(object sender, ToolTipEventArgs e)
         {
-            var border          = sender as Border;
-            var Tp              = border.ToolTip as System.Windows.Controls.ToolTip;
+            var border = sender as Border;
+            var Tp = border.ToolTip as System.Windows.Controls.ToolTip;
             Tp.HorizontalOffset = _tpControl.CalculateTooltipOffset();
         }
 
@@ -247,25 +250,13 @@ namespace RTextNppPlugin.WpfControls
 
         private void OnBorderBackgroundUpdated(object sender, DataTransferEventArgs e)
         {
-            Trace.WriteLine("Updated..");
-            //var aDep = e.OriginalSource as DependencyObject;
-
-            //while ((aDep != null) && !(aDep is DataGridRow))
-            //{
-            //    aDep = VisualTreeHelper.GetParent(aDep);
-            //}
-            
-            //var aRow = aDep as DataGridRow;            
-
-            //if (aRow != null && aRow.IsSelected)
-            //{
-            //    var border = sender as Border;
-            //    var tp     = border.ToolTip as System.Windows.Controls.ToolTip;
-
-            //    _tpControl.ShowTooltip(tp, border);
-
-            //    GetModel().SelectedIndex = aRow.GetIndex();
-            //}
+            var border = sender as Border;
+            var context = border.DataContext as LinkTargetModel;
+            System.Windows.Controls.ToolTip tp = border.ToolTip as System.Windows.Controls.ToolTip;
+            if (context.IsSelected)
+            {
+                _tpControl.ShowTooltip(tp, border);
+            }
         }
 
         private void OnLinkTargetsWindowMouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
@@ -286,10 +277,7 @@ namespace RTextNppPlugin.WpfControls
 
         private void OnLinkTargetDatagridSelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
         {
-            var collectionView = CollectionViewSource.GetDefaultView(GetModel().Targets);
-            collectionView.MoveCurrentToPosition(GetModel().SelectedIndex);
-            //var a = GetModel().SelectedItem;
-            //var b = LinkTargetDatagrid.ContainerFromElement(LinkTargetDatagrid.SelectedItem as DependencyObject);
+            _collectionView.MoveCurrentToPosition(LinkTargetDatagrid.SelectedIndex);
 
             if (!IsFocused)
             {
@@ -307,18 +295,17 @@ namespace RTextNppPlugin.WpfControls
 
         private void OnKeyMonitorKeyDown(System.Windows.Forms.Keys key, int repeatCount, ref bool handled)
         {
-            var collectionView = CollectionViewSource.GetDefaultView(GetModel().Targets);            
             int aNewPosition = 0;
             switch (key)
             {
                 case System.Windows.Forms.Keys.Up:
                 case System.Windows.Forms.Keys.Down:
                     handled = true;
-                    aNewPosition = VisualUtilities.ScrollList(key, collectionView, LinkTargetDatagrid);
+                    aNewPosition = VisualUtilities.ScrollList(key, _collectionView, LinkTargetDatagrid);
                     break;
                 case System.Windows.Forms.Keys.PageDown:
                 case System.Windows.Forms.Keys.PageUp:
-                    aNewPosition = VisualUtilities.ScrollList(key, collectionView, LinkTargetDatagrid, 25);
+                    aNewPosition = VisualUtilities.ScrollList(key, _collectionView, LinkTargetDatagrid, 25);
                     handled = true;
                     break;
                 default:
@@ -326,7 +313,7 @@ namespace RTextNppPlugin.WpfControls
             }
 
             GetModel().SelectedIndex = aNewPosition;
-            LinkTargetDatagrid.ScrollIntoView(collectionView.CurrentItem);
+            LinkTargetDatagrid.ScrollIntoView(_collectionView.CurrentItem);
         }
 
         /**
@@ -337,7 +324,7 @@ namespace RTextNppPlugin.WpfControls
          */
         private void OnRowMouseEnter(object sender, RoutedEventArgs e)
         {
-            Mouse.OverrideCursor = System.Windows.Input.Cursors.Hand;
+            System.Windows.Input.Mouse.OverrideCursor = System.Windows.Input.Cursors.Hand;
         }
 
         /**
@@ -348,7 +335,7 @@ namespace RTextNppPlugin.WpfControls
          */
         private void OnRowMouseLeave(object sender, RoutedEventArgs e)
         {
-            Mouse.OverrideCursor = null;
+            System.Windows.Input.Mouse.OverrideCursor = null;
         }
 
         private async Task SendLinkReferenceRequestAsync(Tokenizer.TokenTag aTokenUnderCursor)
@@ -382,38 +369,39 @@ namespace RTextNppPlugin.WpfControls
                 await contextEqualityTask;
 
                 //store cache
-                _cachedContext                            = contextEqualityTask.Result.Item2.ContextList;
+                _cachedContext = contextEqualityTask.Result.Item2.ContextList;
                 _referenceRequestObserver.UnderlinedToken = aTokenUnderCursor;
 
                 AutoCompleteAndReferenceRequest aRequest = new AutoCompleteAndReferenceRequest
                 {
-                    column        = contextEqualityTask.Result.Item2.ContextColumn,
-                    command       = Constants.Commands.LINK_TARGETS,
-                    context       = _cachedContext,
+                    column = contextEqualityTask.Result.Item2.ContextColumn,
+                    command = Constants.Commands.LINK_TARGETS,
+                    context = _cachedContext,
                     invocation_id = -1
-                };            
+                };
 
-                if(aRequest.context.Count() == 0)
+                if (aRequest.context.Count() == 0)
                 {
                     //prevent backend from crashing due to a bug
                     return;
                 }
-                
+
                 if (!contextEqualityTask.Result.Item1 || _cachedReferenceLinks == null || _cachedReferenceLinks.targets.Count == 0)
                 {
-                    _cachedReferenceLinks = await RequestReferenceLinksAsync(aRequest);                    
+                    _cachedReferenceLinks = await RequestReferenceLinksAsync(aRequest);
                 }
                 Show();
             }
             else
-            {                
+            {
                 Hide();
             }
-        }                
+        }
 
         new public void Hide()
         {
             _referenceRequestDispatcher.Cancel();
+            _tpControl.HidePreviouslyOpenedTooltip(null);
             GetModel().Clear();
             base.Hide();
             _isOnTop = false;
@@ -434,17 +422,12 @@ namespace RTextNppPlugin.WpfControls
                         _referenceRequestObserver.UnderlineToken();
                     }
                 }
-                if(!IsVisible)
+                if (!IsVisible)
                 {
-                    var collectionView = CollectionViewSource.GetDefaultView(GetModel().Targets);
-                    GetModel().SelectedIndex = -1;
-                    collectionView.MoveCurrentToPosition(GetModel().SelectedIndex);
-                    //LinkTargetDatagrid.ScrollIntoView(collectionView.CurrentItem);
-
                     //determine window position
                     var aCaretPoint = _nppHelper.GetCaretScreenLocationRelativeToPosition(_referenceRequestObserver.UnderlinedToken.BufferPosition);
-                    Left            = aCaretPoint.X;
-                    Top             = aCaretPoint.Y - YPOSITION_OFFSET;
+                    Left = aCaretPoint.X;
+                    Top = aCaretPoint.Y - YPOSITION_OFFSET;
                     base.Show();
                     ForceRedraw();
                     LinkTargetDatagrid.Focus();
@@ -462,9 +445,10 @@ namespace RTextNppPlugin.WpfControls
         {
             if (!GetModel().IsEmpty())
             {
-                var collectionView = CollectionViewSource.GetDefaultView(GetModel().Targets);
-                collectionView.MoveCurrentToFirst();
-                LinkTargetDatagrid.ScrollIntoView(collectionView.CurrentItem);
+                _collectionView.MoveCurrentToFirst();
+                LinkTargetDatagrid.ScrollIntoView(_collectionView.CurrentItem);
+                GetModel().SelectedIndex = -1;
+                _collectionView.MoveCurrentToPosition(GetModel().SelectedIndex);
             }
         }
 
@@ -487,7 +471,7 @@ namespace RTextNppPlugin.WpfControls
                     case ConnectorStates.Busy:
                     case ConnectorStates.Loading:
                     case ConnectorStates.Connecting:
-                        GetModel().CreateWarning(Properties.Resources.ERR_BACKEND_BUSY, Properties.Resources.ERR_BACKEND_BUSY_DESC);                        
+                        GetModel().CreateWarning(Properties.Resources.ERR_BACKEND_BUSY, Properties.Resources.ERR_BACKEND_BUSY_DESC);
                         break;
                     case ConnectorStates.Idle:
                         var aResponse = await _connector.ExecuteAsync<AutoCompleteAndReferenceRequest>(request, Constants.SYNCHRONOUS_COMMANDS_TIMEOUT, Command.Execute) as LinkTargetsResponse;
@@ -526,7 +510,7 @@ namespace RTextNppPlugin.WpfControls
             Dispatcher.Invoke((MethodInvoker)(async () =>
             {
                 await SendLinkReferenceRequestAsync(aTokenUnderCursor);
-            }));          
+            }));
         }
 
         /**
@@ -551,11 +535,11 @@ namespace RTextNppPlugin.WpfControls
             else
             {
                 LinkTargetDatagrid.SelectedIndex = -1;
-                _isOnTop                         = false;
+                _isOnTop = false;
                 _keyMonitor.Uninstall();
                 _referenceRequestObserver.HideUnderlinedToken();
             }
-        }     
+        }
         #endregion
 
         #region Overriden Window Members
@@ -570,10 +554,10 @@ namespace RTextNppPlugin.WpfControls
          *
          * @param   e   Event information to send to registered event handlers.
          */
-        protected override void OnPreviewMouseLeftButtonDown(MouseButtonEventArgs e)
+        protected override void OnPreviewMouseLeftButtonDown(System.Windows.Input.MouseButtonEventArgs e)
         {
             base.OnPreviewMouseLeftButtonDown(e);
-            Point pt = Mouse.GetPosition(LinkTargetDatagrid);
+            Point pt = System.Windows.Input.Mouse.GetPosition(LinkTargetDatagrid);
             System.Windows.Controls.DataGridRow aRow = null;
             //Do the hittest to find the DataGridCell
             VisualTreeHelper.HitTest(LinkTargetDatagrid, null, (result) =>
@@ -596,12 +580,12 @@ namespace RTextNppPlugin.WpfControls
                 e.Handled = true;
             }
         }
-        
+
         #endregion
 
         #region [Helpers]
 
-        private void navigateList(Key key)
+        private void navigateList(System.Windows.Input.Key key)
         {
             var aTargets = ((ReferenceLinkViewModel)LinkTargetDatagrid.DataContext).Targets;
             if (aTargets.Count > 0)
@@ -609,7 +593,7 @@ namespace RTextNppPlugin.WpfControls
                 var aIndex = LinkTargetDatagrid.SelectedIndex;
                 switch (key)
                 {
-                    case Key.Up:
+                    case System.Windows.Input.Key.Up:
                         if (aIndex == 0)
                         {
                             LinkTargetDatagrid.SelectedIndex = aTargets.Count - 1;
@@ -619,7 +603,7 @@ namespace RTextNppPlugin.WpfControls
                             LinkTargetDatagrid.SelectedIndex = --LinkTargetDatagrid.SelectedIndex;
                         }
                         break;
-                    case Key.Down:
+                    case System.Windows.Input.Key.Down:
                         if (aIndex == (aTargets.Count - 1))
                         {
                             LinkTargetDatagrid.SelectedIndex = 0;
@@ -636,8 +620,8 @@ namespace RTextNppPlugin.WpfControls
             }
         }
 
-        #endregion        
-    
+        #endregion
+
         #region IWindowPosition Members
 
         public bool IsEdgeOfScreenReached(double offset)
@@ -646,5 +630,10 @@ namespace RTextNppPlugin.WpfControls
         }
 
         #endregion
+
+        private void LinkBorder_SourceUpdated(object sender, DataTransferEventArgs e)
+        {
+            Trace.WriteLine("Source updated...");
+        }
     }
 }

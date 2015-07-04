@@ -69,7 +69,6 @@
                       AutoGenerateColumns                        ="False"
                       VirtualizingStackPanel.IsVirtualizing      ="True"
                       SelectionChanged                           ="OnLinkTargetDatagridSelectionChanged"                      
-                      SelectedItem                               ="{Binding SelectedItem, Mode=OneWayToSource}"
                       GridLinesVisibility                        ="None"                      
                       MouseEnter                                 ="OnLinkTargetsWindowMouseEnter"
                       HeadersVisibility                          ="Column"                      
@@ -97,7 +96,7 @@
                                         Name="LinkBorder"
                                         Margin="0"
                                         Background="{Binding Path=Background, RelativeSource={RelativeSource AncestorType=DataGridRow}}"
-                                        TargetUpdated="OnBorderBackgroundUpdated"                                        
+                                        TargetUpdated="OnBorderBackgroundUpdated"
                                         MouseEnter="OnBorderMouseEnter">
                                     <Border.ToolTip>
                                         <ToolTip>
@@ -139,16 +138,19 @@
                                             </StackPanel>
                                         </ToolTip>
                                     </Border.ToolTip>                                    
-                                    <!--<Border.Style>
+                                    <Border.Style>
                                         <Style>
                                             <Setter Property="Border.Background" Value="Transparent"/>
                                             <Style.Triggers>
                                                 <DataTrigger Binding="{Binding IsSelected, NotifyOnTargetUpdated=True}" Value="True">
                                                     <Setter Property="Border.Background" Value="LimeGreen"/>
                                                 </DataTrigger>
+                                                <DataTrigger Binding="{Binding IsSelected}" Value="False">
+                                                    <Setter Property="Border.Background" Value="Transparent"/>
+                                                </DataTrigger>
                                             </Style.Triggers>
                                         </Style>
-                                    </Border.Style>-->
+                                    </Border.Style>
                                     <StackPanel HorizontalAlignment="Stretch" Margin="0">
                                         <Label Margin="0"
                                                Padding="0"
@@ -162,8 +164,7 @@
                                 </Border>                                
                                 <DataTemplate.Triggers>
                                     <DataTrigger Binding="{Binding Path=IsSelected, RelativeSource={RelativeSource AncestorType=DataGridRow}}" Value="True">
-                                        <Setter Property="Background" TargetName="LinkBorder" Value="#FFFF00"/>                                        
-                                        <Setter Property="Foreground" TargetName="LinkLabel" Value="#00FF00"/>
+                                        <Setter Property="Foreground"      TargetName="LinkLabel"     Value="#00FF00"/>
                                         <Setter Property="TextDecorations" TargetName="LinkTextBlock" Value="Underline"/>
                                     </DataTrigger>
                                 </DataTemplate.Triggers>

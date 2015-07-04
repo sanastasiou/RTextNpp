@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Windows;
 using Microsoft.VisualStudio.Language.Intellisense;
 using RTextNppPlugin.RText.Protocol;
 using RTextNppPlugin.Utilities.Settings;
@@ -10,8 +9,10 @@ using RTextNppPlugin.WpfControls;
 
 namespace RTextNppPlugin.ViewModels
 {
-    internal class LinkTargetModel
+    internal class LinkTargetModel : BindableObject
     {
+        #region [Interface]
+        
         public string Display { get; private set; }
         public string Description { get; private set; }
         public string Line { get; private set; }
@@ -25,6 +26,28 @@ namespace RTextNppPlugin.ViewModels
             File        = Path.GetFileName(file);
             FilePath    = file;
         }
+
+        public bool IsSelected
+        {
+            get
+            {
+                return _isSelected;
+            }
+            set
+            {
+                if (value != _isSelected)
+                {
+                    _isSelected = value;
+                    base.RaisePropertyChanged("IsSelected");
+                }
+            }
+        }
+
+        #endregion
+
+        #region [Data Members]
+        private bool _isSelected = false;
+        #endregion
     }
 
     internal class ReferenceLinkViewModel : BindableObject
@@ -50,18 +73,6 @@ namespace RTextNppPlugin.ViewModels
             }
         }
         
-        public object SelectedItem
-        {
-            get
-            {
-                return _selectedItem;
-            }
-            set
-            {
-                _selectedItem = value;
-            }
-        }
-
         internal bool IsEmpty()
         {
             return _targets.Count == 0;
@@ -77,8 +88,16 @@ namespace RTextNppPlugin.ViewModels
             {
                 if(_selectedIndex != value)
                 {
+                    if(_selectedIndex >= 0 && _selectedIndex < Targets.Count)
+                    {
+                        Targets[_selectedIndex].IsSelected = false;
+                    }                    
                     _selectedIndex = value;
                     base.RaisePropertyChanged("SelectedIndex");
+                    if (_selectedIndex >= 0 && _selectedIndex < Targets.Count)
+                    {
+                        Targets[_selectedIndex].IsSelected = true;
+                    }  
                 }
             }
         }
@@ -93,7 +112,6 @@ namespace RTextNppPlugin.ViewModels
         internal void OnZoomLevelChanged(double newZoomLevel)
         {
             //calculate actual zoom level , based on Scintilla zoom factors...
-
             //try 8% increments / decrements
             ZoomLevel = (1.0 + (Constants.ZOOM_FACTOR * newZoomLevel));
         }
