@@ -44,6 +44,14 @@ namespace RTextNppPlugin.Utilities
             }
         }
 
+        public void JumpToLine(string file, int line)
+        {
+            SetEditorFocus(0);
+            OpenFile(file);
+            GoToLine(line);
+            SetEditorFocus(1);
+        }
+
         public IntPtr GetCurrentScintilla(NppData nppData)
         {
             int curScintilla;
@@ -51,9 +59,9 @@ namespace RTextNppPlugin.Utilities
             return (curScintilla == 0) ? nppData._scintillaMainHandle : nppData._scintillaSecondHandle;
         }
 
-        public void SetEditorFocus()
+        public void SetEditorFocus(int setFocus = 1)
         {
-            _win32.ISendMessage(instance.CurrentScintilla, SciMsg.SCI_SETFOCUS, 1, 0);
+            _win32.ISendMessage(instance.CurrentScintilla, SciMsg.SCI_SETFOCUS, setFocus, 0);
         }
 
         public int GetZoomLevel()

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
@@ -30,33 +30,6 @@ namespace RTextNppPlugin.WpfControls
      */
     internal partial class LinkTargetsWindow : Window, ILinkTargetsWindow, IWindowPosition
     {
-        #region [Events]
-        /**
-         * @fn  internal delegate void HypelinkClicked(object source, HypelinkClickedEventArgs e);
-         *
-         * @brief   Notifies subscribers that a hyperlinked reference was clicked.
-         *
-         *
-         * @param   source  Source for the.
-         * @param   e       Hypelink clicked event information.
-         */
-        internal delegate void HypelinkClicked(object source, HypelinkClickedEventArgs e);
-        //!< Event queue for all listeners interested in OnHyperlinkedClicked events.
-        internal event HypelinkClicked OnHyperlinkedClicked;
-
-        /**
-         * @class   HypelinkClickedEventArgs
-         *
-         * @brief   Additional information for hypelink clicked events.
-         *
-         */
-        internal class HypelinkClickedEventArgs : EventArgs
-        {
-            internal string File { get; set; }
-            internal int Line { get; set; }
-        }
-        #endregion
-
         #region [Data Members]
         private INpp _nppHelper                                        = null;                 //!< Handles communication with scintilla or npp.
         private IWin32 _win32Helper                                    = null;                 //!< Handles low level API calls.
@@ -76,6 +49,14 @@ namespace RTextNppPlugin.WpfControls
         #endregion
 
         #region [Interface]
+
+        internal void OnHotspotClicked()
+        {
+            if(GetModel().Targets.Count == 1)
+            {
+                _nppHelper.JumpToLine(GetModel().Targets[0].FilePath, Int32.Parse(GetModel().Targets[0].Line));
+            }
+        }
 
         #region ILinkTargetsWindow Members
 
@@ -182,59 +163,7 @@ namespace RTextNppPlugin.WpfControls
 
         #endregion
 
-        #region Helpers
-        /**
-         * \brief   Moves the selected index of the reference list when the user pressed the up and down arrows.
-         *
-         * \param   key The pressed key.
-         */
-        private void navigateList(System.Windows.Forms.Keys key)
-        {
-            var aTargets = ((ReferenceLinkViewModel)LinkTargetDatagrid.DataContext).Targets;
-            if (aTargets.Count > 0)
-            {
-                var aIndex = LinkTargetDatagrid.SelectedIndex;
-                switch (key)
-                {
-                    case Keys.Up:
-                        if (aIndex == 0)
-                        {
-                            LinkTargetDatagrid.SelectedIndex = aTargets.Count - 1;
-                        }
-                        else
-                        {
-                            LinkTargetDatagrid.SelectedIndex = --LinkTargetDatagrid.SelectedIndex;
-                        }
-                        break;
-                    case Keys.Down:
-                        if (aIndex == (aTargets.Count - 1))
-                        {
-                            LinkTargetDatagrid.SelectedIndex = 0;
-                        }
-                        else
-                        {
-                            LinkTargetDatagrid.SelectedIndex = ++LinkTargetDatagrid.SelectedIndex;
-                        }
-                        break;
-                    default:
-                        return;
-                }
-                LinkTargetDatagrid.ScrollIntoView(LinkTargetDatagrid.SelectedItem);
-            }
-        }
-        /**
-         * @brief   File clicked. Occurs when a hyperlinked filepath is clicked.
-         *
-         * @param   sender  Source of the event.
-         * @param   e       Routed event information.
-         */
-        private void FileClicked(LinkTargetModel target)
-        {
-            //OnHyperlinkedClicked(this, new HypelinkClickedEventArgs { File = target.File, Line = Int32.Parse(target.Line) });
-        }
-        #endregion
-
-        #region EventHandlers
+        #region [EventHandlers]
         private void OnBorderToolTipOpening(object sender, ToolTipEventArgs e)
         {
             var border = sender as Border;
@@ -336,7 +265,79 @@ namespace RTextNppPlugin.WpfControls
         private void OnRowMouseLeave(object sender, RoutedEventArgs e)
         {
             System.Windows.Input.Mouse.OverrideCursor = null;
+        }        
+
+        /**
+         * \brief   Raises the dependency property changed event when visibility is changed.
+         *
+         * \param   sender  Source of the event.
+         * \param   e       Event information to send to registered event handlers.              
+         */
+        private void OnReferenceLinksVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            if (Visibility == System.Windows.Visibility.Visible)
+            {
+                _keyMonitor.Install();
+                var aTargets = ((ReferenceLinkViewModel)LinkTargetDatagrid.DataContext).Targets;
+                if (aTargets != null && aTargets.Count > 0)
+                {
+                    //select first element
+                    LinkTargetDatagrid.SelectedIndex = -1;
+                    LinkTargetDatagrid.Focus();
+                }
+            }
+            else
+            {
+                LinkTargetDatagrid.SelectedIndex = -1;
+                _isOnTop = false;
+                _keyMonitor.Uninstall();
+                _referenceRequestObserver.HideUnderlinedToken();
+            }
         }
+        #endregion
+
+        #region [Overriden Window Members]
+
+        /**
+         * @fn  protected override void OnPreviewMouseLeftButtonDown(MouseButtonEventArgs e)
+         *
+         * @brief   Raises the preview left mouse button event.
+         *
+         * @author  Stefanos Anastasiou
+         * @date    26.01.2013
+         *
+         * @param   e   Event information to send to registered event handlers.
+         */
+        protected override void OnPreviewMouseLeftButtonDown(System.Windows.Input.MouseButtonEventArgs e)
+        {
+            base.OnPreviewMouseLeftButtonDown(e);
+            Point pt = System.Windows.Input.Mouse.GetPosition(LinkTargetDatagrid);
+            System.Windows.Controls.DataGridRow aRow = null;
+            //Do the hittest to find the DataGridCell
+            VisualTreeHelper.HitTest(LinkTargetDatagrid, null, (result) =>
+            {
+                // Find the ancestor element form the hittested element
+                // e.g., find the DataGridCell if we hittest on the inner TextBlock
+                System.Windows.Controls.DataGridRow aCcurrentRow = RTextNppPlugin.Utilities.VisualUtilities.FindVisualParent<System.Windows.Controls.DataGridRow>(result.VisualHit);
+
+                if (aCcurrentRow != null)
+                {
+                    aRow = aCcurrentRow;
+                    return HitTestResultBehavior.Stop;
+                }
+                else
+                    return HitTestResultBehavior.Continue;
+            }, new PointHitTestParameters(pt));
+            if (aRow != null)
+            {
+                FileClicked(((ReferenceLinkViewModel)LinkTargetDatagrid.DataContext).Targets[aRow.GetIndex()]);
+                e.Handled = true;
+            }
+        }
+
+        #endregion
+
+        #region [Helpers]
 
         private async Task SendLinkReferenceRequestAsync(Tokenizer.TokenTag aTokenUnderCursor)
         {
@@ -374,9 +375,9 @@ namespace RTextNppPlugin.WpfControls
 
                 AutoCompleteAndReferenceRequest aRequest = new AutoCompleteAndReferenceRequest
                 {
-                    column = contextEqualityTask.Result.Item2.ContextColumn,
-                    command = Constants.Commands.LINK_TARGETS,
-                    context = _cachedContext,
+                    column        = contextEqualityTask.Result.Item2.ContextColumn,
+                    command       = Constants.Commands.LINK_TARGETS,
+                    context       = _cachedContext,
                     invocation_id = -1
                 };
 
@@ -398,7 +399,7 @@ namespace RTextNppPlugin.WpfControls
             }
         }
 
-        new public void Hide()
+        new private void Hide()
         {
             _referenceRequestDispatcher.Cancel();
             _tpControl.HidePreviouslyOpenedTooltip(null);
@@ -407,7 +408,7 @@ namespace RTextNppPlugin.WpfControls
             _isOnTop = false;
         }
 
-        new public void Show()
+        new private void Show()
         {
             //update view model with new references
             if (!String.IsNullOrEmpty(GetModel().ErrorMsg) || (_cachedReferenceLinks != null && _cachedReferenceLinks.targets.Count > 0))
@@ -416,18 +417,20 @@ namespace RTextNppPlugin.WpfControls
                 {
                     GetModel().UpdateLinkTargets(_cachedReferenceLinks.targets);
                     Utilities.VisualUtilities.SetOwnerFromNppPlugin(this);
-                    //token needs to be underlined as a hotspot only if the current count is 1
+                    //token needs to be underlined as a hotspot only if the current count is 1                    
                     if (_cachedReferenceLinks.targets.Count == 1)
                     {
                         _referenceRequestObserver.UnderlineToken();
+                        return;
                     }
+
                 }
                 if (!IsVisible)
                 {
                     //determine window position
                     var aCaretPoint = _nppHelper.GetCaretScreenLocationRelativeToPosition(_referenceRequestObserver.UnderlinedToken.BufferPosition);
-                    Left = aCaretPoint.X;
-                    Top = aCaretPoint.Y - YPOSITION_OFFSET;
+                    Left            = aCaretPoint.X;
+                    Top             = aCaretPoint.Y - YPOSITION_OFFSET;
                     base.Show();
                     ForceRedraw();
                     LinkTargetDatagrid.Focus();
@@ -514,110 +517,22 @@ namespace RTextNppPlugin.WpfControls
         }
 
         /**
-         * \brief   Raises the dependency property changed event when visibility is changed.
+         * @brief   File clicked. Occurs when a hyperlinked filepath is clicked.
          *
-         * \param   sender  Source of the event.
-         * \param   e       Event information to send to registered event handlers.              
+         * @param   sender  Source of the event.
+         * @param   e       Routed event information.
          */
-        private void OnReferenceLinksVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
+        private void FileClicked(LinkTargetModel target)
         {
-            if (Visibility == System.Windows.Visibility.Visible)
+            Hide();
+            if (File.Exists(target.FilePath))
             {
-                _keyMonitor.Install();
-                var aTargets = ((ReferenceLinkViewModel)LinkTargetDatagrid.DataContext).Targets;
-                if (aTargets != null && aTargets.Count > 0)
-                {
-                    //select first element
-                    LinkTargetDatagrid.SelectedIndex = -1;
-                    LinkTargetDatagrid.Focus();
-                }
+                _nppHelper.JumpToLine(target.FilePath, Int32.Parse(target.Line));
             }
             else
             {
-                LinkTargetDatagrid.SelectedIndex = -1;
-                _isOnTop = false;
-                _keyMonitor.Uninstall();
-                _referenceRequestObserver.HideUnderlinedToken();
-            }
-        }
-        #endregion
-
-        #region Overriden Window Members
-
-        /**
-         * @fn  protected override void OnPreviewMouseLeftButtonDown(MouseButtonEventArgs e)
-         *
-         * @brief   Raises the preview left mouse button event.
-         *
-         * @author  Stefanos Anastasiou
-         * @date    26.01.2013
-         *
-         * @param   e   Event information to send to registered event handlers.
-         */
-        protected override void OnPreviewMouseLeftButtonDown(System.Windows.Input.MouseButtonEventArgs e)
-        {
-            base.OnPreviewMouseLeftButtonDown(e);
-            Point pt = System.Windows.Input.Mouse.GetPosition(LinkTargetDatagrid);
-            System.Windows.Controls.DataGridRow aRow = null;
-            //Do the hittest to find the DataGridCell
-            VisualTreeHelper.HitTest(LinkTargetDatagrid, null, (result) =>
-            {
-                // Find the ancestor element form the hittested element
-                // e.g., find the DataGridCell if we hittest on the inner TextBlock
-                System.Windows.Controls.DataGridRow aCcurrentRow = RTextNppPlugin.Utilities.VisualUtilities.FindVisualParent<System.Windows.Controls.DataGridRow>(result.VisualHit);
-
-                if (aCcurrentRow != null)
-                {
-                    aRow = aCcurrentRow;
-                    return HitTestResultBehavior.Stop;
-                }
-                else
-                    return HitTestResultBehavior.Continue;
-            }, new PointHitTestParameters(pt));
-            if (aRow != null)
-            {
-                FileClicked(((ReferenceLinkViewModel)LinkTargetDatagrid.DataContext).Targets[aRow.GetIndex()]);
-                e.Handled = true;
-            }
-        }
-
-        #endregion
-
-        #region [Helpers]
-
-        private void navigateList(System.Windows.Input.Key key)
-        {
-            var aTargets = ((ReferenceLinkViewModel)LinkTargetDatagrid.DataContext).Targets;
-            if (aTargets.Count > 0)
-            {
-                var aIndex = LinkTargetDatagrid.SelectedIndex;
-                switch (key)
-                {
-                    case System.Windows.Input.Key.Up:
-                        if (aIndex == 0)
-                        {
-                            LinkTargetDatagrid.SelectedIndex = aTargets.Count - 1;
-                        }
-                        else
-                        {
-                            LinkTargetDatagrid.SelectedIndex = --LinkTargetDatagrid.SelectedIndex;
-                        }
-                        break;
-                    case System.Windows.Input.Key.Down:
-                        if (aIndex == (aTargets.Count - 1))
-                        {
-                            LinkTargetDatagrid.SelectedIndex = 0;
-                        }
-                        else
-                        {
-                            LinkTargetDatagrid.SelectedIndex = ++LinkTargetDatagrid.SelectedIndex;
-                        }
-                        break;
-                    default:
-                        return;
-                }
-                LinkTargetDatagrid.ScrollIntoView(LinkTargetDatagrid.SelectedItem);
-            }
+                Logger.Instance.Append(Logger.MessageType.Error, _connector.LogChannel, "Cannot jump to link because file : {0} does not exist.", target.File);
+            }            
         }
 
         #endregion
@@ -630,10 +545,5 @@ namespace RTextNppPlugin.WpfControls
         }
 
         #endregion
-
-        private void LinkBorder_SourceUpdated(object sender, DataTransferEventArgs e)
-        {
-            Trace.WriteLine("Source updated...");
-        }
     }
 }

@@ -58,7 +58,6 @@ namespace RTextNppPlugin.ViewModels
         private double _zoomLevel                                  = 1.0;        
         private ISettings _settings                                = null;
         private int _selectedIndex                                 = -1;
-        private object _selectedItem                               = null;
         
         internal ReferenceLinkViewModel(ISettings settings)
         {
@@ -100,7 +99,7 @@ namespace RTextNppPlugin.ViewModels
                     }  
                 }
             }
-        }
+        }        
 
         internal void UpdateLinkTargets(IEnumerable<Target> targets)
         {

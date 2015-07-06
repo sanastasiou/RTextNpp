@@ -246,6 +246,14 @@ namespace RTextNppPlugin.RText
         }
         #endregion
 
+        internal string LogChannel
+        {
+            get
+            {
+                return mBackendProcess.Workspace;
+            }
+        }
+
         #region Helpers
 
         /**

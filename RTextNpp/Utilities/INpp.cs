@@ -78,7 +78,7 @@ namespace RTextNppPlugin.Utilities
         void SaveCurrentFile();
         void ScrollToCaret();
         void SetCaretPosition(int pos);
-        void SetEditorFocus();
+        void SetEditorFocus(int setFocus);
         void SetFirstVisibleLine(int line);
         void SetIndicatorStyle(int indicator, SciMsg style, System.Drawing.Color color);
         void SetSelection(int start, int end);
@@ -88,5 +88,6 @@ namespace RTextNppPlugin.Utilities
         string TextAfterPosition(int position, int maxLength);
         string TextBeforeCursor(int maxLength);
         string TextBeforePosition(int position, int maxLength);
+        void JumpToLine(string file, int line);
     }
 }

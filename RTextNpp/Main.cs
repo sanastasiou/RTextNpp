@@ -511,7 +511,7 @@ namespace RTextNppPlugin
 
         internal static void OnHotSpotClicked()
         {
-            Trace.WriteLine("Hotspot clicked...");
+            _linkTargetsWindow.OnHotspotClicked();
         }
 
         #endregion
