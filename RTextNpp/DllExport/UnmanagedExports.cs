@@ -104,9 +104,6 @@ namespace RTextNppPlugin
                 case (uint)SciMsg.SCN_ZOOM:
                     Plugin.OnZoomLevelModified();
                     break;
-                case (uint)SciMsg.SCN_HOTSPOTCLICK:
-                    Plugin.OnHotSpotClicked();
-                    break;
             }
         }
     }

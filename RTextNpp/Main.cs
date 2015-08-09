@@ -85,7 +85,7 @@ namespace RTextNppPlugin
         {
             CSScriptIntellisense.Modifiers modifiers = CSScriptIntellisense.KeyInterceptor.GetModifiers();
             if (!modifiers.IsAlt || !modifiers.IsCtrl)
-            {
+            {                
                 _linkTargetsWindow.IsKeyboardShortCutActive(false);
             }
         }
@@ -96,8 +96,9 @@ namespace RTextNppPlugin
             {
                 CSScriptIntellisense.Modifiers modifiers = CSScriptIntellisense.KeyInterceptor.GetModifiers();                
                 if(modifiers.IsAlt && modifiers.IsCtrl)
-                {
+                {                    
                     _linkTargetsWindow.IsKeyboardShortCutActive(true);
+                    handled = true;
                 }
                 foreach (var shortcut in internalShortcuts.Keys)
                 {
@@ -511,7 +512,8 @@ namespace RTextNppPlugin
 
         internal static void OnHotSpotClicked()
         {
-            _linkTargetsWindow.OnHotspotClicked();
+            _nppHelper.SetEditorFocus(0);
+            _linkTargetsWindow.OnHotspotClicked();            
         }
 
         #endregion

@@ -70,6 +70,7 @@ namespace RTextNppPlugin.Utilities
         int GetTextHeight(int line);
         int GetZoomLevel();
         void GoToLine(int line);
+        void ScrollUpToLine(int line);
         int GrabFocus();
         IntPtr NppHandle { get; }
         void OpenFile(string file);

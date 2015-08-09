@@ -35,23 +35,22 @@ namespace RTextNppPlugin.RText
             _nppHelper                       = nppHelper;
             _settings                        = settings;
             _win32Helper                     = win32helper;
-            _mouseMovementObserver.MouseMove += OnMouseMovementObserverMouseMove;            
+            _mouseMovementObserver.MouseMove += OnMouseMovementObserverMouseMove;
+            _mouseMovementObserver.MouseClicked += OnMouseMovementObserverMouseClicked;
             IsKeyboardShortCutActive         = false;
             _refWindow                       = refWindow;
             _mouseMoveDebouncer              = new DelayedEventHandler(new ActionWrapper(DoMouseMovementObserverMouseMove), 100);
         }
 
-        private void Enable(bool enable)
+        bool OnMouseMovementObserverMouseClicked(VisualUtilities.MouseMessages arg)
         {
-            if(enable && !_mouseMovementObserver.IsInstalled)
+            if (_highLightToken)
             {
-                _mouseMovementObserver.Install();
+                Plugin.OnHotSpotClicked();
+                //return true to "eat" event
+                return true;
             }
-            else
-            {
-                _mouseMovementObserver.Uninstall();
-                _mouseMoveDebouncer.Cancel();
-            }
+            return false;
         }
 
         internal bool IsKeyboardShortCutActive 
@@ -126,9 +125,30 @@ namespace RTextNppPlugin.RText
                 _highLightToken = false;
             }
         }
+
+        internal bool IsTokenUnderlined
+        {
+            get
+            {
+                return _highLightToken;
+            }
+        }
         #endregion
 
-        #region [Helprs]
+        #region [Helpers]
+
+        private void Enable(bool enable)
+        {
+            if (enable && !_mouseMovementObserver.IsInstalled)
+            {
+                _mouseMovementObserver.Install();
+            }
+            else
+            {
+                _mouseMovementObserver.Uninstall();
+                _mouseMoveDebouncer.Cancel();
+            }
+        }
 
         private int GetReferenceLinkColor()
         {

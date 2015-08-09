@@ -52,7 +52,7 @@ namespace RTextNppPlugin.WpfControls
 
         internal void OnHotspotClicked()
         {
-            if(GetModel().Targets.Count == 1)
+            if (_referenceRequestObserver.IsKeyboardShortCutActive && _referenceRequestObserver.IsTokenUnderlined)
             {
                 _nppHelper.JumpToLine(GetModel().Targets[0].FilePath, Int32.Parse(GetModel().Targets[0].Line));
             }
@@ -130,7 +130,6 @@ namespace RTextNppPlugin.WpfControls
             _referenceRequestObserver.IsKeyboardShortCutActive = isActive;
             if (!isActive)
             {
-                _referenceRequestDispatcher.Cancel();
                 Hide();
             }
         }
@@ -391,7 +390,11 @@ namespace RTextNppPlugin.WpfControls
                 {
                     _cachedReferenceLinks = await RequestReferenceLinksAsync(aRequest);
                 }
-                Show();
+                //maybe shortcut released during link fetching...
+                if (_referenceRequestObserver.IsKeyboardShortCutActive)
+                {
+                    Show();
+                }
             }
             else
             {

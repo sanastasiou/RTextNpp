@@ -45,11 +45,10 @@ namespace RTextNppPlugin.Utilities
         }
 
         public void JumpToLine(string file, int line)
-        {
-            SetEditorFocus(0);
+        {            
             OpenFile(file);
             GoToLine(line);
-            SetEditorFocus(1);
+            ScrollUpToLine(line);
         }
 
         public IntPtr GetCurrentScintilla(NppData nppData)
@@ -639,14 +638,22 @@ namespace RTextNppPlugin.Utilities
 
         public void GoToLine(int line)
         {
-            IntPtr sci = GetCurrentScintilla(Plugin.nppData);
-            //_win32.ISendMessage(sci, SciMsg.SCI_ENSUREVISIBLE, line - 1, 0);
-            _win32.ISendMessage(sci, SciMsg.SCI_GOTOLINE, line + 20, 0);
+            IntPtr sci = GetCurrentScintilla(Plugin.nppData);            
             _win32.ISendMessage(sci, SciMsg.SCI_GOTOLINE, line - 1, 0);
-            /*
-             SCI_GETFIRSTVISIBLELINE = 2152,
-        SCI_GETLINE = 2153,
-        SCI_GETLINECOUNT = 2154,*/
+
+            
+        }
+
+        /**
+         * \brief   Scroll up to line. Makes "line" the first visible line of the document, if possible by scrolling up, else has no effect.
+         *
+         * \param   line    The line.
+         */
+        public void ScrollUpToLine(int line)
+        {
+            IntPtr sci = GetCurrentScintilla(Plugin.nppData);
+            int firstVisibleLine = (int)_win32.ISendMessage(sci, SciMsg.SCI_GETFIRSTVISIBLELINE, 0, 0);
+            _win32.ISendMessage(sci, SciMsg.SCI_LINESCROLL, 0, (line - (1 + firstVisibleLine)));            
         }
 
         /**
