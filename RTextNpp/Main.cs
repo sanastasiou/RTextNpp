@@ -510,12 +510,6 @@ namespace RTextNppPlugin
             }
         }
 
-        internal static void OnHotSpotClicked()
-        {
-            _nppHelper.SetEditorFocus(0);
-            _linkTargetsWindow.OnHotspotClicked();            
-        }
-
         #endregion
 
         #region [Helpers]

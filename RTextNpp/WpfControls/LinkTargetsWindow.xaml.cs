@@ -50,14 +50,6 @@ namespace RTextNppPlugin.WpfControls
 
         #region [Interface]
 
-        internal void OnHotspotClicked()
-        {
-            if (_referenceRequestObserver.IsKeyboardShortCutActive && _referenceRequestObserver.IsTokenUnderlined)
-            {
-                _nppHelper.JumpToLine(GetModel().Targets[0].FilePath, Int32.Parse(GetModel().Targets[0].Line));
-            }
-        }
-
         #region ILinkTargetsWindow Members
 
         public bool IsMouseInsidedWindow()
@@ -131,6 +123,14 @@ namespace RTextNppPlugin.WpfControls
             if (!isActive)
             {
                 Hide();
+            }            
+        }
+
+        public IList<LinkTargetModel> Targets
+        {
+            get
+            {
+                return GetModel().Targets as IList<LinkTargetModel>;
             }
         }
 
@@ -289,8 +289,7 @@ namespace RTextNppPlugin.WpfControls
             {
                 LinkTargetDatagrid.SelectedIndex = -1;
                 _isOnTop = false;
-                _keyMonitor.Uninstall();
-                _referenceRequestObserver.HideUnderlinedToken();
+                _keyMonitor.Uninstall();                
             }
         }
         #endregion
@@ -364,9 +363,17 @@ namespace RTextNppPlugin.WpfControls
                     }
                     return new Tuple<bool, ContextExtractor>(aAreContextEquals, aExtractor);
                 }));
+                if (IsActive)
+                {
+                    Hide();
+                }
 
                 contextEqualityTask.Start();
                 await contextEqualityTask;
+                if (!contextEqualityTask.Result.Item1 && _cachedReferenceLinks != null)
+                {
+                    _cachedReferenceLinks.targets.Clear();
+                }
 
                 //store cache
                 _cachedContext = contextEqualityTask.Result.Item2.ContextList;
@@ -407,6 +414,7 @@ namespace RTextNppPlugin.WpfControls
             _referenceRequestDispatcher.Cancel();
             _tpControl.HidePreviouslyOpenedTooltip(null);
             GetModel().Clear();
+            _referenceRequestObserver.HideUnderlinedToken();
             base.Hide();
             _isOnTop = false;
         }
@@ -428,16 +436,13 @@ namespace RTextNppPlugin.WpfControls
                     }
 
                 }
-                if (!IsVisible)
-                {
-                    //determine window position
-                    var aCaretPoint = _nppHelper.GetCaretScreenLocationRelativeToPosition(_referenceRequestObserver.UnderlinedToken.BufferPosition);
-                    Left            = aCaretPoint.X;
-                    Top             = aCaretPoint.Y - YPOSITION_OFFSET;
-                    base.Show();
-                    ForceRedraw();
-                    LinkTargetDatagrid.Focus();
-                }
+                //determine window position
+                var aCaretPoint = _nppHelper.GetCaretScreenLocationRelativeToPosition(_referenceRequestObserver.UnderlinedToken.BufferPosition);
+                Left            = aCaretPoint.X;
+                Top             = aCaretPoint.Y - YPOSITION_OFFSET;
+                base.Show();
+                ForceRedraw();
+                LinkTargetDatagrid.Focus();                
             }
             else if (_cachedReferenceLinks == null || _cachedReferenceLinks.targets.Count == 0)
             {
