@@ -168,7 +168,17 @@
         </Style.Triggers>
     </Style>
 
-    <Style x:Key="LinkReferenceWindowCollpaseAtOneCountStyle" TargetType="{x:Type DataGrid}">
+    <Style x:Key="BorderLinkReferenceWindowCollpaseAtOneCountStyle" TargetType="{x:Type Border}">
+        <Setter Property="Visibility" Value="Collapsed"/>
+        <Style.Triggers>
+            <DataTrigger Binding="{Binding Targets.Count, Converter={StaticResource ResourceKey=GreaterThanConverter}, ConverterParameter=1}">
+                <DataTrigger.Value>true</DataTrigger.Value>
+                <Setter Property="Visibility" Value="Visible"/>
+            </DataTrigger>
+        </Style.Triggers>
+    </Style>
+    
+    <Style x:Key="DatagridLinkReferenceWindowCollpaseAtOneCountStyle" TargetType="{x:Type DataGrid}">
         <Setter Property="Visibility" Value="Collapsed"/>
         <Style.Triggers>
             <DataTrigger Binding="{Binding Targets.Count, Converter={StaticResource ResourceKey=GreaterThanConverter}, ConverterParameter=1}">

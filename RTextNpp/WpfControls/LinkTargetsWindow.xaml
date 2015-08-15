@@ -51,10 +51,16 @@
                 <Image Source="{StaticResource ResourceKey=MySource}" Height="16" Width="16" Margin="0" />
                 <Label Content="{Binding ErrorMsg}" ToolTipService.ToolTip="{Binding ErrorTooltip}" Padding="0" Margin="0" ToolTipService.Placement="Right" />
             </StackPanel>
+            <Border DockPanel.Dock="Bottom" BorderBrush="Black" BorderThickness="1 0 1 1"  Focusable="False" Style="{StaticResource ResourceKey=BorderLinkReferenceWindowCollpaseAtOneCountStyle}">
+                <StackPanel Orientation="Horizontal"  Focusable="False">
+                    <Label Focusable="False" Style="{StaticResource LabelNoPaddingStyle}">Total references : </Label>
+                    <Label Focusable="False" Style="{StaticResource LabelNoPaddingStyle}" Content="{Binding Targets.Count}"/>                    
+                </StackPanel>
+            </Border>
             <DataGrid DockPanel.Dock                             ="Bottom"
                       ItemsSource                                ="{Binding Targets}"
                       SelectedIndex                              ="{Binding SelectedIndex, Mode=TwoWay}"
-                      Style                                      ="{StaticResource ResourceKey=LinkReferenceWindowCollpaseAtOneCountStyle}"
+                      Style                                      ="{StaticResource ResourceKey=DatagridLinkReferenceWindowCollpaseAtOneCountStyle}"
                       Name                                       ="LinkTargetDatagrid"
                       ScrollViewer.CanContentScroll              ="True" 
                       ScrollViewer.HorizontalScrollBarVisibility ="Auto" 
