@@ -528,7 +528,7 @@ namespace RTextNppPlugin.RText
                 {
                     mLastInvocationId = mLastResponse.invocation_id;
                     mReceivedResponseEvent.Set();
-                    //notify asynchronous subscribers that the response is received
+                    //notify subscribers that the response is received
                     if (OnCommandExecuted != null)
                     {
                         OnCommandExecuted(this, new CommandCompletedEventArgs(mLastResponse, mLastInvocationId, mActiveCommand));

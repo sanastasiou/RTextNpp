@@ -59,6 +59,7 @@ namespace Tests.Utilities
 
             Assert.True(_isNoArgHandlerCalled);
             Assert.AreEqual(_count, 1);
+            Assert.IsFalse(_noArgHandler.IsRunning);
         }
 
         protected override void ExecuteTestAsync()

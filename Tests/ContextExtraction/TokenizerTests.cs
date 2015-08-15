@@ -215,5 +215,41 @@ AUTOSAR {
             Assert.AreEqual(aTokenList[1].BufferPosition, 2);
 
         }
+
+        [Test]
+        public void CanTokenHaveReference()
+        {
+            Tokenizer.TokenTag a = new Tokenizer.TokenTag { Type = RTextTokenTypes.Boolean };
+            Assert.IsFalse(a.CanTokenHaveReference());
+            a.Type = RTextTokenTypes.Reference;
+            Assert.IsTrue(a.CanTokenHaveReference());
+            a.Type = RTextTokenTypes.RTextName;
+            Assert.IsTrue(a.CanTokenHaveReference());
+        }
+
+        [Test]
+        public void TokenizeUnderCursor()
+        {
+            List<string> LinesSample = new List<string>() { "   \n", "ID\n" };
+
+            var nppMock = new Mock<INpp>();
+
+            //mock last line
+            nppMock.Setup(m => m.GetLine(It.IsAny<int>())).Returns<int>(x => LinesSample[x]);
+
+            //for the sake of simplicity we assume that offset is 0
+            nppMock.Setup(m => m.GetLineStart(It.IsAny<int>())).Returns(0);
+            nppMock.Setup(m => m.GetPositionFromMouseLocation()).Returns(-1);
+
+            var aToken = Tokenizer.FindTokenUnderCursor(nppMock.Object);
+            Assert.IsNull(aToken.Context);
+            nppMock.Setup(m => m.GetPositionFromMouseLocation()).Returns(0);
+            nppMock.Setup(m => m.GetLineNumber(It.IsAny<int>())).Returns(1);
+            aToken = Tokenizer.FindTokenUnderCursor(nppMock.Object);
+            Assert.AreEqual(aToken.Context, "ID");
+            nppMock.Setup(m => m.GetPositionFromMouseLocation()).Returns(10);
+            aToken = Tokenizer.FindTokenUnderCursor(nppMock.Object);
+            Assert.IsNull(aToken.Context);
+        }
     }
 }
