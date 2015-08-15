@@ -44,6 +44,13 @@ namespace RTextNppPlugin.Utilities
             }
         }
 
+        public void JumpToLine(string file, int line)
+        {            
+            OpenFile(file);
+            GoToLine(line);
+            ScrollUpToLine(line);
+        }
+
         public IntPtr GetCurrentScintilla(NppData nppData)
         {
             int curScintilla;
@@ -51,9 +58,9 @@ namespace RTextNppPlugin.Utilities
             return (curScintilla == 0) ? nppData._scintillaMainHandle : nppData._scintillaSecondHandle;
         }
 
-        public void SetEditorFocus()
+        public void SetEditorFocus(int setFocus = 1)
         {
-            _win32.ISendMessage(instance.CurrentScintilla, SciMsg.SCI_SETFOCUS, 1, 0);
+            _win32.ISendMessage(instance.CurrentScintilla, SciMsg.SCI_SETFOCUS, setFocus, 0);
         }
 
         public int GetZoomLevel()
@@ -306,9 +313,20 @@ namespace RTextNppPlugin.Utilities
             return (int)_win32.ISendMessage(sci, SciMsg.SCI_LINEFROMPOSITION, position, 0);
         }
 
+        public int GetLengthToEndOfLine(int currentCharacterColumn, int line)
+        {
+            return GetLine(line).RemoveNewLine().Length - currentCharacterColumn;
+        }
+
         public int GetLengthToEndOfLine(int currentCharacterColumn)
         {
             return GetLine().RemoveNewLine().Length - currentCharacterColumn;
+        }
+
+        public int GetColumn(int position)
+        {
+            IntPtr sci = GetCurrentScintilla(Plugin.nppData);
+            return (int)_win32.ISendMessage(sci, SciMsg.SCI_GETCOLUMN, position, 0);
         }
 
         public int GetColumn()
@@ -421,6 +439,24 @@ namespace RTextNppPlugin.Utilities
             return GetCaretScreenLocation();
         }
 
+        /**
+         * Gets caret screen location for form above word.
+         *
+         * \param   position    The buffer position.
+         *
+         * \return  The caret screen location for form above word from a word starting at position.
+         */
+        public Point GetCaretScreenLocationForFormAboveWord(int position)
+        {
+            IntPtr sci = GetCurrentScintilla(Plugin.nppData);
+            int x = (int)_win32.ISendMessage(sci, SciMsg.SCI_POINTXFROMPOSITION, 0, position);
+            int y = (int)_win32.ISendMessage(sci, SciMsg.SCI_POINTYFROMPOSITION, 0, position);
+
+            Point point = new Point(x, y);
+            ClientToScreen(sci, ref point);
+            return point;
+        }
+
         public Point GetCaretScreenLocation()
         {
             IntPtr sci = GetCurrentScintilla(Plugin.nppData);
@@ -440,9 +476,7 @@ namespace RTextNppPlugin.Utilities
             Point point = Cursor.Position;
             ScreenToClient(sci, ref point);
 
-            int pos = (int)_win32.ISendMessage(sci, SciMsg.SCI_CHARPOSITIONFROMPOINTCLOSE, point.X, point.Y);
-
-            return pos;
+            return (int)_win32.ISendMessage(sci, SciMsg.SCI_CHARPOSITIONFROMPOINTCLOSE, point.X, point.Y);
         }
 
         public void Exit()
@@ -604,14 +638,22 @@ namespace RTextNppPlugin.Utilities
 
         public void GoToLine(int line)
         {
-            IntPtr sci = GetCurrentScintilla(Plugin.nppData);
-            //_win32.ISendMessage(sci, SciMsg.SCI_ENSUREVISIBLE, line - 1, 0);
-            _win32.ISendMessage(sci, SciMsg.SCI_GOTOLINE, line + 20, 0);
+            IntPtr sci = GetCurrentScintilla(Plugin.nppData);            
             _win32.ISendMessage(sci, SciMsg.SCI_GOTOLINE, line - 1, 0);
-            /*
-             SCI_GETFIRSTVISIBLELINE = 2152,
-        SCI_GETLINE = 2153,
-        SCI_GETLINECOUNT = 2154,*/
+
+            
+        }
+
+        /**
+         * \brief   Scroll up to line. Makes "line" the first visible line of the document, if possible by scrolling up, else has no effect.
+         *
+         * \param   line    The line.
+         */
+        public void ScrollUpToLine(int line)
+        {
+            IntPtr sci = GetCurrentScintilla(Plugin.nppData);
+            int firstVisibleLine = (int)_win32.ISendMessage(sci, SciMsg.SCI_GETFIRSTVISIBLELINE, 0, 0);
+            _win32.ISendMessage(sci, SciMsg.SCI_LINESCROLL, 0, (line - (1 + firstVisibleLine)));            
         }
 
         /**
@@ -692,9 +734,13 @@ namespace RTextNppPlugin.Utilities
             GetKeyboardState(lpKeyState);
             byte[] lpChar = new byte[2];
             if (ToAscii(uVirtKey, uScanCode, lpKeyState, lpChar, 0) == 1)
+            {
                 return (char)lpChar[0];
+            }
             else
+            {
                 return new char();
+            }
         }        
     }
 }

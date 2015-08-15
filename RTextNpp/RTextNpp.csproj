@@ -130,6 +130,7 @@
     <Compile Include="Utilities\WpfControlHost\WpfControlHostBase.cs" />
     <Compile Include="ViewModels\AutoCompletionViewModel.cs" />
     <Compile Include="ViewModels\ConsoleViewModel.cs" />
+    <Compile Include="ViewModels\LinkTargetModel.cs" />
     <Compile Include="ViewModels\WorkspaceViewModelBase.cs" />
     <Compile Include="ViewModels\IConsoleViewModel.cs" />
     <Compile Include="ViewModels\WorkspaceViewModel.cs" />
@@ -149,6 +150,12 @@
     <Compile Include="WpfControls\AutoCompletionWindow.xaml.cs">
       <DependentUpon>AutoCompletionWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="WpfControls\ILinkTargetsWindow.cs" />
+    <Compile Include="WpfControls\IWindowPosition.cs" />
+    <Compile Include="WpfControls\LinkTargetsWindow.xaml.cs">
+      <DependentUpon>LinkTargetsWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="WpfControls\DatagridScrollviewerTooltipOffsetCalculator.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="FileSystemWatcherCLRWrapper">
@@ -156,9 +163,6 @@
     </Reference>
     <Reference Include="FuzzyString">
       <HintPath>..\ThirdParty\FuzzyMatcher\FuzzyString.dll</HintPath>
-    </Reference>
-    <Reference Include="Jil">
-      <HintPath>..\packages\Jil.2.10.0\lib\net45\Jil.dll</HintPath>
     </Reference>
     <Reference Include="LedControl">
       <HintPath>..\ThirdParty\WpfLedControl\LedControl.dll</HintPath>
@@ -172,14 +176,15 @@
       <Private>True</Private>
       <EmbedInteropTypes>False</EmbedInteropTypes>
     </Reference>
+    <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Newtonsoft.Json.6.0.8\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
     <Reference Include="RGiesecke.DllExport.Metadata">
       <HintPath>..\packages\UnmanagedExports.1.2.6\lib\net\RGiesecke.DllExport.Metadata.dll</HintPath>
       <Private>True</Private>
-    </Reference>
-    <Reference Include="Sigil">
-      <HintPath>..\packages\Sigil.4.4.0\lib\net45\Sigil.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.configuration" />
@@ -230,6 +235,10 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="WpfControls\AutoCompletionWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="WpfControls\LinkTargetsWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

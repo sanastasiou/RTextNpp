@@ -6,11 +6,11 @@ using System.Net.Sockets;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
-using Jil;
 using RTextNppPlugin.RText.Protocol;
 using RTextNppPlugin.RText.StateEngine;
 using RTextNppPlugin.Utilities;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 
 
 namespace RTextNppPlugin.RText
@@ -246,6 +246,14 @@ namespace RTextNppPlugin.RText
         }
         #endregion
 
+        internal string LogChannel
+        {
+            get
+            {
+                return mBackendProcess.Workspace;
+            }
+        }
+
         #region Helpers
 
         /**
@@ -479,32 +487,31 @@ namespace RTextNppPlugin.RText
         private void AnalyzeResponse(string response)
         {
             bool aIsResponceReceived = false;
-            using (var input = new StringReader(response))
+
+            switch (mActiveCommand)
             {
-                switch (mActiveCommand)
-                {
-                    case Constants.Commands.LOAD_MODEL:
-                        mLastResponse       = JSON.Deserialize<LoadResponse>(input, Options.IncludeInherited) as IResponseBase;
-                        aIsResponceReceived = IsNotResponseOrErrorMessage();
-                        break;
-                    case Constants.Commands.LINK_TARGETS:
-                        mLastResponse = JSON.Deserialize<LinkTargetsResponse>(input, Options.IncludeInherited) as IResponseBase;
-                        aIsResponceReceived = IsNotResponseOrErrorMessage();
-                        break;
-                    case Constants.Commands.FIND_ELEMENTS:
-                        mLastResponse = JSON.Deserialize<FindRTextElementsResponse>(input, Options.IncludeInherited) as IResponseBase;
-                        aIsResponceReceived = IsNotResponseOrErrorMessage();
-                        break;
-                    case Constants.Commands.CONTENT_COMPLETION:
-                        mLastResponse = JSON.Deserialize<AutoCompleteResponse>(input, Options.IncludeInherited) as IResponseBase;
-                        aIsResponceReceived = IsNotResponseOrErrorMessage();
-                        break;
-                    case Constants.Commands.CONTEXT_INFO:
-                        mLastResponse = JSON.Deserialize<ContextInfoResponse>(input, Options.IncludeInherited) as IResponseBase;
-                        aIsResponceReceived = IsNotResponseOrErrorMessage();
-                        break;
-                }
+                case Constants.Commands.LOAD_MODEL:
+                    mLastResponse = JsonConvert.DeserializeObject<LoadResponse>(response) as IResponseBase;
+                    aIsResponceReceived = IsNotResponseOrErrorMessage();
+                    break;
+                case Constants.Commands.LINK_TARGETS:
+                    mLastResponse = JsonConvert.DeserializeObject<LinkTargetsResponse>(response) as IResponseBase;
+                    aIsResponceReceived = IsNotResponseOrErrorMessage();
+                    break;
+                case Constants.Commands.FIND_ELEMENTS:
+                    mLastResponse = JsonConvert.DeserializeObject<FindRTextElementsResponse>(response) as IResponseBase;
+                    aIsResponceReceived = IsNotResponseOrErrorMessage();
+                    break;
+                case Constants.Commands.CONTENT_COMPLETION:
+                    mLastResponse = JsonConvert.DeserializeObject<AutoCompleteResponse>(response) as IResponseBase;
+                    aIsResponceReceived = IsNotResponseOrErrorMessage();
+                    break;
+                case Constants.Commands.CONTEXT_INFO:
+                    mLastResponse = JsonConvert.DeserializeObject<ContextInfoResponse>(response) as IResponseBase;
+                    aIsResponceReceived = IsNotResponseOrErrorMessage();
+                    break;
             }
+            
             if (aIsResponceReceived)
             {
                 if (mInvocationId - 1 != mLastResponse.invocation_id)
@@ -560,23 +567,12 @@ namespace RTextNppPlugin.RText
                     return true;
             }
         }
-
-        /**
-         *
-         * \brief   Prepare request string by appending the length of the message.
-         *
-         *
-         * \param   stream  The stream.
-         * \param   addLengthToStart Optional parameter. When set to true it will add the length of the JSON stream to the start of the string.                 
-         *
-         * \return  Response from backend as a string.
-         */
-        private byte[] PrepareRequestString( StringWriter swriter )
+       
+        private byte[] PrepareRequestString( string serializedCommand )
         {
-            swriter.Flush();
-            StringBuilder aExtendedString = new StringBuilder(swriter.GetStringBuilder().Length + 10);
-            aExtendedString.Append(swriter.GetStringBuilder().Length);
-            aExtendedString.Append(swriter.GetStringBuilder());
+            StringBuilder aExtendedString = new StringBuilder(serializedCommand.Length + 10);
+            aExtendedString.Append(serializedCommand.Length);
+            aExtendedString.Append(serializedCommand);
             return Encoding.ASCII.GetBytes(aExtendedString.ToString());
         }
 
@@ -608,11 +604,9 @@ namespace RTextNppPlugin.RText
         private byte[] GetCommandAsByteArray<Command>(Command command) where Command : RequestBase
         {
             command.invocation_id = mInvocationId++;
-            using (var output = new StringWriter())
-            {
-                JSON.Serialize<Command>(command, output, Options.IncludeInherited);
-                return PrepareRequestString(output);
-            }
+            JsonConvert.SerializeObject(command, Formatting.None);
+            return PrepareRequestString(JsonConvert.SerializeObject(command, Formatting.None));
+            
         }
 
         #endregion

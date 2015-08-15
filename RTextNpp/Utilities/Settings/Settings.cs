@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using RTextNppPlugin.Logging;
-using RTextNppPlugin.Utilities;
 
 namespace RTextNppPlugin.Utilities.Settings
 {

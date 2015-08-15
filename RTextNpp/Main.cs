@@ -20,14 +20,15 @@ namespace RTextNppPlugin
     partial class Plugin
     {
         #region [Fields]
+        private static INpp _nppHelper                                                  = Npp.Instance;
         private static IWin32 _win32                                                    = new Win32();
-        private static ISettings _settings                                              = new Settings(Npp.Instance);
-        private static ConnectorManager _connectorManager                               = new ConnectorManager(_settings, Npp.Instance);
-        private static PersistentWpfControlHost<ConsoleOutputForm> _consoleOutput       = new PersistentWpfControlHost<ConsoleOutputForm>(Settings.RTextNppSettings.ConsoleWindowActive, new ConsoleOutputForm(_connectorManager), _settings, Npp.Instance);        
+        private static ISettings _settings                                              = new Settings(_nppHelper);
+        private static ConnectorManager _connectorManager                               = new ConnectorManager(_settings, _nppHelper);
+        private static PersistentWpfControlHost<ConsoleOutputForm> _consoleOutput       = new PersistentWpfControlHost<ConsoleOutputForm>(Settings.RTextNppSettings.ConsoleWindowActive, new ConsoleOutputForm(_connectorManager), _settings, _nppHelper);        
         private static Options _options                                                 = new Options(_settings);
-        private static FileModificationObserver _fileObserver                           = new FileModificationObserver(_settings, Npp.Instance);
+        private static FileModificationObserver _fileObserver                           = new FileModificationObserver(_settings, _nppHelper);
         private static Dictionary<ShortcutKey, Tuple<string, Action>> internalShortcuts = new Dictionary<ShortcutKey, Tuple<string, Action>>();
-        private static AutoCompletionWindow _autoCompletionForm                         = new AutoCompletionWindow(_connectorManager, _win32);
+        private static AutoCompletionWindow _autoCompletionForm                         = new AutoCompletionWindow(_connectorManager, _win32, _nppHelper);
         private static Bitmap tbBmp                                                     = Properties.Resources.ConsoleIcon;
         private static Bitmap tbBmp_tbTab                                               = Properties.Resources.ConsoleIcon;
         private static Icon tbIcon                                                      = null;
@@ -39,8 +40,8 @@ namespace RTextNppPlugin
         private static NotepadMessageInterceptor _nppMsgInterceptpr                     = null;  //!< Intercepts notepad ++ messages.
         private static bool _hasMainScintillaFocus                                      = false; //!< Indicates if the main editor has focus.
         private static bool _hasSecondScintillaFocus                                    = false; //!< Indicates if the second editor has focus.
-        private static bool _isMenuLoopInactive                                         = false; //!< Indicates that npp menu loop is active.
-        private static ReferenceRequestObserver _referenceRequestObserver               = new ReferenceRequestObserver(Npp.Instance, _settings, _win32); //!< Handles reference requests triggers.
+        private static bool _isMenuLoopInactive                                         = false; //!< Indicates that npp menu loop is active.        
+        private static LinkTargetsWindow _linkTargetsWindow                             = new LinkTargetsWindow(_nppHelper, _win32, _settings, _connectorManager); //!< Display reference links.
         #endregion
 
         #region [Startup/CleanUp]
@@ -66,26 +67,26 @@ namespace RTextNppPlugin
             {
                 CSScriptIntellisense.KeyInterceptor.Instance.Add((Keys)key);
             }
-
             _currentZoomLevel = Npp.Instance.GetZoomLevel();
             _autoCompletionForm.OnZoomLevelChanged(_currentZoomLevel);
-            Logging.Logger.Instance.Append("Configuration directory : {0}", Npp.Instance.GetConfigDir());
+            _linkTargetsWindow.OnZoomLevelChanged(_currentZoomLevel);
+            _linkTargetsWindow.IsVisibleChanged += OnLinkTargetsWindowIsVisibleChanged;
             #if DEBUG
             Debugger.Launch();
             #endif
         }
-
+       
         internal static void OnBufferActivated()
         {
-            _referenceRequestObserver.CancelPendingRequest();
+            _linkTargetsWindow.CancelPendingRequest();
         }
 
         static void OnKeyInterceptorKeyUp(Keys key, int repeatCount, ref bool handled)
         {
             CSScriptIntellisense.Modifiers modifiers = CSScriptIntellisense.KeyInterceptor.GetModifiers();
             if (!modifiers.IsAlt || !modifiers.IsCtrl)
-            {
-                _referenceRequestObserver.IsAltCtrlPressed = false;
+            {                
+                _linkTargetsWindow.IsKeyboardShortCutActive(false);
             }
         }
 
@@ -95,8 +96,9 @@ namespace RTextNppPlugin
             {
                 CSScriptIntellisense.Modifiers modifiers = CSScriptIntellisense.KeyInterceptor.GetModifiers();                
                 if(modifiers.IsAlt && modifiers.IsCtrl)
-                {
-                    _referenceRequestObserver.IsAltCtrlPressed = true;
+                {                    
+                    _linkTargetsWindow.IsKeyboardShortCutActive(true);
+                    handled = true;
                 }
                 foreach (var shortcut in internalShortcuts.Keys)
                 {
@@ -119,6 +121,10 @@ namespace RTextNppPlugin
                 //if any modifier key is pressed - ignore this key press
                 if (modifiers.IsCtrl || modifiers.IsAlt)
                 {
+                    if(_autoCompletionForm.IsVisible)
+                    {
+                        CommitAutoCompletion(false);
+                    }
                     return;
                 }
 
@@ -267,6 +273,7 @@ namespace RTextNppPlugin
             _scintillaMainMsgInterceptor.MouseWheelMoved         -= OnScintillaMouseWheelMoved;
             _scintillaSecondMsgInterceptor.MouseWheelMoved       -= OnScintillaMouseWheelMoved;
             _nppMsgInterceptpr.MenuLoopStateChanged              -= OnMenuLoopStateChanged;
+            _linkTargetsWindow.IsVisibleChanged                  -= OnLinkTargetsWindowIsVisibleChanged;
         }
         #endregion
 
@@ -284,15 +291,13 @@ namespace RTextNppPlugin
                     if (!_autoCompletionForm.IsVisible)
                     {
                         int aCurrentPosition = Npp.Instance.GetCaretPosition();
-                        int aStartPosition   = Npp.Instance.GetLineStart(Npp.Instance.GetLineNumber());
-                        int aColumn          = (aCurrentPosition - aStartPosition);
 
                         if (aCurrentPosition >= 0)
                         {
                             int aLineNumber = Npp.Instance.GetLineNumber();
                             //get text from start till current line end
                             string aContextBlock = Npp.Instance.GetTextBetween(0, Npp.Instance.GetLineEnd(aLineNumber));
-                            ContextExtractor aExtractor = new ContextExtractor(aContextBlock, Npp.Instance.GetLengthToEndOfLine(aColumn));
+                            ContextExtractor aExtractor = new ContextExtractor(aContextBlock, Npp.Instance.GetLengthToEndOfLine(Npp.Instance.GetColumn()));
                             //if auto completion is inside comment, notation, name, string just return
                             AutoCompletionTokenizer aTokenizer = new AutoCompletionTokenizer(aLineNumber, aCurrentPosition, Npp.Instance);                            
                             //if a token is found then the window should appear at the start of it, else it should appear at the caret
@@ -300,9 +305,8 @@ namespace RTextNppPlugin
                             if (aTokenizer.TriggerToken.HasValue && 
                                 aTokenizer.TriggerToken.Value.Type  != RTextTokenTypes.Comma &&
                                 aTokenizer.TriggerToken.Value.Type  != RTextTokenTypes.Space &&
-                                (aTokenizer.TriggerToken.Value.Type != RTextTokenTypes.Label ||
-                                (aTokenizer.TriggerToken.Value.Type == RTextTokenTypes.Label && 
-                                 aCurrentPosition < (aTokenizer.TriggerToken.Value.BufferPosition + aTokenizer.TriggerToken.Value.Context.Length))))
+                                (aTokenizer.TriggerToken.Value.Type != RTextTokenTypes.Label ||                                 
+                                 aCurrentPosition < (aTokenizer.TriggerToken.Value.BufferPosition + aTokenizer.TriggerToken.Value.Context.Length)))
                             {
                                 aCaretPoint = Npp.Instance.GetCaretScreenLocationRelativeToPosition(aTokenizer.TriggerToken.Value.BufferPosition);
                             }
@@ -402,6 +406,15 @@ namespace RTextNppPlugin
 
         #region [Event Handlers]
 
+        private static void OnLinkTargetsWindowIsVisibleChanged(object sender, System.Windows.DependencyPropertyChangedEventArgs e)
+        {
+            if (_linkTargetsWindow.Visibility == System.Windows.Visibility.Hidden)
+            {
+                //give focus back to npp
+                _nppHelper.GrabFocus();
+            }
+        }
+
         private static void OnSecondScintillaFocusChanged(object source, ScintillaMessageInterceptor.ScintillaFocusChangedEventArgs e)
         {
             HandleScintillaFocusChange(e, ref _hasSecondScintillaFocus);
@@ -493,12 +506,8 @@ namespace RTextNppPlugin
             {
                 _currentZoomLevel = aNewZoomLevel;
                 _autoCompletionForm.OnZoomLevelChanged(_currentZoomLevel);
+                _linkTargetsWindow.OnZoomLevelChanged(_currentZoomLevel);
             }
-        }
-
-        internal static void OnHotSpotClicked()
-        {
-            Trace.WriteLine("Hotspot clicked...");
         }
 
         #endregion

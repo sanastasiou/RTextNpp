@@ -26,15 +26,18 @@ namespace RTextNppPlugin.Utilities
         System.Drawing.Point GetCaretScreenLocation();
         System.Drawing.Point GetCaretScreenLocationForForm();
         System.Drawing.Point GetCaretScreenLocationForForm(int position);
+        System.Drawing.Point GetCaretScreenLocationForFormAboveWord(int position);
         System.Drawing.Point GetCaretScreenLocationForFormAboveWord();
         System.Drawing.Point GetCaretScreenLocationRelativeToPosition(int position);
         System.Drawing.Rectangle GetClientRect();
         System.Drawing.Rectangle GetClientRectFromControl(IntPtr hwnd);
         System.Drawing.Rectangle GetClientRectFromPoint(System.Drawing.Point p);
+        int GetColumn(int position);
         int GetColumn();
         string GetConfigDir();
         string GetCurrentFile();
         int GetFirstVisibleLine();
+        int GetLengthToEndOfLine(int currentCharacterColumn, int line);
         int GetLengthToEndOfLine(int currentCharacterColumn);
 
         /**
@@ -67,6 +70,7 @@ namespace RTextNppPlugin.Utilities
         int GetTextHeight(int line);
         int GetZoomLevel();
         void GoToLine(int line);
+        void ScrollUpToLine(int line);
         int GrabFocus();
         IntPtr NppHandle { get; }
         void OpenFile(string file);
@@ -75,7 +79,7 @@ namespace RTextNppPlugin.Utilities
         void SaveCurrentFile();
         void ScrollToCaret();
         void SetCaretPosition(int pos);
-        void SetEditorFocus();
+        void SetEditorFocus(int setFocus);
         void SetFirstVisibleLine(int line);
         void SetIndicatorStyle(int indicator, SciMsg style, System.Drawing.Color color);
         void SetSelection(int start, int end);
@@ -85,5 +89,6 @@ namespace RTextNppPlugin.Utilities
         string TextAfterPosition(int position, int maxLength);
         string TextBeforeCursor(int maxLength);
         string TextBeforePosition(int position, int maxLength);
+        void JumpToLine(string file, int line);
     }
 }
