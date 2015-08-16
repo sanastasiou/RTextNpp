@@ -136,6 +136,7 @@
     <Compile Include="ViewModels\IConsoleViewModel.cs" />
     <Compile Include="ViewModels\WorkspaceViewModel.cs" />
     <Compile Include="WpfControls\Behaviors\DatagridShrinkBehavior.cs" />
+    <Compile Include="WpfControls\Behaviors\ErrorListMixedHeaderBehavior.cs" />
     <Compile Include="WpfControls\BindableObject.cs" />
     <Compile Include="WpfControls\CircularProgressBar.xaml.cs">
       <DependentUpon>CircularProgressBar.xaml</DependentUpon>

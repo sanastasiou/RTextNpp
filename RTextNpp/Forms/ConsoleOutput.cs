@@ -1,18 +1,17 @@
-﻿using System;
-using System.Windows.Forms;
-using System.ComponentModel;
+﻿using RTextNppPlugin.RText;
+using RTextNppPlugin.Utilities;
 using RTextNppPlugin.WpfControls;
-using RTextNppPlugin.RText;
 using System.Diagnostics.CodeAnalysis;
+using System.Windows.Forms;
 
 namespace RTextNppPlugin.Forms
 {
     [ExcludeFromCodeCoverage]
     partial class ConsoleOutputForm : Form
     {
-        internal ConsoleOutputForm(ConnectorManager cmanager)
+        internal ConsoleOutputForm(ConnectorManager cmanager, INpp nppHelper)
         {
-            _consoleOutputHost = new ElementHost<WpfControls.ConsoleOutput, ViewModels.ConsoleViewModel>(new ConsoleOutput(cmanager));
+            _consoleOutputHost = new ElementHost<WpfControls.ConsoleOutput, ViewModels.ConsoleViewModel>(new ConsoleOutput(cmanager, nppHelper));
             InitializeComponent();            
         }
 

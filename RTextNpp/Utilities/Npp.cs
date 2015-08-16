@@ -638,7 +638,8 @@ namespace RTextNppPlugin.Utilities
 
         public void GoToLine(int line)
         {
-            IntPtr sci = GetCurrentScintilla(Plugin.nppData);            
+            IntPtr sci = GetCurrentScintilla(Plugin.nppData);
+            _win32.ISendMessage(sci, SciMsg.SCI_ENSUREVISIBLE, line - 1, 0);
             _win32.ISendMessage(sci, SciMsg.SCI_GOTOLINE, line - 1, 0);
 
             

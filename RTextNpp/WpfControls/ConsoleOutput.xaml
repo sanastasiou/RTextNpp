@@ -1,278 +1,326 @@
-﻿<UserControl x:Class="RTextNppPlugin.WpfControls.ConsoleOutput"
-             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:viewModels="clr-namespace:RTextNppPlugin.ViewModels"
-             xmlns:wpfControls="clr-namespace:RTextNppPlugin.WpfControls"                        
-             xmlns:converters="clr-namespace:RTextNppPlugin.WpfControls.Converters"
-             xmlns:uc="clr-namespace:LedControl;assembly=LedControl"
-             xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
-             xmlns:behaviors="clr-namespace:RTextNppPlugin.WpfControls.Behaviors"        
-             mc:Ignorable="d" 
-             d:DesignHeight="300" d:DesignWidth="300">      
-    <UserControl.Resources>
-        <ResourceDictionary>
-            <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
-            <converters:PercentageConverter x:Key="PercentageConverter"/>
-            <converters:CommandConverter x:Key="AutomateCommandConverter"/>
-            <converters:ProgressLabelSizeConverter x:Key="ProgressLabelConverter"/>
-            <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="Styles.xaml"/>
-            </ResourceDictionary.MergedDictionaries>
-        </ResourceDictionary>
-    </UserControl.Resources>
-    <Grid>
-        <DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-                   IsHitTestVisible="True"
-                   Background="Transparent">
-            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" HorizontalAlignment="Stretch"
-                        IsHitTestVisible="True"
-                        Background="Transparent">
-                <Label>Output channel : </Label>
-                <ComboBox Name="WorkspaceSelector" 
-                          HorizontalAlignment="Stretch" 
-                          MinWidth="100"
-                          IsReadOnly="True"
-                          SelectedValue="Workspace"
-                          SelectedIndex="{Binding Index, Mode=TwoWay }"
-                          ItemsSource="{Binding WorkspaceCollection}"
-                          DisplayMemberPath="Workspace"/>
-            </StackPanel>
-            <StackPanel Orientation="Horizontal"
-                        DockPanel.Dock="Bottom"
-                        Style="{StaticResource Workspace_FadeInFadeOutStyle}">
-                <Label>Backend Status : </Label>
-                <uc:Led Height="17" 
-                        FlashingPeriod="300" 
-                        IsActive="{Binding IsActive, Mode=OneWay}"
-                        ColorOn="Green" 
-                        ColorOff="Red" 
-                        ColorBusy="Orange"
-                        Flashing="{Binding IsBusy, Mode=OneWay}"/>
-                <Label Content="Status: "/>
-                <Label Content="{Binding ActiveCommand, Converter={StaticResource AutomateCommandConverter}}"/>
-            </StackPanel>
-            <Grid HorizontalAlignment="Stretch"
-                  VerticalAlignment="Stretch"
-                  DockPanel.Dock="Top"
-                  x:Name="WorkspaceGrid"
-                  SizeChanged="OnWorkspaceGridSizeChanged">
-                <TabControl IsHitTestVisible="True" 
-                            x:Name="OutputTabControl"                            
-                            Style="{StaticResource IsLoading_FadeInFadeOutStyle60PercentInverse}"
-                            Background="Transparent">
-                    <TabItem Name="Console" IsHitTestVisible="True" Background="Transparent">
-                        <TabItem.Header>
-                            <Label IsHitTestVisible="True" 
-                                   Style="{StaticResource LabelNoPaddingStyle}"
-                                   PreviewMouseDown="ConsolePreviewMouseDown">Console</Label>
-                        </TabItem.Header>
-                        <RichTextBox    VerticalScrollBarVisibility="Auto"
-                                        HorizontalScrollBarVisibility="Visible"
-                                        HorizontalAlignment="Stretch"
-                                        VerticalAlignment="Stretch"
-                                        IsUndoEnabled="False"                     
-                                        AllowDrop="False"                     
-                                        Background="Black"                                 
-                                        Name="ConsoleViewRichTextBox"                  
-                                        IsReadOnly="True">
-                            <wpfControls:ConsoleFlowDocument Channel="{Binding Workspace}"/>
-                        </RichTextBox>
-                    </TabItem>
-                    <TabItem Name="ErrorList"
-                             IsHitTestVisible="True"
-                             Style="{StaticResource Workspace_FadeInFadeOutStyle}"
-                             Background="Transparent">
-                        <TabItem.Header>
-                            <StackPanel Orientation="Horizontal">
-                                <Border BorderThickness="0 0 0 0" Style="{StaticResource ResourceKey=BorderErrorCollapseAtPositiveCountStyle}">
-                                    <StackPanel Orientation="Horizontal">
-                                        <Label IsHitTestVisible="True"
-                                               Style="{StaticResource LabelNoPaddingStyle}"
-                                               PreviewMouseDown="ErrorListPreviewMouseDown">No errors.</Label>
-                                        <Image Source="/RTextNpp;Component/Resources/ModelNoErrors.png" Height="16" Width="16" Margin="5 0 0 0"/>
-                                    </StackPanel>
-                                </Border>
-                                <Border BorderThickness="0 0 0 0" Style="{StaticResource ResourceKey=BorderErrorCollapseAtZeroCountStyle}">
-                                    <StackPanel Orientation="Horizontal">
-                                        <Label IsHitTestVisible="True"
-                                               Style="{StaticResource LabelNoPaddingStyle}"
-                                               PreviewMouseDown="ErrorListPreviewMouseDown">Found : </Label>
-                                        <Label IsHitTestVisible="True"
-                                               Style="{StaticResource LabelNoPaddingStyle}"
-                                               PreviewMouseDown="ErrorListPreviewMouseDown" Content="{Binding ErrorCount}"/>
-                                        <Label IsHitTestVisible="True"
-                                               Margin="0"
-                                               Padding="5 0 0 5"
-                                               PreviewMouseDown="ErrorListPreviewMouseDown"> errors. </Label>
-                                        <Image Source="/RTextNpp;Component/Resources/Error.png" Height="16" Width="16"/>
-                                    </StackPanel>
-                                </Border>
-                            </StackPanel>
-                        </TabItem.Header>
-                            <DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-                                       IsHitTestVisible="True"
-                                       Background="Transparent">
-                            <Border BorderThickness="0 0 0 0" Style="{StaticResource ResourceKey=BorderErrorCollapseAtPositiveCountStyle}" Background="Black">                                
-                                <Viewbox VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
-                                    <StackPanel Orientation="Vertical">
-                                        <Label Foreground="White">Model contains no errors...</Label>
-                                    </StackPanel>
-                                </Viewbox>
-                            </Border>
-                            <Border BorderThickness="0 0 0 0" Style="{StaticResource ResourceKey=BorderErrorCollapseAtZeroCountStyle}" DockPanel.Dock="Bottom" Background="Black">
-                                <DataGrid ItemsSource                                ="{Binding Errors}"                                          
-                                          Name                                       ="ErrorListDataGrid"
-                                          ScrollViewer.CanContentScroll              ="True" 
-                                          ScrollViewer.HorizontalScrollBarVisibility ="Auto" 
-                                          ScrollViewer.VerticalScrollBarVisibility   ="Auto"
-                                          AlternationCount                           ="2"
-                                          Focusable                                  ="True"
-                                          SelectionMode                              ="Single"
-                                          AllowDrop                                  ="False"
-                                          SelectionUnit                              ="FullRow"
-                                          AutoGenerateColumns                        ="False"
-                                          VirtualizingStackPanel.IsVirtualizing      ="True"                                          
-                                          GridLinesVisibility                        ="None"                                          
-                                          HeadersVisibility                          ="Column"                      
-                                          IsTextSearchEnabled                        ="True"
-                                          TextSearch.TextPath                        ="FilePath"
-                                          IsReadOnly                                 ="True">
-                                    <i:Interaction.Behaviors>
-                                        <behaviors:UpdateWidthOnColumnResizedBehavior/>
-                                    </i:Interaction.Behaviors>
-                                    <DataGrid.Columns>
-                                        <DataGridTemplateColumn Header="Files Containing Errors"                                                                                     
-                                            IsReadOnly     ="True" 
-                                            CanUserSort    ="True" 
-                                            SortMemberPath ="FilePath"                                             
-                                            CanUserResize  ="True">
-                                            <DataGridTemplateColumn.CellTemplate>
-                                                <DataTemplate>
-                                                    <Border BorderThickness="0"
-                                                            Padding="0"
-                                                            Name="ErrorItemBorder"
-                                                            Margin="0">
-                                                        <Expander Style="{DynamicResource CustomExpanderStyle}"
-                                                                  Header="{Binding FilePath}"                                                                 
-                                                                  IsExpanded="{Binding IsFileOpened, Mode=TwoWay,BindsDirectlyToSource=True, UpdateSourceTrigger=PropertyChanged}">
-                                                            <DataGrid Name="ErrorListView"                                                                       
-                                                                      AutoGenerateColumns="false"                         
-                                                                      VirtualizingStackPanel.IsVirtualizing="True"
-                                                                      IsSynchronizedWithCurrentItem="True"
-                                                                      SelectionMode="Single"                                                                      
-                                                                      ItemsSource="{Binding ErrorList}"
-                                                                      ScrollViewer.CanContentScroll="True"                                                                     
-                                                                      ScrollViewer.HorizontalScrollBarVisibility="Auto" 
-                                                                      ScrollViewer.VerticalScrollBarVisibility="Hidden"                                                                                                                                            
-                                                                      Height="100"
-                                                                      AlternationCount="2"
-                                                                      IsReadOnly="True">
-                                                                <DataGrid.RowStyle>
-                                                                    <Style TargetType="DataGridRow">
-                                                                        <Setter Property="Background" Value="White"/>
-                                                                        <Setter Property="Foreground" Value="Blue"/>
-                                                                        <Style.Triggers>
-                                                                            <Trigger Property="AlternationIndex" Value="1">
-                                                                                <Setter Property="Background" Value="Gainsboro"/>
-                                                                            </Trigger>
-                                                                            <Trigger Property="IsMouseOver" Value="True">
-                                                                                <Setter Property="Background" Value="Khaki"/>
-                                                                                <Setter Property="FontWeight" Value="Bold"/>
-                                                                                <Setter Property="Foreground" Value="Red"/>
-                                                                            </Trigger>
-                                                                        </Style.Triggers>
-                                                                    </Style>
-                                                                </DataGrid.RowStyle>
-                                                                <DataGrid.Columns>
-                                                                    <DataGridTextColumn Header="Severity" IsReadOnly="True" Binding="{Binding Severity}"/>
-                                                                    <DataGridHyperlinkColumn Header="Description" Binding="{Binding Message}" SortMemberPath="Message" IsReadOnly="True" CanUserSort="True">
-                                                                        <DataGridHyperlinkColumn.ElementStyle>
-                                                                            <Style>
-                                                                                <EventSetter Event="Hyperlink.Click"  Handler="OnDescriptionClicked"/>
-                                                                                <!--<Setter Property="ToolTipService.ToolTip" Value="{Binding File}"/>-->
-                                                                            </Style>
-                                                                        </DataGridHyperlinkColumn.ElementStyle>
-                                                                    </DataGridHyperlinkColumn>
-                                                                    <DataGridTextColumn Header="Line" IsReadOnly="True" Binding="{Binding Line}"/>
-                                                                </DataGrid.Columns>
-                                                            </DataGrid>
-                                                        </Expander>
-                                                    </Border>
-                                                </DataTemplate>
-                                            </DataGridTemplateColumn.CellTemplate>
-                                        </DataGridTemplateColumn>
-                                    </DataGrid.Columns>
-                                </DataGrid>
-                            </Border>
-                        </DockPanel>
-                    </TabItem>
-                </TabControl>
-                <Grid HorizontalAlignment="Stretch"
-                      VerticalAlignment="Stretch"
-                      Background="Black"
-                      IsHitTestVisible="False"
-                      Style="{StaticResource IsLoading_FadeInFadeOutStyle}"
-                      Visibility="{Binding IsLoading, Converter={StaticResource ResourceKey=BooleanToVisibilityConverter}}" Cursor="Wait">
-                    <wpfControls:CircularProgressBar HorizontalAlignment="Center" 
-                                                     VerticalAlignment="Center" 
-                                                     SegmentColor="#FF05143A"
-                                                     StrokeThickness="15"
-                                                     x:Name="OuterProgressBar"
-                                                     Percentage="100" Radius="20"/>
-                    <StackPanel Orientation="Vertical"
-                                HorizontalAlignment="Center" 
-                                Name="PercentageLabelContainer"
-                                VerticalAlignment="Center">
-                        <Viewbox>
-                            <StackPanel Orientation="Vertical"
-                                HorizontalAlignment="Center" 
-                                VerticalAlignment="Center">
-                                <Label  Content="{Binding ActiveCommand, Converter={StaticResource AutomateCommandConverter}}"                                          
-                                    FontWeight="Bold" 
-                                    HorizontalAlignment="Center"
-                                    VerticalAlignment="Center"
-                                    FontStyle="Italic" 
-                                    Name="CommandNameLabel"
-                                    FontFamily="/RTextNpp;component/Fonts/#Arial" Foreground="Silver">
-                                    <Label.Effect>
-                                        <DropShadowEffect/>
-                                    </Label.Effect>
-                                </Label>
-                                <Label Content="{Binding ProgressPercentage, Converter={StaticResource PercentageConverter}}"                                        
-                                    FontWeight="Bold" 
-                                    FontStyle="Italic" 
-                                    HorizontalAlignment="Center"
-                                    VerticalAlignment="Center"
-                                    FontFamily="/RTextNpp;component/Fonts/#Arial" Foreground="Silver">
-                                    <Label.Effect>
-                                        <DropShadowEffect/>
-                                    </Label.Effect>
-                                </Label>
-                            </StackPanel>
-                        </Viewbox>                            
-                    </StackPanel>
-                    <wpfControls:CircularProgressBar
-                                                     Percentage="{Binding ProgressPercentage}"
-                                                     x:Name="InnerProgressBar"
-                                                     StrokeThickness="15" HorizontalAlignment="Center" VerticalAlignment="Center" Angle="363">
-                    	<wpfControls:CircularProgressBar.Effect>
-                    		<DropShadowEffect/>
-                    	</wpfControls:CircularProgressBar.Effect>
-                    	<wpfControls:CircularProgressBar.SegmentColor>
-                    		<LinearGradientBrush EndPoint="0.5,1" MappingMode="RelativeToBoundingBox" StartPoint="0.5,0">
-                    			<GradientStop Color="#FF00FF21"/>
-                    			<GradientStop Color="#FF0FFF0F"/>
-                    			<GradientStop Color="#FF48620F" Offset="0.5"/>
-                    			<GradientStop Color="#FF354515" Offset="0.601"/>
-                    			<GradientStop Color="#FF5EF327" Offset="1"/>
-                    			<GradientStop Color="#FF46660F" Offset="0.401"/>
-                    		</LinearGradientBrush>
-                    	</wpfControls:CircularProgressBar.SegmentColor>
-                    </wpfControls:CircularProgressBar>
-                </Grid>
-            </Grid>            
-        </DockPanel>                            
-    </Grid>
-</UserControl>
+﻿<UserControl x:Class="RTextNppPlugin.WpfControls.ConsoleOutput"  
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"  
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"  
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"  
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"  
+             xmlns:viewModels="clr-namespace:RTextNppPlugin.ViewModels"  
+             xmlns:wpfControls="clr-namespace:RTextNppPlugin.WpfControls"  
+             xmlns:converters="clr-namespace:RTextNppPlugin.WpfControls.Converters"  
+             xmlns:uc="clr-namespace:LedControl;assembly=LedControl"  
+             xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"  
+             xmlns:utilities="clr-namespace:RTextNppPlugin.Utilities"  
+             xmlns:behaviors="clr-namespace:RTextNppPlugin.WpfControls.Behaviors"  
+             mc:Ignorable="d"  
+             d:DesignHeight="300" d:DesignWidth="300">  
+    <UserControl.Resources>  
+        <ResourceDictionary>  
+            <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>  
+            <converters:PercentageConverter x:Key="PercentageConverter"/>  
+            <converters:CommandConverter x:Key="AutomateCommandConverter"/>  
+            <converters:ProgressLabelSizeConverter x:Key="ProgressLabelConverter"/>  
+            <ResourceDictionary.MergedDictionaries>  
+                <ResourceDictionary Source="Styles.xaml"/>  
+            </ResourceDictionary.MergedDictionaries>  
+        </ResourceDictionary>  
+    </UserControl.Resources>  
+    <Grid>  
+        <DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Stretch"  
+                   IsHitTestVisible="True"  
+                   Background="Transparent">  
+            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" HorizontalAlignment="Stretch"  
+                        IsHitTestVisible="True"  
+                        Background="Transparent">  
+                <Label>Output channel : </Label>  
+                <ComboBox Name="WorkspaceSelector"  
+                          HorizontalAlignment="Stretch"  
+                          MinWidth="100"  
+                          IsReadOnly="True"  
+                          SelectedValue="Workspace"  
+                          SelectedIndex="{Binding Index, Mode=TwoWay }"  
+                          ItemsSource="{Binding WorkspaceCollection}"  
+                          DisplayMemberPath="Workspace"/>  
+            </StackPanel>  
+            <StackPanel Orientation="Horizontal"  
+                        DockPanel.Dock="Bottom"  
+                        Style="{StaticResource Workspace_FadeInFadeOutStyle}">  
+                <Label>Backend Status : </Label>  
+                <uc:Led Height="17"  
+                        FlashingPeriod="300"  
+                        IsActive="{Binding IsActive, Mode=OneWay}"  
+                        ColorOn="Green"  
+                        ColorOff="Red"  
+                        ColorBusy="Orange"  
+                        Flashing="{Binding IsBusy, Mode=OneWay}"/>  
+                <Label Content="Status: "/>  
+                <Label Content="{Binding ActiveCommand, Converter={StaticResource AutomateCommandConverter}}"/>  
+            </StackPanel>  
+            <Grid HorizontalAlignment="Stretch"  
+                  VerticalAlignment="Stretch"  
+                  DockPanel.Dock="Top"  
+                  x:Name="WorkspaceGrid"  
+                  SizeChanged="OnWorkspaceGridSizeChanged">  
+                <TabControl IsHitTestVisible="True"  
+                            x:Name="OutputTabControl"  
+                            Style="{StaticResource IsLoading_FadeInFadeOutStyle60PercentInverse}"  
+                            Background="Transparent">  
+                    <TabItem Name="Console" IsHitTestVisible="True" Background="Transparent">  
+                        <TabItem.Header>  
+                            <Label IsHitTestVisible="True"  
+                                   Style="{StaticResource LabelNoPaddingStyle}"  
+                                   PreviewMouseDown="ConsolePreviewMouseDown">Console</Label>  
+                        </TabItem.Header>  
+                        <RichTextBox    VerticalScrollBarVisibility="Auto"  
+                                        HorizontalScrollBarVisibility="Visible"  
+                                        HorizontalAlignment="Stretch"  
+                                        VerticalAlignment="Stretch"  
+                                        IsUndoEnabled="False"  
+                                        AllowDrop="False"  
+                                        Background="Black"  
+                                        Name="ConsoleViewRichTextBox"  
+                                        IsReadOnly="True">  
+                            <wpfControls:ConsoleFlowDocument Channel="{Binding Workspace}"/>  
+                        </RichTextBox>  
+                    </TabItem>  
+                    <TabItem Name="ErrorList"  
+                             IsHitTestVisible="True"  
+                             Style="{StaticResource Workspace_FadeInFadeOutStyle}"  
+                             Background="Transparent">  
+                        <TabItem.Header>  
+                            <StackPanel Orientation="Horizontal">  
+                                <Border BorderThickness="0 0 0 0" Style="{StaticResource ResourceKey=BorderErrorCollapseAtPositiveCountStyle}">  
+                                    <StackPanel Orientation="Horizontal">  
+                                        <Label IsHitTestVisible="True"  
+                                               Style="{StaticResource LabelNoPaddingStyle}"  
+                                               PreviewMouseDown="ErrorListPreviewMouseDown">No errors.</Label>  
+                                        <Image Source="/RTextNpp;Component/Resources/ModelNoErrors.png" Height="16" Width="16" Margin="5 0 0 0"/>  
+                                    </StackPanel>  
+                                </Border>  
+                                <Border BorderThickness="0 0 0 0" Style="{StaticResource ResourceKey=BorderErrorCollapseAtZeroCountStyle}">  
+                                    <StackPanel Orientation="Horizontal">  
+                                        <Label IsHitTestVisible="True"  
+                                               Style="{StaticResource LabelNoPaddingStyle}"  
+                                               PreviewMouseDown="ErrorListPreviewMouseDown">Found : </Label>  
+                                        <Label IsHitTestVisible="True"  
+                                               Style="{StaticResource LabelNoPaddingStyle}"  
+                                               PreviewMouseDown="ErrorListPreviewMouseDown" Content="{Binding ErrorCount}"/>  
+                                        <Label IsHitTestVisible="True"  
+                                               Margin="0"  
+                                               Padding="5 0 0 5"  
+                                               PreviewMouseDown="ErrorListPreviewMouseDown"> errors. </Label>  
+                                        <Image Source="/RTextNpp;Component/Resources/Error.png" Height="16" Width="16"/>  
+                                    </StackPanel>  
+                                </Border>  
+                            </StackPanel>  
+                        </TabItem.Header>  
+                            <DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Stretch"  
+                                       IsHitTestVisible="True"  
+                                       Background="Transparent">  
+                            <Border BorderThickness="0 0 0 0" Style="{StaticResource ResourceKey=BorderErrorCollapseAtPositiveCountStyle}" Background="Black">  
+                                <Viewbox VerticalAlignment="Stretch" HorizontalAlignment="Stretch">  
+                                    <StackPanel Orientation="Vertical">  
+                                        <Label Foreground="White">Model contains no errors...</Label>  
+                                    </StackPanel>  
+                                </Viewbox>  
+                            </Border>  
+                            <Border BorderThickness="0 0 0 0" Style="{StaticResource ResourceKey=BorderErrorCollapseAtZeroCountStyle}" DockPanel.Dock="Bottom" Background="Black">  
+                                <DataGrid ItemsSource                                ="{Binding Errors}"  
+                                          Name                                       ="ErrorListDataGrid"  
+                                          ScrollViewer.CanContentScroll              ="True"  
+                                          ScrollViewer.HorizontalScrollBarVisibility ="Auto"  
+                                          ScrollViewer.VerticalScrollBarVisibility   ="Auto"  
+                                          AlternationCount                           ="2"  
+                                          Focusable                                  ="True"  
+                                          SelectionMode                              ="Single"  
+                                          AllowDrop                                  ="False"  
+                                          SelectionUnit                              ="FullRow"  
+                                          AutoGenerateColumns                        ="False"  
+                                          VirtualizingStackPanel.IsVirtualizing      ="True"  
+                                          GridLinesVisibility                        ="None"  
+                                          HeadersVisibility                          ="Column"  
+                                          IsTextSearchEnabled                        ="True"  
+                                          TextSearch.TextPath                        ="FilePath"  
+                                          IsReadOnly                                 ="True">  
+                                    <i:Interaction.Behaviors>  
+                                        <behaviors:UpdateWidthOnColumnResizedBehavior/>  
+                                    </i:Interaction.Behaviors>  
+                                    <DataGrid.Columns>  
+                                        <DataGridTemplateColumn Header="Files Containing Errors"  
+                                            IsReadOnly     ="True"  
+                                            CanUserSort    ="True"  
+                                            SortMemberPath ="FilePath"  
+                                            CanUserResize  ="True">  
+                                            <DataGridTemplateColumn.CellTemplate>  
+                                                <DataTemplate>  
+                                                    <Border BorderThickness="0"  
+                                                            Padding="0"  
+                                                            Name="ErrorItemBorder"  
+                                                            Margin="0">  
+                                                        <Expander Style="{DynamicResource CustomExpanderStyle}"  
+                                                                  Header="{Binding FilePath}"                                                                    
+                                                                  Expanded="OnErrorListExpanderExpanded"
+                                                                  IsExpanded="{Binding IsFileOpened, Mode=TwoWay,BindsDirectlyToSource=True, UpdateSourceTrigger=PropertyChanged}">  
+                                                            <DataGrid Name="ErrorListView"  
+                                                                      AutoGenerateColumns="false"  
+                                                                      VirtualizingStackPanel.IsVirtualizing="True"  
+                                                                      IsSynchronizedWithCurrentItem="True"  
+                                                                      SelectionMode="Single"  
+                                                                      FlowDirection="RightToLeft"  
+                                                                      HorizontalContentAlignment="Right"  
+                                                                      ItemsSource="{Binding ErrorList}"  
+                                                                      ScrollViewer.CanContentScroll="True"  
+                                                                      ScrollViewer.HorizontalScrollBarVisibility="Auto"  
+                                                                      ScrollViewer.VerticalScrollBarVisibility="Auto"  
+                                                                      ColumnWidth="*"  
+                                                                      CanUserAddRows="False"  
+                                                                      CanUserReorderColumns="False"  
+                                                                      CanUserResizeColumns="False"  
+                                                                      CanUserDeleteRows="False"  
+                                                                      CanUserResizeRows="False"  
+                                                                      HorizontalAlignment="Left"  
+                                                                      VerticalAlignment="Top"  
+                                                                      EnableColumnVirtualization="False"  
+                                                                      HeadersVisibility="Column"  
+                                                                      SelectionUnit="FullRow"  
+                                                                      Height="300"  
+                                                                      Width="{Binding Width, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type TabItem}}}"  
+                                                                      AlternationCount="2"  
+                                                                      IsReadOnly="True">  
+                                                                <i:Interaction.Behaviors>  
+                                                                    <behaviors:UpdateWidthOnColumnResizedBehavior/>  
+                                                                </i:Interaction.Behaviors>  
+                                                                <DataGrid.RowStyle>  
+                                                                    <Style TargetType="DataGridRow">  
+                                                                        <Setter Property="Background" Value="White"/>  
+                                                                        <Setter Property="Foreground" Value="Blue"/>  
+                                                                        <Style.Triggers>  
+                                                                            <Trigger Property="AlternationIndex" Value="1">  
+                                                                                <Setter Property="Background" Value="Gainsboro"/>  
+                                                                            </Trigger>  
+                                                                            <Trigger Property="IsMouseOver" Value="True">  
+                                                                                <Setter Property="Background" Value="Khaki"/>  
+                                                                                <Setter Property="FontWeight" Value="Bold"/>  
+                                                                                <Setter Property="Foreground" Value="Red"/>  
+                                                                            </Trigger>  
+                                                                        </Style.Triggers>  
+                                                                    </Style>  
+                                                                </DataGrid.RowStyle>  
+                                                                <DataGrid.CellStyle>  
+                                                                    <Style TargetType="{x:Type DataGridCell}">  
+                                                                        <Setter Property="Block.TextAlignment" Value="Right"/>  
+                                                                    </Style>  
+                                                                </DataGrid.CellStyle>  
+                                                                <DataGrid.Columns>  
+                                                                    <DataGridTextColumn Header="#" IsReadOnly="True" Binding="{Binding Line}">  
+                                                                        <DataGridTextColumn.HeaderStyle>  
+                                                                            <Style TargetType="{x:Type DataGridColumnHeader}">  
+                                                                                <Setter Property="HorizontalAlignment" Value="Stretch"/>  
+                                                                                <Setter Property="HorizontalContentAlignment" Value="Right"/>  
+                                                                            </Style>  
+                                                                        </DataGridTextColumn.HeaderStyle>  
+                                                                    </DataGridTextColumn>  
+                                                                    <DataGridHyperlinkColumn Header="Description"  
+                                                                                             Binding="{Binding Message}"  
+                                                                                             SortMemberPath="Message"  
+                                                                                             IsReadOnly="True"  
+                                                                                             CanUserSort="False">  
+                                                                        <DataGridHyperlinkColumn.HeaderStyle>  
+                                                                            <Style TargetType="{x:Type DataGridColumnHeader}">  
+                                                                                <Setter Property="HorizontalAlignment" Value="Stretch"/>  
+                                                                                <Setter Property="HorizontalContentAlignment" Value="Right"/>  
+                                                                            </Style>  
+                                                                        </DataGridHyperlinkColumn.HeaderStyle>  
+                                                                        <DataGridHyperlinkColumn.ElementStyle>  
+                                                                            <Style>  
+                                                                                <EventSetter Event="Hyperlink.Click"  Handler="OnDescriptionClicked"/>  
+                                                                                <!--<Setter Property="ToolTipService.ToolTip" Value="{Binding File}"/>-->  
+                                                                            </Style>  
+                                                                        </DataGridHyperlinkColumn.ElementStyle>  
+                                                                    </DataGridHyperlinkColumn>  
+                                                                    <DataGridTextColumn Header="Severity" IsReadOnly="True" Binding="{Binding Severity}">  
+                                                                        <DataGridTextColumn.HeaderStyle>  
+                                                                            <Style TargetType="{x:Type DataGridColumnHeader}">  
+                                                                                <Setter Property="HorizontalAlignment" Value="Stretch"/>  
+                                                                                <Setter Property="HorizontalContentAlignment" Value="Right"/>  
+                                                                            </Style>  
+                                                                        </DataGridTextColumn.HeaderStyle>  
+                                                                    </DataGridTextColumn>  
+                                                                </DataGrid.Columns>  
+                                                            </DataGrid>  
+                                                        </Expander>  
+                                                    </Border>  
+                                                </DataTemplate>  
+                                            </DataGridTemplateColumn.CellTemplate>  
+                                        </DataGridTemplateColumn>  
+                                    </DataGrid.Columns>  
+                                </DataGrid>  
+                            </Border>  
+                        </DockPanel>  
+                    </TabItem>  
+                </TabControl>  
+                <Grid HorizontalAlignment="Stretch"  
+                      VerticalAlignment="Stretch"  
+                      Background="Black"  
+                      IsHitTestVisible="False"  
+                      Style="{StaticResource IsLoading_FadeInFadeOutStyle}"  
+                      Visibility="{Binding IsLoading, Converter={StaticResource ResourceKey=BooleanToVisibilityConverter}}" Cursor="Wait">  
+                    <wpfControls:CircularProgressBar HorizontalAlignment="Center"  
+                                                     VerticalAlignment="Center"  
+                                                     SegmentColor="#FF05143A"  
+                                                     StrokeThickness="15"  
+                                                     x:Name="OuterProgressBar"  
+                                                     Percentage="100" Radius="20"/>  
+                    <StackPanel Orientation="Vertical"  
+                                HorizontalAlignment="Center"  
+                                Name="PercentageLabelContainer"  
+                                VerticalAlignment="Center">  
+                        <Viewbox>  
+                            <StackPanel Orientation="Vertical"  
+                                HorizontalAlignment="Center"  
+                                VerticalAlignment="Center">  
+                                <Label  Content="{Binding ActiveCommand, Converter={StaticResource AutomateCommandConverter}}"  
+                                    FontWeight="Bold"  
+                                    HorizontalAlignment="Center"  
+                                    VerticalAlignment="Center"  
+                                    FontStyle="Italic"  
+                                    Name="CommandNameLabel"  
+                                    FontFamily="/RTextNpp;component/Fonts/#Arial" Foreground="Silver">  
+                                    <Label.Effect>  
+                                        <DropShadowEffect/>  
+                                    </Label.Effect>  
+                                </Label>  
+                                <Label Content="{Binding ProgressPercentage, Converter={StaticResource PercentageConverter}}"  
+                                    FontWeight="Bold"  
+                                    FontStyle="Italic"  
+                                    HorizontalAlignment="Center"  
+                                    VerticalAlignment="Center"  
+                                    FontFamily="/RTextNpp;component/Fonts/#Arial" Foreground="Silver">  
+                                    <Label.Effect>  
+                                        <DropShadowEffect/>  
+                                    </Label.Effect>  
+                                </Label>  
+                            </StackPanel>  
+                        </Viewbox>  
+                    </StackPanel>  
+                    <wpfControls:CircularProgressBar  
+                                                     Percentage="{Binding ProgressPercentage}"  
+                                                     x:Name="InnerProgressBar"  
+                                                     StrokeThickness="15" HorizontalAlignment="Center" VerticalAlignment="Center" Angle="363">  
+                    	<wpfControls:CircularProgressBar.Effect>  
+                    		<DropShadowEffect/>  
+                    	</wpfControls:CircularProgressBar.Effect>  
+                    	<wpfControls:CircularProgressBar.SegmentColor>  
+                    		<LinearGradientBrush EndPoint="0.5,1" MappingMode="RelativeToBoundingBox" StartPoint="0.5,0">  
+                    			<GradientStop Color="#FF00FF21"/>  
+                    			<GradientStop Color="#FF0FFF0F"/>  
+                    			<GradientStop Color="#FF48620F" Offset="0.5"/>  
+                    			<GradientStop Color="#FF354515" Offset="0.601"/>  
+                    			<GradientStop Color="#FF5EF327" Offset="1"/>  
+                    			<GradientStop Color="#FF46660F" Offset="0.401"/>  
+                    		</LinearGradientBrush>  
+                    	</wpfControls:CircularProgressBar.SegmentColor>  
+                    </wpfControls:CircularProgressBar>  
+                </Grid>  
+            </Grid>  
+        </DockPanel>  
+    </Grid>  
+</UserControl>  

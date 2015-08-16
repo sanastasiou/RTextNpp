@@ -57,6 +57,11 @@ namespace RTextNppPlugin.ViewModels
             AddWorkspace(e.Workspace, e.Connector);
         }
 
+        public string GetCurrentLogChannel()
+        {
+            return _workspaceCollection[_index].Workspace;
+        }
+
         public void AddWorkspace(string workspace, Connector connector = null)
         {
             var workspaceModel = _workspaceCollection.FirstOrDefault(x => x.Workspace.Equals(workspace, StringComparison.InvariantCultureIgnoreCase));

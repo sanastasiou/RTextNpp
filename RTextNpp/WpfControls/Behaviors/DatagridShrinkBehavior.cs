@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Specialized;
 using System.ComponentModel;
-using System.Linq;
 using System.Windows.Controls;
 using System.Windows.Interactivity;
 
@@ -33,7 +31,7 @@ namespace RTextNppPlugin.WpfControls.Behaviors
         }
 
         private void ResizeGrid(object sender, EventArgs e)
-        {            
+        {
             foreach (var column in AssociatedObject.Columns)
             {
                 column.Width = new DataGridLength(1, DataGridLengthUnitType.SizeToCells);

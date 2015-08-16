@@ -1,9 +1,13 @@
-﻿using System;
-using System.Windows.Controls;
-using RTextNppPlugin.ViewModels;
+﻿using RTextNppPlugin.Logging;
 using RTextNppPlugin.RText;
+using RTextNppPlugin.Utilities;
+using RTextNppPlugin.ViewModels;
+using System;
+using System.IO;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Documents;
+using System.Linq;
 
 namespace RTextNppPlugin.WpfControls
 {
@@ -12,12 +16,13 @@ namespace RTextNppPlugin.WpfControls
     /// </summary>
     public partial class ConsoleOutput : UserControl
     {
-        internal ConsoleOutput(ConnectorManager cmanager)
+        internal ConsoleOutput(ConnectorManager cmanager, INpp nppHelper)
         {
             InitializeComponent();
             var dataContext        = new ConsoleViewModel(cmanager);
             dataContext.Dispatcher = Dispatcher;
             DataContext            = dataContext;
+            _nppHelper = nppHelper;
         }
 
         private void ErrorListPreviewMouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
@@ -51,6 +56,8 @@ namespace RTextNppPlugin.WpfControls
 
         private void OnDescriptionClicked(object sender, RoutedEventArgs e)
         {
+            TextBlock aRow = sender as TextBlock;
+            ErrorItemViewModel aRowDataContext = aRow.DataContext as ErrorItemViewModel;
             Hyperlink link = e.OriginalSource as Hyperlink;
             //RTextEditorPluginPackage.OpenOrFocusDocument(link.NavigateUri.LocalPath);
             ////move cursor to first error - get workspace
@@ -64,5 +71,27 @@ namespace RTextNppPlugin.WpfControls
             ////jump to first error in file
             //NavigateToFile(link.NavigateUri.LocalPath, aLine);
         }
+
+        private void OnErrorListExpanderExpanded(object sender, RoutedEventArgs e)
+        {
+            //if relevant file is not opened open it
+            Expander aExp = sender as Expander;
+            ErrorListViewModel aExpDataContext = aExp.DataContext as ErrorListViewModel;
+            if (File.Exists(aExpDataContext.FilePath))
+            {
+                //find first erroneous line of file
+                var aLine = aExpDataContext.ErrorList.OrderBy(x => x.Line).First().Line;
+                _nppHelper.JumpToLine(aExpDataContext.FilePath, aLine);
+            }
+            else
+            {
+                var aDataContext = DataContext as ConsoleViewModel;
+                Logger.Instance.Append(Logger.MessageType.Error,  aDataContext.GetCurrentLogChannel(), "Cannot jump to link because file : {0} does not exist.", aExpDataContext.FilePath);
+            }            
+        }
+
+        #region [Custom Data Members]
+        INpp _nppHelper = null;
+        #endregion
     }
 }
