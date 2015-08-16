@@ -2,6 +2,8 @@
 using System.Windows.Controls;
 using RTextNppPlugin.ViewModels;
 using RTextNppPlugin.RText;
+using System.Windows;
+using System.Windows.Documents;
 
 namespace RTextNppPlugin.WpfControls
 {
@@ -45,6 +47,22 @@ namespace RTextNppPlugin.WpfControls
             var halfSquare   = radiusSquare / 2;
 
             PercentageLabelContainer.Width = PercentageLabelContainer.Height = Math.Sqrt(halfSquare);
+        }
+
+        private void OnDescriptionClicked(object sender, RoutedEventArgs e)
+        {
+            Hyperlink link = e.OriginalSource as Hyperlink;
+            //RTextEditorPluginPackage.OpenOrFocusDocument(link.NavigateUri.LocalPath);
+            ////move cursor to first error - get workspace
+            //WorkspaceModel aSelectedWs = WorkspaceSelector.SelectedItem as WorkspaceModel;
+            //var aErroneousFile = (from aErrorGroup in ErrorListManager.getInstance[aSelectedWs.WorkspaceName].problems
+            //                      where aErrorGroup.file.Replace("/", "\\").Equals(link.NavigateUri.LocalPath)
+            //                      select aErrorGroup.problems).First();
+            //int aLine = (from lines in aErroneousFile
+            //             orderby lines.line ascending
+            //             select lines).ToArray()[0].line;
+            ////jump to first error in file
+            //NavigateToFile(link.NavigateUri.LocalPath, aLine);
         }
     }
 }

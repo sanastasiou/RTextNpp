@@ -37,6 +37,7 @@ namespace RTextNppPlugin.RText
         private int mLastInvocationId                                      = -1                                              ;            //!< Holds the last invocation id from the backend.
         public readonly RequestBase LOAD_COMMAND                           = new RequestBase { command = Constants.Commands.LOAD_MODEL }; //!< Load command.
         private bool mCancelled                                            = false;                                                       //!< Indicates that a pending command was cancelled via user request.
+        private LoadResponse _currentLoadResponse                          = default(LoadResponse);                                       //!< Indicates last load response.
         #endregion
 
         #region Interface
@@ -61,19 +62,7 @@ namespace RTextNppPlugin.RText
         public delegate void ProgressUpdatedEvent(object source, ProgressResponseEventArgs e);
 
         public event ProgressUpdatedEvent OnProgressUpdated;
-
-        /**
-         *
-         * \brief   Delegate for the CommandCompleted event.
-         *
-         *
-         * \param   source  Source object of the event.
-         * \param   e       Command completed event information.
-         */
-        public delegate void CommandExecuted(object source, CommandCompletedEventArgs e);
-
-        public event CommandExecuted OnCommandExecuted;                                   //!< Event queue for all listeners interested in CommmandExecuted events.
-
+        
         public delegate void StateChangedEvent(object source, StateChangedEventArgs e);
 
         public event StateChangedEvent OnStateChanged;
@@ -236,7 +225,7 @@ namespace RTextNppPlugin.RText
             }
         }
                
-        public void CancelCommand()
+        internal void CancelCommand()
         {
             mCancelled = true;
             if (mReceivingThreadCancellationSource != null)
@@ -251,6 +240,18 @@ namespace RTextNppPlugin.RText
             get
             {
                 return mBackendProcess.Workspace;
+            }
+        }
+
+        internal LoadResponse ErrorList
+        {
+            get
+            {
+                return _currentLoadResponse;
+            }
+            private set
+            {
+                _currentLoadResponse = value;
             }
         }
 
@@ -514,6 +515,10 @@ namespace RTextNppPlugin.RText
             
             if (aIsResponceReceived)
             {
+                if(mActiveCommand == Constants.Commands.LOAD_MODEL)
+                {
+                    ErrorList = (mLastResponse as LoadResponse);
+                }
                 if (mInvocationId - 1 != mLastResponse.invocation_id)
                 {
                     Logging.Logger.Instance.Append(Logging.Logger.MessageType.Error,
@@ -528,11 +533,6 @@ namespace RTextNppPlugin.RText
                 {
                     mLastInvocationId = mLastResponse.invocation_id;
                     mReceivedResponseEvent.Set();
-                    //notify subscribers that the response is received
-                    if (OnCommandExecuted != null)
-                    {
-                        OnCommandExecuted(this, new CommandCompletedEventArgs(mLastResponse, mLastInvocationId, mActiveCommand));
-                    }
                     _currentState.ExecuteCommand(StateEngine.Command.ExecuteFinished);
                 }
             }

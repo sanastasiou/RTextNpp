@@ -130,6 +130,7 @@
     <Compile Include="Utilities\WpfControlHost\WpfControlHostBase.cs" />
     <Compile Include="ViewModels\AutoCompletionViewModel.cs" />
     <Compile Include="ViewModels\ConsoleViewModel.cs" />
+    <Compile Include="ViewModels\ErrorItemViewModel.cs" />
     <Compile Include="ViewModels\LinkTargetModel.cs" />
     <Compile Include="ViewModels\WorkspaceViewModelBase.cs" />
     <Compile Include="ViewModels\IConsoleViewModel.cs" />
@@ -275,6 +276,12 @@
       <All>True</All>
       <AutoFill>True</AutoFill>
     </BlendEmbeddedFont>
+    <Resource Include="Resources\Error.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\ModelNoErrors.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
     <Resource Include="Resources\rtext.jpg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Resource>

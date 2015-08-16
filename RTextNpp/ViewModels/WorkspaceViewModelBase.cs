@@ -32,6 +32,11 @@ namespace RTextNppPlugin.ViewModels
             get { return 100.0; }
         }
 
+        public int ErrorCount
+        {
+            get { return 0; }
+        }
+
         public bool IsActive
         {
             get { return false; }

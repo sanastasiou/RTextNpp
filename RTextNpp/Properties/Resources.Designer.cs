@@ -73,6 +73,26 @@ namespace RTextNppPlugin.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap _modelError {
+            get {
+                object obj = ResourceManager.GetObject("_modelError", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap _modelNoErrors {
+            get {
+                object obj = ResourceManager.GetObject("_modelNoErrors", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap _namespace {
             get {
                 object obj = ResourceManager.GetObject("_namespace", resourceCulture);
@@ -233,16 +253,6 @@ namespace RTextNppPlugin.Properties {
         internal static string ERR_REF_LINK_NULL_RESPONSE_DESC {
             get {
                 return ResourceManager.GetString("ERR_REF_LINK_NULL_RESPONSE_DESC", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Drawing.Bitmap.
-        /// </summary>
-        internal static System.Drawing.Bitmap Error {
-            get {
-                object obj = ResourceManager.GetObject("Error", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
             }
         }
         

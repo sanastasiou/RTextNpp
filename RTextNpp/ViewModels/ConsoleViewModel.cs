@@ -1,9 +1,10 @@
-﻿using System;
+﻿using Microsoft.VisualStudio.Language.Intellisense;
+using RTextNppPlugin.RText;
+using RTextNppPlugin.WpfControls;
+using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows.Threading;
-using RTextNppPlugin.RText;
-using RTextNppPlugin.WpfControls;
 
 namespace RTextNppPlugin.ViewModels
 {
@@ -25,7 +26,9 @@ namespace RTextNppPlugin.ViewModels
         private double _progressPercentage                                       = 0.0;
         private string _workspace                                                = null;
         private string _currentCommand                                           = String.Empty;
+        private int _errorCount                                                  = 0;
         private readonly ConnectorManager _cmanager                              = null;
+        private BulkObservableCollection<ErrorListViewModel> _errorList          = new BulkObservableCollection<ErrorListViewModel>();
         #endregion
 
         #region Interface
@@ -98,6 +101,7 @@ namespace RTextNppPlugin.ViewModels
                     ProgressPercentage  = _workspaceCollection[_index].ProgressPercentage;
                     Workspace           = _workspaceCollection[_index].Workspace;
                     ActiveCommand       = _workspaceCollection[_index].ActiveCommand;
+                    ErrorCount          = _workspaceCollection[_index].ErrorCount;
                     base.RaisePropertyChanged("Index");
                 }
             }
@@ -153,6 +157,30 @@ namespace RTextNppPlugin.ViewModels
                     _isLoading = value;
                     base.RaisePropertyChanged("IsLoading");
                 }
+            }
+        }
+
+        public int ErrorCount
+        {
+            get
+            {
+                return _errorCount;
+            }
+            set
+            {
+                if(value != _errorCount)
+                {
+                    _errorCount = value;
+                    base.RaisePropertyChanged("ErrorCount");
+                }
+            }
+        }
+
+        public BulkObservableCollection<ErrorListViewModel> Errors
+        {
+            get
+            {
+                return _errorList;
             }
         }
 

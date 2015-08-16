@@ -50,7 +50,15 @@ namespace RTextNppPlugin
         public const double INITIAL_WIDTH_LINK_REFERENCE_LABELS = 70.0;         //!< Initial width of link reference labels in row details template. This is used to align all labels.
         public const double MAX_WIDTH_LINK_REFERENCE_LABELS = 600.0;            //!< Initial width of link reference labels in row details template. This is used to align all labels.
 
-        #region NppMenuCommand
+        #region [Error Severity Strings]
+        public const string SEVERITY_DEBUG = "debug";
+        public const string SEVERITY_INFO = "info";
+        public const string SEVERITY_WARNING = "warn";
+        public const string SEVERITY_ERROR = "error";
+        public const string SEVERITY_FATAL = "fatal";
+        #endregion
+
+        #region [NppMenuCommand]
         public enum NppMenuCommands : int
         {
             ConsoleWindow  = 0,
@@ -61,7 +69,7 @@ namespace RTextNppPlugin
         }
         #endregion
 
-        #region CommandTypes
+        #region [CommandTypes]
         public class Commands
         {
             public const string LOAD_MODEL         = "load_model";            //!< Command which loads current model.
@@ -76,7 +84,7 @@ namespace RTextNppPlugin
         }
         #endregion
 
-        #region Classification Names
+        #region [Classification Names]
         public class Classifications
         {
             public const string RTEXT_COMMENT       = "RText.Comment";
