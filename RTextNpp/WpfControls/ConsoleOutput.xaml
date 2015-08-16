@@ -127,8 +127,7 @@
                                           Name                                       ="ErrorListDataGrid"  
                                           ScrollViewer.CanContentScroll              ="True"  
                                           ScrollViewer.HorizontalScrollBarVisibility ="Auto"  
-                                          ScrollViewer.VerticalScrollBarVisibility   ="Auto"  
-                                          AlternationCount                           ="2"  
+                                          ScrollViewer.VerticalScrollBarVisibility   ="Auto"
                                           Focusable                                  ="True"  
                                           SelectionMode                              ="Single"  
                                           AllowDrop                                  ="False"  
@@ -156,8 +155,7 @@
                                                             Name="ErrorItemBorder"  
                                                             Margin="0">  
                                                         <Expander Style="{DynamicResource CustomExpanderStyle}"  
-                                                                  Header="{Binding FilePath}"                                                                    
-                                                                  Expanded="OnErrorListExpanderExpanded"
+                                                                  Header="{Binding FilePath}"                                                                  
                                                                   IsExpanded="{Binding IsFileOpened, Mode=TwoWay,BindsDirectlyToSource=True, UpdateSourceTrigger=PropertyChanged}">  
                                                             <DataGrid Name="ErrorListView"  
                                                                       AutoGenerateColumns="false"  
@@ -185,8 +183,8 @@
                                                                       Width="{Binding Width, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type TabItem}}}"  
                                                                       AlternationCount="2"  
                                                                       IsReadOnly="True">  
-                                                                <i:Interaction.Behaviors>  
-                                                                    <behaviors:UpdateWidthOnColumnResizedBehavior/>  
+                                                                <i:Interaction.Behaviors>
+                                                                    <behaviors:ErrorListMixedHeaderBehavior/>
                                                                 </i:Interaction.Behaviors>  
                                                                 <DataGrid.RowStyle>  
                                                                     <Style TargetType="DataGridRow">  

@@ -1,8 +1,11 @@
 ﻿using Microsoft.VisualStudio.Language.Intellisense;
+using RTextNppPlugin.Logging;
 using RTextNppPlugin.RText.Protocol;
 using RTextNppPlugin.WpfControls;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using RTextNppPlugin.Utilities;
 
 namespace RTextNppPlugin.ViewModels
 {
@@ -77,7 +80,19 @@ namespace RTextNppPlugin.ViewModels
                 {
                     _isFileOpened = value;
                     base.RaisePropertyChanged("IsFileOpened");
-                    System.Diagnostics.Trace.WriteLine(System.String.Format("Is expanded file : {0}, {1}", FilePath, value));
+                    if(value == true)
+                    {
+                        if (File.Exists(FilePath))
+                        {
+                            //find first erroneous line of file
+                            var aLine = ErrorList.OrderBy(x => x.Line).First().Line;
+                            Npp.Instance.JumpToLine(FilePath, aLine);
+                        }
+                        else
+                        {                            
+                            Logger.Instance.Append(Logger.MessageType.Error, Constants.GENERAL_CHANNEL, "Cannot jump to link because file : {0} does not exist.", FilePath);
+                        }
+                    }
                 }
             }
         }

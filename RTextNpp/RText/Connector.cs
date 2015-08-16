@@ -646,6 +646,7 @@ namespace RTextNppPlugin.RText
             mCancelled     = false;
             mActiveCommand = LOAD_COMMAND.command;
             BeginSend(LOAD_COMMAND);
+            ErrorList      = default(LoadResponse);
         }
 
         public void OnStateLeft(ConnectorStates oldState, ConnectorStates newState)

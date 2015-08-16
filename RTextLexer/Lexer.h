@@ -98,10 +98,10 @@ private:
         TokenType_Label,
         TokenType_Command,
         TokenType_Identifier,
-        TokenType_Template,
-        TokenType_Error,
+        TokenType_Template,        
         TokenType_Space,
-        TokenType_Other
+        TokenType_Other,
+        TokenType_Error
     };
 
     bool _firstTokenInLine;

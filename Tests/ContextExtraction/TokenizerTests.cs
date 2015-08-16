@@ -95,7 +95,7 @@ AUTOSAR {
 
             Assert.AreEqual(aTokenList[0].Context, "ID");
             Assert.AreEqual(aTokenList[0].Line, 2);
-            Assert.AreEqual(aTokenList[0].Type, RTextTokenTypes.RTextName);
+            Assert.AreEqual(aTokenList[0].Type, RTextTokenTypes.Identifier);
             Assert.AreEqual(aTokenList[0].StartColumn, 0);
             Assert.AreEqual(aTokenList[0].EndColumn, 2);
             Assert.AreEqual(aTokenList[0].BufferPosition, 0);
@@ -202,7 +202,7 @@ AUTOSAR {
 
             Assert.AreEqual(aTokenList[0].Context, "ID");
             Assert.AreEqual(aTokenList[0].Line, 1);
-            Assert.AreEqual(aTokenList[0].Type, RTextTokenTypes.RTextName);
+            Assert.AreEqual(aTokenList[0].Type, RTextTokenTypes.Identifier);
             Assert.AreEqual(aTokenList[0].StartColumn, 0);
             Assert.AreEqual(aTokenList[0].EndColumn, 2);
             Assert.AreEqual(aTokenList[0].BufferPosition, 0);
@@ -223,7 +223,7 @@ AUTOSAR {
             Assert.IsFalse(a.CanTokenHaveReference());
             a.Type = RTextTokenTypes.Reference;
             Assert.IsTrue(a.CanTokenHaveReference());
-            a.Type = RTextTokenTypes.RTextName;
+            a.Type = RTextTokenTypes.Identifier;
             Assert.IsTrue(a.CanTokenHaveReference());
         }
 

@@ -1,5 +1,6 @@
 ﻿using Microsoft.VisualStudio.Language.Intellisense;
 using RTextNppPlugin.RText;
+using RTextNppPlugin.Utilities;
 using RTextNppPlugin.WpfControls;
 using System;
 using System.Collections.ObjectModel;
@@ -29,6 +30,7 @@ namespace RTextNppPlugin.ViewModels
         private int _errorCount                                                  = 0;
         private readonly ConnectorManager _cmanager                              = null;
         private BulkObservableCollection<ErrorListViewModel> _errorList          = new BulkObservableCollection<ErrorListViewModel>();
+        private INpp _nppHelper                                                  = null;
         #endregion
 
         #region Interface
@@ -37,7 +39,7 @@ namespace RTextNppPlugin.ViewModels
          *
          * \param   workspace   The workspace.
          */
-        public ConsoleViewModel(ConnectorManager cmanager)
+        public ConsoleViewModel(ConnectorManager cmanager, INpp npphelper)
         {
             _cmanager = cmanager;
             #if DEBUG
@@ -47,6 +49,7 @@ namespace RTextNppPlugin.ViewModels
             //subscribe to connector manager for workspace events
             _cmanager.OnConnectorAdded += ConnectorManagerOnConnectorAdded;
             Index = 0;
+            _nppHelper = npphelper;
         }
 
         public Dispatcher Dispatcher { get; set; }
@@ -73,7 +76,7 @@ namespace RTextNppPlugin.ViewModels
                 }
                 else
                 {
-                    _workspaceCollection.Add(new WorkspaceViewModel(workspace, ref connector, this));
+                    _workspaceCollection.Add(new WorkspaceViewModel(workspace, ref connector, this, _nppHelper));
                 }
                 Index = _workspaceCollection.IndexOf(_workspaceCollection.Last());
             }

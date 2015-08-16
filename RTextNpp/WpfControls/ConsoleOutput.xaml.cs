@@ -19,7 +19,7 @@ namespace RTextNppPlugin.WpfControls
         internal ConsoleOutput(ConnectorManager cmanager, INpp nppHelper)
         {
             InitializeComponent();
-            var dataContext        = new ConsoleViewModel(cmanager);
+            var dataContext        = new ConsoleViewModel(cmanager, nppHelper);
             dataContext.Dispatcher = Dispatcher;
             DataContext            = dataContext;
             _nppHelper = nppHelper;
@@ -70,25 +70,7 @@ namespace RTextNppPlugin.WpfControls
             //             select lines).ToArray()[0].line;
             ////jump to first error in file
             //NavigateToFile(link.NavigateUri.LocalPath, aLine);
-        }
-
-        private void OnErrorListExpanderExpanded(object sender, RoutedEventArgs e)
-        {
-            //if relevant file is not opened open it
-            Expander aExp = sender as Expander;
-            ErrorListViewModel aExpDataContext = aExp.DataContext as ErrorListViewModel;
-            if (File.Exists(aExpDataContext.FilePath))
-            {
-                //find first erroneous line of file
-                var aLine = aExpDataContext.ErrorList.OrderBy(x => x.Line).First().Line;
-                _nppHelper.JumpToLine(aExpDataContext.FilePath, aLine);
-            }
-            else
-            {
-                var aDataContext = DataContext as ConsoleViewModel;
-                Logger.Instance.Append(Logger.MessageType.Error,  aDataContext.GetCurrentLogChannel(), "Cannot jump to link because file : {0} does not exist.", aExpDataContext.FilePath);
-            }            
-        }
+        }        
 
         #region [Custom Data Members]
         INpp _nppHelper = null;

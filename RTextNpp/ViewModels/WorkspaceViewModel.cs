@@ -6,17 +6,20 @@ namespace RTextNppPlugin.ViewModels
     using RTextNppPlugin.RText;
     using RTextNppPlugin.RText.Protocol;
     using RTextNppPlugin.RText.StateEngine;
+    using RTextNppPlugin.Utilities;
     using System.Collections.Generic;
 
     class WorkspaceViewModel : WorkspaceViewModelBase, IConsoleViewModelBase, IDisposable
     {
         #region [Interface]
-        public WorkspaceViewModel(string workspace, ref Connector connector, ConsoleViewModel mainViewModel) : base(workspace)
+        public WorkspaceViewModel(string workspace, ref Connector connector, ConsoleViewModel mainViewModel, INpp nppHelper)
+            : base(workspace)
         {
-            _connector = connector;
-            _mainModel = mainViewModel;
-            _connector.OnStateChanged += OnConnectorStateChanged;
+            _connector                   = connector;
+            _mainModel                   = mainViewModel;
+            _connector.OnStateChanged    += OnConnectorStateChanged;
             _connector.OnProgressUpdated += OnConnectorProgressUpdated;
+            _nppHelper                   = nppHelper;
         }
 
         /**
@@ -142,6 +145,10 @@ namespace RTextNppPlugin.ViewModels
                     AddErrorsToMainModel();
                 }
             }
+            else if (e.StateEntered == ConnectorStates.Loading && _previousConnectorState == ConnectorStates.Idle)
+            {
+                ClearErrors();
+            }
             _previousConnectorState = e.StateEntered;
           
         }
@@ -154,6 +161,14 @@ namespace RTextNppPlugin.ViewModels
         #endregion
 
         #region [Helpers]
+        void ClearErrors()
+        {
+            if(_connector.Workspace == _mainModel.Workspace)
+            {
+                _mainModel.Errors.Clear();
+            }
+        }
+
         void AddErrorsToMainModel()
         {
             _mainModel.Errors.Clear();
@@ -179,6 +194,7 @@ namespace RTextNppPlugin.ViewModels
         private ConsoleViewModel _mainModel             = null;                 //!< Main model reference.
         private string _activeCommand                   = String.Empty;         //!< Holds the current active command.
         private ConnectorStates _previousConnectorState = ConnectorStates.Idle; //!< Stores previous connector state.
+        private INpp _nppHelper                         = null;                 //!< Npp helper instance.
 
         #endregion
     }

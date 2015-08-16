@@ -38,7 +38,7 @@ namespace RTextNppPlugin.RText.Parsing
             internal bool CanTokenHaveReference()
             {
                 return (Type == RTextTokenTypes.Reference ||
-                        Type == RTextTokenTypes.RTextName);
+                        Type == RTextTokenTypes.Identifier);
             }
 
             internal int EndPosition
@@ -120,7 +120,7 @@ namespace RTextNppPlugin.RText.Parsing
                             {
                                 aFirstToken = false;
                             }
-                            else if (type == RTextTokenTypes.RTextName)
+                            else if (type == RTextTokenTypes.Identifier)
                             {
                                 if (aFirstToken && !IsLineExtended(_lineNumber))
                                 {
