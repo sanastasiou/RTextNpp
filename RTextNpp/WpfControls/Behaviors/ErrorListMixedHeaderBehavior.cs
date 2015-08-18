@@ -31,10 +31,10 @@ namespace RTextNppPlugin.WpfControls.Behaviors
         }
 
         private void ResizeGrid(object sender, EventArgs e)
-        {            
-            AssociatedObject.Columns[0].Width = new DataGridLength(1, DataGridLengthUnitType.SizeToHeader);
+        {
+            AssociatedObject.Columns[2].Width = new DataGridLength(1, DataGridLengthUnitType.SizeToHeader);
             AssociatedObject.Columns[1].Width = new DataGridLength(1, DataGridLengthUnitType.SizeToCells);
-            AssociatedObject.Columns[2].Width = new DataGridLength(1, DataGridLengthUnitType.SizeToCells);
+            AssociatedObject.Columns[0].Width = new DataGridLength(1, DataGridLengthUnitType.SizeToCells);
         }
     }
 }
