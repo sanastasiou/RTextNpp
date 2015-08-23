@@ -6,6 +6,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows.Threading;
+using System.Windows.Media;
 
 namespace RTextNppPlugin.ViewModels
 {
@@ -31,6 +32,8 @@ namespace RTextNppPlugin.ViewModels
         private readonly ConnectorManager _cmanager                              = null;
         private BulkObservableCollection<ErrorListViewModel> _errorList          = new BulkObservableCollection<ErrorListViewModel>();
         private INpp _nppHelper                                                  = null;
+        private Color _expanderHeaderBackground                                  = Colors.White;
+        private Color _expanderHeaderTextForeground                              = Colors.Black;
         #endregion
 
         #region Interface
@@ -83,6 +86,38 @@ namespace RTextNppPlugin.ViewModels
             else
             {
                 Index = _workspaceCollection.IndexOf(workspaceModel);
+            }
+        }
+
+        public Color ExpanderHeaderBackground
+        {
+            get
+            {
+                return _expanderHeaderBackground;
+            }
+            set
+            {
+                if(value != _expanderHeaderBackground)
+                {
+                    _expanderHeaderBackground = value;
+                    base.RaisePropertyChanged("ExpanderHeaderBackground");
+                }
+            }
+        }
+
+        public Color ExpanderHeaderTextForeground
+        {
+            get
+            {
+                return _expanderHeaderTextForeground;
+            }
+            set
+            {
+                if (value != _expanderHeaderTextForeground)
+                {
+                    _expanderHeaderTextForeground = value;
+                    base.RaisePropertyChanged("ExpanderHeaderTextForeground");
+                }
             }
         }
 
