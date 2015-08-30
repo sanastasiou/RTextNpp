@@ -23,8 +23,9 @@ namespace RTextNppPlugin
         private static INpp _nppHelper                                                  = Npp.Instance;
         private static IWin32 _win32                                                    = new Win32();
         private static ISettings _settings                                              = new Settings(_nppHelper);
+        private static StyleConfigurationObserver _styleObserver                        = new StyleConfigurationObserver(_nppHelper);
         private static ConnectorManager _connectorManager                               = new ConnectorManager(_settings, _nppHelper);
-        private static PersistentWpfControlHost<ConsoleOutputForm> _consoleOutput       = new PersistentWpfControlHost<ConsoleOutputForm>(Settings.RTextNppSettings.ConsoleWindowActive, new ConsoleOutputForm(_connectorManager, _nppHelper), _settings, _nppHelper);        
+        private static PersistentWpfControlHost<ConsoleOutputForm> _consoleOutput       = new PersistentWpfControlHost<ConsoleOutputForm>(Settings.RTextNppSettings.ConsoleWindowActive, new ConsoleOutputForm(_connectorManager, _nppHelper, _styleObserver), _settings, _nppHelper);
         private static Options _options                                                 = new Options(_settings);
         private static FileModificationObserver _fileObserver                           = new FileModificationObserver(_settings, _nppHelper);
         private static Dictionary<ShortcutKey, Tuple<string, Action>> internalShortcuts = new Dictionary<ShortcutKey, Tuple<string, Action>>();
@@ -73,6 +74,7 @@ namespace RTextNppPlugin
             _linkTargetsWindow.IsVisibleChanged += OnLinkTargetsWindowIsVisibleChanged;
             #if DEBUG
             Debugger.Launch();
+            _styleObserver.EnableStylesObservation();
             #endif
         }
        

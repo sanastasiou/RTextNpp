@@ -223,26 +223,6 @@
 
     <!--Custom Expander-->
 
-    <!--ErrorItem fade in fade out-->
-    <Storyboard x:Key="MouseEnterErrorExpander">
-        <ColorAnimationUsingKeyFrames Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)" Storyboard.TargetName="ErrorItemBorder">
-            <EasingColorKeyFrame KeyTime="0:0:1" Value="Black"/>
-        </ColorAnimationUsingKeyFrames>
-        <ColorAnimationUsingKeyFrames Storyboard.TargetProperty="(Label.Foreground).(SolidColorBrush.Color)" Storyboard.TargetName="ErrorItemExpanderHeader">
-            <EasingColorKeyFrame KeyTime="0:0:1" Value="White"/>
-        </ColorAnimationUsingKeyFrames>
-    </Storyboard>
-    <Storyboard x:Key="MouseLeaveErrorExpander"/>
-    <Storyboard x:Key="MouseEnterErrorExpanderReverse">
-        <ColorAnimationUsingKeyFrames Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)" Storyboard.TargetName="ErrorItemBorder">
-            <SplineColorKeyFrame KeyTime="0:0:1" Value="White"/>
-        </ColorAnimationUsingKeyFrames>
-        <ColorAnimationUsingKeyFrames Storyboard.TargetProperty="(Label.Foreground).(SolidColorBrush.Color)" Storyboard.TargetName="ErrorItemExpanderHeader">
-            <SplineColorKeyFrame KeyTime="0:0:1" Value="Black"/>
-        </ColorAnimationUsingKeyFrames>
-    </Storyboard>
-    <!--ErrorItem fade in fade out-->
-
     <Style x:Key="AutoCompletionListViewStyle" TargetType="{x:Type ListView}">
         <Setter Property="VirtualizingPanel.VirtualizationMode" Value="Recycling"/>
     </Style>

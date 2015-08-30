@@ -7,6 +7,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows.Threading;
 using System.Windows.Media;
+using RTextNppPlugin.Utilities.Settings;
 
 namespace RTextNppPlugin.ViewModels
 {
@@ -34,6 +35,7 @@ namespace RTextNppPlugin.ViewModels
         private INpp _nppHelper                                                  = null;
         private Color _expanderHeaderBackground                                  = Colors.White;
         private Color _expanderHeaderTextForeground                              = Colors.Black;
+        IStyleConfigurationObserver _styleObserver                               = null;
         #endregion
 
         #region Interface
@@ -42,7 +44,7 @@ namespace RTextNppPlugin.ViewModels
          *
          * \param   workspace   The workspace.
          */
-        public ConsoleViewModel(ConnectorManager cmanager, INpp npphelper)
+        public ConsoleViewModel(ConnectorManager cmanager, INpp npphelper, IStyleConfigurationObserver styleObserver)
         {
             _cmanager = cmanager;
             #if DEBUG
@@ -52,7 +54,14 @@ namespace RTextNppPlugin.ViewModels
             //subscribe to connector manager for workspace events
             _cmanager.OnConnectorAdded += ConnectorManagerOnConnectorAdded;
             Index = 0;
-            _nppHelper = npphelper;
+            _nppHelper     = npphelper;
+            _styleObserver = styleObserver;
+            _styleObserver.OnSettingsChanged += OnStyleObserverSettingsChanged;
+        }
+
+        void OnStyleObserverSettingsChanged(object sender, EventArgs e)
+        {
+            System.Diagnostics.Trace.WriteLine("Styles changed...");
         }
 
         public Dispatcher Dispatcher { get; set; }
@@ -327,6 +336,7 @@ namespace RTextNppPlugin.ViewModels
                 GC.SuppressFinalize(this);
             }
             _cmanager.OnConnectorAdded -= ConnectorManagerOnConnectorAdded;
+            _styleObserver.OnSettingsChanged -= OnStyleObserverSettingsChanged;
         }
 
         #endregion

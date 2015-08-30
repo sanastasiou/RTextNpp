@@ -8,6 +8,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Linq;
+using RTextNppPlugin.Utilities.Settings;
 
 namespace RTextNppPlugin.WpfControls
 {
@@ -16,13 +17,13 @@ namespace RTextNppPlugin.WpfControls
     /// </summary>
     public partial class ConsoleOutput : UserControl
     {
-        internal ConsoleOutput(ConnectorManager cmanager, INpp nppHelper)
+        internal ConsoleOutput(ConnectorManager cmanager, INpp nppHelper, IStyleConfigurationObserver styleObserver)
         {
             InitializeComponent();
-            var dataContext        = new ConsoleViewModel(cmanager, nppHelper);
+            var dataContext        = new ConsoleViewModel(cmanager, nppHelper, styleObserver);
             dataContext.Dispatcher = Dispatcher;
             DataContext            = dataContext;
-            _nppHelper = nppHelper;
+            _nppHelper             = nppHelper;
         }
 
         private void ErrorListPreviewMouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)

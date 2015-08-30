@@ -123,6 +123,7 @@
     <Compile Include="Utilities\ProcessUtilities.cs" />
     <Compile Include="Utilities\Settings\Settings.cs" />
     <Compile Include="Utilities\StringExtensions.cs" />
+    <Compile Include="Utilities\Settings\StyleConfigurationObserver.cs" />
     <Compile Include="Utilities\Visual.cs" />
     <Compile Include="Utilities\WinHook.cs" />
     <Compile Include="Utilities\WinMessageInterceptor.cs" />
@@ -327,7 +328,8 @@
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup>
-    <PostBuildEvent>if $(ConfigurationName) == Debug copy /Y "$(ProjectDir)$(OutDir)$(TargetName).dll" "C:\Program Files (x86)\Notepad++\plugins"</PostBuildEvent>
+    <PostBuildEvent>if $(ConfigurationName) == Debug copy /Y "$(ProjectDir)$(OutDir)$(TargetName).dll" "C:\Program Files (x86)\Notepad++\plugins"
+if $(ConfigurationName) == Debug copy /Y "$(SolutionDir)RTextNpp.xml" "C:\Users\Stefanos\AppData\Roaming\Notepad++\plugins\config"</PostBuildEvent>
   </PropertyGroup>
   <Import Project="..\packages\Fody.1.26.1\build\Fody.targets" Condition="Exists('..\packages\Fody.1.26.1\build\Fody.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
