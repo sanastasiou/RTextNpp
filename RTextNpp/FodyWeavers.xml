@@ -6,5 +6,5 @@
             WindowsSubclassCliWrapper
             RTextLexer
         </Unmanaged32Assemblies>
-    </Costura>  
+    </Costura>
 </Weavers>
