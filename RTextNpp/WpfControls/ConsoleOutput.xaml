@@ -162,26 +162,26 @@
                                                         <Border.Resources>
                                                             <!--ErrorItem fade in fade out-->
                                                             <Storyboard x:Key="MouseEnterErrorExpander">
-                                                                <ColorAnimationUsingKeyFrames Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)" Storyboard.TargetName="ErrorItemBorder">
+                                                                <ColorAnimationUsingKeyFrames Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)" Storyboard.TargetName="ErrorItemBorder" FillBehavior="HoldEnd">
                                                                     <EasingColorKeyFrame KeyTime="0:0:1" Value="{Binding DataContext.ExpanderHeaderTextForeground, RelativeSource={ RelativeSource Mode=FindAncestor, AncestorType={x:Type DataGrid}}}"/>
                                                                 </ColorAnimationUsingKeyFrames>
-                                                                <ColorAnimationUsingKeyFrames Storyboard.TargetProperty="(Label.Foreground).(SolidColorBrush.Color)" Storyboard.TargetName="ErrorItemExpanderHeader">
+                                                                <ColorAnimationUsingKeyFrames Storyboard.TargetProperty="(Label.Foreground).(SolidColorBrush.Color)" Storyboard.TargetName="ErrorItemExpanderHeader" FillBehavior="HoldEnd">
                                                                     <EasingColorKeyFrame KeyTime="0:0:1" Value="{Binding DataContext.ExpanderHeaderBackground, RelativeSource={ RelativeSource Mode=FindAncestor, AncestorType={x:Type DataGrid}}}"/>
                                                                 </ColorAnimationUsingKeyFrames>
                                                             </Storyboard>
                                                             <Storyboard x:Key="MouseLeaveErrorExpander"/>
                                                             <Storyboard x:Key="MouseEnterErrorExpanderReverse">
-                                                                <ColorAnimationUsingKeyFrames Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)" Storyboard.TargetName="ErrorItemBorder">
+                                                                <ColorAnimationUsingKeyFrames Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)" Storyboard.TargetName="ErrorItemBorder" FillBehavior="Stop">
                                                                     <SplineColorKeyFrame KeyTime="0:0:1" Value="{Binding DataContext.ExpanderHeaderBackground, RelativeSource={ RelativeSource Mode=FindAncestor, AncestorType={x:Type DataGrid}}}"/>
                                                                 </ColorAnimationUsingKeyFrames>
-                                                                <ColorAnimationUsingKeyFrames Storyboard.TargetProperty="(Label.Foreground).(SolidColorBrush.Color)" Storyboard.TargetName="ErrorItemExpanderHeader">
+                                                                <ColorAnimationUsingKeyFrames Storyboard.TargetProperty="(Label.Foreground).(SolidColorBrush.Color)" Storyboard.TargetName="ErrorItemExpanderHeader" FillBehavior="Stop">
                                                                     <SplineColorKeyFrame KeyTime="0:0:1" Value="{Binding DataContext.ExpanderHeaderTextForeground, RelativeSource={ RelativeSource Mode=FindAncestor, AncestorType={x:Type DataGrid}}}"/>
                                                                 </ColorAnimationUsingKeyFrames>
                                                             </Storyboard>
                                                             <!--ErrorItem fade in fade out-->
                                                         </Border.Resources>
                                                         <Border.Background>
-                                                            <SolidColorBrush Color="{Binding DataContext.ExpanderHeaderBackground, RelativeSource={ RelativeSource Mode=FindAncestor, AncestorType={x:Type DataGrid}}}"/>
+                                                            <SolidColorBrush Color="{Binding DataContext.ExpanderHeaderBackground, Mode=OneWay, RelativeSource={ RelativeSource Mode=FindAncestor, AncestorType={x:Type DataGrid}}}"/>
                                                         </Border.Background>
                                                         <Border.Triggers>
                                                             <EventTrigger RoutedEvent="MouseEnter">
@@ -193,11 +193,11 @@
                                                         </Border.Triggers>
                                                         <Expander Style="{DynamicResource CustomExpanderStyle}"
                                                                   BorderThickness="0"
-                                                                  IsExpanded="{Binding IsFileOpened, Mode=TwoWay,BindsDirectlyToSource=True, UpdateSourceTrigger=PropertyChanged}">  
+                                                                  IsExpanded="{Binding IsFileOpened, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">  
                                                             <Expander.Header>
                                                                 <Label Name="ErrorItemExpanderHeader" Content="{Binding FilePath}">
                                                                     <Label.Foreground>
-                                                                        <SolidColorBrush Color="{Binding DataContext.ExpanderHeaderTextForeground, RelativeSource={ RelativeSource Mode=FindAncestor, AncestorType={x:Type DataGrid}}}"/>
+                                                                        <SolidColorBrush Color="{Binding DataContext.ExpanderHeaderTextForeground, Mode=OneWay, RelativeSource={ RelativeSource Mode=FindAncestor, AncestorType={x:Type DataGrid}}}"/>
                                                                     </Label.Foreground>
                                                                 </Label>
                                                             </Expander.Header>

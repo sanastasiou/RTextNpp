@@ -42,7 +42,7 @@ namespace RTextNppPlugin
         private static bool _hasMainScintillaFocus                                      = false; //!< Indicates if the main editor has focus.
         private static bool _hasSecondScintillaFocus                                    = false; //!< Indicates if the second editor has focus.
         private static bool _isMenuLoopInactive                                         = false; //!< Indicates that npp menu loop is active.        
-        private static LinkTargetsWindow _linkTargetsWindow                             = new LinkTargetsWindow(_nppHelper, _win32, _settings, _connectorManager); //!< Display reference links.
+        private static LinkTargetsWindow _linkTargetsWindow                             = new LinkTargetsWindow(_nppHelper, _win32, _settings, _connectorManager, _styleObserver); //!< Display reference links.
         #endregion
 
         #region [Startup/CleanUp]
@@ -58,7 +58,7 @@ namespace RTextNppPlugin
             _connectorManager.Initialize(nppData);
             foreach(var key in BindInteranalShortcuts())
             {
-                CSScriptIntellisense.KeyInterceptor.Instance.Add(key);                
+                CSScriptIntellisense.KeyInterceptor.Instance.Add(key);
             }
 
             CSScriptIntellisense.KeyInterceptor.Instance.KeyDown += OnKeyInterceptorKeyDown;

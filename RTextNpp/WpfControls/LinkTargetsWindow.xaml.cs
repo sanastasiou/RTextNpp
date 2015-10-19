@@ -81,14 +81,14 @@ namespace RTextNppPlugin.WpfControls
 
         #endregion
 
-        internal LinkTargetsWindow(INpp nppHelper, IWin32 win32Helper, ISettings settingsHelper, ConnectorManager cmanager)
+        internal LinkTargetsWindow(INpp nppHelper, IWin32 win32Helper, ISettings settingsHelper, ConnectorManager cmanager, IStyleConfigurationObserver styleObserver)
         {
             InitializeComponent();
             DataContext = new ReferenceLinkViewModel(settingsHelper);
             _nppHelper = nppHelper;
             _win32Helper = win32Helper;
             _settings = settingsHelper;
-            _referenceRequestObserver = new ReferenceRequestObserver(_nppHelper, _settings, _win32Helper, this);
+            _referenceRequestObserver = new ReferenceRequestObserver(_nppHelper, _settings, _win32Helper, this, styleObserver);
             _referenceRequestDispatcher = new DelayedEventHandler(new ActionWrapper<Tokenizer.TokenTag>(TryHighlightItemUnderMouse, default(Tokenizer.TokenTag)), 500);
             _cManager = cmanager;
             _keyMonitor.KeyDown += OnKeyMonitorKeyDown;

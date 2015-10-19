@@ -15,17 +15,18 @@ namespace RTextNppPlugin.RText
     class ReferenceRequestObserver
     {
         #region [Data Members]
-        private INpp _nppHelper                                       = null;                        //!< Interface to Npp message system.
-        private ISettings _settings                                   = null;                        //!< Interface to RTextNpp settings.
-        private MouseMonitor _mouseMovementObserver                   = new MouseMonitor();          //!< Low level mouse monitor hook.        
+        private readonly INpp _nppHelper                              = null;                        //!< Interface to Npp message system.
+        private readonly ISettings _settings                          = null;                        //!< Interface to RTextNpp settings.
+        private readonly MouseMonitor _mouseMovementObserver          = new MouseMonitor();          //!< Low level mouse monitor hook.        
         private Tokenizer.TokenTag _previousReferenceToken            = default(Tokenizer.TokenTag); //!< Holds previous highlighted reference token.
         private bool _isKeyboardShortCutActive                        = false;                       //!< Indicates if reference show shortcut key is active.
         private bool _highLightToken                                  = false;                       //!< Whether a reference token is highlighted.
-        private IWin32 _win32Helper                                   = null;                        //!< Handle to win32 helper instance.
-        private ILinkTargetsWindow _refWindow                         = null;                        //!< Handle to reference window.
-        private DelayedEventHandler _mouseMoveDebouncer               = null;                        //!< Debounces mose movement for a short period of time so that CPU is not taxed.
+        private readonly IWin32 _win32Helper                          = null;                        //!< Handle to win32 helper instance.
+        private readonly ILinkTargetsWindow _refWindow                = null;                        //!< Handle to reference window.
+        private readonly DelayedEventHandler _mouseMoveDebouncer      = null;                        //!< Debounces mose movement for a short period of time so that CPU is not taxed.
         private System.Drawing.Point _previousMousePosition           = new System.Drawing.Point(System.Windows.Forms.Cursor.Position.X, System.Windows.Forms.Cursor.Position.Y);
         private IntPtr _editorWithActiveHotspot                       = IntPtr.Zero;                 //!< Holds editor handle, where hotspot is currently active.
+        private readonly IStyleConfigurationObserver _styleOberver    = null;                        //!< Observer RText styles and provides notification when they change.
         #endregion
 
         #region [Events]
@@ -33,8 +34,28 @@ namespace RTextNppPlugin.RText
         #endregion
 
         #region [Interface]
-        internal ReferenceRequestObserver(INpp nppHelper, ISettings settings, IWin32 win32helper, ILinkTargetsWindow refWindow)
+        internal ReferenceRequestObserver(INpp nppHelper, ISettings settings, IWin32 win32helper, ILinkTargetsWindow refWindow, IStyleConfigurationObserver styleObserver)
         {
+            if(nppHelper == null)
+            {
+                throw new ArgumentNullException("nppHelper");
+            }
+            if(settings == null)
+            {
+                throw new ArgumentNullException("settings");
+            }
+            if(win32helper == null)
+            {
+                throw new ArgumentNullException("win32helper");
+            }
+            if(refWindow == null)
+            {
+                throw new ArgumentNullException("refWindow");
+            }
+            if(styleObserver == null)
+            {
+                throw new ArgumentNullException("styleObserver");
+            }
             _nppHelper                       = nppHelper;
             _settings                        = settings;
             _win32Helper                     = win32helper;
@@ -43,6 +64,7 @@ namespace RTextNppPlugin.RText
             IsKeyboardShortCutActive         = false;
             _refWindow                       = refWindow;
             _mouseMoveDebouncer              = new DelayedEventHandler(new ActionWrapper(DoMouseMovementObserverMouseMove), 100);
+            _styleOberver                    = styleObserver;
         }
 
         bool OnMouseMovementObserverMouseClicked(VisualUtilities.MouseMessages arg)
@@ -157,22 +179,14 @@ namespace RTextNppPlugin.RText
 
         private int GetReferenceLinkColor()
         {
-            string aPluginTokenizerConfigFile = _nppHelper.GetConfigDir() + "\\" + Constants.PluginName + ".xml";
-            if (File.Exists(aPluginTokenizerConfigFile))
-            {
-                XDocument aColorFile = XDocument.Load(aPluginTokenizerConfigFile);
+            IWordsStyle aReferenceHighlightStyle = _styleOberver.GetStyle(Constants.Wordstyles.REFERENCE_LINK);
 
-                var underLineTokenConfig = (from wordStyles in aColorFile.Root.Descendants("WordsStyle")
-                                            where (string)wordStyles.Attribute("name") == Constants.REFERENCE_LINK_NAME
-                                            select wordStyles).First();
-                string aFgColor = (string)underLineTokenConfig.Attribute("fgColor");
-                //need to prepare string in case 0x0000FF is present, information will be lost if we convert this to rgb since an int will just replace leading zeros
-                aFgColor = aFgColor.Replace("00", "01");
+            if (aReferenceHighlightStyle.StyleName.Equals(Constants.Wordstyles.REFERENCE_LINK))
+            {
                 //for some reason scitnilla expects bgr instead of rgb, documentation is wrong
-                int rgb = int.Parse(aFgColor, System.Globalization.NumberStyles.AllowHexSpecifier);
-                int g = (rgb >> 8) & 0xFF;
-                int r = (rgb >> 16) & 0xFF;
-                int b = rgb & 0xFF;
+                byte g = aReferenceHighlightStyle.Foreground.G;
+                byte r = aReferenceHighlightStyle.Foreground.R;
+                byte b = aReferenceHighlightStyle.Foreground.B;
                 int bgr = b;
                 bgr <<= 8;
                 bgr |= g;

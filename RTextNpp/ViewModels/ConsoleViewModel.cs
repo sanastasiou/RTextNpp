@@ -17,7 +17,7 @@ namespace RTextNppPlugin.ViewModels
 
      * The model provide means to update the console, error list and rtext find windows.
      */
-    class ConsoleViewModel : BindableObject, IConsoleViewModelBase, IDisposable
+    internal class ConsoleViewModel : BindableObject, IConsoleViewModelBase, IDisposable
     {
         #region [Data Members]
         private ObservableCollection<IConsoleViewModelBase> _workspaceCollection = new ObservableCollection<IConsoleViewModelBase>();
@@ -46,6 +46,18 @@ namespace RTextNppPlugin.ViewModels
          */
         public ConsoleViewModel(ConnectorManager cmanager, INpp npphelper, IStyleConfigurationObserver styleObserver)
         {
+            if(cmanager == null)
+            {
+                throw new ArgumentNullException("cmanager");
+            }
+            if(npphelper == null)
+            {
+                throw new ArgumentNullException("nppHelper");
+            }
+            if(styleObserver == null)
+            {
+                throw new ArgumentNullException("styleObserver");
+            }
             _cmanager = cmanager;
             #if DEBUG
             AddWorkspace(Constants.DEBUG_CHANNEL);
@@ -61,7 +73,9 @@ namespace RTextNppPlugin.ViewModels
 
         void OnStyleObserverSettingsChanged(object sender, EventArgs e)
         {
-            System.Diagnostics.Trace.WriteLine("Styles changed...");
+            IWordsStyle aErrorOverviewStyle = _styleObserver.GetStyle(Constants.Wordstyles.ERROR_OVERVIEW);
+            ExpanderHeaderBackground        = aErrorOverviewStyle.Background;
+            ExpanderHeaderTextForeground    = aErrorOverviewStyle.Foreground;
         }
 
         public Dispatcher Dispatcher { get; set; }
