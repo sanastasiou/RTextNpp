@@ -74,8 +74,8 @@ namespace RTextNppPlugin
             _linkTargetsWindow.IsVisibleChanged += OnLinkTargetsWindowIsVisibleChanged;
             #if DEBUG
             Debugger.Launch();
-            _styleObserver.EnableStylesObservation();
             #endif
+            _styleObserver.EnableStylesObservation();
         }
        
         internal static void OnBufferActivated()
