@@ -124,7 +124,7 @@
                             </Border>  
                             <Border BorderThickness="0 0 0 0" Style="{StaticResource ResourceKey=BorderErrorCollapseAtZeroCountStyle}" DockPanel.Dock="Bottom" Background="Black">  
                                 <DataGrid ItemsSource                                ="{Binding Errors}"  
-                                          Name                                       ="ErrorListDataGrid"  
+                                          Name                                       ="ErrorListDataGrid"
                                           ScrollViewer.CanContentScroll              ="True"  
                                           ScrollViewer.HorizontalScrollBarVisibility ="Auto"  
                                           ScrollViewer.VerticalScrollBarVisibility   ="Auto"
@@ -136,7 +136,7 @@
                                           VirtualizingStackPanel.IsVirtualizing      ="True"  
                                           GridLinesVisibility                        ="None"  
                                           HeadersVisibility                          ="Column"  
-                                          IsTextSearchEnabled                        ="True"  
+                                          IsTextSearchEnabled                        ="True"
                                           TextSearch.TextPath                        ="FilePath"  
                                           IsReadOnly                                 ="True">  
                                     <i:Interaction.Behaviors>  
@@ -146,6 +146,13 @@
                                         <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="Transparent"/>
                                         <SolidColorBrush x:Key="{x:Static SystemColors.HighlightTextBrushKey}" Color="Blue"/>
                                     </DataGrid.Resources>
+                                    <DataGrid.CellStyle>
+                                        <Style TargetType="DataGridCell">
+                                            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+                                            <Setter Property="BorderThickness" Value="0"/>
+                                            <Setter Property="Background" Value="Transparent"/>
+                                        </Style>
+                                    </DataGrid.CellStyle>
                                     <DataGrid.Columns>  
                                         <DataGridTemplateColumn Header="Files Containing Errors"  
                                             IsReadOnly     ="True"  
@@ -154,8 +161,9 @@
                                             CanUserResize  ="True">  
                                             <DataGridTemplateColumn.CellTemplate>  
                                                 <DataTemplate>  
-                                                    <Border BorderThickness="1"  
+                                                    <Border BorderThickness="1"
                                                             CornerRadius="15"
+                                                            BorderBrush="Red"
                                                             Padding="0"  
                                                             Name="ErrorItemBorder"  
                                                             Margin="0">
@@ -347,8 +355,7 @@
                             </StackPanel>  
                         </Viewbox>  
                     </StackPanel>  
-                    <wpfControls:CircularProgressBar  
-                                                     Percentage="{Binding ProgressPercentage}"  
+                    <wpfControls:CircularProgressBar Percentage="{Binding ProgressPercentage}"  
                                                      x:Name="InnerProgressBar"  
                                                      StrokeThickness="15" HorizontalAlignment="Center" VerticalAlignment="Center" Angle="363">  
                     	<wpfControls:CircularProgressBar.Effect>  
