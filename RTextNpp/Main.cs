@@ -14,7 +14,6 @@ using RTextNppPlugin.Utilities;
 using RTextNppPlugin.Utilities.Settings;
 using RTextNppPlugin.Utilities.WpfControlHost;
 using RTextNppPlugin.WpfControls;
-
 namespace RTextNppPlugin
 {
     partial class Plugin
@@ -41,29 +40,23 @@ namespace RTextNppPlugin
         private static NotepadMessageInterceptor _nppMsgInterceptpr                     = null;  //!< Intercepts notepad ++ messages.
         private static bool _hasMainScintillaFocus                                      = false; //!< Indicates if the main editor has focus.
         private static bool _hasSecondScintillaFocus                                    = false; //!< Indicates if the second editor has focus.
-        private static bool _isMenuLoopInactive                                         = false; //!< Indicates that npp menu loop is active.        
+        private static bool _isMenuLoopInactive                                         = false; //!< Indicates that npp menu loop is active.
         private static LinkTargetsWindow _linkTargetsWindow                             = new LinkTargetsWindow(_nppHelper, _win32, _settings, _connectorManager, _styleObserver); //!< Display reference links.
         #endregion
-
         #region [Startup/CleanUp]
-
         static internal void CommandMenuInit()
         {
             CSScriptIntellisense.KeyInterceptor.Instance.Install();
-
             SetCommand((int)Constants.NppMenuCommands.ConsoleWindow, Properties.Resources.RTEXT_SHOW_OUTPUT_WINDOW, ShowConsoleOutput, new ShortcutKey(false, true, true, Keys.R));
             SetCommand((int)Constants.NppMenuCommands.Options, Properties.Resources.RTEXT_SHOW_OPTIONS_WINDOW, ModifyOptions, new ShortcutKey(true, false, true, Keys.R));
             SetCommand((int)Constants.NppMenuCommands.AutoCompletion, Properties.Resources.SHOW_AUTO_COMPLETION_LIST_NAME, StartAutoCompleteSession, "Ctrl+Space");
-
             _connectorManager.Initialize(nppData);
             foreach(var key in BindInteranalShortcuts())
             {
                 CSScriptIntellisense.KeyInterceptor.Instance.Add(key);
             }
-
             CSScriptIntellisense.KeyInterceptor.Instance.KeyDown += OnKeyInterceptorKeyDown;
             CSScriptIntellisense.KeyInterceptor.Instance.KeyUp   += OnKeyInterceptorKeyUp;
-            
             foreach(var key in Enum.GetValues(typeof(Keys)))
             {
                 CSScriptIntellisense.KeyInterceptor.Instance.Add((Keys)key);
@@ -77,35 +70,32 @@ namespace RTextNppPlugin
             #endif
             _styleObserver.EnableStylesObservation();
         }
-       
         internal static void OnBufferActivated()
         {
             _linkTargetsWindow.CancelPendingRequest();
         }
-
         static void OnKeyInterceptorKeyUp(Keys key, int repeatCount, ref bool handled)
         {
             CSScriptIntellisense.Modifiers modifiers = CSScriptIntellisense.KeyInterceptor.GetModifiers();
             if (!modifiers.IsAlt || !modifiers.IsCtrl)
-            {                
+            {
                 _linkTargetsWindow.IsKeyboardShortCutActive(false);
             }
         }
-
         static void OnKeyInterceptorKeyDown(Keys key, int repeatCount, ref bool handled)
         {
             if (FileUtilities.IsRTextFile(_settings, Npp.Instance) && (Npp.Instance.GetSelections() == 1) && HasScintillaFocus() && !_isMenuLoopInactive)
             {
-                CSScriptIntellisense.Modifiers modifiers = CSScriptIntellisense.KeyInterceptor.GetModifiers();                
+                CSScriptIntellisense.Modifiers modifiers = CSScriptIntellisense.KeyInterceptor.GetModifiers();
                 if(modifiers.IsAlt && modifiers.IsCtrl)
-                {                    
+                {
                     _linkTargetsWindow.IsKeyboardShortCutActive(true);
                     handled = true;
                 }
                 foreach (var shortcut in internalShortcuts.Keys)
                 {
                     if ((byte)key == shortcut._key)
-                    {                       
+                    {
                         if (modifiers.IsCtrl == shortcut.IsCtrl && modifiers.IsShift == shortcut.IsShift && modifiers.IsAlt == shortcut.IsAlt)
                         {
                             handled = true;
@@ -129,7 +119,6 @@ namespace RTextNppPlugin
                     }
                     return;
                 }
-
                 //auto complete Ctrl+Space is handled above - here we handle other special cases
                 switch (key)
                 {
@@ -141,14 +130,14 @@ namespace RTextNppPlugin
                         if(_autoCompletionForm.CharProcessAction == ViewModels.AutoCompletionViewModel.CharProcessResult.ForceClose)
                         {
                             CommitAutoCompletion(false);
-                        }                        
+                        }
                         break;
                     case Keys.Delete:
                         handled = true;
                         Npp.Instance.DeleteFront();
                         _autoCompletionForm.OnKeyPressed();
                         break;
-                    case Keys.Space:                        
+                    case Keys.Space:
                         handled = true;
                         //if completion list is visible, and there is a trigger token other than comma or space and there is some selected option
                         if (_autoCompletionForm.Completion != null && _autoCompletionForm.Completion.IsSelected)
@@ -156,29 +145,28 @@ namespace RTextNppPlugin
                             CommitAutoCompletion(true);
                             Npp.Instance.AddText(Constants.SPACE.ToString());
                             return;
-
                         }
                         Npp.Instance.AddText(Constants.SPACE.ToString());
-                        _autoCompletionForm.OnKeyPressed(Constants.SPACE);                        
+                        _autoCompletionForm.OnKeyPressed(Constants.SPACE);
                         break;
                     case Keys.Return:
                     case Keys.Tab:
                         if (_autoCompletionForm.IsVisible )
                         {
                             handled = true;
-                            if ( _autoCompletionForm.TriggerPoint.HasValue && String.IsNullOrWhiteSpace(_autoCompletionForm.TriggerPoint.Value.Context) && 
+                            if ( _autoCompletionForm.TriggerPoint.HasValue && String.IsNullOrWhiteSpace(_autoCompletionForm.TriggerPoint.Value.Context) &&
                                 (_autoCompletionForm.Completion == null || (_autoCompletionForm.Completion != null && !_autoCompletionForm.Completion.IsSelected))
                                )
                             {
                                 Npp.Instance.AddText(Constants.TAB.ToString());
-                                _autoCompletionForm.OnKeyPressed(Constants.TAB);                                
+                                _autoCompletionForm.OnKeyPressed(Constants.TAB);
                             }
                             else
                             {
                                 //special case when trigger point is empty -> move auto completion form after inserting tab char..
                                 CommitAutoCompletion(true);
                             }
-                        }                                                
+                        }
                         break;
                     case Keys.Oemcomma:
                         if(_autoCompletionForm.IsVisible)
@@ -195,7 +183,7 @@ namespace RTextNppPlugin
                     case Keys.Left:
                     case Keys.Right:
                         CommitAutoCompletion(false);
-                        break;                        
+                        break;
                     default:
                         //convert virtual key to ASCII
                         int nonVirtualKey = Npp.MapVirtualKey((uint)key, 2);
@@ -215,7 +203,6 @@ namespace RTextNppPlugin
                 handled = false;
             }
         }
-
         public static void OnCharTyped(char c)
         {
             if (!Char.IsControl(c) && !Char.IsWhiteSpace(c))
@@ -230,7 +217,7 @@ namespace RTextNppPlugin
                 }
                 else
                 {
-                    _autoCompletionForm.OnKeyPressed(c);                    
+                    _autoCompletionForm.OnKeyPressed(c);
                     if(_autoCompletionForm.CharProcessAction == ViewModels.AutoCompletionViewModel.CharProcessResult.ForceClose)
                     {
                         _autoCompletionForm.Hide();
@@ -238,7 +225,6 @@ namespace RTextNppPlugin
                 }
             }
         }
-
         private static void CommitAutoCompletion(bool replace)
         {
             if(replace && _autoCompletionForm.TriggerPoint != null)
@@ -251,7 +237,6 @@ namespace RTextNppPlugin
             }
             _autoCompletionForm.Hide();
         }
-
         private static async Task AsyncInvoke(Action action)
         {
             if (!_invokeInProgress)
@@ -262,7 +247,6 @@ namespace RTextNppPlugin
                 _invokeInProgress = false;
             }
         }
-
         static internal void PluginCleanUp()
         {
             CSScriptIntellisense.KeyInterceptor.Instance.RemoveAll();
@@ -278,9 +262,7 @@ namespace RTextNppPlugin
             _linkTargetsWindow.IsVisibleChanged                  -= OnLinkTargetsWindowIsVisibleChanged;
         }
         #endregion
-
         #region [Commands]
-
         /**
          * Shows the automatic completion list.
          */
@@ -293,7 +275,6 @@ namespace RTextNppPlugin
                     if (!_autoCompletionForm.IsVisible)
                     {
                         int aCurrentPosition = Npp.Instance.GetCaretPosition();
-
                         if (aCurrentPosition >= 0)
                         {
                             int aLineNumber = Npp.Instance.GetLineNumber();
@@ -301,13 +282,13 @@ namespace RTextNppPlugin
                             string aContextBlock = Npp.Instance.GetTextBetween(0, Npp.Instance.GetLineEnd(aLineNumber));
                             ContextExtractor aExtractor = new ContextExtractor(aContextBlock, Npp.Instance.GetLengthToEndOfLine(Npp.Instance.GetColumn()));
                             //if auto completion is inside comment, notation, name, string just return
-                            AutoCompletionTokenizer aTokenizer = new AutoCompletionTokenizer(aLineNumber, aCurrentPosition, Npp.Instance);                            
+                            AutoCompletionTokenizer aTokenizer = new AutoCompletionTokenizer(aLineNumber, aCurrentPosition, Npp.Instance);
                             //if a token is found then the window should appear at the start of it, else it should appear at the caret
                             Point aCaretPoint = Npp.Instance.GetCaretScreenLocationForForm();
-                            if (aTokenizer.TriggerToken.HasValue && 
+                            if (aTokenizer.TriggerToken.HasValue &&
                                 aTokenizer.TriggerToken.Value.Type  != RTextTokenTypes.Comma &&
                                 aTokenizer.TriggerToken.Value.Type  != RTextTokenTypes.Space &&
-                                (aTokenizer.TriggerToken.Value.Type != RTextTokenTypes.Label ||                                 
+                                (aTokenizer.TriggerToken.Value.Type != RTextTokenTypes.Label ||
                                  aCurrentPosition < (aTokenizer.TriggerToken.Value.BufferPosition + aTokenizer.TriggerToken.Value.Context.Length)))
                             {
                                 aCaretPoint = Npp.Instance.GetCaretScreenLocationRelativeToPosition(aTokenizer.TriggerToken.Value.BufferPosition);
@@ -338,10 +319,9 @@ namespace RTextNppPlugin
                     _win32.ISendMessage(Plugin.nppData._nppHandle, (NppMsg)WinMsg.WM_COMMAND, (int)NppMenuCmd.IDM_EDIT_AUTOCOMPLETE, 0);
                 }
             });
-        }        
-
+        }
         /**
-         * \brief Modify options callback from plugin menu.           
+         * \brief Modify options callback from plugin menu.
          */
         static void ModifyOptions()
         {
@@ -356,13 +336,11 @@ namespace RTextNppPlugin
             }
             _win32.ISendMessage(nppData._nppHandle, NppMsg.NPPM_MODELESSDIALOG, (int)NppMsg.MODELESSDIALOGREMOVE, _options.Handle.ToInt32());
         }
-
         static void ShowConsoleOutput()
         {
             if (!_consoleInitialized)
             {
                 _consoleInitialized = true;
-
                 using (Bitmap newBmp = new Bitmap(16, 16))
                 {
                     Graphics g = Graphics.FromImage(newBmp);
@@ -375,7 +353,6 @@ namespace RTextNppPlugin
                     g.DrawImage(tbBmp_tbTab, new Rectangle(0, 0, 16, 16), 0, 0, 16, 16, GraphicsUnit.Pixel, attr);
                     tbIcon = Icon.FromHandle(newBmp.GetHicon());
                 }
-
                 NppTbData _nppTbData = new NppTbData();
                 _nppTbData.hClient = _consoleOutput.Handle;
                 _nppTbData.pszName = Properties.Resources.RTEXT_OUTPUT_WINDOW_CAPTION;
@@ -403,11 +380,8 @@ namespace RTextNppPlugin
             }
             _consoleOutput.Focus();
         }
-
         #endregion
-
         #region [Event Handlers]
-
         private static void OnLinkTargetsWindowIsVisibleChanged(object sender, System.Windows.DependencyPropertyChangedEventArgs e)
         {
             if (_linkTargetsWindow.Visibility == System.Windows.Visibility.Hidden)
@@ -416,41 +390,36 @@ namespace RTextNppPlugin
                 _nppHelper.GrabFocus();
             }
         }
-
         private static void OnSecondScintillaFocusChanged(object source, ScintillaMessageInterceptor.ScintillaFocusChangedEventArgs e)
         {
             HandleScintillaFocusChange(e, ref _hasSecondScintillaFocus);
         }
-
         private static void OnMainScintillaFocusChanged(object source, ScintillaMessageInterceptor.ScintillaFocusChangedEventArgs e)
         {
             HandleScintillaFocusChange(e, ref _hasMainScintillaFocus);
         }
-
         private static void OnMenuLoopStateChanged(object source, NotepadMessageInterceptor.MenuLoopStateChangedEventArgs e)
         {
             if ((_isMenuLoopInactive = e.IsMenuLoopActive))
             {
                 CommitAutoCompletion(false);
-            }            
+            }
         }
-
         /**
          * \brief   Executes action when mouse wheel movement is detected.
-         *          This is used to route low level windows events from scintilla to the plugin, 
+         *          This is used to route low level windows events from scintilla to the plugin,
          *          which would otherwise be lost. e.g. for scrolling via a touchpad.
          *
          * \param   msg     The message.
          * \param   wParam  The parameter.
          * \param   lParam  The parameter.
          *
-         * \todo    Handle this for other windows as well, e.g. reference links          
+         * \todo    Handle this for other windows as well, e.g. reference links
          */
         private static void OnScintillaMouseWheelMoved(object source, ScintillaMessageInterceptor.MouseWheelMovedEventArgs e)
         {
             e.Handled = _autoCompletionForm.OnMessageReceived(e.Msg, e.WParam, e.LParam);
         }
-
         static internal void SetToolBarIcon()
         {
             toolbarIcons tbIcons = new toolbarIcons();
@@ -459,18 +428,16 @@ namespace RTextNppPlugin
             Marshal.StructureToPtr(tbIcons, pTbIcons, false);
             _win32.ISendMessage(nppData._nppHandle, NppMsg.NPPM_ADDTOOLBARICON, _funcItems.Items[(int)Constants.NppMenuCommands.ConsoleWindow]._cmdID, pTbIcons);
             Marshal.FreeHGlobal(pTbIcons);
-        }        
-
+        }
         /**
          * Handles file opened event to start backend process, in case the relevant  backend process is not yet started.
          */
         public static void OnFileOpened()
-        {            
+        {
             string aFileOpened = Npp.Instance.GetCurrentFilePath();
             _connectorManager.CreateConnector(aFileOpened);
             _fileObserver.OnFileOpened(aFileOpened);
         }
-
         /**
          * Occurs when undo operation exists for the current document.
          */
@@ -478,7 +445,6 @@ namespace RTextNppPlugin
         {
             _fileObserver.OnFilemodified(Npp.Instance.GetCurrentFilePath());
         }
-
         /**
          * Occurs when no undo operation exist for the current document.
          */
@@ -486,7 +452,6 @@ namespace RTextNppPlugin
         {
             _fileObserver.OnFileUnmodified(Npp.Instance.GetCurrentFilePath());
         }
-
         /**
          * Gets file modification observer. Can be used to save all opened files of a workspace.
          *
@@ -496,7 +461,6 @@ namespace RTextNppPlugin
         {
             return _fileObserver;
         }
-
         /**
          * Scintilla notification that the zomm level has been changed.
          *
@@ -511,11 +475,8 @@ namespace RTextNppPlugin
                 _linkTargetsWindow.OnZoomLevelChanged(_currentZoomLevel);
             }
         }
-
         #endregion
-
         #region [Helpers]
-
         private static void HandleScintillaFocusChange(ScintillaMessageInterceptor.ScintillaFocusChangedEventArgs e, ref bool hasFocus)
         {
             hasFocus = e.Focused;
@@ -529,7 +490,6 @@ namespace RTextNppPlugin
                 }
             }
         }
-
         static bool HasScintillaFocus()
         {
             if (_hasMainScintillaFocus || _hasSecondScintillaFocus)
@@ -546,7 +506,6 @@ namespace RTextNppPlugin
             }
             return false;
         }
-
         /**
          * Enumerates bind interanal shortcuts in this collection.
          *
@@ -555,33 +514,25 @@ namespace RTextNppPlugin
         static IEnumerable<Keys> BindInteranalShortcuts()
         {
             var uniqueKeys = new Dictionary<Keys, int>();
-
             AddInternalShortcuts("Ctrl+Space",
                                  "Show auto-complete list",
                                   StartAutoCompleteSession, uniqueKeys);
-
             //AddInternalShortcuts("_FindAllReferences:Shift+F12",
             //                     "Find All References",
             //                      FindAllReferences, uniqueKeys);
-
             //AddInternalShortcuts("_GoToDefinition:F12",
             //                     "Go To Definition",
             //                      GoToDefinition, uniqueKeys);
-
             return uniqueKeys.Keys;
         }
-
         static void AddInternalShortcuts(string shortcutSpec, string displayName, Action handler, Dictionary<Keys, int> uniqueKeys)
         {
             ShortcutKey shortcut = new ShortcutKey(shortcutSpec);
-
             internalShortcuts.Add(shortcut, new Tuple<string, Action>(displayName, handler));
-
             var key = (Keys)shortcut._key;
             if (!uniqueKeys.ContainsKey(key))
                 uniqueKeys.Add(key, 0);
         }
-
         static internal void LoadSettings()
         {
             if ( _settings.Get<bool>(Settings.RTextNppSettings.ConsoleWindowActive))
@@ -589,7 +540,6 @@ namespace RTextNppPlugin
                 ShowConsoleOutput();
                 _win32.ISendMessage(nppData._nppHandle, NppMsg.NPPM_SETMENUITEMCHECK, _funcItems.Items[0]._cmdID, 1);
             }
-
             _nppMsgInterceptpr                                   = new NotepadMessageInterceptor(nppData._nppHandle);
             _scintillaMainMsgInterceptor                         = new ScintillaMessageInterceptor(nppData._scintillaMainHandle);
             _scintillaMainMsgInterceptor.ScintillaFocusChanged   += OnMainScintillaFocusChanged;
@@ -599,7 +549,6 @@ namespace RTextNppPlugin
             _scintillaSecondMsgInterceptor.MouseWheelMoved       += OnScintillaMouseWheelMoved;
             _nppMsgInterceptpr.MenuLoopStateChanged              += OnMenuLoopStateChanged;
         }
-
         /**
          * Handles exceptions that may be thrown by the action.
          *

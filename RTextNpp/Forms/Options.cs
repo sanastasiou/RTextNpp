@@ -2,7 +2,6 @@
 using RTextNppPlugin.Utilities;
 using System.Text.RegularExpressions;
 using RTextNppPlugin.Utilities.Settings;
-
 namespace RTextNppPlugin.Forms
 {
     internal partial class Options : Form
@@ -10,13 +9,11 @@ namespace RTextNppPlugin.Forms
         #region [Data Members]
         ISettings _settings = null;
         #endregion
-
         internal Options(ISettings settings)
         {
             _settings = settings;
             InitializeComponent();
         }
-
         internal void SaveSettings()
         {
             _settings.Set(AutoChangeWorkspace, Settings.RTextNppSettings.AutoChangeWorkspace);
@@ -24,7 +21,6 @@ namespace RTextNppPlugin.Forms
             _settings.Set(AutoSaveFiles, Settings.RTextNppSettings.AutoSaveFiles);
             _settings.Set(_excludeExtensionsTextBox.Text, Settings.RTextNppSettings.ExcludeExtensions);
         }
-
         internal void RestoreSettings()
         {
             AutoLoadWorkspace              = _settings.Get<bool>(Settings.RTextNppSettings.AutoLoadWorkspace);
@@ -32,7 +28,6 @@ namespace RTextNppPlugin.Forms
             AutoChangeWorkspace            = _settings.Get<bool>(Settings.RTextNppSettings.AutoChangeWorkspace);
             _excludeExtensionsTextBox.Text = _settings.Get(Settings.RTextNppSettings.ExcludeExtensions);
         }
-
         internal bool AutoLoadWorkspace
         {
             get
@@ -44,7 +39,6 @@ namespace RTextNppPlugin.Forms
                 _autoloadWorkspaceCheckButton.Checked = value;
             }
         }
-
         internal bool AutoSaveFiles
         {
             get
@@ -56,7 +50,6 @@ namespace RTextNppPlugin.Forms
                 _autoSaveFileCheckBox.Checked = value;
             }
         }
-
         internal bool AutoChangeWorkspace
         {
             get
@@ -68,7 +61,6 @@ namespace RTextNppPlugin.Forms
                 _autoSelectWorkspaceCheckBox.Checked = value;
             }
         }
-
         private void OnOptionsFormLoad(object sender, System.EventArgs e)
         {
             RestoreSettings();
@@ -76,9 +68,8 @@ namespace RTextNppPlugin.Forms
             _tooltipPlaceholder.SetToolTip(_autoSaveFileCheckBox, "Check to automatically save all relevant files of a workspace if any workspace file is modified.");
             _tooltipPlaceholder.SetToolTip(_autoSelectWorkspaceCheckBox, "Check to automatically select the correct workspace base on the currently viewed file.");
             _tooltipPlaceholder.SetToolTip(_excludeExtensionsTextBox, "Added extensions to be excluded without a dot, separated by ; e.g. meta; .");
-            AutoValidate = System.Windows.Forms.AutoValidate.EnablePreventFocusChange;            
+            AutoValidate = System.Windows.Forms.AutoValidate.EnablePreventFocusChange;
         }
-
         private void OnValidatingExcludedExtensions(object sender, System.ComponentModel.CancelEventArgs e)
         {
             if (!Regex.IsMatch(_excludeExtensionsTextBox.Text, @"^(\s*|(\w+;)*\w+;?)$"))

@@ -4,21 +4,17 @@
  **/
 // Copyright 1998-2004 by Neil Hodgson <neilh@scintilla.org>
 // This file is in the public domain.
-
 #ifndef STYLECONTEXT_H
 #define STYLECONTEXT_H
-
 #ifdef SCI_NAMESPACE
 namespace Scintilla {
 #endif
-
 static inline int MakeLowerCase(int ch) {
     if (ch < 'A' || ch > 'Z')
         return ch;
     else
         return ch - 'A' + 'a';
 }
-
 // All languages handled so far can treat all characters >= 0x80 as one class
 // which just continues the current token or starts an identifier if in default.
 // DBCS treated specially as the second character can be < 0x80 and hence
@@ -40,7 +36,6 @@ class StyleContext {
                     (ch == '\n') ||
                     (currentPos >= endPos);
     }
-
 public:
     unsigned int currentPos;
     bool atLineStart;
@@ -49,7 +44,6 @@ public:
     int chPrev;
     int ch;
     int chNext;
-
     StyleContext(unsigned int startPos, unsigned int length,
                         int initStyle, LexAccessor &styler_, char chMask=31) :
         styler(styler_),
@@ -160,9 +154,7 @@ public:
     void GetCurrent(char *s, unsigned int len);
     void GetCurrentLowered(char *s, unsigned int len);
 };
-
 #ifdef SCI_NAMESPACE
 }
 #endif
-
 #endif

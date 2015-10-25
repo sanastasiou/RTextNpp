@@ -2,7 +2,7 @@
 {
     /**
      * @enum    RTextTokenTypes
-     * 
+     *
      * @brief   Enum with all possible RText types.
      */
     public enum RTextTokenTypes : int

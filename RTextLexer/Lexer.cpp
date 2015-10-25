@@ -1,36 +1,29 @@
 #include "Lexer.h"
 #include <string>
-
 namespace RText
-{ 
+{
     //static initializations
     const std::string RTextLexer::BOOLEAN_TRUE  = "true";
     const std::string RTextLexer::BOOLEAN_FALSE = "false";
-
     ILexer* RTextLexer::LexerFactory()
     {
         return new RTextLexer();
     }
-
     RTextLexer::RTextLexer() : _firstTokenInLine(true)
     {
     }
-
     void SCI_METHOD RTextLexer::Release()
     {
         delete this;
     }
-
     int SCI_METHOD RTextLexer::Version() const
     {
         return lvOriginal;
     }
-
     int SCI_METHOD RTextLexer::WordListSet(int n, const char *wl)
     {
         return -1;
     }
-
     unsigned int RTextLexer::skipDigitsUntil(Accessor & accessor, char const delimiter, unsigned int & currentPos)const
     {
         unsigned int length = 0;
@@ -49,14 +42,11 @@ namespace RText
             return 0;
         }
     }
-
     bool RTextLexer::identifyFloat(Accessor & accessor, StyleContext const & context, unsigned int & length)const
     {
         length = 0;
         unsigned int currentPos = context.currentPos;
-
         char a = accessor[currentPos];
-
         //regex cannot be used -- thanks Scintilla..
         if (accessor[currentPos] == '+' || accessor[currentPos] == '-' || ::iswdigit(accessor[currentPos]))
         {
@@ -81,7 +71,6 @@ namespace RText
         }
         return false;
     }
-
     bool RTextLexer::identifyInt(Accessor & accessor, StyleContext const & context, unsigned int & length)const
     {
         bool aRet = false;
@@ -105,13 +94,12 @@ namespace RText
         {
             while (::iswdigit(accessor[aCurrentPos++]))
             {
-                ++length;                
+                ++length;
             }
             aRet = true;
         }
         return aRet;
     }
-
     bool RTextLexer::identifyQuotedString(Accessor & accessor, StyleContext const & context, unsigned int & length)const
     {
         bool aRet                = false;
@@ -142,7 +130,6 @@ namespace RText
         }
         return false;
     }
-
     bool RTextLexer::identifyLabel(Accessor & accessor, StyleContext const & context, unsigned int & length)const
     {
         unsigned int aCurrentPos = context.currentPos;
@@ -164,7 +151,6 @@ namespace RText
         }
         return false;
     }
-
     bool RTextLexer::identifyCharSequence(Accessor & accessor, unsigned int & currentPos, std::string match)const
     {
         for (auto c : match)
@@ -174,17 +160,16 @@ namespace RText
         }
         return true;
     }
-
     bool RTextLexer::identifyBoolean(Accessor & accessor, StyleContext const & context, unsigned int & length)const
     {
         unsigned int aCurrentPos = context.currentPos;
         length                   = 0;
         if (accessor[aCurrentPos] == 't')
         {
-            //check for rue + non word character [^\w]            
+            //check for rue + non word character [^\w]
             if (identifyCharSequence(accessor, aCurrentPos, BOOLEAN_TRUE))
             {
-                length = 4;                
+                length = 4;
             }
         }
         else if (accessor[aCurrentPos] == 'f')
@@ -197,25 +182,23 @@ namespace RText
         }
         return (length > 0);
     }
-
     bool RTextLexer::identifyName(Accessor & accessor, StyleContext const & context, unsigned int & length)const
     {
         unsigned int aCurrentPos = context.currentPos - 1;
-        length                   = 0;     
+        length                   = 0;
         if (::isalpha(context.ch) || (context.ch == '_'))
         {
             while (::iswalnum(accessor[aCurrentPos + 1]) || (accessor[aCurrentPos + 1] == '_'))
             {
                 ++length;
-                ++aCurrentPos;                
+                ++aCurrentPos;
             }
-        }       
+        }
         return (length > 0);
     }
-
     bool RTextLexer::isLineExtended(int startPos, char const * const buffer)const
     {
-        //no reason to check previous characters 
+        //no reason to check previous characters
         if (startPos == 0)
         {
             return false;
@@ -229,7 +212,7 @@ namespace RText
             }
             else
             {
-                //not space 
+                //not space
                 if (isLineBreakChar(buffer[startPos]))
                 {
                     return true;
@@ -243,17 +226,14 @@ namespace RText
         }
         return false;
     }
-
     void SCI_METHOD RTextLexer::Lex(unsigned int startPos, int length, int initStyle, IDocument* pAccess)
     {
-        Accessor styler(pAccess, nullptr);        
-        StyleContext context(startPos, length, initStyle, styler);        
-        unsigned int aTokenLength = 0;        
-
+        Accessor styler(pAccess, nullptr);
+        StyleContext context(startPos, length, initStyle, styler);
+        unsigned int aTokenLength = 0;
         _firstTokenInLine = true;
-
         while(context.More())
-        {            
+        {
             switch (context.state)
             {
             case TokenType_Default:
@@ -269,15 +249,13 @@ namespace RText
                 if (context.Match('\n') || context.Match('\r', '\n'))
                 {
                     _firstTokenInLine = true;
-
                     if (context.Match('\r', '\n'))
                     {
                         context.Forward();
                     }
                     context.Forward();
                     continue;
-                }                
-
+                }
                 if (context.Match('#'))
                 {
                     context.SetState(TokenType_Comment);
@@ -316,7 +294,7 @@ namespace RText
                     bool const isExtended = isLineExtended(context.currentPos, pAccess->BufferPointer());
                     if (_firstTokenInLine && !isExtended)
                     {
-                        context.SetState(TokenType_Command);                        
+                        context.SetState(TokenType_Command);
                         _firstTokenInLine = false;
                     }
                     else
@@ -374,7 +352,6 @@ namespace RText
         }
         context.Complete();
     }
-
     void SCI_METHOD RTextLexer::Fold(unsigned int startPos, int length, int initStyle, IDocument* pAccess)
     {
         LexAccessor styler(pAccess);
@@ -414,17 +391,14 @@ namespace RText
             }
         }
     }
-
     bool RTextLexer::isWhitespace(StyleContext const & context)const
     {
         return (!context.atLineEnd && context.Match(' ') || context.Match('\t'));
     }
-
     bool RTextLexer::isEndOfLineReached(StyleContext const & context)const
     {
         return (context.atLineEnd);
     }
-
     void* SCI_METHOD RTextLexer::PrivateCall(int operation, void* pointer)
     {
         return nullptr;

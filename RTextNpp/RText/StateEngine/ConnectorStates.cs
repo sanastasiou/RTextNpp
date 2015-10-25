@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
 namespace RTextNppPlugin.RText.StateEngine
 {
     public enum ConnectorStates
@@ -14,24 +13,19 @@ namespace RTextNppPlugin.RText.StateEngine
         Busy,
         Idle
     }
-
     class Disconnected : IConnectorState
     {
         #region [Data Members]
 	    private readonly IConnector _connector = null;
         private const ConnectorStates _state = ConnectorStates.Disconnected;
 	    #endregion
-
         #region IConnectorState Members
-
         public ConnectorStates State { get { return _state; } }
-
         public Disconnected(IConnector connector)
         {
             _connector = connector;
             OnEntry();
         }
-
         public void ExecuteCommand(Command command)
         {
             switch (command)
@@ -45,38 +39,29 @@ namespace RTextNppPlugin.RText.StateEngine
                     _connector.CurrentState = this;
                     break;
             }
-
         }
-
         public void OnEntry()
         {
             _connector.OnDisconnectedEntry();
         }
-
         public void OnExit(ConnectorStates newState)
         {
             _connector.OnStateLeft(_state, newState);
         }
-
         #endregion
     }
-
     class Connecting : IConnectorState
     {
         #region [Data Members]
         private readonly IConnector _connector = null;
         private const ConnectorStates _state = ConnectorStates.Connecting;
         #endregion
-
         #region IConnectorState Members
-
         public ConnectorStates State { get { return _state; } }
-
         public Connecting(IConnector connector)
         {
             _connector = connector;
         }
-
         public void ExecuteCommand(Command command)
         {
             switch (command)
@@ -94,37 +79,29 @@ namespace RTextNppPlugin.RText.StateEngine
                     _connector.CurrentState = new Disconnected(_connector);
                     break;
             }
-        }        
-
+        }
         public void OnEntry()
         {
             _connector.OnConnectingEntry();
         }
-
         public void OnExit(ConnectorStates newState)
         {
             _connector.OnStateLeft(_state, newState);
         }
-
         #endregion
     }
-   
     class Loading : IConnectorState
     {
         #region [Data Members]
         private readonly IConnector _connector = null;
         private const ConnectorStates _state = ConnectorStates.Loading;
         #endregion
-
         #region IConnectorState Members
-
         public ConnectorStates State { get { return _state; } }
-
         public Loading(IConnector connector)
         {
             _connector = connector;
         }
-
         public void ExecuteCommand(Command command)
         {
             switch (command)
@@ -143,36 +120,28 @@ namespace RTextNppPlugin.RText.StateEngine
                     break;
             }
         }
-
         public void OnEntry()
         {
             _connector.OnLoadingEntry();
         }
-
         public void OnExit(ConnectorStates newState)
         {
             _connector.OnStateLeft(_state, newState);
         }
-
         #endregion
     }
-
     class Idle : IConnectorState
     {
         #region [Data Members]
         private readonly IConnector _connector = null;
         private const ConnectorStates _state = ConnectorStates.Idle;
         #endregion
-
         #region IConnectorState Members
-
         public ConnectorStates State { get { return _state; } }
-
         public Idle(IConnector connector)
         {
             _connector = connector;
         }
-
         public void ExecuteCommand(Command command)
         {
             switch (command)
@@ -194,36 +163,28 @@ namespace RTextNppPlugin.RText.StateEngine
                     break;
             }
         }
-
         public void OnEntry()
         {
         }
-
         public void OnExit(ConnectorStates newState)
         {
             _connector.OnStateLeft(_state, newState);
         }
-
         #endregion
     }
-
     class Busy : IConnectorState
     {
         #region [Data Members]
         private readonly IConnector _connector = null;
         private const ConnectorStates _state = ConnectorStates.Busy;
         #endregion
-
         #region IConnectorState Members
-
         public ConnectorStates State { get { return _state; } }
-
         public Busy(IConnector connector)
         {
             _connector = connector;
             OnEntry();
         }
-
         public void ExecuteCommand(Command command)
         {
             switch (command)
@@ -241,16 +202,13 @@ namespace RTextNppPlugin.RText.StateEngine
                     break;
             }
         }
-
         public void OnEntry()
         {
         }
-
         public void OnExit(ConnectorStates newState)
         {
             _connector.OnStateLeft(_state, newState);
         }
-
         #endregion
     }
 }

@@ -4,14 +4,11 @@
  **/
 // Copyright 1998-2009 by Neil Hodgson <neilh@scintilla.org>
 // The License.txt file describes the conditions under which this software may be distributed.
-
 #ifndef PROPSETSIMPLE_H
 #define PROPSETSIMPLE_H
-
 #ifdef SCI_NAMESPACE
 namespace Scintilla {
 #endif
-
 class PropSetSimple {
     void *impl;
     void Set(const char *keyVal);
@@ -25,9 +22,7 @@ public:
     int GetExpanded(const char *key, char *result) const { return 0; }
     int GetInt(const char *key, int defaultValue=0) const { return defaultValue; }
 };
-
 #ifdef SCI_NAMESPACE
 }
 #endif
-
 #endif

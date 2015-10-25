@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Windows.Data;
-
 namespace RTextNppPlugin.WpfControls.Converters
 {
     [ValueConversion(typeof(object), typeof(string))]
@@ -17,14 +16,12 @@ namespace RTextNppPlugin.WpfControls.Converters
                 return true;
             }
         }
-
         public object ConvertBack(object value, Type targetType, object parameter,
                         System.Globalization.CultureInfo culture)
         {
             return null;
         }
     }
-
     internal class PercentageConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
@@ -32,30 +29,24 @@ namespace RTextNppPlugin.WpfControls.Converters
             double perc = (double)value;
             return perc.ToString() + " %";
         }
-
         public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
         {
             throw new NotSupportedException();
         }
     }
-
     internal class ProgressLabelSizeConverter : IValueConverter
     {
         #region IValueConverter Members
-
         public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
         {
             return 1.0;
         }
-
         public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
         {
             throw new NotImplementedException();
         }
-
         #endregion
     }
-
     internal class CommandConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
@@ -78,11 +69,9 @@ namespace RTextNppPlugin.WpfControls.Converters
                     return "Ready.";
             }
         }
-
         public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
         {
             throw new NotSupportedException();
         }
     }
-    
 }

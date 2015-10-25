@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-
 namespace RTextNppPlugin.RText.Protocol
 {
     class AutoCompleteRequest : RequestBase

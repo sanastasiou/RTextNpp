@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-
 namespace RTextNppPlugin.RText.Protocol
 {
     public class LinkTargetsResponse : ProgressResponse, IResponseBase
@@ -7,14 +6,11 @@ namespace RTextNppPlugin.RText.Protocol
         public string begin_column { get; set; }
         public string end_column { get; set; }
         public List<Target> targets { get; set; }
-
         #region IResponseBase Members
         public string type { get; set; }
         public int invocation_id { get; set; }
-
         #endregion
     }
-    
     public class Target
     {
         public string display { get; set; }

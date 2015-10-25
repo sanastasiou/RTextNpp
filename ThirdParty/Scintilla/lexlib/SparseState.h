@@ -6,14 +6,11 @@
  **/
 // Copyright 2011 by Neil Hodgson <neilh@scintilla.org>
 // The License.txt file describes the conditions under which this software may be distributed.
-
 #ifndef SPARSESTATE_H
 #define SPARSESTATE_H
-
 #ifdef SCI_NAMESPACE
 namespace Scintilla {
 #endif
-
 template <typename T>
 class SparseState {
     struct State {
@@ -31,12 +28,10 @@ class SparseState {
     int positionFirst;
     typedef std::vector<State> stateVector;
     stateVector states;
-
     typename stateVector::iterator Find(int position) {
         State searchValue(position, T());
         return std::lower_bound(states.begin(), states.end(), searchValue);
     }
-
 public:
     SparseState(int positionFirst_=-1) {
         positionFirst = positionFirst_;
@@ -73,12 +68,10 @@ public:
     size_t size() const {
         return states.size();
     }
-
     // Returns true if Merge caused a significant change
     bool Merge(const SparseState<T> &other, int ignoreAfter) {
         // Changes caused beyond ignoreAfter are not significant
         Delete(ignoreAfter+1);
-
         bool different = true;
         bool changed = false;
         typename stateVector::iterator low = Find(other.positionFirst);
@@ -102,9 +95,7 @@ public:
         return changed;
     }
 };
-
 #ifdef SCI_NAMESPACE
 }
 #endif
-
 #endif

@@ -10,13 +10,11 @@ using CSScriptIntellisense;
 using System.Diagnostics;
 using RTextNppPlugin.Utilities.Settings;
 using AJ.Common;
-
 namespace RTextNppPlugin.Utilities
 {
     internal static class FileUtilities
     {
         internal static Regex FileExtensionRegex = new Regex(@"(?<=\*)\..*?(?=,|:)", RegexOptions.Compiled); //!< The file extensions regular expression
-
         /**
          * Searches for workspace root.
          *
@@ -36,7 +34,6 @@ namespace RTextNppPlugin.Utilities
                 return String.Empty;
             }
         }
-
         /**
          *
          * \brief   Searches for the first rtext file based on a directory and an extension.
@@ -53,7 +50,6 @@ namespace RTextNppPlugin.Utilities
             {
                 return String.Empty;
             }
-
             // maybe there are more than one .rtext file with different names
             string[] rTextFiles = (System.IO.Directory.GetFiles(currentDir, "*" + Constants.WORKSPACE_TYPE, SearchOption.TopDirectoryOnly));
             //find .rtext file , ignore capitalization
@@ -87,7 +83,6 @@ namespace RTextNppPlugin.Utilities
             }
             return String.Empty;
         }
-
         /**
          * \brief   Query if 'settings' is r text file.
          *
@@ -99,7 +94,6 @@ namespace RTextNppPlugin.Utilities
         {
             return IsRTextFile(nppHelper.GetCurrentFilePath(), settings, nppHelper);
         }
-
         /**
          * \brief   Query if 'file' is an rtext file.
          *
@@ -119,11 +113,9 @@ namespace RTextNppPlugin.Utilities
                 }
                 //list of excluded extensions
                 List<string> aExlusionList = new List<string>(settings.Get(Settings.Settings.RTextNppSettings.ExcludeExtensions).Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries));
-
                 //get npp configuration directory
                 //get list of supported extensions
                 string configDir = nppHelper.GetConfigDir();
-
                 //try to open external lexer configuration file
                 XDocument xmlDom = XDocument.Load(configDir + @"\" + Constants.EX_LEXER_CONFIG_FILENAME);
                 if (fileExt.Equals((xmlDom.Root.Element("Languages").Element("Language").Attribute("ext").Value), StringComparison.InvariantCultureIgnoreCase))
@@ -149,7 +141,6 @@ namespace RTextNppPlugin.Utilities
                 Logging.Logger.Instance.Append(Logging.Logger.MessageType.Error, Constants.GENERAL_CHANNEL, "FileUtilities.IsAutomateFile exception : {0}", ex.Message);
                 return false;
             }
-
         }
     }
 }

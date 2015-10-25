@@ -1,6 +1,5 @@
 ﻿using System.Security.Permissions;
 using System.Windows.Threading;
-
 namespace Tests.Utilities
 {
     public static class DispatcherUtil
@@ -13,7 +12,6 @@ namespace Tests.Utilities
                 new DispatcherOperationCallback(ExitFrame), frame);
             Dispatcher.PushFrame(frame);
         }
-
         private static object ExitFrame(object frame)
         {
             ((DispatcherFrame)frame).Continue = false;

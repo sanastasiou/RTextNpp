@@ -6,6 +6,7 @@
     xmlns:sys          ="clr-namespace:System;assembly=mscorlib"
     xmlns:viewmodels   ="clr-namespace:RTextNppPlugin.ViewModels"
     xmlns:plugin_ns    ="clr-namespace:RTextNppPlugin"
+    xmlns:Themes       ="clr-namespace:Microsoft.Windows.Themes;assembly=PresentationFramework.Aero2"
 	xmlns:x            ="http://schemas.microsoft.com/winfx/2006/xaml">
     <!--Converters-->
     <converters:GreaterThanValueConverter x:Key="GreaterThanConverter"/>
@@ -38,7 +39,7 @@
         </ControlTemplate.Triggers>
     </ControlTemplate>
 
-    <!--Custom Expander-->        
+    <!--Custom Expander-->
     
     <SolidColorBrush x:Key="Expander.MouseOver.Circle.Stroke" Color="#FF5593FF"/>
     <SolidColorBrush x:Key="Expander.MouseOver.Circle.Fill" Color="#FFF3F9FF"/>

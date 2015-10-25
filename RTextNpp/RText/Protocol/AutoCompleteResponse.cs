@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-
 namespace RTextNppPlugin.RText.Protocol
 {
     public class Option
@@ -8,11 +7,9 @@ namespace RTextNppPlugin.RText.Protocol
         public string insert { get; set; }
         public string desc { get; set; }
     }
-
     public class AutoCompleteResponse : ProgressResponse, IResponseBase
     {
         public List<Option> options { get; set; }
-        
         #region IResponseBase Members
         public string type { get; set; }
         public int invocation_id { get; set; }

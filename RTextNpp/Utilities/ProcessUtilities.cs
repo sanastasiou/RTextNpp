@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Management;
-
 namespace RTextNppPlugin.Utilities
 {
     internal static class ProcessUtilities
@@ -25,12 +24,10 @@ namespace RTextNppPlugin.Utilities
                     "FROM Win32_Process " +
                     "WHERE ParentProcessId=" + pid);
                 ManagementObjectCollection collection = searcher.Get();
-
                 foreach (ManagementObject mo in collection)
                 {
                     KillAllProcessesSpawnedBy(Convert.ToInt32(mo["ProcessID"]));
                 }
-
                 Process proc = Process.GetProcessById(pid);
                 if (!proc.HasExited)
                 {

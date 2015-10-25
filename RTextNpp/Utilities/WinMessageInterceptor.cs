@@ -1,6 +1,5 @@
 ﻿using System;
 using WindowsSubclassWrapper;
-
 namespace RTextNppPlugin.Utilities
 {
     class ScintillaMessageInterceptor : WindowSubclassCliWrapper
@@ -12,11 +11,8 @@ namespace RTextNppPlugin.Utilities
             public UIntPtr WindowHandle;
             public bool Handled;
         }
-
         public delegate void ScintillaFocusChangedEvent(object source, ScintillaFocusChangedEventArgs e);
-
         public event ScintillaFocusChangedEvent ScintillaFocusChanged;
-
         public class MouseWheelMovedEventArgs
         {
             public uint Msg;
@@ -24,18 +20,13 @@ namespace RTextNppPlugin.Utilities
             public IntPtr LParam;
             public bool Handled;
         }
-
         public delegate void MouseWheelMovedEvent(object source, MouseWheelMovedEventArgs e);
-
         public event MouseWheelMovedEvent MouseWheelMoved;
         #endregion
-
         public ScintillaMessageInterceptor(IntPtr nppHandle)
             : base(nppHandle)
         {
         }
-
-
         public override bool OnMessageReceived(uint msg, UIntPtr wParam, IntPtr lParam)
         {
             VisualUtilities.WindowsMessage aMsg = (VisualUtilities.WindowsMessage)msg;
@@ -72,7 +63,6 @@ namespace RTextNppPlugin.Utilities
             return false;
         }
     }
-
     class NotepadMessageInterceptor : WindowSubclassCliWrapper
     {
         #region [Events]
@@ -81,19 +71,13 @@ namespace RTextNppPlugin.Utilities
             public bool IsMenuLoopActive;
             public bool Handled;
         }
-
         public delegate void MenuLoopStateChangedEvent(object source, MenuLoopStateChangedEventArgs e);
-
         public event MenuLoopStateChangedEvent MenuLoopStateChanged;
-
         #endregion
-
         public NotepadMessageInterceptor(IntPtr nppHandle)
             : base(nppHandle)
         {
         }
-
-
         public override bool OnMessageReceived(uint msg, UIntPtr wParam, IntPtr lParam)
         {
             VisualUtilities.WindowsMessage aMsg = (VisualUtilities.WindowsMessage)msg;

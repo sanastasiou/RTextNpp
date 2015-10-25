@@ -4,14 +4,11 @@
  **/
 // Copyright 1998-2010 by Neil Hodgson <neilh@scintilla.org>
 // The License.txt file describes the conditions under which this software may be distributed.
-
 #ifndef WORDLIST_H
 #define WORDLIST_H
-
 #ifdef SCI_NAMESPACE
 namespace Scintilla {
 #endif
-
 /**
  */
 class WordList {
@@ -33,9 +30,7 @@ public:
     bool InList(const char *s) const;
     bool InListAbbreviated(const char *s, const char marker) const;
 };
-
 #ifdef SCI_NAMESPACE
 }
 #endif
-
 #endif

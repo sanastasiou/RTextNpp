@@ -1,5 +1,4 @@
 ﻿using System;
-
 namespace Tests.Utilities
 {
     using System.Diagnostics;
@@ -9,7 +8,6 @@ namespace Tests.Utilities
     class ProcessUtilitiesTests
     {
         bool _isExited = false;
-
         [Test]
         public void KillProcessTest()
         {
@@ -17,25 +15,19 @@ namespace Tests.Utilities
             aProcessStartInfo.CreateNoWindow = true;
             aProcessStartInfo.RedirectStandardError = true;
             aProcessStartInfo.RedirectStandardOutput = true;
-            aProcessStartInfo.UseShellExecute = false;            
+            aProcessStartInfo.UseShellExecute = false;
             var aProcess = new System.Diagnostics.Process();
             aProcess.StartInfo = aProcessStartInfo;
-
             aProcess.Exited += _process_Exited;
             aProcess.Start();
-
             ProcessUtilities.KillAllProcessesSpawnedBy(aProcess.Id);
-
             while (!aProcess.HasExited) ;
-
             Assert.IsTrue(_isExited);
         }
-
         void _process_Exited(object sender, EventArgs e)
         {
             _isExited = true;
         }
-
         [Test]
         public void KillMultipleProcessTest()
         {
@@ -46,10 +38,8 @@ namespace Tests.Utilities
             aProcessStartInfo.UseShellExecute = false;
             var aProcess = new System.Diagnostics.Process();
             aProcess.StartInfo = aProcessStartInfo;
-
             aProcess.Exited += _process_Exited;
             aProcess.Start();
-
             ProcessStartInfo aProcessStartInfo2 = new ProcessStartInfo("cmd.exe", "calc");
             aProcessStartInfo2.CreateNoWindow = true;
             aProcessStartInfo2.RedirectStandardError = true;
@@ -59,28 +49,20 @@ namespace Tests.Utilities
             aProcess2.StartInfo = aProcessStartInfo;
             aProcess2.Exited += _process_Exited;
             aProcess2.Start();
-
             ProcessUtilities.KillAllProcessesSpawnedBy(aProcess.Id);
-
             while (!aProcess.HasExited) ;
-
-
             Assert.IsTrue(_isExited);
-
             _isExited = false;
             ProcessUtilities.KillAllProcessesSpawnedBy(aProcess2.Id);
-
             while (!aProcess2.HasExited) ;
             Assert.IsTrue(_isExited);
         }
-
         [Test]
         public void FalseProcessIdTest()
         {
             //expect no crash
             ProcessUtilities.KillAllProcessesSpawnedBy(-1);
         }
-
         void _process_Exited2(object sender, EventArgs e)
         {
             _isExited = true;

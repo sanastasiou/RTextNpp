@@ -8,13 +8,11 @@ using System.Linq;
 using System.Windows.Threading;
 using System.Windows.Media;
 using RTextNppPlugin.Utilities.Settings;
-
 namespace RTextNppPlugin.ViewModels
 {
     /**
      * A ViewModel for the console.
      * The model is responsible for holding information about all loaded rtext workspaces.
-
      * The model provide means to update the console, error list and rtext find windows.
      */
     internal class ConsoleViewModel : BindableObject, IConsoleViewModelBase, IDisposable
@@ -37,7 +35,6 @@ namespace RTextNppPlugin.ViewModels
         private Color _expanderHeaderTextForeground                              = Colors.Black;
         IStyleConfigurationObserver _styleObserver                               = null;
         #endregion
-
         #region Interface
         /**
          * Constructor.
@@ -62,7 +59,7 @@ namespace RTextNppPlugin.ViewModels
             #if DEBUG
             AddWorkspace(Constants.DEBUG_CHANNEL);
             #endif
-            AddWorkspace(Constants.GENERAL_CHANNEL);            
+            AddWorkspace(Constants.GENERAL_CHANNEL);
             //subscribe to connector manager for workspace events
             _cmanager.OnConnectorAdded += ConnectorManagerOnConnectorAdded;
             Index = 0;
@@ -70,27 +67,22 @@ namespace RTextNppPlugin.ViewModels
             _styleObserver = styleObserver;
             _styleObserver.OnSettingsChanged += OnStyleObserverSettingsChanged;
         }
-
         void OnStyleObserverSettingsChanged(object sender, EventArgs e)
         {
             IWordsStyle aErrorOverviewStyle = _styleObserver.GetStyle(Constants.Wordstyles.ERROR_OVERVIEW);
             ExpanderHeaderBackground        = aErrorOverviewStyle.Background;
             ExpanderHeaderTextForeground    = aErrorOverviewStyle.Foreground;
         }
-
         public Dispatcher Dispatcher { get; set; }
-
         void ConnectorManagerOnConnectorAdded(object source, ConnectorManager.ConnectorAddedEventArgs e)
         {
-            //change to newly added workspace            
+            //change to newly added workspace
             AddWorkspace(e.Workspace, e.Connector);
         }
-
         public string GetCurrentLogChannel()
         {
             return _workspaceCollection[_index].Workspace;
         }
-
         public void AddWorkspace(string workspace, Connector connector = null)
         {
             var workspaceModel = _workspaceCollection.FirstOrDefault(x => x.Workspace.Equals(workspace, StringComparison.InvariantCultureIgnoreCase));
@@ -111,7 +103,6 @@ namespace RTextNppPlugin.ViewModels
                 Index = _workspaceCollection.IndexOf(workspaceModel);
             }
         }
-
         public Color ExpanderHeaderBackground
         {
             get
@@ -127,7 +118,6 @@ namespace RTextNppPlugin.ViewModels
                 }
             }
         }
-
         public Color ExpanderHeaderTextForeground
         {
             get
@@ -172,7 +162,6 @@ namespace RTextNppPlugin.ViewModels
                 }
             }
         }
-
         public string Workspace
         {
             get
@@ -188,7 +177,6 @@ namespace RTextNppPlugin.ViewModels
                 }
             }
         }
-
         /**
          * \brief   Gets a value indicating whether the backend is loading is model loading.
          *
@@ -204,12 +192,11 @@ namespace RTextNppPlugin.ViewModels
             {
                 if(value != _isBusy)
                 {
-                    _isBusy = value;                   
+                    _isBusy = value;
                     base.RaisePropertyChanged("IsBusy");
                 }
             }
         }
-
         public bool IsLoading
         {
             get
@@ -225,7 +212,6 @@ namespace RTextNppPlugin.ViewModels
                 }
             }
         }
-
         public int ErrorCount
         {
             get
@@ -241,7 +227,6 @@ namespace RTextNppPlugin.ViewModels
                 }
             }
         }
-
         public BulkObservableCollection<ErrorListViewModel> Errors
         {
             get
@@ -249,7 +234,6 @@ namespace RTextNppPlugin.ViewModels
                 return _errorList;
             }
         }
-
         /**
          * Gets the progress percentage.
          *
@@ -270,7 +254,6 @@ namespace RTextNppPlugin.ViewModels
                 }
             }
         }
-
         public bool IsAutomateWorkspace
         {
             get
@@ -286,7 +269,6 @@ namespace RTextNppPlugin.ViewModels
                 }
             }
         }
-
         public bool IsActive
         {
             get
@@ -302,7 +284,6 @@ namespace RTextNppPlugin.ViewModels
                 }
             }
         }
-
         public string ActiveCommand
         {
             get
@@ -318,8 +299,6 @@ namespace RTextNppPlugin.ViewModels
                 }
             }
         }
-
-
         /**
          * Gets a collection of workspaces.
          *
@@ -332,16 +311,12 @@ namespace RTextNppPlugin.ViewModels
                 return _workspaceCollection;
             }
         }
-
         public void Dispose()
         {
             Dispose(true);
         }
-
         #endregion
-
         #region [Helpers]
-
         private void Dispose(bool disposing)
         {
             if (disposing)
@@ -352,7 +327,6 @@ namespace RTextNppPlugin.ViewModels
             _cmanager.OnConnectorAdded -= ConnectorManagerOnConnectorAdded;
             _styleObserver.OnSettingsChanged -= OnStyleObserverSettingsChanged;
         }
-
         #endregion
     }
 }

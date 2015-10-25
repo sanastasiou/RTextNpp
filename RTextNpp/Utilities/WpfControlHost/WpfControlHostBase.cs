@@ -1,29 +1,25 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Timers;
-
 namespace RTextNppPlugin.Utilities.WpfControlHost
 {
     /**
      * A npp control host.
      *
-     * The solid purpose of this class is to periodically refresh the hosted control, because Notepad++ doesn't do 
+     * The solid purpose of this class is to periodically refresh the hosted control, because Notepad++ doesn't do
      * This results in falsely drawn controls when the user resizes the Notepad++ window.
      * \tparam  T   Generic type parameter which has to be a wpf control host.
-     *                   
+     *
      */
     internal class WpfControlHostBase<T> : IDisposable where T : System.Windows.Forms.Form
     {
-
         #region Interface
-
         /**
          * Gets the underlying element host.
          *
          * \return  The element host.
          */
         internal T ElementHost { get { return _elementHost; } }
-       
         /**
          * Constructor.
          *
@@ -42,7 +38,6 @@ namespace RTextNppPlugin.Utilities.WpfControlHost
             _refreshTimer.AutoReset     = true;
             _nppHelper                  = nppHelper;
         }
-
         /**
          * internal implementation of Dispose pattern callable by consumers.
          */
@@ -51,7 +46,6 @@ namespace RTextNppPlugin.Utilities.WpfControlHost
             Dispose(true);
             GC.SuppressFinalize(this);
         }
-
         /**
          * Gets a value indicating whether the element host form is visible.
          *
@@ -63,7 +57,6 @@ namespace RTextNppPlugin.Utilities.WpfControlHost
             {
                 if (_elementHost.InvokeRequired)
                 {
-
                     return (bool)_elementHost.Invoke(new Func<bool>(IsVisible));
                 }
                 else
@@ -72,7 +65,6 @@ namespace RTextNppPlugin.Utilities.WpfControlHost
                 }
             }
         }
-
         /**
          * Focus on the element host.
          *
@@ -86,7 +78,6 @@ namespace RTextNppPlugin.Utilities.WpfControlHost
             }
             return _elementHost.Focus();
         }
-
         internal int CmdId
         {
             set
@@ -105,7 +96,6 @@ namespace RTextNppPlugin.Utilities.WpfControlHost
                 return _cmdId;
             }
         }
-
         internal IntPtr Handle
         {
             get
@@ -117,11 +107,8 @@ namespace RTextNppPlugin.Utilities.WpfControlHost
                 return _elementHost.Handle;
             }
         }
-
         #endregion
-
         #region [Event Handlers]
-
         private void OnRefreshTimerElapsed(object sender, ElapsedEventArgs e)
         {
             _refreshTimer.Elapsed -= OnRefreshTimerElapsed;
@@ -134,12 +121,10 @@ namespace RTextNppPlugin.Utilities.WpfControlHost
             }
             _refreshTimer.Elapsed += OnRefreshTimerElapsed;
         }
-
         private void OnElementHostMove(object sender, EventArgs e)
         {
             _refreshNeeded = true;
         }
-
         /**
          * Raises the visibility changed event.
          *
@@ -158,11 +143,8 @@ namespace RTextNppPlugin.Utilities.WpfControlHost
                 _refreshTimer.Stop();
             }
         }
-
         #endregion
-
         #region Helpers
-
         /**
          * Finaliser.
          */
@@ -171,15 +153,13 @@ namespace RTextNppPlugin.Utilities.WpfControlHost
         {
             Dispose(false);
         }
-
-        // Protected implementation of Dispose pattern. 
+        // Protected implementation of Dispose pattern.
         protected virtual void Dispose(bool disposing)
         {
             if (disposed)
             {
                 return;
             }
-
             if (disposing)
             {
                 _refreshTimer.Enabled       = false;
@@ -192,26 +172,20 @@ namespace RTextNppPlugin.Utilities.WpfControlHost
             }
             disposed = true;
         }
-
         private IntPtr GetHandle()
         {
             return _elementHost.Handle;
         }
-
         private bool IsVisible()
         {
             return _elementHost.Visible;
         }
-
         private void SetCmdId(int id)
         {
             _cmdId = id;
         }
-
         #endregion
-
         #region [Data Members]
-
         private readonly INpp _nppHelper = null;                                       //!< Npp helper instance, used to communicate with Npp.
         private T _elementHost;                                                        //!< The element host to be redrawed.
         private Timer _refreshTimer      = new Timer(Constants.FORM_INTERVAL_REFRESH); //!< The timer, which if expired, shall refresh the element host window.

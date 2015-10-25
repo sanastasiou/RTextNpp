@@ -4,19 +4,15 @@
  **/
 // Copyright 1998-2002 by Neil Hodgson <neilh@scintilla.org>
 // The License.txt file describes the conditions under which this software may be distributed.
-
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 #include <stdio.h>
 #include <stdarg.h>
-
 #include "WordList.h"
-
 #ifdef SCI_NAMESPACE
 using namespace Scintilla;
 #endif
-
 /**
  * Creates an array that points into each word in the string and puts \0 terminators
  * after each word.
@@ -65,7 +61,6 @@ static char **ArrayFromWordList(char *wordlist, int *len, bool onlyLineEnds = fa
     }
     return keywords;
 }
-
 bool WordList::operator!=(const WordList &other) const {
     if (len != other.len)
         return true;
@@ -75,7 +70,6 @@ bool WordList::operator!=(const WordList &other) const {
     }
     return false;
 }
-
 void WordList::Clear() {
     if (words) {
         delete []list;
@@ -85,17 +79,14 @@ void WordList::Clear() {
     list = 0;
     len = 0;
 }
-
 extern "C" int cmpString(const void *a1, const void *a2) {
     // Can't work out the correct incantation to use modern casts here
     return strcmp(*(char **)(a1), *(char **)(a2));
 }
-
 static void SortWordList(char **words, unsigned int len) {
     qsort(reinterpret_cast<void *>(words), len, sizeof(*words),
           cmpString);
 }
-
 void WordList::Set(const char *s) {
     Clear();
     list = new char[strlen(s) + 1];
@@ -109,7 +100,6 @@ void WordList::Set(const char *s) {
         starts[indexChar] = l;
     }
 }
-
 /** Check whether a string is in the list.
  * List elements are either exact matches or prefixes.
  * Prefix elements start with '^' and match all strings that start with the rest of the element
@@ -151,7 +141,6 @@ bool WordList::InList(const char *s) const {
     }
     return false;
 }
-
 /** similar to InList, but word s can be a substring of keyword.
  * eg. the keyword define is defined as def~ine. This means the word must start
  * with def to be a keyword, but also defi, defin and define are valid.

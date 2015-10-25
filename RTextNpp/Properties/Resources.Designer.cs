@@ -7,11 +7,8 @@
 //     the code is regenerated.
 // </auto-generated>
 //------------------------------------------------------------------------------
-
 namespace RTextNppPlugin.Properties {
     using System;
-    
-    
     /// <summary>
     ///   A strongly-typed resource class, for looking up localized strings, etc.
     /// </summary>
@@ -23,15 +20,11 @@ namespace RTextNppPlugin.Properties {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class Resources {
-        
         private static global::System.Resources.ResourceManager resourceMan;
-        
         private static global::System.Globalization.CultureInfo resourceCulture;
-        
         [global::System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
         internal Resources() {
         }
-        
         /// <summary>
         ///   Returns the cached ResourceManager instance used by this class.
         /// </summary>
@@ -45,7 +38,6 @@ namespace RTextNppPlugin.Properties {
                 return resourceMan;
             }
         }
-        
         /// <summary>
         ///   Overrides the current thread's CurrentUICulture property for all
         ///   resource lookups using this strongly typed resource class.
@@ -59,7 +51,6 @@ namespace RTextNppPlugin.Properties {
                 resourceCulture = value;
             }
         }
-        
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
@@ -69,7 +60,6 @@ namespace RTextNppPlugin.Properties {
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
-        
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
@@ -79,7 +69,6 @@ namespace RTextNppPlugin.Properties {
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
-        
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
@@ -89,7 +78,6 @@ namespace RTextNppPlugin.Properties {
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
-        
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
@@ -99,7 +87,6 @@ namespace RTextNppPlugin.Properties {
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
-        
         /// <summary>
         ///   Looks up a localized string similar to Could not process request because backend is not running..
         /// </summary>
@@ -108,7 +95,6 @@ namespace RTextNppPlugin.Properties {
                 return ResourceManager.GetString("CONNECTOR_INSTANCE_NULL", resourceCulture);
             }
         }
-        
         /// <summary>
         ///   Looks up a localized string similar to Backend is restarting....
         /// </summary>
@@ -117,7 +103,6 @@ namespace RTextNppPlugin.Properties {
                 return ResourceManager.GetString("CONNECTOR_INSTANCE_NULL_DESC", resourceCulture);
             }
         }
-        
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
@@ -127,7 +112,6 @@ namespace RTextNppPlugin.Properties {
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
-        
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
@@ -137,7 +121,6 @@ namespace RTextNppPlugin.Properties {
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
-        
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
@@ -147,7 +130,6 @@ namespace RTextNppPlugin.Properties {
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
-        
         /// <summary>
         ///   Looks up a localized string similar to RText backend service auto completion request failed..
         /// </summary>
@@ -156,7 +138,6 @@ namespace RTextNppPlugin.Properties {
                 return ResourceManager.GetString("ERR_AUTO_COMPLETION_INVOKATION", resourceCulture);
             }
         }
-        
         /// <summary>
         ///   Looks up a localized string similar to Wrong invocation id return from backend! Please take a screenshot and contact support..
         /// </summary>
@@ -165,7 +146,6 @@ namespace RTextNppPlugin.Properties {
                 return ResourceManager.GetString("ERR_AUTO_COMPLETION_INVOKATION_DESC", resourceCulture);
             }
         }
-        
         /// <summary>
         ///   Looks up a localized string similar to If the problem persists please contact support..
         /// </summary>
@@ -174,7 +154,6 @@ namespace RTextNppPlugin.Properties {
                 return ResourceManager.GetString("ERR_AUTO_COMPLETION_NULL_DESC", resourceCulture);
             }
         }
-        
         /// <summary>
         ///   Looks up a localized string similar to RText backend service auto completion request failed..
         /// </summary>
@@ -183,7 +162,6 @@ namespace RTextNppPlugin.Properties {
                 return ResourceManager.GetString("ERR_AUTO_COMPLETION_NULL_RESP", resourceCulture);
             }
         }
-        
         /// <summary>
         ///   Looks up a localized string similar to RText backend is currently busy..
         /// </summary>
@@ -192,7 +170,6 @@ namespace RTextNppPlugin.Properties {
                 return ResourceManager.GetString("ERR_BACKEND_BUSY", resourceCulture);
             }
         }
-        
         /// <summary>
         ///   Looks up a localized string similar to Please try again when the current command is executed. ( Status LED should be Green ).
         /// </summary>
@@ -201,7 +178,6 @@ namespace RTextNppPlugin.Properties {
                 return ResourceManager.GetString("ERR_BACKEND_BUSY_DESC", resourceCulture);
             }
         }
-        
         /// <summary>
         ///   Looks up a localized string similar to Establishing connection with RText backend..
         /// </summary>
@@ -210,7 +186,6 @@ namespace RTextNppPlugin.Properties {
                 return ResourceManager.GetString("ERR_BACKEND_CONNECTING", resourceCulture);
             }
         }
-        
         /// <summary>
         ///   Looks up a localized string similar to If the problem persists try to restart application or contact support..
         /// </summary>
@@ -219,7 +194,6 @@ namespace RTextNppPlugin.Properties {
                 return ResourceManager.GetString("ERR_BACKEND_CONNECTING_DESC", resourceCulture);
             }
         }
-        
         /// <summary>
         ///   Looks up a localized string similar to RText backend is not responding..
         /// </summary>
@@ -228,7 +202,6 @@ namespace RTextNppPlugin.Properties {
                 return ResourceManager.GetString("ERR_BACKEND_NOT_RESPONDING", resourceCulture);
             }
         }
-        
         /// <summary>
         ///   Looks up a localized string similar to Please take a screenshot of the current console output and notify support..
         /// </summary>
@@ -237,7 +210,6 @@ namespace RTextNppPlugin.Properties {
                 return ResourceManager.GetString("ERR_BACKEND_NOT_RESPONDING_DESC", resourceCulture);
             }
         }
-        
         /// <summary>
         ///   Looks up a localized string similar to RText backend service reference link request failed..
         /// </summary>
@@ -246,7 +218,6 @@ namespace RTextNppPlugin.Properties {
                 return ResourceManager.GetString("ERR_REF_LINK_NULL_RESPONSE", resourceCulture);
             }
         }
-        
         /// <summary>
         ///   Looks up a localized string similar to If the problem persists please contact support..
         /// </summary>
@@ -255,7 +226,6 @@ namespace RTextNppPlugin.Properties {
                 return ResourceManager.GetString("ERR_REF_LINK_NULL_RESPONSE_DESC", resourceCulture);
             }
         }
-        
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
@@ -265,7 +235,6 @@ namespace RTextNppPlugin.Properties {
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
-        
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
@@ -275,7 +244,6 @@ namespace RTextNppPlugin.Properties {
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
-        
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
@@ -285,7 +253,6 @@ namespace RTextNppPlugin.Properties {
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
-        
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
@@ -295,7 +262,6 @@ namespace RTextNppPlugin.Properties {
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
-        
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
@@ -305,7 +271,6 @@ namespace RTextNppPlugin.Properties {
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
-        
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
@@ -315,7 +280,6 @@ namespace RTextNppPlugin.Properties {
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
-        
         /// <summary>
         ///   Looks up a localized string similar to RText++ output.
         /// </summary>
@@ -324,7 +288,6 @@ namespace RTextNppPlugin.Properties {
                 return ResourceManager.GetString("RTEXT_OUTPUT_WINDOW_CAPTION", resourceCulture);
             }
         }
-        
         /// <summary>
         ///   Looks up a localized string similar to Change RText++ options....
         /// </summary>
@@ -333,7 +296,6 @@ namespace RTextNppPlugin.Properties {
                 return ResourceManager.GetString("RTEXT_SHOW_OPTIONS_WINDOW", resourceCulture);
             }
         }
-        
         /// <summary>
         ///   Looks up a localized string similar to Show/Hide RText++ outline window.
         /// </summary>
@@ -342,7 +304,6 @@ namespace RTextNppPlugin.Properties {
                 return ResourceManager.GetString("RTEXT_SHOW_OUTLINE_WINDOW", resourceCulture);
             }
         }
-        
         /// <summary>
         ///   Looks up a localized string similar to Show/Hide RText++ output window.
         /// </summary>
@@ -351,7 +312,6 @@ namespace RTextNppPlugin.Properties {
                 return ResourceManager.GetString("RTEXT_SHOW_OUTPUT_WINDOW", resourceCulture);
             }
         }
-        
         /// <summary>
         ///   Looks up a localized string similar to &lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot; ?&gt;
         ///&lt;configuration&gt;
@@ -360,7 +320,7 @@ namespace RTextNppPlugin.Properties {
         ///        &lt;add key=&quot;AutoLoadWorkspace&quot; value=&quot;True&quot; /&gt;
         ///        &lt;add key=&quot;AutoSaveFiles&quot; value=&quot;True&quot; /&gt;
         ///        &lt;add key=&quot;AutoChangeWorkspace&quot; value=&quot;True&quot; /&gt;
-        ///        &lt;add key=&quot;ExcludeExtensions&quot; value=&quot;meta;&quot; /&gt;        
+        ///        &lt;add key=&quot;ExcludeExtensions&quot; value=&quot;meta;&quot; /&gt;
         ///    &lt;/appSettings&gt;
         ///&lt;/configuration&gt;.
         /// </summary>
@@ -369,7 +329,6 @@ namespace RTextNppPlugin.Properties {
                 return ResourceManager.GetString("RTextNpp_dll", resourceCulture);
             }
         }
-        
         /// <summary>
         ///   Looks up a localized string similar to Show auto-complete list.
         /// </summary>
@@ -378,7 +337,6 @@ namespace RTextNppPlugin.Properties {
                 return ResourceManager.GetString("SHOW_AUTO_COMPLETION_LIST_NAME", resourceCulture);
             }
         }
-        
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
@@ -388,7 +346,6 @@ namespace RTextNppPlugin.Properties {
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
-        
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
@@ -398,7 +355,6 @@ namespace RTextNppPlugin.Properties {
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
-        
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>

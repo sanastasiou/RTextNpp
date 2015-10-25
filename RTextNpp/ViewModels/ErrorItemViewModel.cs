@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using RTextNppPlugin.Utilities;
+using System.Windows.Media;
 
 namespace RTextNppPlugin.ViewModels
 {
@@ -20,7 +21,6 @@ namespace RTextNppPlugin.ViewModels
             Fatal
         }
         #region [Interface]
-        
         public string Message { get; private set; }
         public SeverityType Severity { get; private set; }
         public int Line { get; private set; }
@@ -34,9 +34,7 @@ namespace RTextNppPlugin.ViewModels
             File        = Path.GetFileName(filepath);
             FilePath    = filepath;
         }
-        
         #endregion
-
         #region [Helpers]
         SeverityType ConvertStringToSeverity(string severity)
         {
@@ -56,13 +54,12 @@ namespace RTextNppPlugin.ViewModels
         }
         #endregion
     }
-
     internal class ErrorListViewModel : BindableObject
     {
         #region [Interface]
         public string FilePath { get; private set; }
         public BulkObservableCollection<ErrorItemViewModel> ErrorList
-        { 
+        {
             get
             {
                 return _errorList;
@@ -89,7 +86,7 @@ namespace RTextNppPlugin.ViewModels
                             Npp.Instance.JumpToLine(FilePath, aLine);
                         }
                         else
-                        {                            
+                        {
                             Logger.Instance.Append(Logger.MessageType.Error, Constants.GENERAL_CHANNEL, "Cannot jump to link because file : {0} does not exist.", FilePath);
                         }
                     }
@@ -103,8 +100,8 @@ namespace RTextNppPlugin.ViewModels
             _errorList.AddRange(errors);
             IsFileOpened = isFileOpened;
         }
-        #endregion
 
+        #endregion
         #region [Data Members]
         private bool _isFileOpened = false;
         private BulkObservableCollection<ErrorItemViewModel> _errorList = new BulkObservableCollection<ErrorItemViewModel>();

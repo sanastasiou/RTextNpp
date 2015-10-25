@@ -9,7 +9,6 @@ using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Linq;
 using RTextNppPlugin.Utilities.Settings;
-
 namespace RTextNppPlugin.WpfControls
 {
     /// <summary>
@@ -25,36 +24,29 @@ namespace RTextNppPlugin.WpfControls
             DataContext            = dataContext;
             _nppHelper             = nppHelper;
         }
-
         private void ErrorListPreviewMouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
             ErrorList.IsSelected = true;
             ErrorList.Focus();
         }
-
         private void ConsolePreviewMouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
             Console.IsSelected = true;
             Console.Focus();
         }
-
         private void OnWorkspaceGridSizeChanged(object sender, System.Windows.SizeChangedEventArgs e)
         {
             double aWSpaceHeight = WorkspaceGrid.ActualHeight;
             double aWSpaceWidth = WorkspaceGrid.ActualWidth;
-
             int aNewRadius = (int)(Math.Floor(Math.Min(aWSpaceHeight, aWSpaceWidth)) * 0.80);
             aNewRadius >>= 1;
             OuterProgressBar.Radius = aNewRadius;
             InnerProgressBar.Radius = aNewRadius;
-
             var diameter     = aNewRadius * 2;
             var radiusSquare = (diameter * diameter);
             var halfSquare   = radiusSquare / 2;
-
             PercentageLabelContainer.Width = PercentageLabelContainer.Height = Math.Sqrt(halfSquare);
         }
-
         private void OnDescriptionClicked(object sender, RoutedEventArgs e)
         {
             TextBlock aRow = sender as TextBlock;
@@ -71,8 +63,7 @@ namespace RTextNppPlugin.WpfControls
             //             select lines).ToArray()[0].line;
             ////jump to first error in file
             //NavigateToFile(link.NavigateUri.LocalPath, aLine);
-        }        
-
+        }
         #region [Custom Data Members]
         INpp _nppHelper = null;
         #endregion

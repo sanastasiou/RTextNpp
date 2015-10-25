@@ -3,7 +3,6 @@
  *
  * Declares the ILoggingObserver interface.
  */
-
 namespace RTextNppPlugin.Logging
 {
     public interface ILoggingObserver

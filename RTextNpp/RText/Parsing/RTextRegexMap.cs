@@ -1,12 +1,11 @@
 ﻿using System.Collections.Generic;
 using System.Text.RegularExpressions;
-
 namespace RTextNppPlugin.RText.Parsing
 {
     public static class RTextRegexMap
     {
         public static readonly Dictionary<RTextTokenTypes, Regex> REGEX_MAP = new Dictionary<RTextTokenTypes, Regex> {
-            { RTextTokenTypes.Space,             new Regex(@"\A[ \t]+"                          , RegexOptions.Compiled) },    
+            { RTextTokenTypes.Space,             new Regex(@"\A[ \t]+"                          , RegexOptions.Compiled) },
             { RTextTokenTypes.Comment,           new Regex(@"\A#.*"                             , RegexOptions.Compiled)},
             { RTextTokenTypes.Notation,          new Regex(@"\A@.*"                             , RegexOptions.Compiled)},
             { RTextTokenTypes.Reference,         new Regex(@"\A\w*(?:[/]\w*)+"                  , RegexOptions.Compiled)},

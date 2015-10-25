@@ -39,7 +39,6 @@ namespace RTextNppPlugin.Utilities
         int GetFirstVisibleLine();
         int GetLengthToEndOfLine(int currentCharacterColumn, int line);
         int GetLengthToEndOfLine(int currentCharacterColumn);
-
         /**
          * \brief   Gets the line fromt the current caret position.
          *

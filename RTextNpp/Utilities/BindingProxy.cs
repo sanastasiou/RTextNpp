@@ -1,5 +1,4 @@
 ﻿using System.Windows;
-
 namespace RTextNppPlugin.Utilities
 {
     /**
@@ -10,21 +9,17 @@ namespace RTextNppPlugin.Utilities
     public class BindingProxy : Freezable
     {
         #region Overrides of Freezable
-
         [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
         protected override Freezable CreateInstanceCore()
         {
             return new BindingProxy();
         }
-
         #endregion
-
         public object Data
         {
             get { return (object)GetValue(DataProperty); }
             set { SetValue(DataProperty, value); }
         }
-
         // Using a DependencyProperty as the backing store for Data.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty DataProperty =
             DependencyProperty.Register("Data", typeof(object), typeof(BindingProxy), new UIPropertyMetadata(null));

@@ -3,14 +3,12 @@
  *
  * Implements the logger singleton class.
  */
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Collections.Concurrent;
-
 namespace RTextNppPlugin.Logging
 {
     public sealed class Logger : ISubscriber
@@ -20,16 +18,12 @@ namespace RTextNppPlugin.Logging
         private static object _lock = new Object();//!< Mutex.
         private List<ILoggingObserver> _observers; //!< List of observers.
         #endregion
-
         #region Implementation Details
         private Logger()
         {
             _observers = new List<ILoggingObserver>(10);
         }
-
         #endregion
-
-
         #region Public Inteface
         /**
          * Values that represent MessageType.
@@ -41,7 +35,6 @@ namespace RTextNppPlugin.Logging
             Error,
             FatalError
         }
-
         public static Logger Instance
         {
             get
@@ -54,11 +47,9 @@ namespace RTextNppPlugin.Logging
                             _instance = new Logger();
                     }
                 }
-
                 return _instance;
             }
         }
-
         public void Append(string msg, params object[] args)
         {
             #if DEBUG
@@ -72,7 +63,6 @@ namespace RTextNppPlugin.Logging
             }
             #endif
         }
-
         public void Append(MessageType type, string channel, string msg, params object[] args)
         {
             try
@@ -84,7 +74,6 @@ namespace RTextNppPlugin.Logging
                 DoAppend(type, channel, msg);
             }
         }
-
         /**
          * Appends a msg to all observers.
          *
@@ -105,7 +94,6 @@ namespace RTextNppPlugin.Logging
             }
             _observers.ForEach(x => x.Append(type, channel, msg));
         }
-
         public void Subscribe(ILoggingObserver obs)
         {
             lock (_lock)
@@ -116,7 +104,6 @@ namespace RTextNppPlugin.Logging
                 }
             }
         }
-
         public void Unsubscribe(ILoggingObserver obs)
         {
             lock (_lock)
@@ -127,7 +114,6 @@ namespace RTextNppPlugin.Logging
                 }
             }
         }
-
         /**
          * A DateTime extension method that truncates time to msec, s etc.
          *

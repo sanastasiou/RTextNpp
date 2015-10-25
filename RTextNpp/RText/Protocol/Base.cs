@@ -6,7 +6,6 @@
         virtual public string command { get; set; }
         virtual public int invocation_id { get; set; }
     }
-
     public interface IResponseBase
     {
         string type { get; set; }

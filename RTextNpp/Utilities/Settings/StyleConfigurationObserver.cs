@@ -5,7 +5,6 @@ using System.IO;
 using System.Linq;
 using System.Windows.Media;
 using System.Xml.Linq;
-
 namespace RTextNppPlugin.Utilities.Settings
 {
     internal interface IWordsStyle
@@ -20,14 +19,11 @@ namespace RTextNppPlugin.Utilities.Settings
         int FontSize { get; }
         string StyleName { get; }
     }
-
     internal interface IStyleConfigurationObserver
     {
         IWordsStyle GetStyle(string styleName);
-
         event EventHandler OnSettingsChanged;
     }
-
     internal enum StyleAttributes : int
     {
         StyleAttributes_Name,
@@ -38,19 +34,15 @@ namespace RTextNppPlugin.Utilities.Settings
         StyleAttributes_FontStyle,
         StyleAttributes_FontSize
     }
-
     internal class StyleConfigurationObserver : IStyleConfigurationObserver, IDisposable
     {
-        #region [Data Members]        
+        #region [Data Members]
         private Dictionary<string, IWordsStyle> _styles                        = new Dictionary<string, IWordsStyle>();
         private FileSystemWactherCLRWrapper.FileSystemWatcher _settingsWatcher = null;
         private object _objectLock                                             = new Object();
         private event EventHandler _onSettingsChanged;
         private const string STYLES_FILE                                       = Constants.PluginName + ".xml";
         private readonly INpp _nppHelper                                       = null;
-
-        
-
         private enum FondStyle : int
         {
             FondStyle_Default,
@@ -62,7 +54,6 @@ namespace RTextNppPlugin.Utilities.Settings
             FondStyle_Italic_Underline,
             FondStyle_Bold_Underline_Italic
         }
-
         private class WordsStyle : IWordsStyle
         {
             private readonly Color _background;
@@ -74,9 +65,8 @@ namespace RTextNppPlugin.Utilities.Settings
             private readonly bool _isItalic;
             private readonly int _fontSize;
             private readonly string _styleName;
-
             public WordsStyle(
-                Color background, 
+                Color background,
                 Color foreground,
                 int styleId,
                 string fontName,
@@ -97,56 +87,45 @@ namespace RTextNppPlugin.Utilities.Settings
                 _fontSize     = fontSize;
                 _styleName    = styleName;
             }
-
             public Color Background
             {
                 get { return _background; }
             }
-
             public Color Foreground
             {
                 get { return _foreground; }
             }
-
             public int StyleId
             {
                 get { return _styleId; }
             }
-
             public string FontName
             {
                 get { return _fontName; }
             }
-
             public bool IsUnderlined
             {
                 get { return _isUnderlined; }
             }
-
             public bool IsBold
             {
                 get { return _isBold; }
             }
-
             public bool IsItalic
             {
                 get { return _isItalic; }
             }
-
             public int FontSize
             {
                 get { return _fontSize; }
             }
-
             public string StyleName
             {
                 get { return _styleName; }
             }
         }
         #endregion
-
         #region [Interface]
-        
         event EventHandler IStyleConfigurationObserver.OnSettingsChanged
         {
             add
@@ -164,16 +143,14 @@ namespace RTextNppPlugin.Utilities.Settings
                 }
             }
         }
-
         public StyleConfigurationObserver(INpp nppHelper)
         {
             if(nppHelper == null)
             {
                 throw new ArgumentNullException("nppHelper");
             }
-            _nppHelper = nppHelper;            
+            _nppHelper = nppHelper;
         }
-
         public void EnableStylesObservation()
         {
             string aConfigDir = _nppHelper.GetConfigDir();
@@ -198,13 +175,11 @@ namespace RTextNppPlugin.Utilities.Settings
                 Logger.Instance.Append(Logger.MessageType.Error, Constants.GENERAL_CHANNEL, "{0} file doesn't exist. Automatic style update is disabled.", aConfigDir + "\\" + STYLES_FILE);
             }
         }
-
         public void Dispose()
         {
             Dispose(true);
             GC.SuppressFinalize(this);
         }
-
         public IWordsStyle GetStyle(string styleName)
         {
             if (_styles.ContainsKey(styleName))
@@ -213,11 +188,8 @@ namespace RTextNppPlugin.Utilities.Settings
             }
             return default(IWordsStyle);
         }
-
         #endregion
-
         #region [Helpers]
-
         private Color ConvertRGBToColor(string rgbString)
         {
             int rgb = int.Parse(rgbString, System.Globalization.NumberStyles.AllowHexSpecifier);
@@ -226,7 +198,6 @@ namespace RTextNppPlugin.Utilities.Settings
             byte b = (byte)(rgb & 0xFF);
             return new Color { R = r, G = g, B = b, A = 0xFF };
         }
-
         private void AnalyzeStyle(FondStyle style, ref bool isBold, ref bool isItalic, ref bool isUnderlined)
         {
             switch (style)
@@ -263,7 +234,6 @@ namespace RTextNppPlugin.Utilities.Settings
                     break;
             }
         }
-
         protected virtual void Dispose(bool disposing)
         {
             if (disposing)
@@ -278,14 +248,12 @@ namespace RTextNppPlugin.Utilities.Settings
                 }
             }
         }
-
         private void LoadStyles()
         {
             string aSettingsFile = _nppHelper.GetConfigDir() + "\\" + STYLES_FILE;
             if (File.Exists(aSettingsFile))
             {
                 XDocument aColorFile = XDocument.Load(aSettingsFile);
-
                 var aStyles = from wordStyles in aColorFile.Root.Descendants(Constants.Wordstyles.WORDSTYLES_ELEMENT_NAME) select wordStyles;
                 foreach(var style in aStyles)
                 {
@@ -307,14 +275,12 @@ namespace RTextNppPlugin.Utilities.Settings
                 }
             }
         }
-
         ~StyleConfigurationObserver()
         {
             // Finalizer calls Dispose(false)
             Dispose(false);
         }
         #endregion
-
         #region [Event Handlers]
         private void OnRTextFileCreatedOrDeletedOrModified(object sender, FileSystemEventArgs e)
         {
@@ -327,7 +293,6 @@ namespace RTextNppPlugin.Utilities.Settings
                 }
             }
         }
-
         private void ProcessError(object sender, ErrorEventArgs e)
         {
             //restart filewatcher
@@ -338,7 +303,6 @@ namespace RTextNppPlugin.Utilities.Settings
             EnableStylesObservation();
             LoadStyles();
         }
-
         private void AdjustLeadingZeros(ref char [] rgbArray, int offset )
         {
             if (rgbArray[offset] == '0' && rgbArray[offset + 1] == '0')

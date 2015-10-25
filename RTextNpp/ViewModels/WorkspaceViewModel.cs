@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq;
-
 namespace RTextNppPlugin.ViewModels
 {
     using RTextNppPlugin.RText;
@@ -8,7 +7,6 @@ namespace RTextNppPlugin.ViewModels
     using RTextNppPlugin.RText.StateEngine;
     using RTextNppPlugin.Utilities;
     using System.Collections.Generic;
-
     class WorkspaceViewModel : WorkspaceViewModelBase, IConsoleViewModelBase, IDisposable
     {
         #region [Interface]
@@ -21,7 +19,6 @@ namespace RTextNppPlugin.ViewModels
             _connector.OnProgressUpdated += OnConnectorProgressUpdated;
             _nppHelper                   = nppHelper;
         }
-
         /**
          * \brief   Gets a value indicating whether this workspace is currently loading.
          *
@@ -34,7 +31,6 @@ namespace RTextNppPlugin.ViewModels
                 return (_isLoading || _isBusy);
             }
         }
-
         new public bool IsLoading
         {
             get
@@ -42,15 +38,13 @@ namespace RTextNppPlugin.ViewModels
                 return _isLoading;
             }
         }
-
-        new public double ProgressPercentage 
-        { 
+        new public double ProgressPercentage
+        {
             get
             {
                 return _percentage;
             }
         }
-
         new public int ErrorCount
         {
             get
@@ -58,26 +52,19 @@ namespace RTextNppPlugin.ViewModels
                 return (_connector != null) ? _connector.ErrorList != null ? _connector.ErrorList.total_problems : 0 : 0;
             }
         }
-
-
         public void AddConnector(Connector connector)
         {
             _connector = connector;
         }
-
         new public bool IsActive
         {
             get { return _isActive; }
         }
-
         new public bool IsAutomateWorkspace
         {
             get { return true; }
         }
-
-
         #endregion
-
         #region [Event Handlers]
         private void OnConnectorProgressUpdated(object source, Connector.ProgressResponseEventArgs e)
         {
@@ -89,7 +76,6 @@ namespace RTextNppPlugin.ViewModels
                 _mainModel.IsLoading          = IsLoading;
             }
         }
-
         private void OnConnectorStateChanged(object source, Connector.StateChangedEventArgs e)
         {
             switch (e.StateEntered)
@@ -99,13 +85,11 @@ namespace RTextNppPlugin.ViewModels
                     _isActive      = true;
                     _isBusy        = true;
                     _activeCommand = e.Command;
-
                     if (e.StateEntered == ConnectorStates.Loading)
                     {
                         _isLoading = true;
                         _percentage = 0.0;
                     }
-
                     if (e.Workspace == _mainModel.Workspace)
                     {
                         _mainModel.IsActive           = _isActive;
@@ -113,7 +97,7 @@ namespace RTextNppPlugin.ViewModels
                         _mainModel.IsLoading          = _isLoading;
                         _mainModel.ActiveCommand      = _activeCommand;
                         _mainModel.ProgressPercentage = _percentage;
-                    }                    
+                    }
                     break;
                 case ConnectorStates.Idle:
                     _isActive  = true;
@@ -126,7 +110,7 @@ namespace RTextNppPlugin.ViewModels
                         _mainModel.IsBusy        = _mainModel.IsLoading = false;
                         _mainModel.ActiveCommand = _activeCommand;
                     }
-                    break;                
+                    break;
                 default:
                     _isActive = _isBusy = false;
                     _activeCommand = Constants.Commands.STOP;
@@ -150,16 +134,13 @@ namespace RTextNppPlugin.ViewModels
                 ClearErrors();
             }
             _previousConnectorState = e.StateEntered;
-          
         }
-
         public void Dispose()
         {
             _connector.OnStateChanged    -= OnConnectorStateChanged;
             _connector.OnProgressUpdated -= OnConnectorProgressUpdated;
         }
         #endregion
-
         #region [Helpers]
         void ClearErrors()
         {
@@ -168,7 +149,6 @@ namespace RTextNppPlugin.ViewModels
                 _mainModel.Errors.Clear();
             }
         }
-
         void AddErrorsToMainModel()
         {
             _mainModel.Errors.Clear();
@@ -183,9 +163,7 @@ namespace RTextNppPlugin.ViewModels
             }
         }
         #endregion
-
         #region [Data Members]
-
         private bool _isBusy                            = false;                //!< Indicates if backend is currently busy.
         private bool _isActive                          = false;                //!< Indicates whether backend process is currently active.
         private double _percentage                      = 0.0;                  //!< The current command percentage.
@@ -195,7 +173,6 @@ namespace RTextNppPlugin.ViewModels
         private string _activeCommand                   = String.Empty;         //!< Holds the current active command.
         private ConnectorStates _previousConnectorState = ConnectorStates.Idle; //!< Stores previous connector state.
         private INpp _nppHelper                         = null;                 //!< Npp helper instance.
-
         #endregion
     }
 }

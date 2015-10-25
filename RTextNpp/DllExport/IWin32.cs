@@ -25,6 +25,6 @@ namespace RTextNppPlugin.DllExport
         bool IWritePrivateProfileString(string lpAppName, string lpKeyName, string lpString, string lpFileName);
         IntPtr SendMenuCmd(IntPtr hWnd, NppMenuCmd wParam, int lParam);
         IntPtr ISendMessage(IntPtr hWnd, SciMsg Msg, string text);
-        IntPtr ToUnmanagedArray(byte[] data);        
+        IntPtr ToUnmanagedArray(byte[] data);
     }
 }

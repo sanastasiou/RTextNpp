@@ -3,8 +3,6 @@
  *
  * \brief   Implements the constants class.
  */
-
-
 namespace RTextNppPlugin
 {
     /**
@@ -44,11 +42,10 @@ namespace RTextNppPlugin
         public const double MAX_AUXILIARY_WINDOWS_HEIGHT = 400.0;               //!< Max height of auto completion and link reference windows.
         public const double MAX_AUXILIARY_WINDOWS_WIDTH  = 600.0;               //!< Max width of auto completion and link reference windows.
         public const double MIN_AUXILIARY_WINDOWS_WIDTH = 300.0;                //!< Max width of auto completion and link reference windows.
-        public const double MAX_AUTO_COMPLETION_TOOLTIP_WIDTH = 300.0;          //!< Max width of auto completion tooltip.        
+        public const double MAX_AUTO_COMPLETION_TOOLTIP_WIDTH = 300.0;          //!< Max width of auto completion tooltip.
         public const double ZOOM_FACTOR = 0.08;                                 //!< Relation between actual zoom and scintilla zoom factor for various plugin windows.
         public const double INITIAL_WIDTH_LINK_REFERENCE_LABELS = 70.0;         //!< Initial width of link reference labels in row details template. This is used to align all labels.
         public const double MAX_WIDTH_LINK_REFERENCE_LABELS = 600.0;            //!< Initial width of link reference labels in row details template. This is used to align all labels.
-
         #region [Error Severity Strings]
         public const string SEVERITY_DEBUG = "debug";
         public const string SEVERITY_INFO = "info";
@@ -56,7 +53,6 @@ namespace RTextNppPlugin
         public const string SEVERITY_ERROR = "error";
         public const string SEVERITY_FATAL = "fatal";
         #endregion
-
         #region [NppMenuCommand]
         public enum NppMenuCommands : int
         {
@@ -67,7 +63,6 @@ namespace RTextNppPlugin
             About          = 4
         }
         #endregion
-
         #region [CommandTypes]
         public class Commands
         {
@@ -82,7 +77,6 @@ namespace RTextNppPlugin
             public const string STOP               = "stop";                  //!< Stops backend.
         }
         #endregion
-
         #region [Classification Names]
         public class Classifications
         {
@@ -101,7 +95,6 @@ namespace RTextNppPlugin
             public const string RTEXT_OTHER         = "RText.Other";
             public const string RTEXT_SPACE         = "Rtext.Space";
         }
-
         public class Wordstyles
         {
             public const string WORDSTYLES_ELEMENT_NAME = "WordsStyle";
@@ -127,7 +120,6 @@ namespace RTextNppPlugin
             public const string ANNOTATION_ERROR        = "ANNOTATION_ERROR"      ;
             public const string ANNOTATION_FATAL_ERROR  = "ANNOTATION_FATAL_ERROR";
             public const string ERROR_OVERVIEW          = "ERROR_OVERVIEW"        ;
-
             public const string STYLE_ATTRIBUTE_NAME      = "name";
             public const string STYLE_ATTRIBUTE_BGCOLOR   = "bgColor";
             public const string STYLE_ATTRIBUTE_FGCOLOR   = "fgColor";

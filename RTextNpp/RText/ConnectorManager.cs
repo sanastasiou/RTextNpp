@@ -5,18 +5,15 @@ using RTextNppPlugin.DllExport;
 using RTextNppPlugin.Utilities;
 using RTextNppPlugin.Utilities.Settings;
 using RTextNppPlugin.Logging;
-
 namespace RTextNppPlugin.RText
 {
     /**
      * \brief   Manager for connectors.
      *          Creates and destroyes Connector instances based on actual rtext workspaces.
-
      */
     internal sealed class ConnectorManager
     {
         #region Events
-
         /**
          * Connector added event.
          *
@@ -24,9 +21,7 @@ namespace RTextNppPlugin.RText
          * \param   e       Connector added event information.
          */
         internal delegate void ConnectorAddedEvent(object source, ConnectorAddedEventArgs e);
-
         internal event ConnectorAddedEvent OnConnectorAdded;  //!< Event queue for all listeners interested in OnConnectorAdded events.
-
         /**
          * Additional information for connector added events.
          */
@@ -34,25 +29,20 @@ namespace RTextNppPlugin.RText
         {
             internal String Workspace { get; private set; }
             internal Connector Connector { get; private set; }
-
             internal ConnectorAddedEventArgs(string workspace, Connector connector)
             {
                 Workspace = workspace;
                 Connector = connector;
             }
         }
-
         #endregion
-
         #region Interface
-
         internal ConnectorManager(ISettings settings, INpp nppHelper)
         {
             _settings    = settings;
             _processList = new Dictionary<string, RTextBackendProcess>();
             _nppHelper   = nppHelper;
         }
-
         internal void ReleaseConnectors()
         {
             var keys = _processList.Keys;
@@ -61,7 +51,6 @@ namespace RTextNppPlugin.RText
                 _processList[key].CleanupProcess();
             }
         }
-
         /**
          * \brief   Creates a connector.
          *
@@ -82,7 +71,6 @@ namespace RTextNppPlugin.RText
                 {
                     string processKey = rTextFileLocation + Path.GetExtension(file);
                     Logger.Instance.Append(Logger.MessageType.Info, processKey, "Workspace root for file : {0} is : {1}", file, rTextFileLocation);
-
                     //maybe process already exists..
                     if (!_processList.ContainsKey(processKey))
                     {
@@ -92,7 +80,6 @@ namespace RTextNppPlugin.RText
                     {
                         await _processList[processKey].InitializeBackendAsync();
                     }
-
                     if (OnConnectorAdded != null)
                     {
                         OnConnectorAdded(this, new ConnectorAddedEventArgs(processKey, _processList[processKey].Connector));
@@ -100,18 +87,16 @@ namespace RTextNppPlugin.RText
                 }
             }
         }
-
         /**
          * Initializes this ConnectorManager.
          *
          * \param   nppData Information describing the Npp.Instance.
-         * \remarks Must be called upon plugin initialization.                  
+         * \remarks Must be called upon plugin initialization.
          */
         internal void Initialize(NppData nppData)
         {
             _nppData = nppData;
         }
-
         /**
          * \brief   Gets the connector of the file which is being viewed.
          *
@@ -139,12 +124,11 @@ namespace RTextNppPlugin.RText
             }
         }
         #endregion
-
         #region Data Members
         private Dictionary<string, RTextBackendProcess> _processList;
         private NppData _nppData;
         private readonly ISettings _settings = null;
         private readonly INpp _nppHelper     = null;
-        #endregion     
+        #endregion
     }
 }

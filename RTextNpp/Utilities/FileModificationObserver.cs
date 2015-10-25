@@ -3,33 +3,28 @@ using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using RTextNppPlugin.Utilities.Settings;
-
 namespace RTextNppPlugin.Utilities
 {
     class FileModificationObserver
     {
         #region [Data Members]
-
         private Dictionary<string, ModificationState> _fileList = new Dictionary<string, ModificationState>(100);
         private static object _lock = new object();
         private readonly ISettings _settings = null;
         private readonly INpp _nppHelper = null;
         #endregion
-
         #region [Interface]
         internal FileModificationObserver(ISettings settings, INpp nppHelper)
         {
             _settings  = settings;
             _nppHelper = nppHelper;
         }
-
         enum ModificationState
         {
             Unknown,
             Modified,
             Saved
         };
-
         /**
          * Executes the file opened action.
          * Adds a file to the observeration list.
@@ -52,7 +47,6 @@ namespace RTextNppPlugin.Utilities
                 }
             }
         }
-
         /**
          * Occurs when Scintilla notifies us that a file has been edited.
          * \note    This does not occur for a file that has been edited and reopened without being saved after Scintilla has been closed and reopened.
@@ -63,7 +57,6 @@ namespace RTextNppPlugin.Utilities
         {
             _fileList[filepath] = ModificationState.Modified;
         }
-
         /**
          * Occurs when Scintilla notifies us that a file edit has been undone.
          * \note    This does not occur for a file that has been edited and reopened without being saved after Scintilla has been closed and reopened.
@@ -74,7 +67,6 @@ namespace RTextNppPlugin.Utilities
         {
             _fileList[filepath] = ModificationState.Saved;
         }
-
         /**
          * Saves all files under a certain workspace.
          *
@@ -100,7 +92,6 @@ namespace RTextNppPlugin.Utilities
                 _nppHelper.SwitchToFile(aCurrentFile);
             }
         }
-
         /**
          * Cleans Notepad++ backup because of a bug that currently exists. This interferes with correct handling of saved/unsaved files.
          * \note  http://sourceforge.net/p/notepad-plus/bugs/5155/
@@ -132,7 +123,6 @@ namespace RTextNppPlugin.Utilities
                 Logging.Logger.Instance.Append("CleanBackup() exception : {0}", ex.Message);
             }
         }
-        
         #endregion
     }
 }

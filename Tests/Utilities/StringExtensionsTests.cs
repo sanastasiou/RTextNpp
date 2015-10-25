@@ -1,10 +1,9 @@
 ﻿using System;
-
 namespace Tests.Utilities
 {
     using System.Diagnostics;
     using NUnit.Framework;
-    using RTextNppPlugin.Utilities;    
+    using RTextNppPlugin.Utilities;
     [TestFixture]
     class StringExtensionsTests
     {
@@ -14,14 +13,12 @@ namespace Tests.Utilities
             string a = "abbcc";
             Assert.True(a.Contains("CC", StringComparison.InvariantCultureIgnoreCase));
         }
-
         [Test]
         public void RemoveNewLineTest()
         {
             string a = "abbcc\naakk\r\n";
             Assert.AreEqual(a.RemoveNewLine(), "abbccaakk");
         }
-
         [Test]
         public void GetByteCountTest()
         {

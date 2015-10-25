@@ -6,13 +6,11 @@ using System.Threading.Tasks;
 using System.Text.RegularExpressions;
 using AJ.Common;
 using RTextNppPlugin.Logging;
-
 namespace RTextNppPlugin.RText.Parsing
 {
     public class ContextExtractor : IContextExtractor
     {
         #region [Interface]
-
         /**
          * \brief   Constructor.
          *
@@ -41,12 +39,11 @@ namespace RTextNppPlugin.RText.Parsing
                     {
                         Logger.Instance.Append(String.Format("Length till end of line > than context line : {0}, {1}", lengthToEnd, _contextLines.Last().Replace("{", "{{").Replace("}", "}}")));
                         ContextColumn = 0;
-                        _contextLines = new Stack<string>();                        
+                        _contextLines = new Stack<string>();
                     }
                 }
             }
         }
-
         /**
          * Gets or sets a list of context lines.
          */
@@ -57,18 +54,13 @@ namespace RTextNppPlugin.RText.Parsing
                 return _contextLines;
             }
         }
-
         /**
          * Gets or sets the context column.
          *
          */
         public int ContextColumn { get; private set; }
-
         #endregion
-
-
         #region [Helpers]
-
         /**
          * \brief   Analyzes the given joined lines.
          *
@@ -83,12 +75,10 @@ namespace RTextNppPlugin.RText.Parsing
             {
                 return;
             }
-
             int non_ignored_lines = 0;
             int array_nesting     = 0;
             int block_nesting     = 0;
             int last_element_line = 0;
-
             if (joinedLines[_currentIndex] != null)
             {
                 //last line is always a context line
@@ -140,14 +130,13 @@ namespace RTextNppPlugin.RText.Parsing
                             break;
                     }
                 }
-            }                        
-        }      
-
+            }
+        }
         private List<StringBuilder> JoinLines(IEnumerable<string> it)
         {
-            List<StringBuilder> aJoinedLines = new List<StringBuilder>(new StringBuilder[it.Count()]);                       
+            List<StringBuilder> aJoinedLines = new List<StringBuilder>(new StringBuilder[it.Count()]);
             using (var enumerator = it.GetEnumerator())
-            {                
+            {
                 bool aIsBroken = false;
                 _currentIndex  = 0;
                 int count = it.Count();
@@ -194,7 +183,6 @@ namespace RTextNppPlugin.RText.Parsing
             }
             return aJoinedLines;
         }
-
         private void Append(ref List<StringBuilder> joinedLines, bool wasBroken, string text )
         {
             if (wasBroken)
@@ -206,14 +194,10 @@ namespace RTextNppPlugin.RText.Parsing
                 joinedLines[_currentIndex] = new StringBuilder(100).Append(text);
             }
         }
-
         #endregion
-
         #region [Data Members]
-
         private Stack<string> _contextLines;   //!< The analyzed context lines.
-        private int _currentIndex;             //!< The maximum index of currently joined lines. 
-
+        private int _currentIndex;             //!< The maximum index of currently joined lines.
         #endregion
     }
 }

@@ -1,13 +1,13 @@
 ﻿<Window x:Class            ="RTextNppPlugin.WpfControls.LinkTargetsWindow"
         xmlns              ="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x            ="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:mc           ="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-        xmlns:d            ="http://schemas.microsoft.com/expression/blend/2008" 
+        xmlns:mc           ="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:d            ="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:viewmodels   ="clr-namespace:RTextNppPlugin.ViewModels"
         xmlns:plugin_ns    ="clr-namespace:RTextNppPlugin"
         xmlns:sys          ="clr-namespace:System;assembly=mscorlib"
         xmlns:i            ="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
-        xmlns:behaviors    ="clr-namespace:RTextNppPlugin.WpfControls.Behaviors"        
+        xmlns:behaviors    ="clr-namespace:RTextNppPlugin.WpfControls.Behaviors"
         xmlns:utilities    ="clr-namespace:RTextNppPlugin.Utilities"
         x:ClassModifier    ="internal"
         mc:Ignorable       ="d"
@@ -20,8 +20,8 @@
         IsHitTestVisible   ="True"
         ShowActivated      ="False"
         Topmost            ="False"
-        MouseLeave         ="OnLinkTargetsWindowMouseLeave"  
-        MouseEnter         ="OnLinkTargetsWindowMouseEnter"        
+        MouseLeave         ="OnLinkTargetsWindowMouseLeave"
+        MouseEnter         ="OnLinkTargetsWindowMouseEnter"
         SizeToContent      ="WidthAndHeight">
     <Window.Resources>
         <ResourceDictionary>
@@ -30,21 +30,21 @@
             </ResourceDictionary.MergedDictionaries>
             <utilities:BindingProxy x:Key="DataContextProxy" Data="{Binding}"/>
         </ResourceDictionary>
-    </Window.Resources>    
+    </Window.Resources>
     <Border BorderBrush     ="Black"
             Name            ="LinkBorder"
-            Padding         ="0"            
+            Padding         ="0"
             SizeChanged     ="OnContainerSizeChanged"
             BorderThickness ="0"
             Margin          ="0">
         <DockPanel LastChildFill="True" Name="LinkDockPanel">
             <DockPanel.LayoutTransform>
-                <ScaleTransform CenterX="0" 
+                <ScaleTransform CenterX="0"
                                 CenterY="0"
                                 ScaleX="{Binding ZoomLevel}"
                                 ScaleY="{Binding ZoomLevel}"/>
             </DockPanel.LayoutTransform>
-            <DockPanel.Resources>                
+            <DockPanel.Resources>
                 <BitmapImage x:Key="MySource" UriSource="/RTextNpp;Component/Resources/warning.png"/>
             </DockPanel.Resources>
             <StackPanel Orientation="Horizontal" DockPanel.Dock="Bottom" Style="{StaticResource ResourceKey=LinkReferenceWindowCollpaseAtZeroCountStyle}" Margin="0" >
@@ -54,7 +54,7 @@
             <Border DockPanel.Dock="Bottom" BorderBrush="Black" BorderThickness="1 0 1 1"  Focusable="False" Style="{StaticResource ResourceKey=BorderLinkReferenceWindowCollpaseAtOneCountStyle}">
                 <StackPanel Orientation="Horizontal"  Focusable="False">
                     <Label Focusable="False" Style="{StaticResource LabelNoPaddingStyle}">Total references : </Label>
-                    <Label Focusable="False" Style="{StaticResource LabelNoPaddingStyle}" Content="{Binding Targets.Count}"/>                    
+                    <Label Focusable="False" Style="{StaticResource LabelNoPaddingStyle}" Content="{Binding Targets.Count}"/>
                 </StackPanel>
             </Border>
             <DataGrid DockPanel.Dock                             ="Bottom"
@@ -62,22 +62,22 @@
                       SelectedIndex                              ="{Binding SelectedIndex, Mode=TwoWay}"
                       Style                                      ="{StaticResource ResourceKey=DatagridLinkReferenceWindowCollpaseAtOneCountStyle}"
                       Name                                       ="LinkTargetDatagrid"
-                      ScrollViewer.CanContentScroll              ="True" 
-                      ScrollViewer.HorizontalScrollBarVisibility ="Auto" 
+                      ScrollViewer.CanContentScroll              ="True"
+                      ScrollViewer.HorizontalScrollBarVisibility ="Auto"
                       ScrollViewer.VerticalScrollBarVisibility   ="Auto"
                       AlternationCount                           ="2"
                       Focusable                                  ="True"
                       SelectionMode                              ="Single"
                       AllowDrop                                  ="False"
                       SelectionUnit                              ="FullRow"
-                      MaxWidth                                   ="{x:Static plugin_ns:Constants.MAX_AUXILIARY_WINDOWS_WIDTH}"                      
-                      MaxHeight                                  ="{x:Static plugin_ns:Constants.MAX_AUXILIARY_WINDOWS_HEIGHT}" 
+                      MaxWidth                                   ="{x:Static plugin_ns:Constants.MAX_AUXILIARY_WINDOWS_WIDTH}"
+                      MaxHeight                                  ="{x:Static plugin_ns:Constants.MAX_AUXILIARY_WINDOWS_HEIGHT}"
                       AutoGenerateColumns                        ="False"
                       VirtualizingStackPanel.IsVirtualizing      ="True"
-                      SelectionChanged                           ="OnLinkTargetDatagridSelectionChanged"                      
-                      GridLinesVisibility                        ="None"                      
+                      SelectionChanged                           ="OnLinkTargetDatagridSelectionChanged"
+                      GridLinesVisibility                        ="None"
                       MouseEnter                                 ="OnLinkTargetsWindowMouseEnter"
-                      HeadersVisibility                          ="Column"                      
+                      HeadersVisibility                          ="Column"
                       IsReadOnly                                 ="True">
                 <i:Interaction.Behaviors>
                     <behaviors:UpdateWidthOnColumnResizedBehavior/>
@@ -89,14 +89,14 @@
                     </Style>
                 </DataGrid.RowStyle>
                 <DataGrid.Columns>
-                    <DataGridTemplateColumn Header         ="References"                                                                                     
-                                            IsReadOnly     ="True" 
-                                            CanUserSort    ="True" 
-                                            SortMemberPath ="FilePath"                                             
+                    <DataGridTemplateColumn Header         ="References"
+                                            IsReadOnly     ="True"
+                                            CanUserSort    ="True"
+                                            SortMemberPath ="FilePath"
                                             CanUserResize  ="True">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
-                                <Border ToolTipOpening="OnBorderToolTipOpening"                                        
+                                <Border ToolTipOpening="OnBorderToolTipOpening"
                                         BorderThickness="0"
                                         Padding="0"
                                         Name="LinkBorder"
@@ -114,36 +114,36 @@
                                                     <Setter Property="ToolTip.VerticalOffset" Value="-1"/>
                                                 </Style>
                                             </ToolTip.Style>
-                                            <StackPanel Orientation="Vertical" 
+                                            <StackPanel Orientation="Vertical"
                                                         HorizontalAlignment="Left">
                                                 <StackPanel Orientation="Horizontal">
                                                     <TextBlock FontWeight="Bold" Text="File: " Width="{x:Static plugin_ns:Constants.INITIAL_WIDTH_LINK_REFERENCE_LABELS}"/>
-                                                    <TextBlock Text="{Binding FilePath}"                                                               
+                                                    <TextBlock Text="{Binding FilePath}"
                                                                MaxWidth="{x:Static plugin_ns:Constants.MAX_WIDTH_LINK_REFERENCE_LABELS}"
                                                                TextWrapping="Wrap" />
                                                 </StackPanel>
                                                 <StackPanel Orientation="Horizontal">
                                                     <TextBlock FontWeight="Bold" Text="Line: "
                                                                Width="{x:Static plugin_ns:Constants.INITIAL_WIDTH_LINK_REFERENCE_LABELS}"/>
-                                                    <TextBlock Text="{Binding Line}"                                                               
+                                                    <TextBlock Text="{Binding Line}"
                                                                MaxWidth="{x:Static plugin_ns:Constants.MAX_WIDTH_LINK_REFERENCE_LABELS}"
                                                                TextWrapping="Wrap" />
                                                 </StackPanel>
                                                 <StackPanel Orientation="Horizontal" Style="{StaticResource ResourceKey=LinkReferenceWindowDescriptionStackPanelStyle}">
                                                     <TextBlock FontWeight="Bold" Text="Description: " Width="{x:Static plugin_ns:Constants.INITIAL_WIDTH_LINK_REFERENCE_LABELS}"/>
-                                                    <TextBlock Text="{Binding Description}"                                                               
+                                                    <TextBlock Text="{Binding Description}"
                                                                MaxWidth="{x:Static plugin_ns:Constants.MAX_WIDTH_LINK_REFERENCE_LABELS}"
                                                                TextWrapping="Wrap" />
                                                 </StackPanel>
                                                 <StackPanel.LayoutTransform>
-                                                    <ScaleTransform CenterX="0" 
-                                                                    CenterY="0"                                                                
+                                                    <ScaleTransform CenterX="0"
+                                                                    CenterY="0"
                                                                     ScaleX="{Binding Data.ZoomLevel, Source={StaticResource DataContextProxy}}"
                                                                     ScaleY="{Binding Data.ZoomLevel, Source={StaticResource DataContextProxy}}"/>
                                                 </StackPanel.LayoutTransform>
                                             </StackPanel>
                                         </ToolTip>
-                                    </Border.ToolTip>                                    
+                                    </Border.ToolTip>
                                     <Border.Style>
                                         <Style>
                                             <Setter Property="Border.Background" Value="Transparent"/>
@@ -167,7 +167,7 @@
                                             <TextBlock TextDecorations="{x:Null}" Text="{Binding Display}" Name="LinkTextBlock"/>
                                         </Label>
                                     </StackPanel>
-                                </Border>                                
+                                </Border>
                                 <DataTemplate.Triggers>
                                     <DataTrigger Binding="{Binding Path=IsSelected, RelativeSource={RelativeSource AncestorType=DataGridRow}}" Value="True">
                                         <Setter Property="Foreground"      TargetName="LinkLabel"     Value="#00FF00"/>
@@ -175,7 +175,7 @@
                                     </DataTrigger>
                                 </DataTemplate.Triggers>
                             </DataTemplate>
-                        </DataGridTemplateColumn.CellTemplate>                      
+                        </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
                 </DataGrid.Columns>
             </DataGrid>
