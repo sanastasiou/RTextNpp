@@ -93,6 +93,9 @@ namespace RTextNppPlugin
                 case (uint)SciMsg.SCN_ZOOM:
                     Plugin.OnZoomLevelModified();
                     break;
+                case (uint)NppMsg.NPPN_FILEBEFORECLOSE:
+                    Plugin.OnPreviewFileClosed();
+                    break;
             }
         }
     }

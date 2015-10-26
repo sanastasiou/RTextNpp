@@ -66,23 +66,40 @@ namespace RTextNppPlugin.ViewModels
             _nppHelper     = npphelper;
             _styleObserver = styleObserver;
             _styleObserver.OnSettingsChanged += OnStyleObserverSettingsChanged;
+            Plugin.PreviewFileClosed += OnPreviewFileClosed;
+            Plugin.BufferActivated += OnBufferActivated;
         }
+
+        void OnBufferActivated(object source, string file)
+        {
+            //add annotations if not already added
+        }
+
+        void OnPreviewFileClosed(object source, string file)
+        {
+            //clear all annotations here
+        }
+        
         void OnStyleObserverSettingsChanged(object sender, EventArgs e)
         {
             IWordsStyle aErrorOverviewStyle = _styleObserver.GetStyle(Constants.Wordstyles.ERROR_OVERVIEW);
             ExpanderHeaderBackground        = aErrorOverviewStyle.Background;
             ExpanderHeaderTextForeground    = aErrorOverviewStyle.Foreground;
         }
+        
         public Dispatcher Dispatcher { get; set; }
+        
         void ConnectorManagerOnConnectorAdded(object source, ConnectorManager.ConnectorAddedEventArgs e)
         {
             //change to newly added workspace
             AddWorkspace(e.Workspace, e.Connector);
         }
+        
         public string GetCurrentLogChannel()
         {
             return _workspaceCollection[_index].Workspace;
         }
+        
         public void AddWorkspace(string workspace, Connector connector = null)
         {
             var workspaceModel = _workspaceCollection.FirstOrDefault(x => x.Workspace.Equals(workspace, StringComparison.InvariantCultureIgnoreCase));
@@ -103,6 +120,7 @@ namespace RTextNppPlugin.ViewModels
                 Index = _workspaceCollection.IndexOf(workspaceModel);
             }
         }
+
         public Color ExpanderHeaderBackground
         {
             get
@@ -118,6 +136,7 @@ namespace RTextNppPlugin.ViewModels
                 }
             }
         }
+        
         public Color ExpanderHeaderTextForeground
         {
             get
@@ -162,6 +181,7 @@ namespace RTextNppPlugin.ViewModels
                 }
             }
         }
+        
         public string Workspace
         {
             get
@@ -177,6 +197,7 @@ namespace RTextNppPlugin.ViewModels
                 }
             }
         }
+        
         /**
          * \brief   Gets a value indicating whether the backend is loading is model loading.
          *
@@ -197,6 +218,7 @@ namespace RTextNppPlugin.ViewModels
                 }
             }
         }
+        
         public bool IsLoading
         {
             get
@@ -212,6 +234,7 @@ namespace RTextNppPlugin.ViewModels
                 }
             }
         }
+        
         public int ErrorCount
         {
             get
@@ -227,6 +250,7 @@ namespace RTextNppPlugin.ViewModels
                 }
             }
         }
+        
         public BulkObservableCollection<ErrorListViewModel> Errors
         {
             get
@@ -234,6 +258,7 @@ namespace RTextNppPlugin.ViewModels
                 return _errorList;
             }
         }
+        
         /**
          * Gets the progress percentage.
          *
@@ -254,6 +279,7 @@ namespace RTextNppPlugin.ViewModels
                 }
             }
         }
+        
         public bool IsAutomateWorkspace
         {
             get
@@ -269,6 +295,7 @@ namespace RTextNppPlugin.ViewModels
                 }
             }
         }
+        
         public bool IsActive
         {
             get
@@ -284,6 +311,7 @@ namespace RTextNppPlugin.ViewModels
                 }
             }
         }
+        
         public string ActiveCommand
         {
             get
@@ -304,6 +332,7 @@ namespace RTextNppPlugin.ViewModels
          *
          * \return  A Collection of workspaces.
          */
+        
         public ObservableCollection<IConsoleViewModelBase> WorkspaceCollection
         {
             get
@@ -311,11 +340,14 @@ namespace RTextNppPlugin.ViewModels
                 return _workspaceCollection;
             }
         }
+        
         public void Dispose()
         {
             Dispose(true);
+            Plugin.PreviewFileClosed -= OnPreviewFileClosed;
         }
         #endregion
+        
         #region [Helpers]
         private void Dispose(bool disposing)
         {

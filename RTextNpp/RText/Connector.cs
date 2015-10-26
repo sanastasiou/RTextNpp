@@ -44,12 +44,14 @@ namespace RTextNppPlugin.RText
          * \brief   Progress response structure. Maps a command with a progress response message.
          *
          */
+        
         public struct ProgressResponseEventArgs
         {
             public ProgressResponse Response;
             public String Command;
             public String Workspace;
         }
+        
         public string Workspace { get { return mBackendProcess.ProcKey; } }
         public bool IsCommandCancelled { get { return mCancelled; } }
         public delegate void ProgressUpdatedEvent(object source, ProgressResponseEventArgs e);

@@ -142,6 +142,7 @@ namespace RTextNppPlugin.ViewModels
         }
         #endregion
         #region [Helpers]
+        
         void ClearErrors()
         {
             if(_connector.Workspace == _mainModel.Workspace)
@@ -149,6 +150,7 @@ namespace RTextNppPlugin.ViewModels
                 _mainModel.Errors.Clear();
             }
         }
+        
         void AddErrorsToMainModel()
         {
             _mainModel.Errors.Clear();

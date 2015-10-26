@@ -43,6 +43,13 @@ namespace RTextNppPlugin
         private static bool _isMenuLoopInactive                                         = false; //!< Indicates that npp menu loop is active.
         private static LinkTargetsWindow _linkTargetsWindow                             = new LinkTargetsWindow(_nppHelper, _win32, _settings, _connectorManager, _styleObserver); //!< Display reference links.
         #endregion
+
+        #region [Events]
+        public delegate void FileEventDelegate(object source, string file);
+        public static event FileEventDelegate PreviewFileClosed;
+        public static event FileEventDelegate BufferActivated;
+        #endregion
+
         #region [Startup/CleanUp]
         static internal void CommandMenuInit()
         {
@@ -70,11 +77,8 @@ namespace RTextNppPlugin
             #endif
             _styleObserver.EnableStylesObservation();
         }
-        internal static void OnBufferActivated()
-        {
-            _linkTargetsWindow.CancelPendingRequest();
-        }
-        static void OnKeyInterceptorKeyUp(Keys key, int repeatCount, ref bool handled)
+        
+        private static void OnKeyInterceptorKeyUp(Keys key, int repeatCount, ref bool handled)
         {
             CSScriptIntellisense.Modifiers modifiers = CSScriptIntellisense.KeyInterceptor.GetModifiers();
             if (!modifiers.IsAlt || !modifiers.IsCtrl)
@@ -82,7 +86,8 @@ namespace RTextNppPlugin
                 _linkTargetsWindow.IsKeyboardShortCutActive(false);
             }
         }
-        static void OnKeyInterceptorKeyDown(Keys key, int repeatCount, ref bool handled)
+
+        private static void OnKeyInterceptorKeyDown(Keys key, int repeatCount, ref bool handled)
         {
             if (FileUtilities.IsRTextFile(_settings, Npp.Instance) && (Npp.Instance.GetSelections() == 1) && HasScintillaFocus() && !_isMenuLoopInactive)
             {
@@ -203,7 +208,8 @@ namespace RTextNppPlugin
                 handled = false;
             }
         }
-        public static void OnCharTyped(char c)
+
+        private static void OnCharTyped(char c)
         {
             if (!Char.IsControl(c) && !Char.IsWhiteSpace(c))
             {
@@ -225,6 +231,7 @@ namespace RTextNppPlugin
                 }
             }
         }
+        
         private static void CommitAutoCompletion(bool replace)
         {
             if(replace && _autoCompletionForm.TriggerPoint != null)
@@ -237,6 +244,7 @@ namespace RTextNppPlugin
             }
             _autoCompletionForm.Hide();
         }
+        
         private static async Task AsyncInvoke(Action action)
         {
             if (!_invokeInProgress)
@@ -246,23 +254,10 @@ namespace RTextNppPlugin
                 action();
                 _invokeInProgress = false;
             }
-        }
-        static internal void PluginCleanUp()
-        {
-            CSScriptIntellisense.KeyInterceptor.Instance.RemoveAll();
-            _fileObserver.CleanBackup();
-            _connectorManager.ReleaseConnectors();
-            CSScriptIntellisense.KeyInterceptor.Instance.KeyDown -= OnKeyInterceptorKeyDown;
-            CSScriptIntellisense.KeyInterceptor.Instance.KeyUp   -= OnKeyInterceptorKeyUp;
-            _scintillaMainMsgInterceptor.ScintillaFocusChanged   -= OnMainScintillaFocusChanged;
-            _scintillaSecondMsgInterceptor.ScintillaFocusChanged -= OnSecondScintillaFocusChanged;
-            _scintillaMainMsgInterceptor.MouseWheelMoved         -= OnScintillaMouseWheelMoved;
-            _scintillaSecondMsgInterceptor.MouseWheelMoved       -= OnScintillaMouseWheelMoved;
-            _nppMsgInterceptpr.MenuLoopStateChanged              -= OnMenuLoopStateChanged;
-            _linkTargetsWindow.IsVisibleChanged                  -= OnLinkTargetsWindowIsVisibleChanged;
-        }
+        }       
         #endregion
         #region [Commands]
+        
         /**
          * Shows the automatic completion list.
          */
@@ -320,6 +315,7 @@ namespace RTextNppPlugin
                 }
             });
         }
+        
         /**
          * \brief Modify options callback from plugin menu.
          */
@@ -336,6 +332,7 @@ namespace RTextNppPlugin
             }
             _win32.ISendMessage(nppData._nppHandle, NppMsg.NPPM_MODELESSDIALOG, (int)NppMsg.MODELESSDIALOGREMOVE, _options.Handle.ToInt32());
         }
+        
         static void ShowConsoleOutput()
         {
             if (!_consoleInitialized)
@@ -381,7 +378,28 @@ namespace RTextNppPlugin
             _consoleOutput.Focus();
         }
         #endregion
+        
         #region [Event Handlers]
+        static internal void PluginCleanUp()
+        {
+            CSScriptIntellisense.KeyInterceptor.Instance.RemoveAll();
+            _fileObserver.CleanBackup();
+            _connectorManager.ReleaseConnectors();
+            CSScriptIntellisense.KeyInterceptor.Instance.KeyDown -= OnKeyInterceptorKeyDown;
+            CSScriptIntellisense.KeyInterceptor.Instance.KeyUp -= OnKeyInterceptorKeyUp;
+            _scintillaMainMsgInterceptor.ScintillaFocusChanged -= OnMainScintillaFocusChanged;
+            _scintillaSecondMsgInterceptor.ScintillaFocusChanged -= OnSecondScintillaFocusChanged;
+            _scintillaMainMsgInterceptor.MouseWheelMoved -= OnScintillaMouseWheelMoved;
+            _scintillaSecondMsgInterceptor.MouseWheelMoved -= OnScintillaMouseWheelMoved;
+            _nppMsgInterceptpr.MenuLoopStateChanged -= OnMenuLoopStateChanged;
+            _linkTargetsWindow.IsVisibleChanged -= OnLinkTargetsWindowIsVisibleChanged;
+        }
+
+        internal static void OnBufferActivated()
+        {
+            _linkTargetsWindow.CancelPendingRequest();
+        }
+
         private static void OnLinkTargetsWindowIsVisibleChanged(object sender, System.Windows.DependencyPropertyChangedEventArgs e)
         {
             if (_linkTargetsWindow.Visibility == System.Windows.Visibility.Hidden)
@@ -390,14 +408,17 @@ namespace RTextNppPlugin
                 _nppHelper.GrabFocus();
             }
         }
+        
         private static void OnSecondScintillaFocusChanged(object source, ScintillaMessageInterceptor.ScintillaFocusChangedEventArgs e)
         {
             HandleScintillaFocusChange(e, ref _hasSecondScintillaFocus);
         }
+        
         private static void OnMainScintillaFocusChanged(object source, ScintillaMessageInterceptor.ScintillaFocusChangedEventArgs e)
         {
             HandleScintillaFocusChange(e, ref _hasMainScintillaFocus);
         }
+        
         private static void OnMenuLoopStateChanged(object source, NotepadMessageInterceptor.MenuLoopStateChangedEventArgs e)
         {
             if ((_isMenuLoopInactive = e.IsMenuLoopActive))
@@ -405,6 +426,7 @@ namespace RTextNppPlugin
                 CommitAutoCompletion(false);
             }
         }
+        
         /**
          * \brief   Executes action when mouse wheel movement is detected.
          *          This is used to route low level windows events from scintilla to the plugin,
@@ -420,6 +442,7 @@ namespace RTextNppPlugin
         {
             e.Handled = _autoCompletionForm.OnMessageReceived(e.Msg, e.WParam, e.LParam);
         }
+        
         static internal void SetToolBarIcon()
         {
             toolbarIcons tbIcons = new toolbarIcons();
@@ -429,15 +452,20 @@ namespace RTextNppPlugin
             _win32.ISendMessage(nppData._nppHandle, NppMsg.NPPM_ADDTOOLBARICON, _funcItems.Items[(int)Constants.NppMenuCommands.ConsoleWindow]._cmdID, pTbIcons);
             Marshal.FreeHGlobal(pTbIcons);
         }
+        
         /**
          * Handles file opened event to start backend process, in case the relevant  backend process is not yet started.
          */
         public static void OnFileOpened()
         {
             string aFileOpened = Npp.Instance.GetCurrentFilePath();
-            _connectorManager.CreateConnector(aFileOpened);
+            if (BufferActivated != null)
+            {
+                BufferActivated(typeof(Plugin), _nppHelper.GetCurrentFilePath());
+            }
             _fileObserver.OnFileOpened(aFileOpened);
         }
+        
         /**
          * Occurs when undo operation exists for the current document.
          */
@@ -445,6 +473,7 @@ namespace RTextNppPlugin
         {
             _fileObserver.OnFilemodified(Npp.Instance.GetCurrentFilePath());
         }
+        
         /**
          * Occurs when no undo operation exist for the current document.
          */
@@ -452,6 +481,7 @@ namespace RTextNppPlugin
         {
             _fileObserver.OnFileUnmodified(Npp.Instance.GetCurrentFilePath());
         }
+        
         /**
          * Gets file modification observer. Can be used to save all opened files of a workspace.
          *
@@ -461,6 +491,7 @@ namespace RTextNppPlugin
         {
             return _fileObserver;
         }
+        
         /**
          * Scintilla notification that the zomm level has been changed.
          *
@@ -473,6 +504,14 @@ namespace RTextNppPlugin
                 _currentZoomLevel = aNewZoomLevel;
                 _autoCompletionForm.OnZoomLevelChanged(_currentZoomLevel);
                 _linkTargetsWindow.OnZoomLevelChanged(_currentZoomLevel);
+            }
+        }
+
+        internal static void OnPreviewFileClosed()
+        {
+            if (PreviewFileClosed != null)
+            {
+                PreviewFileClosed( typeof(Plugin), _nppHelper.GetCurrentFile());
             }
         }
         #endregion

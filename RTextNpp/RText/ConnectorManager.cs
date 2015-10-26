@@ -11,7 +11,7 @@ namespace RTextNppPlugin.RText
      * \brief   Manager for connectors.
      *          Creates and destroyes Connector instances based on actual rtext workspaces.
      */
-    internal sealed class ConnectorManager
+    internal sealed class ConnectorManager : IDisposable
     {
         #region Events
         /**
@@ -42,6 +42,12 @@ namespace RTextNppPlugin.RText
             _settings    = settings;
             _processList = new Dictionary<string, RTextBackendProcess>();
             _nppHelper   = nppHelper;
+            Plugin.BufferActivated += OnBufferActivated;
+        }
+
+        void OnBufferActivated(object source, string file)
+        {
+            CreateConnector(file);
         }
         internal void ReleaseConnectors()
         {
@@ -56,7 +62,7 @@ namespace RTextNppPlugin.RText
          *
          * \param   file    The file.
          */
-        internal async void CreateConnector(string file)
+        private async void CreateConnector(string file)
         {
             //check if file extension is an automate file
             if (FileUtilities.IsRTextFile(file, _settings, _nppHelper))
@@ -129,6 +135,23 @@ namespace RTextNppPlugin.RText
         private NppData _nppData;
         private readonly ISettings _settings = null;
         private readonly INpp _nppHelper     = null;
+        #endregion
+
+        public void Dispose()
+        {
+            Dispose(true);
+            Plugin.BufferActivated -= OnBufferActivated;
+        }
+
+        #region [Helpers]
+        private void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                // Dispose any disposable fields here
+                GC.SuppressFinalize(this);
+            }
+        }
         #endregion
     }
 }
