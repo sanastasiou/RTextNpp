@@ -9,6 +9,8 @@ using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Linq;
 using RTextNppPlugin.Utilities.Settings;
+using System.Windows.Input;
+using System.Windows.Media;
 namespace RTextNppPlugin.WpfControls
 {
     /// <summary>
@@ -24,16 +26,21 @@ namespace RTextNppPlugin.WpfControls
             DataContext            = dataContext;
             _nppHelper             = nppHelper;
         }
+
         private void ErrorListPreviewMouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
             ErrorList.IsSelected = true;
+            e.Handled = false;
             ErrorList.Focus();
         }
+
         private void ConsolePreviewMouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
             Console.IsSelected = true;
+            e.Handled = false;
             Console.Focus();
         }
+
         private void OnWorkspaceGridSizeChanged(object sender, System.Windows.SizeChangedEventArgs e)
         {
             double aWSpaceHeight = WorkspaceGrid.ActualHeight;
@@ -47,6 +54,38 @@ namespace RTextNppPlugin.WpfControls
             var halfSquare   = radiusSquare / 2;
             PercentageLabelContainer.Width = PercentageLabelContainer.Height = Math.Sqrt(halfSquare);
         }
+
+        private void OnErrorListMouseLeftDown(object sender, MouseButtonEventArgs e)
+        {
+            DependencyObject dep = (DependencyObject)e.OriginalSource;
+            // iteratively traverse the visual tree
+            while ((dep != null) && !(dep is DataGridCell))
+            {
+                dep = VisualTreeHelper.GetParent(dep);
+            }
+
+            if (dep != null)
+            {
+                DataGridCell cell = dep as DataGridCell;
+                // navigate further up the tree
+                while ((dep != null) && !(dep is DataGridRow))
+                {
+                    dep = VisualTreeHelper.GetParent(dep);
+                }
+                DataGridRow row = dep as DataGridRow;
+                int aSelectedIndex = FindRowIndex(row);
+                ErrorItemViewModel aDataContext = DataContext as ErrorItemViewModel;
+                //need the filename as well
+            }
+        }
+
+        private int FindRowIndex(DataGridRow row)
+        {
+            DataGrid dataGrid = ItemsControl.ItemsControlFromItemContainer(row) as DataGrid;
+            int index = dataGrid.ItemContainerGenerator.IndexFromContainer(row);
+            return index;
+        }
+
         private void OnDescriptionClicked(object sender, RoutedEventArgs e)
         {
             TextBlock aRow = sender as TextBlock;

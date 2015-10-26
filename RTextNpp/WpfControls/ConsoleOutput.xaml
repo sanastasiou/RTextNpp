@@ -18,6 +18,7 @@
             <converters:PercentageConverter x:Key="PercentageConverter"/>
             <converters:CommandConverter x:Key="RTextCommandConverter"/>
             <converters:ProgressLabelSizeConverter x:Key="ProgressLabelConverter"/>
+            <converters:ColorToSolidColorBrushConverter x:Key="ColorToSolidColorBrushConverter"/>
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="Styles.xaml"/>
             </ResourceDictionary.MergedDictionaries>
@@ -232,9 +233,11 @@
                                                                       BorderThickness                            ="0"
                                                                       EnableColumnVirtualization                 ="False"
                                                                       HeadersVisibility                          ="None"
+                                                                      MouseDown                                  ="OnErrorListMouseLeftDown"
+                                                                      VerticalGridLinesBrush                     ="{Binding ElementName=ErrorItemExpanderHeader, Path=Foreground}"
                                                                       Padding                                    ="0 0 25 0"
                                                                       SelectionUnit                              ="FullRow"
-                                                                      SelectedIndex                              ="-1"
+                                                                      SelectedIndex                              ="0"
                                                                       MaxHeight                                  ="300"
                                                                       Background                                 ="Transparent"
                                                                       RowBackground                              ="{Binding Background, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Border}}}"
@@ -252,6 +255,9 @@
                                                                             <Trigger Property="IsMouseOver" Value="True">
                                                                                 <Setter Property="Foreground" Value="Red"/>
                                                                             </Trigger>
+                                                                            <Trigger Property="IsSelected" Value="True">
+                                                                                <Setter Property="Foreground" Value="Red"/>
+                                                                            </Trigger>
                                                                         </Style.Triggers>
                                                                     </Style>
                                                                 </DataGrid.RowStyle>
@@ -262,7 +268,7 @@
                                                                         <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
                                                                         <Style.Triggers>
                                                                             <Trigger Property="DataGridCell.IsSelected" Value="True">
-                                                                                <Setter Property="Foreground" Value="{Binding RelativeSource={RelativeSource Self}, Path=Foreground}"/>
+                                                                                <Setter Property="Foreground" Value="Red"/>
                                                                                 <Setter Property="Background" Value="{Binding RelativeSource={RelativeSource Self}, Path=Background}"/>
                                                                             </Trigger>
                                                                         </Style.Triggers>

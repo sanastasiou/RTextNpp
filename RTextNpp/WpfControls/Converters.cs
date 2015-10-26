@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Windows.Data;
+using System.Windows.Media;
+
 namespace RTextNppPlugin.WpfControls.Converters
 {
     [ValueConversion(typeof(object), typeof(string))]
@@ -22,6 +24,7 @@ namespace RTextNppPlugin.WpfControls.Converters
             return null;
         }
     }
+
     internal class PercentageConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
@@ -34,6 +37,7 @@ namespace RTextNppPlugin.WpfControls.Converters
             throw new NotSupportedException();
         }
     }
+
     internal class ProgressLabelSizeConverter : IValueConverter
     {
         #region IValueConverter Members
@@ -47,6 +51,7 @@ namespace RTextNppPlugin.WpfControls.Converters
         }
         #endregion
     }
+
     internal class CommandConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
