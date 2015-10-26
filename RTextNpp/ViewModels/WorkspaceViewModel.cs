@@ -157,7 +157,7 @@ namespace RTextNppPlugin.ViewModels
                 List<ErrorListViewModel> errorLists = new List<ErrorListViewModel>(_connector.ErrorList.problems.Count);
                 foreach (var errors in _connector.ErrorList.problems.OrderBy( x => x.file ))
                 {
-                    errorLists.Add(new ErrorListViewModel(errors.file, errors.problems.OrderBy( x => x.line).Select(x => new ErrorItemViewModel(x, errors.file)), false));
+                    errorLists.Add(new ErrorListViewModel(errors.file, errors.problems.OrderBy(x => x.line).Select(x => new ErrorItemViewModel(x, errors.file)), false, _nppHelper));
                 }
                 _mainModel.Errors.AddRange(errorLists);
             }

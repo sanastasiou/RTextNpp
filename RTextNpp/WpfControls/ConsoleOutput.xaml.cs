@@ -55,56 +55,45 @@ namespace RTextNppPlugin.WpfControls
             PercentageLabelContainer.Width = PercentageLabelContainer.Height = Math.Sqrt(halfSquare);
         }
 
-        private void OnErrorListMouseLeftDown(object sender, MouseButtonEventArgs e)
-        {
-            DependencyObject dep = (DependencyObject)e.OriginalSource;
-            // iteratively traverse the visual tree
-            while ((dep != null) && !(dep is DataGridCell))
-            {
-                dep = VisualTreeHelper.GetParent(dep);
-            }
-
-            if (dep != null)
-            {
-                DataGridCell cell = dep as DataGridCell;
-                // navigate further up the tree
-                while ((dep != null) && !(dep is DataGridRow))
-                {
-                    dep = VisualTreeHelper.GetParent(dep);
-                }
-                DataGridRow row = dep as DataGridRow;
-                int aSelectedIndex = FindRowIndex(row);
-                ErrorItemViewModel aDataContext = DataContext as ErrorItemViewModel;
-                //need the filename as well
-            }
-        }
-
-        private int FindRowIndex(DataGridRow row)
-        {
-            DataGrid dataGrid = ItemsControl.ItemsControlFromItemContainer(row) as DataGrid;
-            int index = dataGrid.ItemContainerGenerator.IndexFromContainer(row);
-            return index;
-        }
-
-        private void OnDescriptionClicked(object sender, RoutedEventArgs e)
-        {
-            TextBlock aRow = sender as TextBlock;
-            ErrorItemViewModel aRowDataContext = aRow.DataContext as ErrorItemViewModel;
-            Hyperlink link = e.OriginalSource as Hyperlink;
-            //RTextEditorPluginPackage.OpenOrFocusDocument(link.NavigateUri.LocalPath);
-            ////move cursor to first error - get workspace
-            //WorkspaceModel aSelectedWs = WorkspaceSelector.SelectedItem as WorkspaceModel;
-            //var aErroneousFile = (from aErrorGroup in ErrorListManager.getInstance[aSelectedWs.WorkspaceName].problems
-            //                      where aErrorGroup.file.Replace("/", "\\").Equals(link.NavigateUri.LocalPath)
-            //                      select aErrorGroup.problems).First();
-            //int aLine = (from lines in aErroneousFile
-            //             orderby lines.line ascending
-            //             select lines).ToArray()[0].line;
-            ////jump to first error in file
-            //NavigateToFile(link.NavigateUri.LocalPath, aLine);
-        }
         #region [Custom Data Members]
         INpp _nppHelper = null;
         #endregion
+
+        private void OnErrorListPreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            switch(e.Key)
+            {
+                case Key.Down:
+                case Key.Up:
+                case Key.Left:
+                case Key.Right:
+                case Key.PageDown:
+                case Key.PageUp:
+                case Key.Home:
+                case Key.End:
+                    e.Handled = true;
+                    return;
+                default:
+                    return;
+            }
+        }
+
+        private void OnErrorNodeExpanded(object sender, RoutedEventArgs e)
+        {
+            //focus datagrid child so that the first click gets routed to the datagrid
+            Expander aExpander = sender as Expander;
+            DataGrid aErrorList = aExpander.Content as DataGrid;
+            aErrorList.Focus();
+        }
+
+        private void OnErrorListPreviewMouseDown(object sender, MouseButtonEventArgs e)
+        {
+            DataGrid aErrorListDatagrid = sender as DataGrid;
+            var aCurrentItem = aErrorListDatagrid.Items[aErrorListDatagrid.SelectedIndex] as ErrorItemViewModel;
+            if (aCurrentItem != null)
+            {
+                _nppHelper.JumpToLine(aCurrentItem.FilePath, aCurrentItem.Line);
+            }
+        }
     }
 }

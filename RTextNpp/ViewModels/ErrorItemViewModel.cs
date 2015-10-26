@@ -54,6 +54,7 @@ namespace RTextNppPlugin.ViewModels
         }
         #endregion
     }
+    
     internal class ErrorListViewModel : BindableObject
     {
         #region [Interface]
@@ -94,17 +95,19 @@ namespace RTextNppPlugin.ViewModels
             }
         }
 
-        public ErrorListViewModel(string filepath, IEnumerable<ErrorItemViewModel> errors, bool isFileOpened)
+        public ErrorListViewModel(string filepath, IEnumerable<ErrorItemViewModel> errors, bool isFileOpened, INpp nppHelper)
         {
-            FilePath     = filepath;
             _errorList.AddRange(errors);
+            FilePath     = filepath;
             IsFileOpened = isFileOpened;
+            _nppHelper   = nppHelper;
         }
 
         #endregion
         #region [Data Members]
         private bool _isFileOpened = false;
         private BulkObservableCollection<ErrorItemViewModel> _errorList = new BulkObservableCollection<ErrorItemViewModel>();
+        private static INpp _nppHelper = null;
         #endregion
     }
 }

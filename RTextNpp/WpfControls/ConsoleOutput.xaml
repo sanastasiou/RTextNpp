@@ -18,7 +18,6 @@
             <converters:PercentageConverter x:Key="PercentageConverter"/>
             <converters:CommandConverter x:Key="RTextCommandConverter"/>
             <converters:ProgressLabelSizeConverter x:Key="ProgressLabelConverter"/>
-            <converters:ColorToSolidColorBrushConverter x:Key="ColorToSolidColorBrushConverter"/>
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="Styles.xaml"/>
             </ResourceDictionary.MergedDictionaries>
@@ -202,7 +201,8 @@
                                                         </Border.Triggers>
                                                         <Expander Style="{DynamicResource CustomExpanderStyle}"
                                                                   BorderThickness="0"
-                                                                  DataContext="{Binding}"
+                                                                  DataContext="{Binding}"                                                                  
+                                                                  Expanded="OnErrorNodeExpanded"
                                                                   IsExpanded="{Binding IsFileOpened, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
                                                             <Expander.Header>
                                                                 <Label Name="ErrorItemExpanderHeader" Content="{Binding FilePath}">
@@ -221,7 +221,7 @@
                                                                       ItemsSource                                ="{Binding ErrorList}"
                                                                       ScrollViewer.CanContentScroll              ="True"
                                                                       ScrollViewer.HorizontalScrollBarVisibility ="Hidden"
-                                                                      ScrollViewer.VerticalScrollBarVisibility   ="Visible"
+                                                                      ScrollViewer.VerticalScrollBarVisibility   ="Auto"
                                                                       ColumnWidth                                ="*"
                                                                       CanUserAddRows                             ="False"
                                                                       CanUserReorderColumns                      ="False"
@@ -231,13 +231,13 @@
                                                                       HorizontalAlignment                        ="Left"
                                                                       VerticalAlignment                          ="Top"
                                                                       BorderThickness                            ="0"
+                                                                      PreviewKeyDown                             ="OnErrorListPreviewKeyDown"
+                                                                      PreviewMouseUp                             ="OnErrorListPreviewMouseDown"
                                                                       EnableColumnVirtualization                 ="False"
                                                                       HeadersVisibility                          ="None"
-                                                                      MouseDown                                  ="OnErrorListMouseLeftDown"
                                                                       VerticalGridLinesBrush                     ="{Binding ElementName=ErrorItemExpanderHeader, Path=Foreground}"
                                                                       Padding                                    ="0 0 25 0"
                                                                       SelectionUnit                              ="FullRow"
-                                                                      SelectedIndex                              ="0"
                                                                       MaxHeight                                  ="300"
                                                                       Background                                 ="Transparent"
                                                                       RowBackground                              ="{Binding Background, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Border}}}"
@@ -293,21 +293,6 @@
                                                                             </Style>
                                                                         </DataGridTextColumn.HeaderStyle>
                                                                     </DataGridTextColumn>
-                                                                    <!--<DataGridHyperlinkColumn Binding="{Binding Message}"
-                                                                                             IsReadOnly="True">
-                                                                        <DataGridHyperlinkColumn.HeaderStyle>
-                                                                            <Style TargetType="{x:Type DataGridColumnHeader}">
-                                                                                <Setter Property="HorizontalAlignment" Value="Stretch"/>
-                                                                                <Setter Property="HorizontalContentAlignment" Value="Center"/>
-                                                                                <Setter Property="Padding" Value="1 0 0 0"/>
-                                                                            </Style>
-                                                                        </DataGridHyperlinkColumn.HeaderStyle>
-                                                                        <DataGridHyperlinkColumn.ElementStyle>
-                                                                            <Style>
-                                                                                <EventSetter Event="Hyperlink.Click"  Handler="OnDescriptionClicked"/>
-                                                                            </Style>
-                                                                        </DataGridHyperlinkColumn.ElementStyle>
-                                                                    </DataGridHyperlinkColumn>-->
                                                                     <DataGridTextColumn IsReadOnly="True" Binding="{Binding Severity}">
                                                                         <DataGridTextColumn.HeaderStyle>
                                                                             <Style TargetType="{x:Type DataGridColumnHeader}">
