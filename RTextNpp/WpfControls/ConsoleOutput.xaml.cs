@@ -20,8 +20,8 @@ namespace RTextNppPlugin.WpfControls
     {
         internal ConsoleOutput(ConnectorManager cmanager, INpp nppHelper, IStyleConfigurationObserver styleObserver)
         {
-            InitializeComponent();
-            var dataContext        = new ConsoleViewModel(cmanager, nppHelper, styleObserver);
+            InitializeComponent();            
+            var dataContext        = new ConsoleViewModel(cmanager, nppHelper, styleObserver, Dispatcher);
             dataContext.Dispatcher = Dispatcher;
             DataContext            = dataContext;
             _nppHelper             = nppHelper;

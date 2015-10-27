@@ -59,6 +59,7 @@ namespace RTextNppPlugin.ViewModels
     {
         #region [Interface]
         public string FilePath { get; private set; }
+
         public BulkObservableCollection<ErrorItemViewModel> ErrorList
         {
             get
@@ -104,10 +105,12 @@ namespace RTextNppPlugin.ViewModels
         }
 
         #endregion
+
         #region [Data Members]
-        private bool _isFileOpened = false;
+        private bool _isFileOpened                                      = false;
         private BulkObservableCollection<ErrorItemViewModel> _errorList = new BulkObservableCollection<ErrorItemViewModel>();
-        private static INpp _nppHelper = null;
+        private static INpp _nppHelper                                  = null;
+
         #endregion
     }
 }

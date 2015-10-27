@@ -76,8 +76,9 @@ namespace RTextNppPlugin
             Debugger.Launch();
             #endif
             _styleObserver.EnableStylesObservation();
+            _settings.OnSettingChanged += OnSettingChanged;
         }
-        
+     
         private static void OnKeyInterceptorKeyUp(Keys key, int repeatCount, ref bool handled)
         {
             CSScriptIntellisense.Modifiers modifiers = CSScriptIntellisense.KeyInterceptor.GetModifiers();
@@ -380,6 +381,15 @@ namespace RTextNppPlugin
         #endregion
         
         #region [Event Handlers]
+
+        static void OnSettingChanged(object source, Settings.SettingChangedEventArgs e)
+        {
+            if(e.Setting == Settings.RTextNppSettings.EnableErrorAnnotations)
+            {
+                EnableAnnotations(_settings.Get<bool>(Settings.RTextNppSettings.EnableErrorAnnotations));
+            }
+        }
+
         static internal void PluginCleanUp()
         {
             CSScriptIntellisense.KeyInterceptor.Instance.RemoveAll();
@@ -393,6 +403,7 @@ namespace RTextNppPlugin
             _scintillaSecondMsgInterceptor.MouseWheelMoved -= OnScintillaMouseWheelMoved;
             _nppMsgInterceptpr.MenuLoopStateChanged -= OnMenuLoopStateChanged;
             _linkTargetsWindow.IsVisibleChanged -= OnLinkTargetsWindowIsVisibleChanged;
+            _settings.OnSettingChanged -= OnSettingChanged;
         }
 
         internal static void OnBufferActivated()
@@ -515,7 +526,20 @@ namespace RTextNppPlugin
             }
         }
         #endregion
+
         #region [Helpers]
+        /// <summary>
+        /// Todo, call this per file activation - else it will be globablly enabled...
+        /// </summary>
+        /// <param name="enable"></param>
+        static void EnableAnnotations(bool enable)
+        {
+            var aMainHandle = nppData._scintillaMainHandle;
+            var aSecondaryHandle = nppData._scintillaSecondHandle;
+            _nppHelper.SetAnnotationStyle(aMainHandle, enable ? Constants.BOXED_ANNOTATION_STYLE : Constants.HIDDEN_ANNOTATION_STYLE);
+            _nppHelper.SetAnnotationStyle(aSecondaryHandle, enable ? Constants.BOXED_ANNOTATION_STYLE : Constants.HIDDEN_ANNOTATION_STYLE);
+        }
+
         private static void HandleScintillaFocusChange(ScintillaMessageInterceptor.ScintillaFocusChangedEventArgs e, ref bool hasFocus)
         {
             hasFocus = e.Focused;
@@ -529,6 +553,7 @@ namespace RTextNppPlugin
                 }
             }
         }
+        
         static bool HasScintillaFocus()
         {
             if (_hasMainScintillaFocus || _hasSecondScintillaFocus)
@@ -537,7 +562,7 @@ namespace RTextNppPlugin
             }
             else
             {
-                if(_autoCompletionForm.IsVisible)// && _autoCompletionForm.IsFocused)
+                if(_autoCompletionForm.IsVisible)
                 {
                     Npp.Instance.GrabFocus();
                     return true;
@@ -545,11 +570,12 @@ namespace RTextNppPlugin
             }
             return false;
         }
+        
         /**
          * Enumerates bind interanal shortcuts in this collection.
          *
          * \return  An enumerator that allows foreach to be used to process interanal shortcuts.
-         */
+         */        
         static IEnumerable<Keys> BindInteranalShortcuts()
         {
             var uniqueKeys = new Dictionary<Keys, int>();
@@ -564,6 +590,7 @@ namespace RTextNppPlugin
             //                      GoToDefinition, uniqueKeys);
             return uniqueKeys.Keys;
         }
+        
         static void AddInternalShortcuts(string shortcutSpec, string displayName, Action handler, Dictionary<Keys, int> uniqueKeys)
         {
             ShortcutKey shortcut = new ShortcutKey(shortcutSpec);
@@ -572,6 +599,7 @@ namespace RTextNppPlugin
             if (!uniqueKeys.ContainsKey(key))
                 uniqueKeys.Add(key, 0);
         }
+        
         static internal void LoadSettings()
         {
             if ( _settings.Get<bool>(Settings.RTextNppSettings.ConsoleWindowActive))
@@ -579,6 +607,7 @@ namespace RTextNppPlugin
                 ShowConsoleOutput();
                 _win32.ISendMessage(nppData._nppHandle, NppMsg.NPPM_SETMENUITEMCHECK, _funcItems.Items[0]._cmdID, 1);
             }
+            EnableAnnotations(_settings.Get<bool>(Settings.RTextNppSettings.EnableErrorAnnotations));
             _nppMsgInterceptpr                                   = new NotepadMessageInterceptor(nppData._nppHandle);
             _scintillaMainMsgInterceptor                         = new ScintillaMessageInterceptor(nppData._scintillaMainHandle);
             _scintillaMainMsgInterceptor.ScintillaFocusChanged   += OnMainScintillaFocusChanged;
@@ -593,6 +622,7 @@ namespace RTextNppPlugin
          *
          * \param   action  The action to be executed.
          */
+        
         static void HandleErrors(Action action)
         {
             try

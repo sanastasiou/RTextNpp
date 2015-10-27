@@ -20,6 +20,9 @@ namespace RTextNppPlugin.Forms
             _settings.Set(AutoLoadWorkspace, Settings.RTextNppSettings.AutoLoadWorkspace);
             _settings.Set(AutoSaveFiles, Settings.RTextNppSettings.AutoSaveFiles);
             _settings.Set(_excludeExtensionsTextBox.Text, Settings.RTextNppSettings.ExcludeExtensions);
+            _settings.Set(_errorAnnotationCheckBox.Checked, Settings.RTextNppSettings.EnableErrorAnnotations);
+            _settings.Set(_errorMarkersCheckBox.Checked, Settings.RTextNppSettings.EnableErrorMarkers);
+            _settings.Set(_errorSquiggyLinesCheckBox.Checked, Settings.RTextNppSettings.EnableErrorSquiggyLines);
         }
         internal void RestoreSettings()
         {
@@ -27,7 +30,47 @@ namespace RTextNppPlugin.Forms
             AutoSaveFiles                  = _settings.Get<bool>(Settings.RTextNppSettings.AutoSaveFiles);
             AutoChangeWorkspace            = _settings.Get<bool>(Settings.RTextNppSettings.AutoChangeWorkspace);
             _excludeExtensionsTextBox.Text = _settings.Get(Settings.RTextNppSettings.ExcludeExtensions);
+            EnableErrorAnnotations         = _settings.Get<bool>(Settings.RTextNppSettings.EnableErrorAnnotations);
+            EnableErrorMarkers             = _settings.Get<bool>(Settings.RTextNppSettings.EnableErrorMarkers);
+            EnableErrorSquiggyLines        = _settings.Get<bool>(Settings.RTextNppSettings.EnableErrorSquiggyLines);            
         }
+
+        internal bool EnableErrorAnnotations
+        {
+            get
+            {
+                return _errorAnnotationCheckBox.Checked;
+            }
+            set
+            {
+                _errorAnnotationCheckBox.Checked = value;
+            }
+        }
+
+        internal bool EnableErrorMarkers
+        {
+            get
+            {
+                return _errorMarkersCheckBox.Checked;
+            }
+            set
+            {
+                _errorMarkersCheckBox.Checked = value;
+            }
+        }
+
+        internal bool EnableErrorSquiggyLines
+        {
+            get
+            {
+                return _errorSquiggyLinesCheckBox.Checked;
+            }
+            set
+            {
+                _errorSquiggyLinesCheckBox.Checked = value;
+            }
+        }
+
         internal bool AutoLoadWorkspace
         {
             get

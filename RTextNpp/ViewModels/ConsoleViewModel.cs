@@ -4,10 +4,13 @@ using RTextNppPlugin.Utilities;
 using RTextNppPlugin.WpfControls;
 using System;
 using System.Collections.ObjectModel;
+using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Threading;
 using System.Windows.Media;
 using RTextNppPlugin.Utilities.Settings;
+
+
 namespace RTextNppPlugin.ViewModels
 {
     /**
@@ -29,19 +32,65 @@ namespace RTextNppPlugin.ViewModels
         private string _currentCommand                                           = String.Empty;
         private int _errorCount                                                  = 0;
         private readonly ConnectorManager _cmanager                              = null;
-        private BulkObservableCollection<ErrorListViewModel> _errorList          = new BulkObservableCollection<ErrorListViewModel>();
+        private ObservableCollection<ErrorListViewModel> _underlyingErrorList    = null;
         private INpp _nppHelper                                                  = null;
         private Color _expanderHeaderBackground                                  = Colors.White;
         private Color _expanderHeaderTextForeground                              = Colors.Black;
         IStyleConfigurationObserver _styleObserver                               = null;
+        Dictionary<string, bool> _annotationList                                 = new Dictionary<string, bool>(100);
+        private readonly Dispatcher _dispatcher                                  = null;
         #endregion
+
+        #region [Event Handlers]
+
+        void OnBufferActivated(object source, string file)
+        {
+            //add annotations if not already added
+            if(_annotationList.ContainsKey(file))
+            {
+                if(!_annotationList[file])
+                {
+                    var errorList = _underlyingErrorList.FirstOrDefault(x => x.FilePath.Replace('\\', '/').Equals(file, StringComparison.InvariantCultureIgnoreCase));
+                    if (errorList != null)
+                    {
+                        _annotationList[file] = true;
+                        AddAnnotations(errorList);
+                    }
+                }
+            }
+            else
+            {
+                var errorList = _underlyingErrorList.FirstOrDefault(x => x.FilePath.Replace('\\', '/').Equals(file, StringComparison.InvariantCultureIgnoreCase));
+                if (errorList != null)
+                {
+                    _annotationList[file] = true;
+                    AddAnnotations(errorList);
+                }
+            }
+        }
+
+        void OnPreviewFileClosed(object source, string file)
+        {
+            //clear all annotations here
+            _annotationList[file] = false;
+            ClearAnnotations();
+        }
+
+        void OnStyleObserverSettingsChanged(object sender, EventArgs e)
+        {
+            IWordsStyle aErrorOverviewStyle = _styleObserver.GetStyle(Constants.Wordstyles.ERROR_OVERVIEW);
+            ExpanderHeaderBackground = aErrorOverviewStyle.Background;
+            ExpanderHeaderTextForeground = aErrorOverviewStyle.Foreground;
+        }
+        #endregion
+
         #region Interface
         /**
          * Constructor.
          *
          * \param   workspace   The workspace.
          */
-        public ConsoleViewModel(ConnectorManager cmanager, INpp npphelper, IStyleConfigurationObserver styleObserver)
+        public ConsoleViewModel(ConnectorManager cmanager, INpp npphelper, IStyleConfigurationObserver styleObserver, Dispatcher dispatcher)
         {
             if(cmanager == null)
             {
@@ -61,33 +110,18 @@ namespace RTextNppPlugin.ViewModels
             #endif
             AddWorkspace(Constants.GENERAL_CHANNEL);
             //subscribe to connector manager for workspace events
-            _cmanager.OnConnectorAdded += ConnectorManagerOnConnectorAdded;
-            Index = 0;
-            _nppHelper     = npphelper;
-            _styleObserver = styleObserver;
+            _cmanager.OnConnectorAdded       += ConnectorManagerOnConnectorAdded;
+            Index                            = 0;
+            _nppHelper                       = npphelper;
+            _styleObserver                   = styleObserver;
             _styleObserver.OnSettingsChanged += OnStyleObserverSettingsChanged;
-            Plugin.PreviewFileClosed += OnPreviewFileClosed;
-            Plugin.BufferActivated += OnBufferActivated;
+            Plugin.PreviewFileClosed         += OnPreviewFileClosed;
+            Plugin.BufferActivated           += OnBufferActivated;
+            _underlyingErrorList = new ObservableCollection<ErrorListViewModel>();
+            _dispatcher = dispatcher;
         }
-
-        void OnBufferActivated(object source, string file)
-        {
-            //add annotations if not already added
-        }
-
-        void OnPreviewFileClosed(object source, string file)
-        {
-            //clear all annotations here
-        }
-        
-        void OnStyleObserverSettingsChanged(object sender, EventArgs e)
-        {
-            IWordsStyle aErrorOverviewStyle = _styleObserver.GetStyle(Constants.Wordstyles.ERROR_OVERVIEW);
-            ExpanderHeaderBackground        = aErrorOverviewStyle.Background;
-            ExpanderHeaderTextForeground    = aErrorOverviewStyle.Foreground;
-        }
-        
-        public Dispatcher Dispatcher { get; set; }
+            
+        internal Dispatcher Dispatcher { get; set; }
         
         void ConnectorManagerOnConnectorAdded(object source, ConnectorManager.ConnectorAddedEventArgs e)
         {
@@ -111,7 +145,7 @@ namespace RTextNppPlugin.ViewModels
                 }
                 else
                 {
-                    _workspaceCollection.Add(new WorkspaceViewModel(workspace, ref connector, this, _nppHelper));
+                    _workspaceCollection.Add(new WorkspaceViewModel(workspace, ref connector, this, _nppHelper, _dispatcher));
                 }
                 Index = _workspaceCollection.IndexOf(_workspaceCollection.Last());
             }
@@ -234,7 +268,7 @@ namespace RTextNppPlugin.ViewModels
                 }
             }
         }
-        
+
         public int ErrorCount
         {
             get
@@ -251,11 +285,11 @@ namespace RTextNppPlugin.ViewModels
             }
         }
         
-        public BulkObservableCollection<ErrorListViewModel> Errors
+        public ObservableCollection<ErrorListViewModel> Errors
         {
             get
             {
-                return _errorList;
+                return _underlyingErrorList;
             }
         }
         
@@ -327,12 +361,12 @@ namespace RTextNppPlugin.ViewModels
                 }
             }
         }
+        
         /**
          * Gets a collection of workspaces.
          *
          * \return  A Collection of workspaces.
-         */
-        
+         */        
         public ObservableCollection<IConsoleViewModelBase> WorkspaceCollection
         {
             get
@@ -344,11 +378,14 @@ namespace RTextNppPlugin.ViewModels
         public void Dispose()
         {
             Dispose(true);
-            Plugin.PreviewFileClosed -= OnPreviewFileClosed;
+            Plugin.PreviewFileClosed         -= OnPreviewFileClosed;
+            _styleObserver.OnSettingsChanged -= OnStyleObserverSettingsChanged;
+            Plugin.BufferActivated           -= OnBufferActivated;
         }
         #endregion
         
         #region [Helpers]
+
         private void Dispose(bool disposing)
         {
             if (disposing)
@@ -359,6 +396,26 @@ namespace RTextNppPlugin.ViewModels
             _cmanager.OnConnectorAdded -= ConnectorManagerOnConnectorAdded;
             _styleObserver.OnSettingsChanged -= OnStyleObserverSettingsChanged;
         }
+
+        private void ClearAnnotations()
+        {
+            _nppHelper.ClearAllAnnotations();
+        }
+
+        internal void AddAnnotations(ErrorListViewModel model)
+        {
+            System.Diagnostics.Trace.WriteLine(String.Format("ErrorListViewModel null : {0}", model == null));
+            if (model != null)
+            {
+                //concatenate error that share the same line with \n so that they appear in the same annotation box underneath the same line
+                var aErrorGroupByLines = model.ErrorList.GroupBy(x => x.Line);
+                foreach (var e in model.ErrorList)
+                {
+
+                }
+            }
+        }
+        
         #endregion
     }
 }

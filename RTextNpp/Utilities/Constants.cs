@@ -38,6 +38,8 @@ namespace RTextNppPlugin
         public const char TAB = '\t';                                           //!< Tab char.
         public const char COMMA = ',';                                          //!< Comma char.
         public const int BACKEND_COLUMN_OFFSET = 1;                             //!< Backend columns start at one, but the tokenizer starts at 0.
+        public const int BOXED_ANNOTATION_STYLE = 2;                            //!< Indents and boxes annotations. (http://www.scintilla.org/ScintillaDoc.html#SCI_ANNOTATIONSETVISIBLE)
+        public const int HIDDEN_ANNOTATION_STYLE = 0;                           //!< Hides annotations. (http://www.scintilla.org/ScintillaDoc.html#SCI_ANNOTATIONSETVISIBLE)
         public const string PluginName = "RTextNpp";                            //!< Plugin name.
         public const double MAX_AUXILIARY_WINDOWS_HEIGHT = 400.0;               //!< Max height of auto completion and link reference windows.
         public const double MAX_AUXILIARY_WINDOWS_WIDTH  = 600.0;               //!< Max width of auto completion and link reference windows.
