@@ -474,10 +474,10 @@ namespace RTextNppPlugin.ViewModels
                 _filteredList.StopFiltering();
                 if (_filteredList.Count > 0)
                 {
-                    SelectedCompletion = _filteredList.First();
+                    SelectedCompletion            = _filteredList.First();
+                    SelectedCompletion.IsFuzzy    = true;
+                    SelectedCompletion.IsSelected = false;
                 }
-                SelectedCompletion.IsFuzzy    = true;
-                SelectedCompletion.IsSelected = false;
                 FilteredCount                 = _completionList.Count;
                 SelectedIndex                 = -1;
             }
