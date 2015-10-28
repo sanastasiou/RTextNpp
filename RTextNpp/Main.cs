@@ -539,8 +539,8 @@ namespace RTextNppPlugin
         {
             var aMainHandle = nppData._scintillaMainHandle;
             var aSecondaryHandle = nppData._scintillaSecondHandle;
-            _nppHelper.SetAnnotationStyle(aMainHandle, enable ? Constants.BOXED_ANNOTATION_STYLE : Constants.HIDDEN_ANNOTATION_STYLE);
-            _nppHelper.SetAnnotationStyle(aSecondaryHandle, enable ? Constants.BOXED_ANNOTATION_STYLE : Constants.HIDDEN_ANNOTATION_STYLE);
+            _nppHelper.SetAnnotationVisible(aMainHandle, enable ? Constants.BOXED_ANNOTATION_STYLE : Constants.HIDDEN_ANNOTATION_STYLE);
+            _nppHelper.SetAnnotationVisible(aSecondaryHandle, enable ? Constants.BOXED_ANNOTATION_STYLE : Constants.HIDDEN_ANNOTATION_STYLE);
         }
 
         private static void HandleScintillaFocusChange(ScintillaMessageInterceptor.ScintillaFocusChangedEventArgs e, ref bool hasFocus)

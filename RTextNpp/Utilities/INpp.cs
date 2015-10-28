@@ -161,10 +161,14 @@ namespace RTextNppPlugin.Utilities
         
         void JumpToLine(string file, int line);
 
-        void SetAnnotationStyle(IntPtr handle, int annotationStyle);
+        void SetAnnotationVisible(IntPtr handle, int annotationStyle);
 
         void ClearAllAnnotations();
 
         void AddAnnotation(int line, System.Text.StringBuilder errorDescription);
+
+        void SetAnnotationStyle(int line, int annotationStyle);
+
+        void SetAnnotationStyles(int line, System.Text.StringBuilder stylesDescription);
     }
 }

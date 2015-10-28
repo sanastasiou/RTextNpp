@@ -74,7 +74,7 @@ namespace RTextNppPlugin.ViewModels
         {
             //clear all annotations here
             _annotationList[file] = false;
-            ClearAnnotations();
+            _nppHelper.ClearAllAnnotations();
         }
 
         void OnStyleObserverSettingsChanged(object sender, EventArgs e)
@@ -383,6 +383,37 @@ namespace RTextNppPlugin.ViewModels
             _styleObserver.OnSettingsChanged -= OnStyleObserverSettingsChanged;
             Plugin.BufferActivated           -= OnBufferActivated;
         }
+
+        internal void ClearAnnotations()
+        {
+            _annotationList[_nppHelper.GetCurrentFilePath()] = false;
+            _nppHelper.ClearAllAnnotations();
+        }
+
+        internal void AddAnnotations(ErrorListViewModel model)
+        {
+            if (model != null)
+            {
+                //concatenate error that share the same line with \n so that they appear in the same annotation box underneath the same line
+                var aErrorGroupByLines = model.ErrorList.GroupBy(x => x.Line);
+                foreach (var errorGroup in aErrorGroupByLines)
+                {
+                    StringBuilder aErrorDescription = new StringBuilder(errorGroup.Count() * 50);
+                    int aErrorCounter = 0;
+                    foreach (var error in errorGroup)
+                    {
+                        aErrorDescription.AppendFormat("{0} at line : {1} - {2}", error.Severity, error.Line, error.Message);
+                        if (++aErrorCounter < errorGroup.Count())
+                        {
+                            aErrorDescription.Append("\n");
+                        }
+                    }
+                    //npp offset for line
+                    _nppHelper.SetAnnotationStyle((errorGroup.First().Line - 1), 1);
+                    _nppHelper.AddAnnotation((errorGroup.First().Line - 1), aErrorDescription);
+                }
+            }
+        }
         #endregion
         
         #region [Helpers]
@@ -397,36 +428,7 @@ namespace RTextNppPlugin.ViewModels
             _cmanager.OnConnectorAdded -= ConnectorManagerOnConnectorAdded;
             _styleObserver.OnSettingsChanged -= OnStyleObserverSettingsChanged;
         }
-
-        private void ClearAnnotations()
-        {
-            _nppHelper.ClearAllAnnotations();
-        }
-
-        internal void AddAnnotations(ErrorListViewModel model)
-        {
-            System.Diagnostics.Trace.WriteLine(String.Format("ErrorListViewModel null : {0}", model == null));
-            if (model != null)
-            {
-                //concatenate error that share the same line with \n so that they appear in the same annotation box underneath the same line
-                var aErrorGroupByLines = model.ErrorList.GroupBy(x => x.Line);
-                foreach (var errorGroup in aErrorGroupByLines)
-                {
-                    StringBuilder aErrorDescription = new StringBuilder(errorGroup.Count() * 50);
-                    int aErrorCounter = 0;
-                    foreach(var error in errorGroup)
-                    {
-                        aErrorDescription.AppendFormat("{0} at line : {1} - {2}", error.Severity, error.Line, error.Message);
-                        if(++aErrorCounter < errorGroup.Count())
-                        {
-                            aErrorDescription.Append("\n");
-                        }
-                    }
-                    _nppHelper.AddAnnotation(errorGroup.First().Line, aErrorDescription);
-                }
-            }
-        }
-        
+      
         #endregion
     }
 }

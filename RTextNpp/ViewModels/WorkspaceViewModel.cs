@@ -139,6 +139,7 @@ namespace RTextNppPlugin.ViewModels
                     }
                     else if (e.StateEntered == ConnectorStates.Loading && e.StateLeft == ConnectorStates.Idle)
                     {
+                        _mainModel.ClearAnnotations();
                         _mainModel.ErrorCount = 0;
                         _dispatcher.Invoke(new Action(() =>
                         {

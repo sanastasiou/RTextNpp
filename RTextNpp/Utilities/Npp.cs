@@ -47,9 +47,21 @@ namespace RTextNppPlugin.Utilities
             _win32.ISendMessage(aHandle, SciMsg.SCI_ANNOTATIONSETTEXT, line, errorDescription.ToString());
         }
 
-        public void SetAnnotationStyle(IntPtr handle, int annotationStyle)
+        public void SetAnnotationVisible(IntPtr handle, int annotationStyle)
         {
-            _win32.ISendMessage(handle, SciMsg.SCI_ANNOTATIONSETSTYLE, annotationStyle, 0);
+            _win32.ISendMessage(handle, SciMsg.SCI_ANNOTATIONSETVISIBLE, annotationStyle, 0);
+        }
+
+        public void SetAnnotationStyle(int line, int annotationStyle)
+        {
+            var aHandle = GetCurrentScintilla(Plugin.nppData);
+            _win32.ISendMessage(aHandle, SciMsg.SCI_ANNOTATIONSETSTYLE, line, annotationStyle);
+        }
+
+        public void SetAnnotationStyles(int line, System.Text.StringBuilder stylesDescription)
+        {
+            var aHandle = GetCurrentScintilla(Plugin.nppData);
+            _win32.ISendMessage(aHandle, SciMsg.SCI_ANNOTATIONSETSTYLES, line, stylesDescription.ToString());
         }
 
         public void JumpToLine(string file, int line)
