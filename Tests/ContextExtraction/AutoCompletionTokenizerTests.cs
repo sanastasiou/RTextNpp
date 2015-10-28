@@ -468,7 +468,7 @@ AUTOSAR {
             AutoCompletionTokenizer aTokenizer = new AutoCompletionTokenizer(4, caretPosition, nppMock.Object);
             Assert.IsTrue(aTokenizer.LineTokens.Count() == 12);
             Assert.IsTrue(aTokenizer.LineTokens.SequenceEqual(expectedTokensTriggerNewLine));
-            Assert.IsTrue(aTokenizer.TriggerToken.HasValue == false);
+            Assert.IsTrue(aTokenizer.TriggerToken.HasValue == true);
         }
         [Test, Combinatorial]
         public void AutoCompletionTokenizerTriggerBufferPositionOutOfScope([Values(ContextExtractionSampleInput)] string input,
