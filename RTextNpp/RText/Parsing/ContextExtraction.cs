@@ -27,6 +27,10 @@ namespace RTextNppPlugin.RText.Parsing
             else
             {
                 Analyze(JoinLines(contextBlock.SplitString(new string[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries)));
+                foreach(var contextLine in _contextLines)
+                {
+                    Logger.Instance.Append("Context line : {0}", contextLine);
+                }
                 //handle extreme case where no context lines could be found
                 if (_contextLines.Count != 0)
                 {
@@ -180,6 +184,10 @@ namespace RTextNppPlugin.RText.Parsing
                         ++_currentIndex;
                     }
                 }
+            }
+            foreach(var line in aJoinedLines)
+            {
+                Logger.Instance.Append("Joined lines : {0}", line);
             }
             return aJoinedLines;
         }

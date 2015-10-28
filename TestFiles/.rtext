@@ -1,2 +1,2 @@
 *.atm:
-cmd /c automate-rtext-service -m 3.1.4 "." -l debug
+cmd /c automate-rtext-service -m 3.1.4 "." -l debug --use-gem rtext-0.8.0

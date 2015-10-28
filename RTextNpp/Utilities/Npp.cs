@@ -41,6 +41,12 @@ namespace RTextNppPlugin.Utilities
             }
         }
 
+        public void AddAnnotation(int line, System.Text.StringBuilder errorDescription)
+        {
+            var aHandle = GetCurrentScintilla(Plugin.nppData);
+            _win32.ISendMessage(aHandle, SciMsg.SCI_ANNOTATIONSETTEXT, line, errorDescription.ToString());
+        }
+
         public void SetAnnotationStyle(IntPtr handle, int annotationStyle)
         {
             _win32.ISendMessage(handle, SciMsg.SCI_ANNOTATIONSETSTYLE, annotationStyle, 0);

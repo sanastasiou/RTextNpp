@@ -5,7 +5,7 @@ AUTOSAR {
       IntegerLiteral lit1, value: 0
     }
     ClientServerInterface ICS1 {
-      OperationPrototype op1, possibleError: err1
+      OperationPrototype op1, possibleError: err1, kk , lk
       ApplicationError err1
     }
     SenderReceiverInterface ISR1 {
@@ -60,6 +60,7 @@ AUTOSAR {
     }
     InternalBehavior InternalBehavior1, component: /P1/SWC1 {
       ExclusiveArea \
+        
         ea1
       ExclusiveArea \
         ea2

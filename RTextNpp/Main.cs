@@ -276,6 +276,9 @@ namespace RTextNppPlugin
                             int aLineNumber = Npp.Instance.GetLineNumber();
                             //get text from start till current line end
                             string aContextBlock = Npp.Instance.GetTextBetween(0, Npp.Instance.GetLineEnd(aLineNumber));
+
+                            Logging.Logger.Instance.Append("Context block : {0}", aContextBlock);
+
                             ContextExtractor aExtractor = new ContextExtractor(aContextBlock, Npp.Instance.GetLengthToEndOfLine(Npp.Instance.GetColumn()));
                             //if auto completion is inside comment, notation, name, string just return
                             AutoCompletionTokenizer aTokenizer = new AutoCompletionTokenizer(aLineNumber, aCurrentPosition, Npp.Instance);

@@ -164,5 +164,7 @@ namespace RTextNppPlugin.Utilities
         void SetAnnotationStyle(IntPtr handle, int annotationStyle);
 
         void ClearAllAnnotations();
+
+        void AddAnnotation(int line, System.Text.StringBuilder errorDescription);
     }
 }

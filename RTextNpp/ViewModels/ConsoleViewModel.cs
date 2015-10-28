@@ -9,6 +9,7 @@ using System.Linq;
 using System.Windows.Threading;
 using System.Windows.Media;
 using RTextNppPlugin.Utilities.Settings;
+using System.Text;
 
 
 namespace RTextNppPlugin.ViewModels
@@ -409,9 +410,19 @@ namespace RTextNppPlugin.ViewModels
             {
                 //concatenate error that share the same line with \n so that they appear in the same annotation box underneath the same line
                 var aErrorGroupByLines = model.ErrorList.GroupBy(x => x.Line);
-                foreach (var e in model.ErrorList)
+                foreach (var errorGroup in aErrorGroupByLines)
                 {
-
+                    StringBuilder aErrorDescription = new StringBuilder(errorGroup.Count() * 50);
+                    int aErrorCounter = 0;
+                    foreach(var error in errorGroup)
+                    {
+                        aErrorDescription.AppendFormat("{0} at line : {1} - {2}", error.Severity, error.Line, error.Message);
+                        if(++aErrorCounter < errorGroup.Count())
+                        {
+                            aErrorDescription.Append("\n");
+                        }
+                    }
+                    _nppHelper.AddAnnotation(errorGroup.First().Line, aErrorDescription);
                 }
             }
         }
