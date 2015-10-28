@@ -545,7 +545,7 @@ namespace RTextNppPlugin.Utilities
             IntPtr sci = GetCurrentScintilla(Plugin.nppData);
             int aCaretPos = GetCaretPosition();
             bool isCaretInsideToken = (aCaretPos >= token.Value.BufferPosition && aCaretPos < (token.Value.BufferPosition + token.Value.Context.Length));
-            if (token.HasValue && (token.Value.Type != RTextTokenTypes.Space && token.Value.Type != RTextTokenTypes.Comma && token.Value.Type != RTextTokenTypes.Label) || (token.Value.Type == RTextTokenTypes.Label && isCaretInsideToken))
+            if (token.HasValue && (token.Value.Type != RTextTokenTypes.Space && token.Value.Type != RTextTokenTypes.Comma && token.Value.Type != RTextTokenTypes.Label && token.Value.Type != RTextTokenTypes.NewLine) || (token.Value.Type == RTextTokenTypes.Label && isCaretInsideToken))
             {
                 //if token is space or comma or label, add the new text after it!
                 _win32.ISendMessage(sci, SciMsg.SCI_SETSELECTION, token.Value.BufferPosition, token.Value.BufferPosition + token.Value.Context.Length);
@@ -554,7 +554,7 @@ namespace RTextNppPlugin.Utilities
             {
                 _win32.ISendMessage(sci, SciMsg.SCI_SETSELECTION, aCaretPos, aCaretPos);
             }
-            _win32.ISendMessage(sci, SciMsg.SCI_REPLACESEL, insertionText);
+            _win32.ISendMessage(sci, SciMsg.SCI_REPLACESEL, insertionText);            
         }
         
         public IntPtr CurrentScintilla

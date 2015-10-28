@@ -18,8 +18,8 @@ namespace RTextNppPlugin.RText.Parsing
         internal AutoCompletionTokenizer(int line, int currentCaretPosition, INpp nppHelper)
             : base(line, nppHelper)
         {
-            _nppHelper  = nppHelper;
-            _currentPos = currentCaretPosition;
+            _nppHelper      = nppHelper;
+            _currentPos     = currentCaretPosition;
             FindTriggerToken();
         }
         /**
@@ -73,7 +73,6 @@ namespace RTextNppPlugin.RText.Parsing
                     aTokenType == RTextTokenTypes.Comment           ||
                     aTokenType == RTextTokenTypes.Error             ||
                     aTokenType == RTextTokenTypes.LeftAngleBrakcet  ||
-                    aTokenType == RTextTokenTypes.NewLine           ||
                     aTokenType == RTextTokenTypes.Notation          ||
                     aTokenType == RTextTokenTypes.RightAngleBracket ||
                     aTokenType == RTextTokenTypes.RightBrakcet      ||
