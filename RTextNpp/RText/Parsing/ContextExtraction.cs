@@ -26,7 +26,7 @@ namespace RTextNppPlugin.RText.Parsing
             }
             else
             {
-                Analyze(JoinLines(contextBlock.SplitString(new string[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries)));
+                Analyze(JoinLines(contextBlock.SplitString(new string[] { "\r\n", "\n" }, StringSplitOptions.None)));
                 //handle extreme case where no context lines could be found
                 if (_contextLines.Count != 0)
                 {

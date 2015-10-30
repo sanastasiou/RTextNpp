@@ -351,11 +351,11 @@ namespace RTextNppPlugin.Utilities
         {
             if (line == -1)
             {
-                return (int)_win32.ISendMessage(GetCurrentScintilla(Plugin.nppData), SciMsg.SCI_GETLINEENDPOSITION, GetLineNumber(), 0);
+                return GetLineStart(GetLineNumber()) + (int)_win32.ISendMessage(GetCurrentScintilla(Plugin.nppData), SciMsg.SCI_LINELENGTH, GetLineNumber(), 0);
             }
             else
             {
-                return (int)_win32.ISendMessage(GetCurrentScintilla(Plugin.nppData), SciMsg.SCI_GETLINEENDPOSITION, line, 0);
+                return GetLineStart(GetLineNumber()) + (int)_win32.ISendMessage(GetCurrentScintilla(Plugin.nppData), SciMsg.SCI_LINELENGTH, line, 0);
             }
         }
         

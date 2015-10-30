@@ -15,8 +15,16 @@ namespace ContextExtraction.ExtractionTests
         {
             ContextExtractor c = new ContextExtractor(input, lengthToEndOfCurrentLine);
 
-            Assert.AreEqual(0, c.ContextColumn);
-            Assert.AreEqual(0, c.ContextList.Count());
+            if (input == System.String.Empty && lengthToEndOfCurrentLine == 0)
+            {
+                Assert.AreEqual(1, c.ContextColumn);
+                Assert.AreEqual(1, c.ContextList.Count());
+            }
+            else
+            {
+                Assert.AreEqual(0, c.ContextColumn);
+                Assert.AreEqual(0, c.ContextList.Count());
+            }
         }
 
         const string SingleLineContext = "      PPortPrototype control, providedInterface: /actuator/IActuatorHornControl {";        
@@ -136,8 +144,8 @@ AUTOSAR {
 
         [Test, Sequential]
         public void SingleSeparatorContext([Values("\\", ",", "[", "]", "")] string input,
-                                           [Values(1, 2, 2, 2, 0)] int column,
-                                           [Values(1, 1, 1, 1, 0)] int contextLines)
+                                           [Values(1, 2, 2, 2, 1)] int column,
+                                           [Values(1, 1, 1, 1, 1)] int contextLines)
         {
             ContextExtractor c = new ContextExtractor(input, 0);
             Assert.AreEqual(column, c.ContextColumn);
