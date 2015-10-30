@@ -329,16 +329,12 @@ namespace RTextNppPlugin.Utilities
             return (int)_win32.ISendMessage(sci, SciMsg.SCI_LINEFROMPOSITION, position, 0);
         }
         
-        public int GetLengthToEndOfLine(int currentCharacterColumn, int line)
+        public int GetLengthToEndOfLine(int line)
         {
-            return GetLine(line).RemoveNewLine().Length - currentCharacterColumn;
+            IntPtr sci = GetCurrentScintilla(Plugin.nppData);
+            return ((int)_win32.ISendMessage(sci, SciMsg.SCI_GETLINEENDPOSITION, line, 0) - GetCaretPosition());
         }
-        
-        public int GetLengthToEndOfLine(int currentCharacterColumn)
-        {
-            return GetLine().RemoveNewLine().Length - currentCharacterColumn;
-        }
-        
+               
         public int GetColumn(int position)
         {
             IntPtr sci = GetCurrentScintilla(Plugin.nppData);
@@ -588,8 +584,7 @@ namespace RTextNppPlugin.Utilities
         public int GetCaretPosition()
         {
             IntPtr sci = GetCurrentScintilla(Plugin.nppData);
-            int currentPos = (int)_win32.ISendMessage(sci, SciMsg.SCI_GETCURRENTPOS, 0, 0);
-            return currentPos;
+            return (int)_win32.ISendMessage(sci, SciMsg.SCI_GETCURRENTPOS, 0, 0);
         }
         
         public int GetCaretLineNumber()

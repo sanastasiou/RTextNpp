@@ -310,7 +310,7 @@ namespace RTextNppPlugin.WpfControls
                 Task<Tuple<bool, ContextExtractor>> contextEqualityTask = new Task<Tuple<bool, ContextExtractor>>(new Func<Tuple<bool, ContextExtractor>>(() =>
                 {
                     string aContextBlock = _nppHelper.GetTextBetween(0, Npp.Instance.GetLineEnd(aTokenUnderCursor.Line));
-                    ContextExtractor aExtractor = new ContextExtractor(aContextBlock, Npp.Instance.GetLengthToEndOfLine(_nppHelper.GetColumn(aTokenUnderCursor.BufferPosition), aTokenUnderCursor.Line));
+                    ContextExtractor aExtractor = new ContextExtractor(aContextBlock, Npp.Instance.GetLengthToEndOfLine(aTokenUnderCursor.Line));
                     bool aAreContextEquals = false;
                     //get all tokens before the trigger token - if all previous tokens and all context lines match do not request new auto completion options
                     if (!_referenceRequestObserver.UnderlinedToken.Equals(default(Tokenizer.TokenTag)) && _cachedContext != null)
