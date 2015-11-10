@@ -75,6 +75,7 @@ AUTOSAR {
         CalprmElementPrototype perInstCal1, type: /P1/UInt8
       RunnableEntity run1
       RunnableEntity run2,
+      
         canEnterExclusiveArea: [ea1, ea2]
       RunnableEntity run3, runsInsideExclusiveArea: [
           ea1,

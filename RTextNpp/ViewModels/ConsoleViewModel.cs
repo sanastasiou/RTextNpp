@@ -402,15 +402,15 @@ namespace RTextNppPlugin.ViewModels
                     int aErrorCounter = 0;
                     foreach (var error in errorGroup)
                     {
-                        aErrorDescription.AppendFormat("{0} at line : {1} - {2}", error.Severity, error.Line, error.Message);
+                        aErrorDescription.AppendFormat("{0} at line : {1} - {2}", error.Severity, error.Line + 1, error.Message);
                         if (++aErrorCounter < errorGroup.Count())
                         {
                             aErrorDescription.Append("\n");
                         }
                     }
                     //npp offset for line
-                    _nppHelper.SetAnnotationStyle((errorGroup.First().Line - 1), 1);
-                    _nppHelper.AddAnnotation((errorGroup.First().Line - 1), aErrorDescription);
+                    _nppHelper.SetAnnotationStyle((errorGroup.First().Line), 1);
+                    _nppHelper.AddAnnotation((errorGroup.First().Line), aErrorDescription);
                 }
             }
         }

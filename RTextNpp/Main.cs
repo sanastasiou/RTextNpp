@@ -257,6 +257,7 @@ namespace RTextNppPlugin
             }
         }       
         #endregion
+        
         #region [Commands]
         
         /**

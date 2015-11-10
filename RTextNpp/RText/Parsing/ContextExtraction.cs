@@ -59,6 +59,7 @@ namespace RTextNppPlugin.RText.Parsing
          */
         public int ContextColumn { get; private set; }
         #endregion
+        
         #region [Helpers]
         /**
          * \brief   Analyzes the given joined lines.
@@ -194,6 +195,7 @@ namespace RTextNppPlugin.RText.Parsing
             }
         }
         #endregion
+        
         #region [Data Members]
         private Stack<string> _contextLines;   //!< The analyzed context lines.
         private int _currentIndex;             //!< The maximum index of currently joined lines.
