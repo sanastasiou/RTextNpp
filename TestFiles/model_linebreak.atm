@@ -60,8 +60,7 @@ AUTOSAR {
     }
     InternalBehavior InternalBehavior1, component: /P1/SWC1 {
       ExclusiveArea \
-      
-        ea1
+        ea1 
       ExclusiveArea \
         ea2
       SwcNvBlockNeeds nvm1, defaultBlock: perInstCal1, mirrorBlock: pim1
@@ -69,8 +68,11 @@ AUTOSAR {
         RoleBasedRPortAssignment rPortPrototype: clientPort
         RoleBasedPPortAssignment pPortPrototype: serverPort
       }
-      sharedCalprm:
+      sharedCalprm: [
         CalprmElementPrototype sharedCal1, type: /P1/UInt8
+        CalprmElementPrototype sharedCal2, type: /P1/UInt8
+        CalprmElementPrototype sharedCal3, type: /P1/UInt8
+      ]
       perInstanceCalprm:
         CalprmElementPrototype perInstCal1, type: /P1/UInt8
       RunnableEntity run1

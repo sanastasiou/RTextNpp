@@ -1,5 +1,6 @@
 #include "Lexer.h"
 #include <string>
+
 namespace RText
 {
     //static initializations
@@ -12,6 +13,11 @@ namespace RText
     RTextLexer::RTextLexer() : _firstTokenInLine(true)
     {
     }
+
+    RTextLexer:: ~RTextLexer()
+    {
+    }
+
     void SCI_METHOD RTextLexer::Release()
     {
         delete this;
@@ -24,7 +30,7 @@ namespace RText
     {
         return -1;
     }
-    unsigned int RTextLexer::skipDigitsUntil(Accessor & accessor, char const delimiter, unsigned int & currentPos)const
+    unsigned int RTextLexer::SkipDigitsUntil(Accessor & accessor, char const delimiter, unsigned int & currentPos)const
     {
         unsigned int length = 0;
         while (::iswdigit(accessor[currentPos]))
@@ -42,7 +48,7 @@ namespace RText
             return 0;
         }
     }
-    bool RTextLexer::identifyFloat(Accessor & accessor, StyleContext const & context, unsigned int & length)const
+    bool RTextLexer::IdentifyFloat(Accessor & accessor, StyleContext const & context, unsigned int & length)const
     {
         length = 0;
         unsigned int currentPos = context.currentPos;
@@ -53,7 +59,7 @@ namespace RText
             bool const isSignFound = (accessor[currentPos] == '+' || accessor[currentPos] == '-');
             length = 1;
             ++currentPos;
-            length += skipDigitsUntil(accessor, '.', currentPos);
+            length += SkipDigitsUntil(accessor, '.', currentPos);
             if ((length == 1) || (isSignFound && (length == 2)) || !(::iswdigit(accessor[currentPos])))
             {
                 return false;
@@ -71,7 +77,7 @@ namespace RText
         }
         return false;
     }
-    bool RTextLexer::identifyInt(Accessor & accessor, StyleContext const & context, unsigned int & length)const
+    bool RTextLexer::IdentifyInt(Accessor & accessor, StyleContext const & context, unsigned int & length)const
     {
         bool aRet = false;
         unsigned int aCurrentPos = context.currentPos;
@@ -80,7 +86,7 @@ namespace RText
         {
             length = 2;
             aCurrentPos += 2;
-            while (::iswdigit(accessor[aCurrentPos]) || isHex(accessor[aCurrentPos]))
+            while (::iswdigit(accessor[aCurrentPos]) || IsHex(accessor[aCurrentPos]))
             {
                 ++length;
                 ++aCurrentPos;
@@ -100,7 +106,7 @@ namespace RText
         }
         return aRet;
     }
-    bool RTextLexer::identifyQuotedString(Accessor & accessor, StyleContext const & context, unsigned int & length)const
+    bool RTextLexer::IdentifyQuotedString(Accessor & accessor, StyleContext const & context, unsigned int & length)const
     {
         bool aRet                = false;
         unsigned int aCurrentPos = context.currentPos;
@@ -130,7 +136,7 @@ namespace RText
         }
         return false;
     }
-    bool RTextLexer::identifyLabel(Accessor & accessor, StyleContext const & context, unsigned int & length)const
+    bool RTextLexer::IdentifyLabel(Accessor & accessor, StyleContext const & context, unsigned int & length)const
     {
         unsigned int aCurrentPos = context.currentPos;
         length                   = 0;
@@ -151,7 +157,7 @@ namespace RText
         }
         return false;
     }
-    bool RTextLexer::identifyCharSequence(Accessor & accessor, unsigned int & currentPos, std::string match)const
+    bool RTextLexer::IdentifyCharSequence(Accessor & accessor, unsigned int & currentPos, std::string match)const
     {
         for (auto c : match)
         {
@@ -160,14 +166,14 @@ namespace RText
         }
         return true;
     }
-    bool RTextLexer::identifyBoolean(Accessor & accessor, StyleContext const & context, unsigned int & length)const
+    bool RTextLexer::IdentifyBoolean(Accessor & accessor, StyleContext const & context, unsigned int & length)const
     {
         unsigned int aCurrentPos = context.currentPos;
         length                   = 0;
         if (accessor[aCurrentPos] == 't')
         {
             //check for rue + non word character [^\w]
-            if (identifyCharSequence(accessor, aCurrentPos, BOOLEAN_TRUE))
+            if (IdentifyCharSequence(accessor, aCurrentPos, BOOLEAN_TRUE))
             {
                 length = 4;
             }
@@ -175,18 +181,18 @@ namespace RText
         else if (accessor[aCurrentPos] == 'f')
         {
             //check for alse + [^\w]
-            if (identifyCharSequence(accessor, aCurrentPos, BOOLEAN_FALSE))
+            if (IdentifyCharSequence(accessor, aCurrentPos, BOOLEAN_FALSE))
             {
                 length = 5;
             }
         }
         return (length > 0);
     }
-    bool RTextLexer::identifyName(Accessor & accessor, StyleContext const & context, unsigned int & length)const
+    bool RTextLexer::IdentifyName(Accessor & accessor, StyleContext const & context, unsigned int & length)const
     {
         unsigned int aCurrentPos = context.currentPos - 1;
         length                   = 0;
-        if (::isalpha(context.ch) || (context.ch == '_'))
+        if (::iswalpha(context.ch) || (context.ch == '_'))
         {
             while (::iswalnum(accessor[aCurrentPos + 1]) || (accessor[aCurrentPos + 1] == '_'))
             {
@@ -196,7 +202,7 @@ namespace RText
         }
         return (length > 0);
     }
-    bool RTextLexer::isLineExtended(int startPos, char const * const buffer)const
+    bool RTextLexer::IsLineExtended(int startPos, char const * const buffer)const
     {
         //no reason to check previous characters
         if (startPos == 0)
@@ -212,16 +218,59 @@ namespace RText
             }
             else
             {
-                //not space
-                if (isLineBreakChar(buffer[startPos]))
+        //IgnoreWhitespace(startPos, buffer);
+        //not space
+        if (IsLineBreakChar(buffer[startPos]))
+        {
+            //we have a line break, but we need to take care the fact that we may be inside a labeled child list - in that case this is no line break...
+            if (buffer[startPos] == '[')
+            {
+                //go back ignoring whitespaces and check for : , if found this is a label
+                while (startPos-- >= 0)
                 {
-                    return true;
+                    if (::iswspace(buffer[startPos]) || buffer[startPos] == '\\')
+                    {
+                        continue;
+                    }
+                    else
+                    {
+                        //end of label detected - this is not a line break - go till start of line - label must be the only element there
+                        if (buffer[startPos] != ':')
+                        {
+                            return true;
+                        }
+                        else
+                        {
+                            //go back till next token - first consume label
+                            while (startPos-- >= 0)
+                            {
+                                if (::iswalpha(buffer[startPos]))
+                                {
+                                    continue;
+                                }
+                                else
+                                {
+                                    break;
+                                }
+                            }
+                            while (::iswspace(buffer[startPos]) || buffer[startPos] == '\\')
+                            {
+                                --startPos;
+                                continue;
+                            }
+                            //label after a comma, so this is an extended line - label is not the first element
+                            return (buffer[startPos] == ',');
+                        }
+                    }
                 }
-                else
-                {
-                    //some other char -> no line break!
-                    return false;
-                }
+            }
+            return true;
+        }
+        else
+        {
+            //some other char -> no line break!
+            return false;
+        }
             }
         }
         return false;
@@ -239,7 +288,7 @@ namespace RText
             case TokenType_Default:
                 aTokenLength = 0;
                 //ignore spaces
-                while (isWhitespace(context))
+                while (IsWhitespace(context))
                 {
                     context.SetState(TokenType_Space);
                     context.Forward();
@@ -268,30 +317,30 @@ namespace RText
                 {
                     context.SetState(TokenType_Reference);
                 }
-                else if (identifyFloat(styler, context, aTokenLength))
+                else if (IdentifyFloat(styler, context, aTokenLength))
                 {
                     context.SetState(TokenType_Float);
                 }
-                else if (identifyInt(styler, context, aTokenLength))
+                else if (IdentifyInt(styler, context, aTokenLength))
                 {
                     context.SetState(TokenType_Integer);
                 }
-                else if (identifyQuotedString(styler, context, aTokenLength))
+                else if (IdentifyQuotedString(styler, context, aTokenLength))
                 {
                     context.SetState(TokenType_Quoted_string);
                 }
-                else if (identifyLabel(styler, context, aTokenLength))
+                else if (IdentifyLabel(styler, context, aTokenLength))
                 {
                     context.SetState(TokenType_Label);
                     _firstTokenInLine = false;
                 }
-                else if (identifyBoolean(styler, context, aTokenLength))
+                else if (IdentifyBoolean(styler, context, aTokenLength))
                 {
                     context.SetState(TokenType_Boolean);
                 }
-                else if (identifyName(styler, context, aTokenLength))
+                else if (IdentifyName(styler, context, aTokenLength))
                 {
-                    bool const isExtended = isLineExtended(context.currentPos, pAccess->BufferPointer());
+                    bool const isExtended = IsLineExtended(context.currentPos, pAccess->BufferPointer());
                     if (_firstTokenInLine && !isExtended)
                     {
                         context.SetState(TokenType_Command);
@@ -302,7 +351,7 @@ namespace RText
                         context.SetState(TokenType_Identifier);
                     }
                 }
-                else if (context.Match(',') || context.Match('{') || context.Match('}') || context.Match('[') || context.Match(']'))
+                else if (context.Match(',') || context.Match('{') || context.Match('}') || context.Match('[') || context.Match(']') || context.Match('\\'))
                 {
                     context.SetState(TokenType_Other);
                     context.Forward();
@@ -339,7 +388,7 @@ namespace RText
                 break;
             case TokenType_Notation:
             case TokenType_Comment:
-                if (isEndOfLineReached(context))
+                if (IsEndOfLineReached(context))
                 {
                     context.SetState(TokenType_Default);
                 }
@@ -391,11 +440,11 @@ namespace RText
             }
         }
     }
-    bool RTextLexer::isWhitespace(StyleContext const & context)const
+    bool RTextLexer::IsWhitespace(StyleContext const & context)const
     {
         return (!context.atLineEnd && context.Match(' ') || context.Match('\t'));
     }
-    bool RTextLexer::isEndOfLineReached(StyleContext const & context)const
+    bool RTextLexer::IsEndOfLineReached(StyleContext const & context)const
     {
         return (context.atLineEnd);
     }
