@@ -161,8 +161,8 @@
     <Compile Include="WpfControls\DatagridScrollviewerTooltipOffsetCalculator.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="FileSystemWatcherCLRWrapper">
-      <HintPath>..\ThirdParty\FileSystemWatcher\FileSystemWatcherCLRWrapper.dll</HintPath>
+    <Reference Include="ClrFileSystemWatcher">
+      <HintPath>..\ThirdParty\FileSystemWatcher\ClrFileSystemWatcher.dll</HintPath>
     </Reference>
     <Reference Include="FuzzyString">
       <HintPath>..\ThirdParty\FuzzyMatcher\FuzzyString.dll</HintPath>
@@ -178,6 +178,9 @@
       <HintPath>..\ThirdParty\VisualStudioSdk\Microsoft.VisualStudio.Language.Intellisense.dll</HintPath>
       <Private>True</Private>
       <EmbedInteropTypes>False</EmbedInteropTypes>
+    </Reference>
+    <Reference Include="NativeFileSystemWatcher">
+      <HintPath>..\ThirdParty\FileSystemWatcher\NativeFileSystemWatcher.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=7.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.7.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
@@ -203,10 +206,15 @@
     <Reference Include="System.Xaml" />
     <Reference Include="System.XML" />
     <Reference Include="System.Xml.Linq" />
-    <Reference Include="WindowsBase" />
+    <Reference Include="WindowsBase">
+      <Private>True</Private>
+    </Reference>
     <Reference Include="WindowsFormsIntegration" />
     <Reference Include="WindowsSubclassCliWrapper">
       <HintPath>..\ThirdParty\SubclassCliWrapper\WindowsSubclassCliWrapper.dll</HintPath>
+    </Reference>
+    <Reference Include="WindowsUtilities">
+      <HintPath>..\ThirdParty\FileSystemWatcher\WindowsUtilities.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>

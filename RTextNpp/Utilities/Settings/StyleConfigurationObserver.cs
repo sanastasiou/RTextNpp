@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Windows.Media;
 using System.Xml.Linq;
+
 namespace RTextNppPlugin.Utilities.Settings
 {
     internal interface IWordsStyle
@@ -37,12 +38,12 @@ namespace RTextNppPlugin.Utilities.Settings
     internal class StyleConfigurationObserver : IStyleConfigurationObserver, IDisposable
     {
         #region [Data Members]
-        private Dictionary<string, IWordsStyle> _styles                        = new Dictionary<string, IWordsStyle>();
-        private FileSystemWactherCLRWrapper.FileSystemWatcher _settingsWatcher = null;
-        private object _objectLock                                             = new Object();
+        private Dictionary<string, IWordsStyle> _styles  = new Dictionary<string, IWordsStyle>();
+        private Windows.Clr.FileWatcher _settingsWatcher = null;
+        private object _objectLock                       = new Object();
         private event EventHandler _onSettingsChanged;
-        private const string STYLES_FILE                                       = Constants.PluginName + ".xml";
-        private readonly INpp _nppHelper                                       = null;
+        private const string STYLES_FILE                 = Constants.PluginName + ".xml";
+        private readonly INpp _nppHelper                 = null;
         private enum FondStyle : int
         {
             FondStyle_Default,
@@ -156,13 +157,13 @@ namespace RTextNppPlugin.Utilities.Settings
             string aConfigDir = _nppHelper.GetConfigDir();
             if (File.Exists(aConfigDir + "\\" + STYLES_FILE))
             {
-                _settingsWatcher = new FileSystemWactherCLRWrapper.FileSystemWatcher(aConfigDir,
-                                                                                     false,
-                                                                                     "*.xml",
-                                                                                     String.Empty,
-                                                                                     (uint)(System.IO.NotifyFilters.FileName | System.IO.NotifyFilters.LastWrite | System.IO.NotifyFilters.CreationTime),
-                                                                                     false
-                                                                                     );
+                _settingsWatcher = new Windows.Clr.FileWatcher(aConfigDir,
+                                                               (uint)(System.IO.NotifyFilters.FileName | System.IO.NotifyFilters.LastWrite | System.IO.NotifyFilters.CreationTime),
+                                                               false,
+                                                               "*.xml",
+                                                               String.Empty,                                                               
+                                                               false,
+                                                               Windows.Clr.FileWatcherBase.STANDARD_BUFFER_SIZE);
                 _settingsWatcher.Changed += OnRTextFileCreatedOrDeletedOrModified;
                 _settingsWatcher.Deleted += OnRTextFileCreatedOrDeletedOrModified;
                 _settingsWatcher.Created += OnRTextFileCreatedOrDeletedOrModified;

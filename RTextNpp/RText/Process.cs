@@ -25,8 +25,8 @@ namespace RTextNppPlugin.RText
         #region [Data Members]
         System.Diagnostics.Process _process = null;
         ProcessInfo _pInfo = null;
-        FileSystemWactherCLRWrapper.FileSystemWatcher _fileSystemWatcher = null;                                                 //!< Observes all rtext files for _odifications.
-        FileSystemWactherCLRWrapper.FileSystemWatcher _workspaceSystemWatcher = null;                                            //!< Observes .rtext file for any _odifications.
+        Windows.Clr.FileWatcher _fileSystemWatcher = null;                                                                       //!< Observes all rtext files for _odifications.
+        Windows.Clr.FileWatcher _workspaceSystemWatcher = null;                                                                  //!< Observes .rtext file for any _odifications.
         ISettings _settings = null;                                                                                              //!< Allows access to persistent settings.
         CancellationTokenSource _cancellationSource = null;
         Task _stdOutReaderTask = null;
@@ -256,25 +256,26 @@ namespace RTextNppPlugin.RText
                 matchResults = matchResults.NextMatch();
             }
             aExtensionsFilter = aExtensionsFilter.Substring(0, aExtensionsFilter.Length - 1);
-            _fileSystemWatcher = new FileSystemWactherCLRWrapper.FileSystemWatcher(System.IO.Path.GetDirectoryName(_pInfo.RTextFilePath),
-                                                                                    false,
-                                                                                    aExtensionsFilter,
-                                                                                    String.Empty,
-                                                                                    (uint)(System.IO.NotifyFilters.FileName | System.IO.NotifyFilters.LastWrite | System.IO.NotifyFilters.CreationTime),
-                                                                                    true);
+            _fileSystemWatcher = new Windows.Clr.FileWatcher(System.IO.Path.GetDirectoryName(_pInfo.RTextFilePath),
+                                                             (uint)(System.IO.NotifyFilters.FileName | System.IO.NotifyFilters.LastWrite | System.IO.NotifyFilters.CreationTime),
+                                                              true,
+                                                              aExtensionsFilter,
+                                                              String.Empty,                                                                                    
+                                                              true,
+                                                              Windows.Clr.FileWatcherBase.STANDARD_BUFFER_SIZE);
             _fileSystemWatcher.Changed += OnRTextFileCreatedOrDeletedOrModified;
             _fileSystemWatcher.Deleted += OnRTextFileCreatedOrDeletedOrModified;
             _fileSystemWatcher.Created += OnRTextFileCreatedOrDeletedOrModified;
             _fileSystemWatcher.Renamed += OnRTextFileRenamed;
             _fileSystemWatcher.Error += ProcessError;
             //finally add .rtext wacther
-            _workspaceSystemWatcher = new FileSystemWactherCLRWrapper.FileSystemWatcher(System.IO.Path.GetDirectoryName(_pInfo.RTextFilePath),
-                                                                                         false,
-                                                                                         "*" + Constants.WORKSPACE_TYPE,
-                                                                                         String.Empty,
-                                                                                         (uint)(System.IO.NotifyFilters.FileName | System.IO.NotifyFilters.LastWrite | System.IO.NotifyFilters.CreationTime),
-                                                                                         false
-                                                                                       );
+            _workspaceSystemWatcher = new Windows.Clr.FileWatcher(System.IO.Path.GetDirectoryName(_pInfo.RTextFilePath),
+                                                                  (uint)(System.IO.NotifyFilters.FileName | System.IO.NotifyFilters.LastWrite | System.IO.NotifyFilters.CreationTime),
+                                                                  false,
+                                                                  "*" + Constants.WORKSPACE_TYPE,
+                                                                  String.Empty,
+                                                                  true,
+                                                                  Windows.Clr.FileWatcherBase.STANDARD_BUFFER_SIZE);
             _workspaceSystemWatcher.Changed += OnWorkspaceDefinitionFileCreatedOrDeletedOrModified;
             _workspaceSystemWatcher.Deleted += OnWorkspaceDefinitionFileCreatedOrDeletedOrModified;
             _workspaceSystemWatcher.Created += OnWorkspaceDefinitionFileCreatedOrDeletedOrModified;
@@ -622,29 +623,13 @@ namespace RTextNppPlugin.RText
         {
             if (ReferenceEquals(sender, _fileSystemWatcher))
             {
-                //automate watcher died - restart watcher
-                _fileSystemWatcher.Changed -= OnRTextFileCreatedOrDeletedOrModified;
-                _fileSystemWatcher.Deleted -= OnRTextFileCreatedOrDeletedOrModified;
-                _fileSystemWatcher.Created -= OnRTextFileCreatedOrDeletedOrModified;
-                _fileSystemWatcher.Renamed -= OnRTextFileRenamed;
-                _fileSystemWatcher.Error -= ProcessError;
-                var tempFileWatcher = new FileSystemWactherCLRWrapper.FileSystemWatcher(_fileSystemWatcher.Directory,
-                                                                                        _fileSystemWatcher.HasGUI,
-                                                                                        _fileSystemWatcher.Include,
-                                                                                        _fileSystemWatcher.Exclude,
-                                                                                        _fileSystemWatcher.FilterFlags,
-                                                                                        _fileSystemWatcher.MonitorSubDirectories
-                                                                                       );
-                _fileSystemWatcher = tempFileWatcher;
-                _fileSystemWatcher.Changed += OnRTextFileCreatedOrDeletedOrModified;
-                _fileSystemWatcher.Deleted += OnRTextFileCreatedOrDeletedOrModified;
-                _fileSystemWatcher.Created += OnRTextFileCreatedOrDeletedOrModified;
-                _fileSystemWatcher.Renamed += OnRTextFileRenamed;
-                _fileSystemWatcher.Error += ProcessError;
+                //automate watcher should be restarted automatically
+                Logging.Logger.Instance.Append(String.Format("File system watcher for automate files reported an error : {0}", e.GetException().Message));
             }
             else
             {
-                //.rtext watcher die - restart it
+                //.rtext watcher will restart automatically
+                Logging.Logger.Instance.Append(String.Format("File system watcher backend root file reported an error : {0}", e.GetException().Message));
             }
         }
         
