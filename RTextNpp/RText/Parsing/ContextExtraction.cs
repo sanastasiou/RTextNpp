@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Text.RegularExpressions;
 using AJ.Common;
 using RTextNppPlugin.Logging;
+
 namespace RTextNppPlugin.RText.Parsing
 {
     public class ContextExtractor : IContextExtractor
@@ -108,16 +109,16 @@ namespace RTextNppPlugin.RText.Parsing
                         case '}':
                             ++block_nesting;
                             break;
-                        //case '[':
-                        //    if (array_nesting > 0)
-                        //    {
-                        //        --array_nesting;
-                        //    }
-                        //    else if (array_nesting == 0)
-                        //    {
-                        //        _contextLines.Push(aStrippedLine);
-                        //    }
-                        //    break;
+                        case '[':
+                            if (array_nesting > 0)
+                            {
+                                --array_nesting;
+                            }
+                            else if (array_nesting == 0)
+                            {
+                                _contextLines.Push(aStrippedLine);
+                            }
+                            break;
                         case ']':
                             ++array_nesting;
                             break;
@@ -151,9 +152,9 @@ namespace RTextNppPlugin.RText.Parsing
                         {
                             continue;
                         }
-                        aIsBroken = (trimmed.Last() == '[' || trimmed.Last() == ',' || trimmed.Last() == '\\');
+                        aIsBroken = ((trimmed.Last() == '[' && !COMMAND_LABEL_REGEX.Match(trimmed).Success) || trimmed.Last() == ',' || trimmed.Last() == '\\');
                         //handle closing bracket after last element
-                        if (trimmed.First() == ']' && _currentIndex > 0)
+                        if (trimmed.First() == ']' && _currentIndex > 0 && (aJoinedLines[_currentIndex] != null && aJoinedLines[_currentIndex].ToString().Contains('[')))
                         {
                             aWasBroken = true;
                             --_currentIndex;
@@ -173,6 +174,11 @@ namespace RTextNppPlugin.RText.Parsing
                     }
                     else
                     {
+                        if (count == 0 && string.IsNullOrEmpty(enumerator.Current))
+                        {
+                            --_currentIndex;
+                            break;
+                        }
                         Append(ref aJoinedLines, aWasBroken, enumerator.Current);
                     }
                     if (!aIsBroken && (count > 0))
@@ -180,6 +186,10 @@ namespace RTextNppPlugin.RText.Parsing
                         ++_currentIndex;
                     }
                 }
+            }
+            foreach(var line in aJoinedLines)
+            {
+                if(line != null)Logging.Logger.Instance.Append(line.ToString());
             }
             return aJoinedLines;
         }
@@ -199,6 +209,7 @@ namespace RTextNppPlugin.RText.Parsing
         #region [Data Members]
         private Stack<string> _contextLines;   //!< The analyzed context lines.
         private int _currentIndex;             //!< The maximum index of currently joined lines.
+        private static Regex COMMAND_LABEL_REGEX = new Regex(@"^\w+:", RegexOptions.Compiled);
         #endregion
     }
 }

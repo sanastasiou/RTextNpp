@@ -350,7 +350,7 @@ namespace RTextNppPlugin.ViewModels
                                     Pending = false;
                                     Filter();
                                 }
-                                _cachedOptions = new List<Completion>(_completionList);
+                                //_cachedOptions = new List<Completion>(_completionList);
                             }
                             else
                             {
