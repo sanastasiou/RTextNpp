@@ -179,9 +179,6 @@
       <Private>True</Private>
       <EmbedInteropTypes>False</EmbedInteropTypes>
     </Reference>
-    <Reference Include="NativeFileSystemWatcher">
-      <HintPath>..\ThirdParty\FileSystemWatcher\NativeFileSystemWatcher.dll</HintPath>
-    </Reference>
     <Reference Include="Newtonsoft.Json, Version=7.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.7.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
       <Private>True</Private>
@@ -212,9 +209,6 @@
     <Reference Include="WindowsFormsIntegration" />
     <Reference Include="WindowsSubclassCliWrapper">
       <HintPath>..\ThirdParty\SubclassCliWrapper\WindowsSubclassCliWrapper.dll</HintPath>
-    </Reference>
-    <Reference Include="WindowsUtilities">
-      <HintPath>..\ThirdParty\FileSystemWatcher\WindowsUtilities.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -266,6 +260,8 @@
     <None Include="Resources\ConsoleIconPng.png" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="costura32\NativeFileSystemWatcher.dll" />
+    <EmbeddedResource Include="costura32\WindowsUtilities.dll" />
     <Content Include="FodyWeavers.xml">
       <SubType>Designer</SubType>
     </Content>
