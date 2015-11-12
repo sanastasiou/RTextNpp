@@ -207,7 +207,7 @@
     <Reference Include="System.XML" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="WindowsBase">
-      <Private>True</Private>
+      <Private>False</Private>
     </Reference>
     <Reference Include="WindowsFormsIntegration" />
     <Reference Include="WindowsSubclassCliWrapper">
