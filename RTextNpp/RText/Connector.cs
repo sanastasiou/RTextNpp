@@ -535,9 +535,8 @@ namespace RTextNppPlugin.RText
             if (mBackendProcess.HasExited)
             {
                 Logging.Logger.Instance.Append(Logging.Logger.MessageType.Error, mBackendProcess.Workspace, "RTextService is not running. Trying to restart service...");
-                return await mBackendProcess.InitializeBackendAsync();
             }
-            return true;
+            return await mBackendProcess.InitializeBackendAsync();
         }
         private void EnsureModelIsLoaded()
         {

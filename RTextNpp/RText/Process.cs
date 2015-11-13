@@ -220,14 +220,27 @@ namespace RTextNppPlugin.RText
         
         public async Task<bool> InitializeBackendAsync()
         {
-            var task = CreateNewProcessAsync();
-            if (await Task.WhenAny(task, Task.Delay(Constants.INITIAL_RESPONSE_TIMEOUT)) != task)
+            System.Diagnostics.Trace.WriteLine(String.Format("Before if : process is null : {0}, or process is not running : {1}", _process == null, _process == null ? true : _process.HasExited));
+            //process never started, or process has exited
+            if (_process == null || _process.HasExited)
             {
-                // task timed out
-                CleanupProcess();
-                return false;
+                var task = CreateNewProcessAsync();
+                if (await Task.WhenAny(task, Task.Delay(Constants.INITIAL_RESPONSE_TIMEOUT)) != task)
+                {
+                    // task timed out
+                    CleanupProcess();
+                    return false;
+                }
+                else
+                {
+                    return true;
+                }
             }
-            return true;
+            else
+            {
+                System.Diagnostics.Trace.WriteLine(String.Format("Process exists and is running!"));
+                return true;
+            }
         }
         
         private async Task CreateNewProcessAsync()
@@ -280,8 +293,8 @@ namespace RTextNppPlugin.RText
             _workspaceSystemWatcher.Deleted += OnWorkspaceDefinitionFileCreatedOrDeletedOrModified;
             _workspaceSystemWatcher.Created += OnWorkspaceDefinitionFileCreatedOrDeletedOrModified;
             _workspaceSystemWatcher.Renamed += OnWorkspaceDefinitionFileRenamed;
-            _workspaceSystemWatcher.Error += ProcessError;
-            _process.Exited += new EventHandler(OnProcessExited);
+            _workspaceSystemWatcher.Error   += ProcessError;
+            _process.Exited                 += OnProcessExited;
             //disable doskey or whatever actions are associated with cmd.exe
             _autoRunKey                  = DisableCmdExeCustomization();
             _process.EnableRaisingEvents = true;
@@ -413,6 +426,7 @@ namespace RTextNppPlugin.RText
                     _fileSystemWatcher.Renamed -= OnRTextFileRenamed;
                     _fileSystemWatcher.Error   -= ProcessError;
                     _fileSystemWatcher.Dispose();
+                    _fileSystemWatcher = null;
                 }
                 if (_workspaceSystemWatcher != null)
                 {
@@ -422,6 +436,7 @@ namespace RTextNppPlugin.RText
                     _workspaceSystemWatcher.Error   -= ProcessError;
                     _workspaceSystemWatcher.Renamed -= OnWorkspaceDefinitionFileRenamed;
                     _workspaceSystemWatcher.Dispose();
+                    _fileSystemWatcher = null;
                 }
                 if (_process != null)
                 {
@@ -469,7 +484,7 @@ namespace RTextNppPlugin.RText
          */
         private void OnProcessExited(object sender, EventArgs e)
         {
-            if (_process != null && !_process.HasExited)
+            if (_process != null && _process.HasExited)
             {
                 CleanupProcess();
                 //notify connectors that their backend in no longer available!
