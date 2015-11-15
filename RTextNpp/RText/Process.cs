@@ -436,7 +436,7 @@ namespace RTextNppPlugin.RText
                     _workspaceSystemWatcher.Error   -= ProcessError;
                     _workspaceSystemWatcher.Renamed -= OnWorkspaceDefinitionFileRenamed;
                     _workspaceSystemWatcher.Dispose();
-                    _fileSystemWatcher = null;
+                    _workspaceSystemWatcher = null;
                 }
                 if (_process != null)
                 {

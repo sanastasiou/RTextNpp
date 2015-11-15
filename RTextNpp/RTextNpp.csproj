@@ -260,8 +260,8 @@
     <None Include="Resources\ConsoleIconPng.png" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="costura32\NativeFileSystemWatcher.dll" />
     <EmbeddedResource Include="costura32\WindowsUtilities.dll" />
+    <EmbeddedResource Include="costura32\NativeFileSystemWatcher.dll" />
     <Content Include="FodyWeavers.xml">
       <SubType>Designer</SubType>
     </Content>
