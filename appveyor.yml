@@ -13,7 +13,7 @@ branches:
     - FeatureSetup
  
 # Do not build on tags (GitHub only)
-skip_tags: true
+skip_tags: false
  
 #---------------------------------#
 #    environment configuration  #
