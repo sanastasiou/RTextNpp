@@ -4,14 +4,12 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Interop;
 using System.Windows.Media;
-
 namespace RTextNppPlugin.Utilities
 {
     public interface IWin32MessageReceptor
     {
         bool OnMessageReceived(uint msg, UIntPtr wParam, IntPtr lParam);
     }
-
     public class VisualUtilities
     {
         public enum WM_ACTIVATE_WPARAM : int
@@ -20,7 +18,6 @@ namespace RTextNppPlugin.Utilities
             WA_ACTIVE,
             WA_CLICKACTIVE
         }
-
         public enum HookType : int
         {
             WH_JOURNALRECORD   = 0,
@@ -39,7 +36,6 @@ namespace RTextNppPlugin.Utilities
             WH_KEYBOARD_LL     = 13,
             WH_MOUSE_LL        = 14
         }
-
         public enum MouseMessages
         {
             WM_LBUTTONDOWN     = 0x0201,
@@ -59,7 +55,6 @@ namespace RTextNppPlugin.Utilities
             WM_NCXBUTTONDOWN   = 0x00AB,
             WM_NCXBUTTONDBLCLK = 0x00AD
         }
-
         public enum WindowsMessage
         {
             WM_NULL                        = 0x0000,
@@ -140,8 +135,6 @@ namespace RTextNppPlugin.Utilities
             WM_NCACTIVATE                  = 0x0086,
             WM_GETDLGCODE                  = 0x0087,
             WM_SYNCPAINT                   = 0x0088,
-
-
             WM_NCMOUSEMOVE                 = 0x00A0,
             WM_NCLBUTTONDOWN               = 0x00A1,
             WM_NCLBUTTONUP                 = 0x00A2,
@@ -155,10 +148,8 @@ namespace RTextNppPlugin.Utilities
             WM_NCXBUTTONDOWN               = 0x00AB,
             WM_NCXBUTTONUP                 = 0x00AC,
             WM_NCXBUTTONDBLCLK             = 0x00AD,
-
             WM_INPUT_DEVICE_CHANGE         = 0x00FE,
             WM_INPUT                       = 0x00FF,
-
             WM_KEYFIRST                    = 0x0100,
             WM_KEYDOWN                     = 0x0100,
             WM_KEYUP                       = 0x0101,
@@ -170,12 +161,10 @@ namespace RTextNppPlugin.Utilities
             WM_SYSDEADCHAR                 = 0x0107,
             WM_UNICHAR                     = 0x0109,
             WM_KEYLAST                     = 0x0109,
-
             WM_IME_STARTCOMPOSITION        = 0x010D,
             WM_IME_ENDCOMPOSITION          = 0x010E,
             WM_IME_COMPOSITION             = 0x010F,
             WM_IME_KEYLAST                 = 0x010F,
-
             WM_INITDIALOG                  = 0x0110,
             WM_COMMAND                     = 0x0111,
             WM_SYSCOMMAND                  = 0x0112,
@@ -192,11 +181,9 @@ namespace RTextNppPlugin.Utilities
             WM_MENUGETOBJECT               = 0x0124,
             WM_UNINITMENUPOPUP             = 0x0125,
             WM_MENUCOMMAND                 = 0x0126,
-
             WM_CHANGEUISTATE               = 0x0127,
             WM_UPDATEUISTATE               = 0x0128,
             WM_QUERYUISTATE                = 0x0129,
-
             WM_CTLCOLORMSGBOX              = 0x0132,
             WM_CTLCOLOREDIT                = 0x0133,
             WM_CTLCOLORLISTBOX             = 0x0134,
@@ -205,7 +192,6 @@ namespace RTextNppPlugin.Utilities
             WM_CTLCOLORSCROLLBAR           = 0x0137,
             WM_CTLCOLORSTATIC              = 0x0138,
             MN_GETHMENU                    = 0x01E1,
-
             WM_MOUSEFIRST                  = 0x0200,
             WM_MOUSEMOVE                   = 0x0200,
             WM_LBUTTONDOWN                 = 0x0201,
@@ -222,20 +208,15 @@ namespace RTextNppPlugin.Utilities
             WM_XBUTTONUP                   = 0x020C,
             WM_XBUTTONDBLCLK               = 0x020D,
             WM_MOUSEHWHEEL                 = 0x020E,
-
             WM_PARENTNOTIFY                = 0x0210,
             WM_ENTERMENULOOP               = 0x0211,
             WM_EXITMENULOOP                = 0x0212,
-
             WM_NEXTMENU                    = 0x0213,
             WM_SIZING                      = 0x0214,
             WM_CAPTURECHANGED              = 0x0215,
             WM_MOVING                      = 0x0216,
-
             WM_POWERBROADCAST              = 0x0218,
-
             WM_DEVICECHANGE                = 0x0219,
-
             WM_MDICREATE                   = 0x0220,
             WM_MDIDESTROY                  = 0x0221,
             WM_MDIACTIVATE                 = 0x0222,
@@ -246,14 +227,11 @@ namespace RTextNppPlugin.Utilities
             WM_MDICASCADE                  = 0x0227,
             WM_MDIICONARRANGE              = 0x0228,
             WM_MDIGETACTIVE                = 0x0229,
-
-
             WM_MDISETMENU                  = 0x0230,
             WM_ENTERSIZEMOVE               = 0x0231,
             WM_EXITSIZEMOVE                = 0x0232,
             WM_DROPFILES                   = 0x0233,
             WM_MDIREFRESHMENU              = 0x0234,
-
             WM_IME_SETCONTEXT              = 0x0281,
             WM_IME_NOTIFY                  = 0x0282,
             WM_IME_CONTROL                 = 0x0283,
@@ -263,17 +241,13 @@ namespace RTextNppPlugin.Utilities
             WM_IME_REQUEST                 = 0x0288,
             WM_IME_KEYDOWN                 = 0x0290,
             WM_IME_KEYUP                   = 0x0291,
-
             WM_MOUSEHOVER                  = 0x02A1,
             WM_MOUSELEAVE                  = 0x02A3,
             WM_NCMOUSEHOVER                = 0x02A0,
             WM_NCMOUSELEAVE                = 0x02A2,
-
             WM_WTSSESSION_CHANGE           = 0x02B1,
-
             WM_TABLET_FIRST                = 0x02c0,
             WM_TABLET_LAST                 = 0x02df,
-
             WM_CUT                         = 0x0300,
             WM_COPY                        = 0x0301,
             WM_PASTE                       = 0x0302,
@@ -293,56 +267,40 @@ namespace RTextNppPlugin.Utilities
             WM_PALETTEISCHANGING           = 0x0310,
             WM_PALETTECHANGED              = 0x0311,
             WM_HOTKEY                      = 0x0312,
-
             WM_PRINT                       = 0x0317,
             WM_PRINTCLIENT                 = 0x0318,
-
             WM_APPCOMMAND                  = 0x0319,
-
             WM_THEMECHANGED                = 0x031A,
-
             WM_CLIPBOARDUPDATE             = 0x031D,
-
             WM_DWMCOMPOSITIONCHANGED       = 0x031E,
             WM_DWMNCRENDERINGCHANGED       = 0x031F,
             WM_DWMCOLORIZATIONCOLORCHANGED = 0x0320,
             WM_DWMWINDOWMAXIMIZEDCHANGE    = 0x0321,
-
             WM_GETTITLEBARINFOEX           = 0x033F,
-
             WM_HANDHELDFIRST               = 0x0358,
             WM_HANDHELDLAST                = 0x035F,
-
             WM_AFXFIRST                    = 0x0360,
             WM_AFXLAST                     = 0x037F,
-
             WM_PENWINFIRST                 = 0x0380,
             WM_PENWINLAST                  = 0x038F,
-
             WM_APP                         = 0x8000,
-
             WM_USER                        = 0x0400,
-
             WM_REFLECT                     = WM_USER + 0x1C00,
         }
-
         internal static void SetOwnerFromNppPlugin(System.Windows.Window window)
         {
-            WindowInteropHelper helper = new WindowInteropHelper(window);            
+            WindowInteropHelper helper = new WindowInteropHelper(window);
             helper.Owner = Plugin.nppData._nppHandle;
         }
-
         internal static HwndSource HwndSourceFromIntPtr(IntPtr handle)
         {
             return HwndSource.FromHwnd(handle);
         }
-
         internal static IntPtr HwndFromWpfWindow(System.Windows.Window window)
         {
             var wih = new WindowInteropHelper(window);
             return wih.Handle;
         }
-
         /**
          *
          * \brief   Finds the parent of this item.
@@ -363,7 +321,6 @@ namespace RTextNppPlugin.Utilities
             else
                 return FindVisualParent<T>(parentObject);
         }
-
         internal static T GetVisualChild<T>(Visual parent) where T : Visual
         {
             T child = default(T);
@@ -383,7 +340,6 @@ namespace RTextNppPlugin.Utilities
             }
             return child;
         }
-
         /**
          * \brief   Query if the mouse pointer is inside an UI element.
          *
@@ -401,19 +357,16 @@ namespace RTextNppPlugin.Utilities
                 dHeight = element.ActualHeight;
             }
             System.Windows.Point aPoint = System.Windows.Input.Mouse.GetPosition(element);
-
             double xStart = 0.0;
             double xEnd = xStart + dWidth;
             double yStart = 0.0;
             double yEnd = yStart + dHeight;
-
             if (aPoint.X < xStart || aPoint.X >= xEnd || aPoint.Y < yStart || aPoint.Y >= yEnd)
             {
                 return false;
             }
             return true;
         }
-
         /**
          * \brief   Scroll list.
          *
@@ -448,7 +401,6 @@ namespace RTextNppPlugin.Utilities
                     {
                         aNewPosition = view.CurrentPosition - offset;
                         view.MoveCurrentToPosition(view.CurrentPosition - offset);
-
                     }
                     else
                     {
@@ -459,7 +411,6 @@ namespace RTextNppPlugin.Utilities
             }
             return aNewPosition;
         }
-
         internal static void RepositionWindow(SizeChangedEventArgs e, Window w, ref bool isOnTop, INpp nppHelper, double wordY, int offset = 0)
         {
             bool isTopChanged  = false;
@@ -496,7 +447,6 @@ namespace RTextNppPlugin.Utilities
                 newLeft -= dif;
                 isLeftChanged = true;
             }
-
             if (isTopChanged && !isLeftChanged)
             {
                 w.Top = newTop;
@@ -511,7 +461,6 @@ namespace RTextNppPlugin.Utilities
                 w.Left = newLeft;
             }
         }
-
         /**
          * Find the scrollbar out of a wpf control, e.g. DataGrid if it exists.
          *

@@ -1,5 +1,4 @@
 #include "RTextLexerCliWrapper.h"
-
 namespace RTextNppPlugin
 {
     RTextLexerCliWrapper::RTextLexerCliWrapper()
@@ -7,8 +6,6 @@ namespace RTextNppPlugin
         _lexerFactoryPtr = gcnew GetLexerFactoryDelegate(&RTextLexer::LexerFactory);
         gch = GCHandle::Alloc(_lexerFactoryPtr);
     }
-
-
     RTextLexerCliWrapper::~RTextLexerCliWrapper()
     {
         gch.Free();

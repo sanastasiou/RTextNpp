@@ -1,10 +1,16 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Weavers>
     <Costura DisableCompression="true">
+        <PreloadOrder>
+            WindowsUtilities
+            NativeFileSystemWatcher
+        </PreloadOrder>
         <Unmanaged32Assemblies>
-            FileSystemWatcherCLRWrapper
+            ClrFileSystemWatcher
             WindowsSubclassCliWrapper
             RTextLexer
+            WindowsUtilities
+            NativeFileSystemWatcher
         </Unmanaged32Assemblies>
-    </Costura>  
+    </Costura>
 </Weavers>

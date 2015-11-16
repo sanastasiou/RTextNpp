@@ -19,7 +19,6 @@ using RTextNppPlugin.RText.StateEngine;
 using RTextNppPlugin.Utilities;
 using RTextNppPlugin.Utilities.Settings;
 using RTextNppPlugin.ViewModels;
-
 namespace RTextNppPlugin.WpfControls
 {
     /**
@@ -34,30 +33,24 @@ namespace RTextNppPlugin.WpfControls
         private INpp _nppHelper                                        = null;                 //!< Handles communication with scintilla or npp.
         private IWin32 _win32Helper                                    = null;                 //!< Handles low level API calls.
         private ISettings _settings                                    = null;                 //!< Reads or write plugin settings.
-        private ReferenceRequestObserver _referenceRequestObserver     = null;                 //!< Handles reference requests triggers.       
+        private ReferenceRequestObserver _referenceRequestObserver     = null;                 //!< Handles reference requests triggers.
         private IEnumerable<string> _cachedContext                     = null;                 //!< Holds the last context used for reference lookup request.
-        private DelayedEventHandler _referenceRequestDispatcher        = null;                 //!< Debounces link reference requests and dispatches the reuqests to the backend.
+        private DelayedEventHandler<object> _referenceRequestDispatcher= null;                 //!< Debounces link reference requests and dispatches the reuqests to the backend.
         private LinkTargetsResponse _cachedReferenceLinks              = null;                 //!< Holds a cache of reference links from a previous backend request.
         private ConnectorManager _cManager                             = null;                 //!< Instance of ConnectorManager instance.
         private Connector _connector                                   = null;                 //!< Connector which is relevant to the actual focused file.
         private KeyInterceptor _keyMonitor                             = new KeyInterceptor(); //!< Monitors key presses.
         private bool _isOnTop                                          = false;                //!< Indicates if the link reference window is on top of a token or not.
-        private const int YPOSITION_OFFSET                             = 2;                    //!< Window needs to be placed with a Y offset, because otherwise the cursor might indicate a token between the gab of the current token and the window.        
+        private const int YPOSITION_OFFSET                             = 2;                    //!< Window needs to be placed with a Y offset, because otherwise the cursor might indicate a token between the gab of the current token and the window.
         private DatagridScrollviewerTooltipOffsetCalculator _tpControl = null;                 //!< Control tooltip placement on right of the completion options.
         private ICollectionView _collectionView                        = null;                 //!< Collection view of reference links.
-
         #endregion
-
         #region [Interface]
-
         #region ILinkTargetsWindow Members
-
         public bool IsMouseInsidedWindow()
         {
             return (IsVisible && VisualUtilities.IsMouseInsideFrameworkElement(Content as FrameworkElement));
         }
-
-
         public void IssueReferenceLinkRequestCommand(Tokenizer.TokenTag aTokenUnderCursor)
         {
             if (String.IsNullOrWhiteSpace(aTokenUnderCursor.Context) || !_referenceRequestObserver.IsKeyboardShortCutActive)
@@ -69,7 +62,7 @@ namespace RTextNppPlugin.WpfControls
             {
                 if (_referenceRequestDispatcher.IsRunning)
                 {
-                    _referenceRequestDispatcher.TriggerHandler(new ActionWrapper<Tokenizer.TokenTag>(TryHighlightItemUnderMouse, aTokenUnderCursor));
+                    _referenceRequestDispatcher.TriggerHandler(new ActionWrapper<object, Tokenizer.TokenTag>(TryHighlightItemUnderMouse, aTokenUnderCursor));
                 }
                 else
                 {
@@ -78,37 +71,32 @@ namespace RTextNppPlugin.WpfControls
                 }
             }
         }
-
         #endregion
-
-        internal LinkTargetsWindow(INpp nppHelper, IWin32 win32Helper, ISettings settingsHelper, ConnectorManager cmanager)
+        internal LinkTargetsWindow(INpp nppHelper, IWin32 win32Helper, ISettings settingsHelper, ConnectorManager cmanager, IStyleConfigurationObserver styleObserver)
         {
             InitializeComponent();
             DataContext = new ReferenceLinkViewModel(settingsHelper);
             _nppHelper = nppHelper;
             _win32Helper = win32Helper;
             _settings = settingsHelper;
-            _referenceRequestObserver = new ReferenceRequestObserver(_nppHelper, _settings, _win32Helper, this);
-            _referenceRequestDispatcher = new DelayedEventHandler(new ActionWrapper<Tokenizer.TokenTag>(TryHighlightItemUnderMouse, default(Tokenizer.TokenTag)), 500);
+            _referenceRequestObserver = new ReferenceRequestObserver(_nppHelper, _settings, _win32Helper, this, styleObserver);
+            _referenceRequestDispatcher = new DelayedEventHandler<object>(new ActionWrapper<object, Tokenizer.TokenTag>(TryHighlightItemUnderMouse, default(Tokenizer.TokenTag)), 500);
             _cManager = cmanager;
             _keyMonitor.KeyDown += OnKeyMonitorKeyDown;
             _keyMonitor.KeysToIntercept.Add((int)System.Windows.Forms.Keys.Down);
             _keyMonitor.KeysToIntercept.Add((int)System.Windows.Forms.Keys.Up);
             _keyMonitor.KeysToIntercept.Add((int)System.Windows.Forms.Keys.PageUp);
             _keyMonitor.KeysToIntercept.Add((int)System.Windows.Forms.Keys.PageDown);
-
             _tpControl = new DatagridScrollviewerTooltipOffsetCalculator(Dispatcher,
                                                                           this,
                                                                           Constants.MAX_WIDTH_LINK_REFERENCE_LABELS,
                                                                           LinkTargetDatagrid);
             _collectionView = CollectionViewSource.GetDefaultView(GetModel().Targets);
         }
-
         internal void CancelPendingRequest()
         {
             _referenceRequestDispatcher.Cancel();
         }
-
         /**
          * Asynchronous call when keyboard shortcut for reference link changes.
          *
@@ -123,9 +111,8 @@ namespace RTextNppPlugin.WpfControls
             if (!isActive)
             {
                 Hide();
-            }            
+            }
         }
-
         public IList<LinkTargetModel> Targets
         {
             get
@@ -133,7 +120,6 @@ namespace RTextNppPlugin.WpfControls
                 return GetModel().Targets as IList<LinkTargetModel>;
             }
         }
-
         /**
          *
          * @brief   Sets the zoom level so that the reference link window also scales according to the user settings.
@@ -159,9 +145,7 @@ namespace RTextNppPlugin.WpfControls
                 GetModel().OnZoomLevelChanged(x);
             }), level);
         }
-
         #endregion
-
         #region [EventHandlers]
         private void OnBorderToolTipOpening(object sender, ToolTipEventArgs e)
         {
@@ -169,13 +153,11 @@ namespace RTextNppPlugin.WpfControls
             var Tp = border.ToolTip as System.Windows.Controls.ToolTip;
             Tp.HorizontalOffset = _tpControl.CalculateTooltipOffset();
         }
-
         private void OnBorderMouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
         {
             Border border = (Border)sender;
             _tpControl.CancelTooltipRequest(border.ToolTip as System.Windows.Controls.ToolTip);
         }
-
         private void OnBorderBackgroundUpdated(object sender, DataTransferEventArgs e)
         {
             var border = sender as Border;
@@ -186,7 +168,6 @@ namespace RTextNppPlugin.WpfControls
                 _tpControl.ShowTooltip(tp, border);
             }
         }
-
         private void OnLinkTargetsWindowMouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
         {
             //only hide the window if the mouse has also left the actual underlined token
@@ -197,22 +178,18 @@ namespace RTextNppPlugin.WpfControls
                 IssueReferenceLinkRequestCommand(aTokenUnderCursor);
             }
         }
-
         private void OnLinkTargetsWindowMouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
         {
             LinkTargetDatagrid.Focus();
         }
-
         private void OnLinkTargetDatagridSelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
         {
             _collectionView.MoveCurrentToPosition(LinkTargetDatagrid.SelectedIndex);
-
             if (!IsFocused)
             {
                 LinkTargetDatagrid.Focus();
             }
         }
-
         /**
          * \brief   Resizes open auto completion list when the container's size change.
          */
@@ -220,7 +197,6 @@ namespace RTextNppPlugin.WpfControls
         {
             VisualUtilities.RepositionWindow(e, this, ref _isOnTop, _nppHelper, _nppHelper.GetCaretScreenLocationForFormAboveWord(_referenceRequestObserver.UnderlinedToken.BufferPosition).Y, YPOSITION_OFFSET);
         }
-
         private void OnKeyMonitorKeyDown(System.Windows.Forms.Keys key, int repeatCount, ref bool handled)
         {
             int aNewPosition = 0;
@@ -239,11 +215,9 @@ namespace RTextNppPlugin.WpfControls
                 default:
                     return;
             }
-
             GetModel().SelectedIndex = aNewPosition;
             LinkTargetDatagrid.ScrollIntoView(_collectionView.CurrentItem);
         }
-
         /**
          * @brief   Occurs when the user enter the area of a datagrid row.
          *
@@ -254,7 +228,6 @@ namespace RTextNppPlugin.WpfControls
         {
             System.Windows.Input.Mouse.OverrideCursor = System.Windows.Input.Cursors.Hand;
         }
-
         /**
          * @brief   Occurs when the user leave the area of a datagrid row.
          *
@@ -264,13 +237,12 @@ namespace RTextNppPlugin.WpfControls
         private void OnRowMouseLeave(object sender, RoutedEventArgs e)
         {
             System.Windows.Input.Mouse.OverrideCursor = null;
-        }        
-
+        }
         /**
          * \brief   Raises the dependency property changed event when visibility is changed.
          *
          * \param   sender  Source of the event.
-         * \param   e       Event information to send to registered event handlers.              
+         * \param   e       Event information to send to registered event handlers.
          */
         private void OnReferenceLinksVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
@@ -289,13 +261,11 @@ namespace RTextNppPlugin.WpfControls
             {
                 LinkTargetDatagrid.SelectedIndex = -1;
                 _isOnTop = false;
-                _keyMonitor.Uninstall();                
+                _keyMonitor.Uninstall();
             }
         }
         #endregion
-
         #region [Overriden Window Members]
-
         /**
          * @fn  protected override void OnPreviewMouseLeftButtonDown(MouseButtonEventArgs e)
          *
@@ -317,7 +287,6 @@ namespace RTextNppPlugin.WpfControls
                 // Find the ancestor element form the hittested element
                 // e.g., find the DataGridCell if we hittest on the inner TextBlock
                 System.Windows.Controls.DataGridRow aCcurrentRow = RTextNppPlugin.Utilities.VisualUtilities.FindVisualParent<System.Windows.Controls.DataGridRow>(result.VisualHit);
-
                 if (aCcurrentRow != null)
                 {
                     aRow = aCcurrentRow;
@@ -332,11 +301,8 @@ namespace RTextNppPlugin.WpfControls
                 e.Handled = true;
             }
         }
-
         #endregion
-
         #region [Helpers]
-
         private async Task SendLinkReferenceRequestAsync(Tokenizer.TokenTag aTokenUnderCursor)
         {
             if (aTokenUnderCursor.CanTokenHaveReference() && FileUtilities.IsRTextFile(_settings, _nppHelper))
@@ -344,9 +310,8 @@ namespace RTextNppPlugin.WpfControls
                 Task<Tuple<bool, ContextExtractor>> contextEqualityTask = new Task<Tuple<bool, ContextExtractor>>(new Func<Tuple<bool, ContextExtractor>>(() =>
                 {
                     string aContextBlock = _nppHelper.GetTextBetween(0, Npp.Instance.GetLineEnd(aTokenUnderCursor.Line));
-                    ContextExtractor aExtractor = new ContextExtractor(aContextBlock, Npp.Instance.GetLengthToEndOfLine(_nppHelper.GetColumn(aTokenUnderCursor.BufferPosition), aTokenUnderCursor.Line));
+                    ContextExtractor aExtractor = new ContextExtractor(aContextBlock, Npp.Instance.GetLengthToEndOfLine(aTokenUnderCursor.Line));
                     bool aAreContextEquals = false;
-
                     //get all tokens before the trigger token - if all previous tokens and all context lines match do not request new auto completion options
                     if (!_referenceRequestObserver.UnderlinedToken.Equals(default(Tokenizer.TokenTag)) && _cachedContext != null)
                     {
@@ -367,18 +332,15 @@ namespace RTextNppPlugin.WpfControls
                 {
                     Hide();
                 }
-
                 contextEqualityTask.Start();
-                await contextEqualityTask;
+                Task.WaitAll(contextEqualityTask);
                 if (!contextEqualityTask.Result.Item1 && _cachedReferenceLinks != null)
                 {
                     _cachedReferenceLinks.targets.Clear();
                 }
-
                 //store cache
                 _cachedContext = contextEqualityTask.Result.Item2.ContextList;
                 _referenceRequestObserver.UnderlinedToken = aTokenUnderCursor;
-
                 AutoCompleteAndReferenceRequest aRequest = new AutoCompleteAndReferenceRequest
                 {
                     column        = contextEqualityTask.Result.Item2.ContextColumn,
@@ -386,13 +348,11 @@ namespace RTextNppPlugin.WpfControls
                     context       = _cachedContext,
                     invocation_id = -1
                 };
-
                 if (aRequest.context.Count() == 0)
                 {
                     //prevent backend from crashing due to a bug
                     return;
                 }
-
                 if (!contextEqualityTask.Result.Item1 || _cachedReferenceLinks == null || _cachedReferenceLinks.targets.Count == 0)
                 {
                     _cachedReferenceLinks = await RequestReferenceLinksAsync(aRequest);
@@ -408,7 +368,6 @@ namespace RTextNppPlugin.WpfControls
                 Hide();
             }
         }
-
         new private void Hide()
         {
             _referenceRequestDispatcher.Cancel();
@@ -418,7 +377,6 @@ namespace RTextNppPlugin.WpfControls
             base.Hide();
             _isOnTop = false;
         }
-
         new private void Show()
         {
             //update view model with new references
@@ -428,13 +386,12 @@ namespace RTextNppPlugin.WpfControls
                 {
                     GetModel().UpdateLinkTargets(_cachedReferenceLinks.targets);
                     Utilities.VisualUtilities.SetOwnerFromNppPlugin(this);
-                    //token needs to be underlined as a hotspot only if the current count is 1                    
+                    //token needs to be underlined as a hotspot only if the current count is 1
                     if (_cachedReferenceLinks.targets.Count == 1)
                     {
                         _referenceRequestObserver.UnderlineToken();
                         return;
                     }
-
                 }
                 //determine window position
                 var aCaretPoint = _nppHelper.GetCaretScreenLocationRelativeToPosition(_referenceRequestObserver.UnderlinedToken.BufferPosition);
@@ -442,16 +399,14 @@ namespace RTextNppPlugin.WpfControls
                 Top             = aCaretPoint.Y - YPOSITION_OFFSET;
                 base.Show();
                 ForceRedraw();
-                LinkTargetDatagrid.Focus();                
+                LinkTargetDatagrid.Focus();
             }
             else if (_cachedReferenceLinks == null || _cachedReferenceLinks.targets.Count == 0)
             {
                 Hide();
                 return;
             }
-
         }
-
         private void ForceRedraw()
         {
             if (!GetModel().IsEmpty())
@@ -462,12 +417,10 @@ namespace RTextNppPlugin.WpfControls
                 _collectionView.MoveCurrentToPosition(GetModel().SelectedIndex);
             }
         }
-
         private ReferenceLinkViewModel GetModel()
         {
             return ((ReferenceLinkViewModel)DataContext);
         }
-
         private async Task<LinkTargetsResponse> RequestReferenceLinksAsync(AutoCompleteAndReferenceRequest request)
         {
             _connector = _cManager.Connector;
@@ -515,15 +468,14 @@ namespace RTextNppPlugin.WpfControls
             }
             return null;
         }
-
-        private void TryHighlightItemUnderMouse(Tokenizer.TokenTag aTokenUnderCursor)
+        private object TryHighlightItemUnderMouse(Tokenizer.TokenTag aTokenUnderCursor)
         {
             Dispatcher.Invoke((MethodInvoker)(async () =>
             {
                 await SendLinkReferenceRequestAsync(aTokenUnderCursor);
             }));
+            return null;
         }
-
         /**
          * @brief   File clicked. Occurs when a hyperlinked filepath is clicked.
          *
@@ -540,18 +492,14 @@ namespace RTextNppPlugin.WpfControls
             else
             {
                 Logger.Instance.Append(Logger.MessageType.Error, _connector.LogChannel, "Cannot jump to link because file : {0} does not exist.", target.File);
-            }            
+            }
         }
-
         #endregion
-
         #region IWindowPosition Members
-
         public bool IsEdgeOfScreenReached(double offset)
         {
             return ((Left + Width + offset) > _nppHelper.GetClientRectFromPoint(new System.Drawing.Point((int)Left, (int)Top)).Right);
         }
-
         #endregion
     }
 }

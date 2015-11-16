@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Reflection;
-
 namespace Tests.Utilities
 {
     using NUnit.Framework;
@@ -12,7 +11,6 @@ namespace Tests.Utilities
     using System.IO;
     using System.Xml;
     using MoqExtensions;
-
     [TestFixture]
     class FIleModificationObserverTests
     {
@@ -22,7 +20,6 @@ namespace Tests.Utilities
         private XmlDocument _pluginXml             = null;
         private FileModificationObserver _observer = null;
         #endregion
-
         [SetUp]
         public void Init()
         {
@@ -33,16 +30,14 @@ namespace Tests.Utilities
             _pluginXml.Save(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "\\" + Constants.EX_LEXER_CONFIG_FILENAME);
             var aFile = File.Create(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "\\" + ".rtext");
             aFile.Write(System.Text.Encoding.ASCII.GetBytes(Properties.Resources.WorkspaceRoot), 0, Properties.Resources.WorkspaceRoot.GetByteCount());
-            aFile.Close();            
+            aFile.Close();
         }
-
         [Test]
         public void InitializationTest()
         {
             string aFilePath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "\\" + "a.atm";
             _observer = new FileModificationObserver(_settingsMock.Object, _nppMock.Object);
         }
-
         [Test]
         public void FileModifiedTest()
         {
@@ -55,12 +50,11 @@ namespace Tests.Utilities
             _observer.OnFileOpened(aFilePath);
             _observer.OnFilemodified(aFilePath);
             _observer.SaveWorkspaceFiles(workspace);
-            _nppMock.Verify(m => m.SaveFile(aFilePath), Times.Once());            
+            _nppMock.Verify(m => m.SaveFile(aFilePath), Times.Once());
             _observer.SaveWorkspaceFiles(workspace);
             //still only a single call
             _nppMock.Verify(m => m.SaveFile(aFilePath), Times.Once());
         }
-
         [Test]
         public void FileUnmodifiedTest()
         {
@@ -76,7 +70,6 @@ namespace Tests.Utilities
             _observer.SaveWorkspaceFiles(workspace);
             _nppMock.Verify(m => m.SaveFile(aFilePath), Times.Never());
         }
-
         [Test]
         public void FileOpenedTest()
         {
@@ -91,7 +84,6 @@ namespace Tests.Utilities
             _observer.SaveWorkspaceFiles(workspace);
             _nppMock.Verify(m => m.SaveFile(aFilePath), Times.Never());
         }
-
         [Test]
         public void SwitchToCurrentFileTest()
         {
@@ -111,7 +103,6 @@ namespace Tests.Utilities
             _nppMock.Verify(m => m.SaveFile(aFilePathb), Times.Once());
             _nppMock.Verify(m => m.SwitchToFile(aFilePath), Times.Once());
         }
-
         [Test]
         public void CleanBackUpTestDirNotExist()
         {
@@ -126,9 +117,8 @@ namespace Tests.Utilities
                 Directory.Move(defaultBackupPath, defaultBackupPath + "copy");
                 _observer.CleanBackup();
                 Directory.Move(defaultBackupPath + "copy", defaultBackupPath);
-            }            
+            }
         }
-
         [Test]
         public void CleanBackUpTest()
         {
@@ -146,7 +136,7 @@ namespace Tests.Utilities
             //create backup directory if it doesn't exist
             if (!Directory.Exists(defaultBackupPath))
             {
-                Directory.CreateDirectory(defaultBackupPath);                
+                Directory.CreateDirectory(defaultBackupPath);
             }
             string aDummyBackup = defaultBackupPath + "\\" + "a.atm.backup";
             var aBackup = File.Create(aDummyBackup);

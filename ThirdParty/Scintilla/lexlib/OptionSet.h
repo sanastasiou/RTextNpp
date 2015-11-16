@@ -6,14 +6,11 @@
  **/
 // Copyright 2010 by Neil Hodgson <neilh@scintilla.org>
 // The License.txt file describes the conditions under which this software may be distributed.
-
 #ifndef OPTIONSET_H
 #define OPTIONSET_H
-
 #ifdef SCI_NAMESPACE
 namespace Scintilla {
 #endif
-
 template <typename T>
 class OptionSet {
     typedef T Target;
@@ -73,7 +70,6 @@ class OptionSet {
     OptionMap nameToDef;
     std::string names;
     std::string wordLists;
-
     void AppendName(const char *name) {
         if (!names.empty())
             names += "\n";
@@ -111,7 +107,6 @@ public:
         }
         return "";
     }
-
     bool PropertySet(T *base, const char *name, const char *val) {
         typename OptionMap::iterator it = nameToDef.find(name);
         if (it != nameToDef.end()) {
@@ -119,7 +114,6 @@ public:
         }
         return false;
     }
-
     void DefineWordListSets(const char * const wordListDescriptions[]) {
         if (wordListDescriptions) {
             for (size_t wl = 0; wordListDescriptions[wl]; wl++) {
@@ -129,14 +123,11 @@ public:
             }
         }
     }
-
     const char *DescribeWordListSets() {
         return wordLists.c_str();
     }
 };
-
 #ifdef SCI_NAMESPACE
 }
 #endif
-
 #endif

@@ -1,11 +1,11 @@
 ﻿<FlowDocument  x:Class="RTextNppPlugin.WpfControls.ConsoleFlowDocument"
                xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-               xmlns:sys="clr-namespace:System;assembly=mscorlib"               
+               xmlns:sys="clr-namespace:System;assembly=mscorlib"
                FontSize="12"
                Name="ConsoleDocument"
                IsOptimalParagraphEnabled="False"
-               IsHyphenationEnabled="False"               
+               IsHyphenationEnabled="False"
                FontFamily="Courier New">
     <FlowDocument.PageWidth>
         <sys:Double>700.0</sys:Double>
@@ -14,13 +14,13 @@
         <sys:Double>NaN</sys:Double>
     </FlowDocument.PageHeight>
     <FlowDocument.Resources>
-        <Style TargetType="{x:Type Run}" x:Key="Information">            
+        <Style TargetType="{x:Type Run}" x:Key="Information">
             <Setter Property="Foreground" Value="White"/>
             <Setter Property="FontWeight" Value="Normal"/>
         </Style>
         <Style TargetType="{x:Type Run}" x:Key="Error">
             <Setter Property="Foreground" Value="Red"/>
-            <Setter Property="FontWeight" Value="Bold"/>            
+            <Setter Property="FontWeight" Value="Bold"/>
         </Style>
         <Style TargetType="{x:Type Run}" x:Key="Warning">
             <Setter Property="Foreground" Value="Yellow"/>
@@ -28,7 +28,7 @@
         </Style>
         <Style TargetType="{x:Type Run}" x:Key="FatalError">
             <Setter Property="Foreground" Value="Fuchsia"/>
-            <Setter Property="FontWeight" Value="Bold"/>            
+            <Setter Property="FontWeight" Value="Bold"/>
         </Style>
     </FlowDocument.Resources>
     <Paragraph>

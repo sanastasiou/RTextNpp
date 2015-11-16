@@ -1,0 +1,198 @@
+AUTOSAR {
+  ARPackage P1 {
+    IntegerType UInt8
+    ConstantSpecification const1 {
+      IntegerLiteral lit1, value: 0
+    }
+    ClientServerInterface ICS1 {
+      OperationPrototype op1, possibleError: err1
+      ApplicationError err1
+    }
+    SenderReceiverInterface ISR1 {
+      DataElementPrototype de1, type: /P1/UInt8
+    }
+    SenderReceiverInterface IMode1 {
+      ModeDeclarationGroupPrototype modeGroup1, type: /P1/ModeGroup1
+    }
+    ModeDeclarationGroup ModeGroup1 {
+      ModeDeclaration Mode1
+    }
+    CalprmInterface ICal1 {
+      CalprmElementPrototype ce1, type: /P1/UInt8
+    }
+    ApplicationSoftwareComponentType SWC1 {
+      PPortPrototype modePPort,
+        providedInterface: /P1/IMode1 {
+          ModeSwitchComSpec modeGroup: modeGroup1, queueLength: 1
+      }
+      PPortPrototype serverPort,
+        providedInterface: /P1/ICS1 {
+          ServerComSpec operation: op1, queueLength: 1
+      }
+      PPortPrototype calPPort,
+        providedInterface: /P1/ICal1 {
+          ParameterProvideComSpec parameter: ce1, initValue: /P1/const1/lit1
+          CalibrationPortAnnotation calprmElement: ce1, timestamp: "1234"
+      }
+      PPortPrototype senderPort,
+        providedInterface: /P1/ISR1 {
+          UnqueuedSenderComSpec dataElement: de1, initValue: /P1/const1/lit1
+          QueuedSenderComSpec dataElement: de1
+          SenderAnnotation computed: true, dataElement: de1
+      }
+      RPortPrototype clientPort,
+        requiredInterface: /P1/ICS1 {
+          ClientComSpec operation: op1
+      }
+      RPortPrototype calRPort,
+        requiredInterface: /P1/ICal1 {
+          ParameterRequireComSpec parameter: ce1, initValue: /P1/const1/lit1
+          CalibrationPortAnnotation calprmElement: ce1, annotationOrigin: "bla"
+      }
+      RPortPrototype receiverPort,
+        requiredInterface: /P1/ISR1 {
+          QueuedReceiverComSpec dataElement: de1, queueLength: 1
+          UnqueuedReceiverComSpec dataElement: de1, aliveTimeout: 0.0
+          ReceiverAnnotation computed: true, dataElement: de1
+      }
+      RPortPrototype modeRPort,
+        requiredInterface: /P1/IMode1
+    }
+    InternalBehavior InternalBehavior1, component: /P1/SWC1 {
+      ExclusiveArea \
+        ea1
+      ExclusiveArea \
+        ea2
+      SwcNvBlockNeeds nvm1, defaultBlock: perInstCal1, mirrorBlock: pim1
+      SwcNvBlockNeeds nvbn2 {
+        RoleBasedRPortAssignment rPortPrototype: clientPort
+        RoleBasedPPortAssignment pPortPrototype: serverPort
+      }
+      sharedCalprm: [
+        CalprmElementPrototype sharedCal1, type: /P1/UInt8
+        CalprmElementPrototype sharedCal2, type: /P1/UInt8
+        CalprmElementPrototype sharedCal3, type: /P1/UInt8
+      ]
+      perInstanceCalprm:
+        CalprmElementPrototype perInstCal1, type: /P1/UInt8
+      RunnableEntity run1
+      RunnableEntity run2,
+      
+        canEnterExclusiveArea: [ea1, ea2]
+      RunnableEntity run3, runsInsideExclusiveArea: [
+          ea1,
+          ea2
+        ]
+      RunnableEntity run4,
+        sharedCalprmAccess: sharedCal1
+      RunnableEntity run5, perInstanceCalprmAccess: perInstCal1
+      RunnableEntity run6, readVariable: [irvar1, irvar2]
+      RunnableEntity run7, writtenVariable: [irvar1, irvar2]
+      RunnableEntity run8 {
+        WaitPoint wp1, trigger: oie1
+      }
+      RunnableEntity run9 {
+        CalprmAccess cpa1 {
+          CalprmAccess_CalprmElementPrototype portPrototype: calPPort, calprmElementPrototype: ce1
+        }
+        DataReceivePoint drp1 {
+          DataReceivePoint_dataElement rPortPrototype: receiverPort, dataElementPrototype: de1
+        }
+        ModeSwitchPoint msp1 {
+          ModeSwitchPoint_modeGroup pPortPrototype: modePPort, modeDeclarationGroupPrototype: modeGroup1
+        }
+        SynchronousServerCallPoint sscp1 {
+          ServerCallPoint_operation rPortPrototype: clientPort, operationPrototype: op1
+        }
+        AsynchronousServerCallPoint ascp1 {
+          ServerCallPoint_operation rPortPrototype: clientPort, operationPrototype: op1
+        }
+        DataSendPoint dsp1 {
+          DataSendPoint_dataElement pPortPrototype: senderPort, dataElementPrototype: de1
+        }
+        DataWriteAccess dwa1 {
+          DataWriteAccess_dataElement pPortPrototype: senderPort, dataElementPrototype: de1
+        }
+        DataReadAccess dra1 {
+          DataReadAccess_dataElement rPortPrototype: receiverPort, dataElementPrototype: de1
+        }
+      }
+      PortAPIOption port: serverPort
+      PerInstanceMemory pim1
+      OperationInvokedEvent oie1, startOnEvent: run1
+      OperationInvokedEvent oie2 {
+        OperationInvokedEvent_operation pPortPrototype: serverPort, operationPrototype: op1
+      }
+      DataReceivedEvent dre1 {
+        DataReceivedEvent_data rPortPrototype: receiverPort, dataElementPrototype: de1
+      }
+      DataReceiveErrorEvent dree1 {
+        DataReceiveErrorEvent_data rPortPrototype: receiverPort, dataElementPrototype: de1
+      }
+      ModeSwitchEvent mse1 {
+        ModeSwitchEvent_mode rPortPrototype: modeRPort, modeDeclarationGroupPrototype: modeGroup1, modeDeclaration: Mode1
+      }
+      InterRunnableVariable irvar1
+      InterRunnableVariable irvar2
+    }
+    CompositionType comp1 {
+      PPortPrototype outer1,
+        providedInterface: /P1/ICS1
+      DelegationConnectorPrototype delcon1, outerPort: outer1 {
+        DelegationConnectorPrototype_innerPort componentPrototype: cp1, portPrototype: clientPort
+      }
+      AssemblyConnectorPrototype asscon1 {
+        AssemblyConnectorPrototype_requester componentPrototype: cpNested, rPortPrototype: outerRPort
+        AssemblyConnectorPrototype_provider componentPrototype: cp1, pPortPrototype: senderPort
+      }
+      ComponentPrototype cp1, type: /P1/SWC1
+      ComponentPrototype cpNested, type: /P1/comp2
+    }
+    CompositionType comp2 {
+      RPortPrototype outerRPort,
+        requiredInterface: /P1/ISR1
+      ComponentPrototype cp3, type: /P1/SWC1
+    }
+    ServiceComponentType ServSWC1 {
+      PPortPrototype pport,
+        providedInterface: /P1/ISR1
+      RPortPrototype rport,
+        requiredInterface: /P1/ISR1
+    }
+    System system1 {
+      SoftwareComposition swcomp1,
+        softwareComposition: /P1/comp1
+      SystemMapping mapping {
+        SwcToEcuMapping ecu1 {
+          SwCompToEcuMapping_component softwareComposition: swcomp1, componentPrototype: cpNested, targetComponentPrototype: cp3
+        }
+        SwcToEcuMapping ecu2 {
+          SwCompToEcuMapping_component softwareComposition: swcomp1, targetComponentPrototype: cp1
+        }
+        SwcToImplMapping impl1 {
+          SwCompToImplMapping_component softwareComposition: swcomp1, componentPrototype: cpNested, targetComponentPrototype: cp3
+        }
+        SwcToImplMapping impl2 {
+          SwCompToImplMapping_component softwareComposition: swcomp1, targetComponentPrototype: cp1
+        }
+      }
+    }
+    EcuSwComposition ecuSwComp1 {
+      ServiceConnectorPrototype servCon1 {
+        ServiceConnectorPrototype_servicePort \
+          serviceComponentPrototype: scp1,
+          portPrototype: pport
+        ServiceConnectorPrototype_applicationPort softwareComposition: /P1/system1/swcomp1,
+          componentPrototype: cp1, portPrototype: calPPort
+      }
+      ServiceConnectorPrototype servCon2 {
+        ServiceConnectorPrototype_servicePort \
+          serviceComponentPrototype: scp1,
+          portPrototype: pport
+        ServiceConnectorPrototype_applicationPort softwareComposition: /P1/system1/swcomp1,
+          componentPrototype: [cpNested, cp3], portPrototype: calPPort
+      }
+      ServiceComponentPrototype scp1, serviceComponent: /P1/ServSWC1
+    }
+  }
+}

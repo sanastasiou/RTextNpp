@@ -1,13 +1,11 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-
 namespace ContextExtraction.AutoCompletion
 {
     using Moq;
     using NUnit.Framework;
     using RTextNppPlugin.RText.Parsing;
     using RTextNppPlugin.Utilities;
-
     [TestFixture]
     class AutoCompletionTokenizerTests
     {
@@ -17,22 +15,18 @@ AUTOSAR {
     ARPackage Interfaces {
       CalprmInterface ICafCalprm {
         CalprmElementPrototype cpCahEnableTagePassenger, type: /AUTOSAR/DataTypes/Boolean {";
-
-        System.Collections.Generic.List<string> ContextLinesSample = new System.Collections.Generic.List<string> 
-        { 
+        System.Collections.Generic.List<string> ContextLinesSample = new System.Collections.Generic.List<string>
+        {
             "AUTOSAR {",
             "ARPackage Coding {",
             "ARPackage Interfaces {",
             "CalprmInterface ICafCalprm {",
             "        CalprmElementPrototype cpCahEnableTagePassenger, type: /AUTOSAR/DataTypes/Boolean {"};
-
         const int LastLineLength = 91;
-
         List<Tokenizer.TokenTag> expectedTokensSpace = new List<Tokenizer.TokenTag>
             {
                 new Tokenizer.TokenTag { BufferPosition = 0, Context = "        ", EndColumn = 8, Line = 4, StartColumn = 0, Type = RTextTokenTypes.Space }
             };
-
         [Test, Combinatorial]
         public void AutoCompletionTokenizerTriggerSpace([Values(ContextExtractionSampleInput)] string input,
                                                         [Values(LastLineLength)] int lengthToEndOfCurrentLine,
@@ -43,19 +37,14 @@ AUTOSAR {
             Assert.AreEqual((LastLineLength - lengthToEndOfCurrentLine) + 1, c.ContextColumn);
             Assert.AreEqual(ContextLinesSample.Count(), c.ContextList.Count());
             Assert.IsTrue(c.ContextList.SequenceEqual(ContextLinesSample));
-
             var nppMock = new Mock<INpp>();
-
             //mock last line
             nppMock.Setup(m => m.GetLine(It.IsAny<int>())).Returns(ContextLinesSample.Last() + "\n");
-
             nppMock.Setup(m => m.GetLine(It.Is<int>(i => i == 4))).Returns(ContextLinesSample.Last() + "\n");
             nppMock.Setup(m => m.GetLine(It.Is<int>(i => i != 4))).Returns(ContextLinesSample[3] + "\n");
             //for the sake of simplicity we assume that offset is 0
             nppMock.Setup(m => m.GetLineStart(It.Is<int>(i => i == 4))).Returns(0);
-
             AutoCompletionTokenizer aTokenizer = new AutoCompletionTokenizer(4, caretPosition, nppMock.Object);
-
             Assert.IsTrue(aTokenizer.LineTokens.Count() == 1);
             Assert.IsTrue(aTokenizer.LineTokens.SequenceEqual(expectedTokensSpace));
             Assert.IsTrue(aTokenizer.TriggerToken.HasValue);
@@ -66,13 +55,11 @@ AUTOSAR {
             Assert.AreEqual(aTokenizer.TriggerToken.Value.Line, 4);
             Assert.AreEqual(aTokenizer.TriggerToken.Value.Type, RTextTokenTypes.Space);
         }
-
         List<Tokenizer.TokenTag> expectedTokensTriggerCommand = new List<Tokenizer.TokenTag>
             {
                 new Tokenizer.TokenTag { BufferPosition = 0, Context = "        ", EndColumn = 8, Line = 4, StartColumn = 0, Type = RTextTokenTypes.Space },
                 new Tokenizer.TokenTag { BufferPosition = 8, Context = "CalprmElementPrototype", EndColumn = 30, Line = 4, StartColumn = 8, Type = RTextTokenTypes.Command }
             };
-
         [Test, Combinatorial]
         public void AutoCompletionTokenizerTriggerCommand([Values(ContextExtractionSampleInput)] string input,
                                                           [Values(LastLineLength)] int lengthToEndOfCurrentLine,
@@ -83,19 +70,14 @@ AUTOSAR {
             Assert.AreEqual((LastLineLength - lengthToEndOfCurrentLine) + 1, c.ContextColumn);
             Assert.AreEqual(ContextLinesSample.Count(), c.ContextList.Count());
             Assert.IsTrue(c.ContextList.SequenceEqual(ContextLinesSample));
-
             var nppMock = new Mock<INpp>();
-
             //mock last line
             nppMock.Setup(m => m.GetLine(It.IsAny<int>())).Returns(ContextLinesSample.Last() + "\n");
-
             nppMock.Setup(m => m.GetLine(It.Is<int>(i => i == 4))).Returns(ContextLinesSample.Last() + "\n");
             nppMock.Setup(m => m.GetLine(It.Is<int>(i => i != 4))).Returns(ContextLinesSample[3] + "\n");
             //for the sake of simplicity we assume that offset is 0
             nppMock.Setup(m => m.GetLineStart(It.Is<int>(i => i == 4))).Returns(0);
-
             AutoCompletionTokenizer aTokenizer = new AutoCompletionTokenizer(4, caretPosition, nppMock.Object);
-
             Assert.IsTrue(aTokenizer.LineTokens.Count() == 2);
             Assert.IsTrue(aTokenizer.LineTokens.SequenceEqual(expectedTokensTriggerCommand));
             Assert.IsTrue(aTokenizer.TriggerToken.HasValue);
@@ -107,7 +89,6 @@ AUTOSAR {
             Assert.AreEqual(aTokenizer.TriggerToken.Value.Line, 4);
             Assert.AreEqual(aTokenizer.TriggerToken.Value.Type, RTextTokenTypes.Command);
         }
-
         List<Tokenizer.TokenTag> expectedTokensTriggerSpaceAfterCommand = new List<Tokenizer.TokenTag>
             {
                 new Tokenizer.TokenTag { BufferPosition = 0, Context = "        ", EndColumn = 8, Line = 4, StartColumn = 0, Type = RTextTokenTypes.Space },
@@ -124,19 +105,14 @@ AUTOSAR {
             Assert.AreEqual((LastLineLength - lengthToEndOfCurrentLine) + 1, c.ContextColumn);
             Assert.AreEqual(ContextLinesSample.Count(), c.ContextList.Count());
             Assert.IsTrue(c.ContextList.SequenceEqual(ContextLinesSample));
-
             var nppMock = new Mock<INpp>();
-
             //mock last line
             nppMock.Setup(m => m.GetLine(It.IsAny<int>())).Returns(ContextLinesSample.Last() + "\n");
-
             nppMock.Setup(m => m.GetLine(It.Is<int>(i => i == 4))).Returns(ContextLinesSample.Last() + "\n");
             nppMock.Setup(m => m.GetLine(It.Is<int>(i => i != 4))).Returns(ContextLinesSample[3] + "\n");
             //for the sake of simplicity we assume that offset is 0
             nppMock.Setup(m => m.GetLineStart(It.Is<int>(i => i == 4))).Returns(0);
-
             AutoCompletionTokenizer aTokenizer = new AutoCompletionTokenizer(4, caretPosition, nppMock.Object);
-
             Assert.IsTrue(aTokenizer.LineTokens.Count() == 3);
             Assert.IsTrue(aTokenizer.LineTokens.SequenceEqual(expectedTokensTriggerSpaceAfterCommand));
             Assert.IsTrue(aTokenizer.TriggerToken.HasValue);
@@ -148,13 +124,12 @@ AUTOSAR {
             Assert.AreEqual(aTokenizer.TriggerToken.Value.Line, 4);
             Assert.AreEqual(aTokenizer.TriggerToken.Value.Type, RTextTokenTypes.Space);
         }
-
         List<Tokenizer.TokenTag> expectedTokensTriggerIdentifier = new List<Tokenizer.TokenTag>
             {
                 new Tokenizer.TokenTag { BufferPosition = 0, Context = "        ", EndColumn = 8, Line = 4, StartColumn = 0, Type = RTextTokenTypes.Space },
                 new Tokenizer.TokenTag { BufferPosition = 8, Context = "CalprmElementPrototype", EndColumn = 30, Line = 4, StartColumn = 8, Type = RTextTokenTypes.Command },
                 new Tokenizer.TokenTag { BufferPosition = 30, Context = " ", EndColumn = 31, Line = 4, StartColumn = 30, Type = RTextTokenTypes.Space },
-                new Tokenizer.TokenTag { BufferPosition = 31, Context = "cpCahEnableTagePassenger", EndColumn = 55, Line = 4, StartColumn = 31, Type = RTextTokenTypes.RTextName }
+                new Tokenizer.TokenTag { BufferPosition = 31, Context = "cpCahEnableTagePassenger", EndColumn = 55, Line = 4, StartColumn = 31, Type = RTextTokenTypes.Identifier }
             };
         [Test, Combinatorial]
         public void AutoCompletionTokenizerTriggerIdentifier([Values(ContextExtractionSampleInput)] string input,
@@ -166,19 +141,14 @@ AUTOSAR {
             Assert.AreEqual((LastLineLength - lengthToEndOfCurrentLine) + 1, c.ContextColumn);
             Assert.AreEqual(ContextLinesSample.Count(), c.ContextList.Count());
             Assert.IsTrue(c.ContextList.SequenceEqual(ContextLinesSample));
-
             var nppMock = new Mock<INpp>();
-
             //mock last line
             nppMock.Setup(m => m.GetLine(It.IsAny<int>())).Returns(ContextLinesSample.Last() + "\n");
-
             nppMock.Setup(m => m.GetLine(It.Is<int>(i => i == 4))).Returns(ContextLinesSample.Last() + "\n");
             nppMock.Setup(m => m.GetLine(It.Is<int>(i => i != 4))).Returns(ContextLinesSample[3] + "\n");
             //for the sake of simplicity we assume that offset is 0
             nppMock.Setup(m => m.GetLineStart(It.Is<int>(i => i == 4))).Returns(0);
-
             AutoCompletionTokenizer aTokenizer = new AutoCompletionTokenizer(4, caretPosition, nppMock.Object);
-
             Assert.IsTrue(aTokenizer.LineTokens.Count() == 4);
             Assert.IsTrue(aTokenizer.LineTokens.SequenceEqual(expectedTokensTriggerIdentifier));
             Assert.IsTrue(aTokenizer.TriggerToken.HasValue);
@@ -188,15 +158,14 @@ AUTOSAR {
             //buffer position is with start column because offset is 0
             Assert.AreEqual(aTokenizer.TriggerToken.Value.BufferPosition, 31);
             Assert.AreEqual(aTokenizer.TriggerToken.Value.Line, 4);
-            Assert.AreEqual(aTokenizer.TriggerToken.Value.Type, RTextTokenTypes.RTextName);
+            Assert.AreEqual(aTokenizer.TriggerToken.Value.Type, RTextTokenTypes.Identifier);
         }
-
         List<Tokenizer.TokenTag> expectedTokensTriggerComma = new List<Tokenizer.TokenTag>
             {
                 new Tokenizer.TokenTag { BufferPosition = 0, Context = "        ", EndColumn = 8, Line = 4, StartColumn = 0, Type = RTextTokenTypes.Space },
                 new Tokenizer.TokenTag { BufferPosition = 8, Context = "CalprmElementPrototype", EndColumn = 30, Line = 4, StartColumn = 8, Type = RTextTokenTypes.Command },
                 new Tokenizer.TokenTag { BufferPosition = 30, Context = " ", EndColumn = 31, Line = 4, StartColumn = 30, Type = RTextTokenTypes.Space },
-                new Tokenizer.TokenTag { BufferPosition = 31, Context = "cpCahEnableTagePassenger", EndColumn = 55, Line = 4, StartColumn = 31, Type = RTextTokenTypes.RTextName },
+                new Tokenizer.TokenTag { BufferPosition = 31, Context = "cpCahEnableTagePassenger", EndColumn = 55, Line = 4, StartColumn = 31, Type = RTextTokenTypes.Identifier },
                 new Tokenizer.TokenTag { BufferPosition = 55, Context = ",", EndColumn = 56, Line = 4, StartColumn = 55, Type = RTextTokenTypes.Comma }
             };
         [Test, Combinatorial]
@@ -209,19 +178,14 @@ AUTOSAR {
             Assert.AreEqual((LastLineLength - lengthToEndOfCurrentLine) + 1, c.ContextColumn);
             Assert.AreEqual(ContextLinesSample.Count(), c.ContextList.Count());
             Assert.IsTrue(c.ContextList.SequenceEqual(ContextLinesSample));
-
             var nppMock = new Mock<INpp>();
-
             //mock last line
             nppMock.Setup(m => m.GetLine(It.IsAny<int>())).Returns(ContextLinesSample.Last() + "\n");
-
             nppMock.Setup(m => m.GetLine(It.Is<int>(i => i == 4))).Returns(ContextLinesSample.Last() + "\n");
             nppMock.Setup(m => m.GetLine(It.Is<int>(i => i != 4))).Returns(ContextLinesSample[3] + "\n");
             //for the sake of simplicity we assume that offset is 0
             nppMock.Setup(m => m.GetLineStart(It.Is<int>(i => i == 4))).Returns(0);
-
             AutoCompletionTokenizer aTokenizer = new AutoCompletionTokenizer(4, caretPosition, nppMock.Object);
-
             Assert.IsTrue(aTokenizer.LineTokens.Count() == 5);
             Assert.IsTrue(aTokenizer.LineTokens.SequenceEqual(expectedTokensTriggerComma));
             Assert.IsTrue(aTokenizer.TriggerToken.HasValue);
@@ -233,14 +197,12 @@ AUTOSAR {
             Assert.AreEqual(aTokenizer.TriggerToken.Value.Line, 4);
             Assert.AreEqual(aTokenizer.TriggerToken.Value.Type, RTextTokenTypes.Comma);
         }
-
-
         List<Tokenizer.TokenTag> expectedTokensTriggerSpaceAfterComma = new List<Tokenizer.TokenTag>
             {
                 new Tokenizer.TokenTag { BufferPosition = 0, Context = "        ", EndColumn = 8, Line = 4, StartColumn = 0, Type = RTextTokenTypes.Space },
                 new Tokenizer.TokenTag { BufferPosition = 8, Context = "CalprmElementPrototype", EndColumn = 30, Line = 4, StartColumn = 8, Type = RTextTokenTypes.Command },
                 new Tokenizer.TokenTag { BufferPosition = 30, Context = " ", EndColumn = 31, Line = 4, StartColumn = 30, Type = RTextTokenTypes.Space },
-                new Tokenizer.TokenTag { BufferPosition = 31, Context = "cpCahEnableTagePassenger", EndColumn = 55, Line = 4, StartColumn = 31, Type = RTextTokenTypes.RTextName },
+                new Tokenizer.TokenTag { BufferPosition = 31, Context = "cpCahEnableTagePassenger", EndColumn = 55, Line = 4, StartColumn = 31, Type = RTextTokenTypes.Identifier },
                 new Tokenizer.TokenTag { BufferPosition = 55, Context = ",", EndColumn = 56, Line = 4, StartColumn = 55, Type = RTextTokenTypes.Comma },
                 new Tokenizer.TokenTag { BufferPosition = 56, Context = " ", EndColumn = 57, Line = 4, StartColumn = 56, Type = RTextTokenTypes.Space }
             };
@@ -254,19 +216,14 @@ AUTOSAR {
             Assert.AreEqual((LastLineLength - lengthToEndOfCurrentLine) + 1, c.ContextColumn);
             Assert.AreEqual(ContextLinesSample.Count(), c.ContextList.Count());
             Assert.IsTrue(c.ContextList.SequenceEqual(ContextLinesSample));
-
             var nppMock = new Mock<INpp>();
-
             //mock last line
             nppMock.Setup(m => m.GetLine(It.IsAny<int>())).Returns(ContextLinesSample.Last() + "\n");
-
             nppMock.Setup(m => m.GetLine(It.Is<int>(i => i == 4))).Returns(ContextLinesSample.Last() + "\n");
             nppMock.Setup(m => m.GetLine(It.Is<int>(i => i != 4))).Returns(ContextLinesSample[3] + "\n");
             //for the sake of simplicity we assume that offset is 0
             nppMock.Setup(m => m.GetLineStart(It.Is<int>(i => i == 4))).Returns(0);
-
             AutoCompletionTokenizer aTokenizer = new AutoCompletionTokenizer(4, caretPosition, nppMock.Object);
-
             Assert.IsTrue(aTokenizer.LineTokens.Count() == 6);
             Assert.IsTrue(aTokenizer.LineTokens.SequenceEqual(expectedTokensTriggerSpaceAfterComma));
             Assert.IsTrue(aTokenizer.TriggerToken.HasValue);
@@ -278,13 +235,12 @@ AUTOSAR {
             Assert.AreEqual(aTokenizer.TriggerToken.Value.Line, 4);
             Assert.AreEqual(aTokenizer.TriggerToken.Value.Type, RTextTokenTypes.Space);
         }
-
         List<Tokenizer.TokenTag> expectedTokensTriggerLabel = new List<Tokenizer.TokenTag>
             {
                 new Tokenizer.TokenTag { BufferPosition = 0, Context = "        ", EndColumn = 8, Line = 4, StartColumn = 0, Type = RTextTokenTypes.Space },
                 new Tokenizer.TokenTag { BufferPosition = 8, Context = "CalprmElementPrototype", EndColumn = 30, Line = 4, StartColumn = 8, Type = RTextTokenTypes.Command },
                 new Tokenizer.TokenTag { BufferPosition = 30, Context = " ", EndColumn = 31, Line = 4, StartColumn = 30, Type = RTextTokenTypes.Space },
-                new Tokenizer.TokenTag { BufferPosition = 31, Context = "cpCahEnableTagePassenger", EndColumn = 55, Line = 4, StartColumn = 31, Type = RTextTokenTypes.RTextName },
+                new Tokenizer.TokenTag { BufferPosition = 31, Context = "cpCahEnableTagePassenger", EndColumn = 55, Line = 4, StartColumn = 31, Type = RTextTokenTypes.Identifier },
                 new Tokenizer.TokenTag { BufferPosition = 55, Context = ",", EndColumn = 56, Line = 4, StartColumn = 55, Type = RTextTokenTypes.Comma },
                 new Tokenizer.TokenTag { BufferPosition = 56, Context = " ", EndColumn = 57, Line = 4, StartColumn = 56, Type = RTextTokenTypes.Space },
                 new Tokenizer.TokenTag { BufferPosition = 57, Context = "type:", EndColumn = 62, Line = 4, StartColumn = 57, Type = RTextTokenTypes.Label }
@@ -299,19 +255,14 @@ AUTOSAR {
             Assert.AreEqual((LastLineLength - lengthToEndOfCurrentLine) + 1, c.ContextColumn);
             Assert.AreEqual(ContextLinesSample.Count(), c.ContextList.Count());
             Assert.IsTrue(c.ContextList.SequenceEqual(ContextLinesSample));
-
             var nppMock = new Mock<INpp>();
-
             //mock last line
             nppMock.Setup(m => m.GetLine(It.IsAny<int>())).Returns(ContextLinesSample.Last() + "\n");
-
             nppMock.Setup(m => m.GetLine(It.Is<int>(i => i == 4))).Returns(ContextLinesSample.Last() + "\n");
             nppMock.Setup(m => m.GetLine(It.Is<int>(i => i != 4))).Returns(ContextLinesSample[3] + "\n");
             //for the sake of simplicity we assume that offset is 0
             nppMock.Setup(m => m.GetLineStart(It.Is<int>(i => i == 4))).Returns(0);
-
             AutoCompletionTokenizer aTokenizer = new AutoCompletionTokenizer(4, caretPosition, nppMock.Object);
-
             Assert.IsTrue(aTokenizer.LineTokens.Count() == 7);
             Assert.IsTrue(aTokenizer.LineTokens.SequenceEqual(expectedTokensTriggerLabel));
             Assert.IsTrue(aTokenizer.TriggerToken.HasValue);
@@ -323,14 +274,12 @@ AUTOSAR {
             Assert.AreEqual(aTokenizer.TriggerToken.Value.Line, 4);
             Assert.AreEqual(aTokenizer.TriggerToken.Value.Type, RTextTokenTypes.Label);
         }
-
-
         List<Tokenizer.TokenTag> expectedTokensTriggerSpaceAfterLabel = new List<Tokenizer.TokenTag>
             {
                 new Tokenizer.TokenTag { BufferPosition = 0, Context = "        ", EndColumn = 8, Line = 4, StartColumn = 0, Type = RTextTokenTypes.Space },
                 new Tokenizer.TokenTag { BufferPosition = 8, Context = "CalprmElementPrototype", EndColumn = 30, Line = 4, StartColumn = 8, Type = RTextTokenTypes.Command },
                 new Tokenizer.TokenTag { BufferPosition = 30, Context = " ", EndColumn = 31, Line = 4, StartColumn = 30, Type = RTextTokenTypes.Space },
-                new Tokenizer.TokenTag { BufferPosition = 31, Context = "cpCahEnableTagePassenger", EndColumn = 55, Line = 4, StartColumn = 31, Type = RTextTokenTypes.RTextName },
+                new Tokenizer.TokenTag { BufferPosition = 31, Context = "cpCahEnableTagePassenger", EndColumn = 55, Line = 4, StartColumn = 31, Type = RTextTokenTypes.Identifier },
                 new Tokenizer.TokenTag { BufferPosition = 55, Context = ",", EndColumn = 56, Line = 4, StartColumn = 55, Type = RTextTokenTypes.Comma },
                 new Tokenizer.TokenTag { BufferPosition = 56, Context = " ", EndColumn = 57, Line = 4, StartColumn = 56, Type = RTextTokenTypes.Space },
                 new Tokenizer.TokenTag { BufferPosition = 57, Context = "type:", EndColumn = 62, Line = 4, StartColumn = 57, Type = RTextTokenTypes.Label },
@@ -346,19 +295,14 @@ AUTOSAR {
             Assert.AreEqual((LastLineLength - lengthToEndOfCurrentLine) + 1, c.ContextColumn);
             Assert.AreEqual(ContextLinesSample.Count(), c.ContextList.Count());
             Assert.IsTrue(c.ContextList.SequenceEqual(ContextLinesSample));
-
             var nppMock = new Mock<INpp>();
-
             //mock last line
             nppMock.Setup(m => m.GetLine(It.IsAny<int>())).Returns(ContextLinesSample.Last() + "\n");
-
             nppMock.Setup(m => m.GetLine(It.Is<int>(i => i == 4))).Returns(ContextLinesSample.Last() + "\n");
             nppMock.Setup(m => m.GetLine(It.Is<int>(i => i != 4))).Returns(ContextLinesSample[3] + "\n");
             //for the sake of simplicity we assume that offset is 0
             nppMock.Setup(m => m.GetLineStart(It.Is<int>(i => i == 4))).Returns(0);
-
             AutoCompletionTokenizer aTokenizer = new AutoCompletionTokenizer(4, caretPosition, nppMock.Object);
-
             Assert.IsTrue(aTokenizer.LineTokens.Count() == 8);
             Assert.IsTrue(aTokenizer.LineTokens.SequenceEqual(expectedTokensTriggerSpaceAfterLabel));
             Assert.IsTrue(aTokenizer.TriggerToken.HasValue);
@@ -370,14 +314,12 @@ AUTOSAR {
             Assert.AreEqual(aTokenizer.TriggerToken.Value.Line, 4);
             Assert.AreEqual(aTokenizer.TriggerToken.Value.Type, RTextTokenTypes.Space);
         }
-
-
         List<Tokenizer.TokenTag> expectedTokensTriggerReference = new List<Tokenizer.TokenTag>
             {
                 new Tokenizer.TokenTag { BufferPosition = 0, Context = "        ", EndColumn = 8, Line = 4, StartColumn = 0, Type = RTextTokenTypes.Space },
                 new Tokenizer.TokenTag { BufferPosition = 8, Context = "CalprmElementPrototype", EndColumn = 30, Line = 4, StartColumn = 8, Type = RTextTokenTypes.Command },
                 new Tokenizer.TokenTag { BufferPosition = 30, Context = " ", EndColumn = 31, Line = 4, StartColumn = 30, Type = RTextTokenTypes.Space },
-                new Tokenizer.TokenTag { BufferPosition = 31, Context = "cpCahEnableTagePassenger", EndColumn = 55, Line = 4, StartColumn = 31, Type = RTextTokenTypes.RTextName },
+                new Tokenizer.TokenTag { BufferPosition = 31, Context = "cpCahEnableTagePassenger", EndColumn = 55, Line = 4, StartColumn = 31, Type = RTextTokenTypes.Identifier },
                 new Tokenizer.TokenTag { BufferPosition = 55, Context = ",", EndColumn = 56, Line = 4, StartColumn = 55, Type = RTextTokenTypes.Comma },
                 new Tokenizer.TokenTag { BufferPosition = 56, Context = " ", EndColumn = 57, Line = 4, StartColumn = 56, Type = RTextTokenTypes.Space },
                 new Tokenizer.TokenTag { BufferPosition = 57, Context = "type:", EndColumn = 62, Line = 4, StartColumn = 57, Type = RTextTokenTypes.Label },
@@ -394,19 +336,14 @@ AUTOSAR {
             Assert.AreEqual((LastLineLength - lengthToEndOfCurrentLine) + 1, c.ContextColumn);
             Assert.AreEqual(ContextLinesSample.Count(), c.ContextList.Count());
             Assert.IsTrue(c.ContextList.SequenceEqual(ContextLinesSample));
-
             var nppMock = new Mock<INpp>();
-
             //mock last line
             nppMock.Setup(m => m.GetLine(It.IsAny<int>())).Returns(ContextLinesSample.Last() + "\n");
-
             nppMock.Setup(m => m.GetLine(It.Is<int>(i => i == 4))).Returns(ContextLinesSample.Last() + "\n");
             nppMock.Setup(m => m.GetLine(It.Is<int>(i => i != 4))).Returns(ContextLinesSample[3] + "\n");
             //for the sake of simplicity we assume that offset is 0
             nppMock.Setup(m => m.GetLineStart(It.Is<int>(i => i == 4))).Returns(0);
-
             AutoCompletionTokenizer aTokenizer = new AutoCompletionTokenizer(4, caretPosition, nppMock.Object);
-
             Assert.IsTrue(aTokenizer.LineTokens.Count() == 9);
             Assert.IsTrue(aTokenizer.LineTokens.SequenceEqual(expectedTokensTriggerReference));
             Assert.IsTrue(aTokenizer.TriggerToken.HasValue);
@@ -418,13 +355,12 @@ AUTOSAR {
             Assert.AreEqual(aTokenizer.TriggerToken.Value.Line, 4);
             Assert.AreEqual(aTokenizer.TriggerToken.Value.Type, RTextTokenTypes.Reference);
         }
-
         List<Tokenizer.TokenTag> expectedTokensTriggerSpaceAfterReference = new List<Tokenizer.TokenTag>
             {
                 new Tokenizer.TokenTag { BufferPosition = 0, Context = "        ", EndColumn = 8, Line = 4, StartColumn = 0, Type = RTextTokenTypes.Space },
                 new Tokenizer.TokenTag { BufferPosition = 8, Context = "CalprmElementPrototype", EndColumn = 30, Line = 4, StartColumn = 8, Type = RTextTokenTypes.Command },
                 new Tokenizer.TokenTag { BufferPosition = 30, Context = " ", EndColumn = 31, Line = 4, StartColumn = 30, Type = RTextTokenTypes.Space },
-                new Tokenizer.TokenTag { BufferPosition = 31, Context = "cpCahEnableTagePassenger", EndColumn = 55, Line = 4, StartColumn = 31, Type = RTextTokenTypes.RTextName },
+                new Tokenizer.TokenTag { BufferPosition = 31, Context = "cpCahEnableTagePassenger", EndColumn = 55, Line = 4, StartColumn = 31, Type = RTextTokenTypes.Identifier },
                 new Tokenizer.TokenTag { BufferPosition = 55, Context = ",", EndColumn = 56, Line = 4, StartColumn = 55, Type = RTextTokenTypes.Comma },
                 new Tokenizer.TokenTag { BufferPosition = 56, Context = " ", EndColumn = 57, Line = 4, StartColumn = 56, Type = RTextTokenTypes.Space },
                 new Tokenizer.TokenTag { BufferPosition = 57, Context = "type:", EndColumn = 62, Line = 4, StartColumn = 57, Type = RTextTokenTypes.Label },
@@ -432,7 +368,6 @@ AUTOSAR {
                 new Tokenizer.TokenTag { BufferPosition = 63, Context = "/AUTOSAR/DataTypes/Boolean", EndColumn = 89, Line = 4, StartColumn = 63, Type = RTextTokenTypes.Reference },
                 new Tokenizer.TokenTag { BufferPosition = 89, Context = " ", EndColumn = 90, Line = 4, StartColumn = 89, Type = RTextTokenTypes.Space }
             };
-
         [Test, Combinatorial]
         public void AutoCompletionTokenizerTriggerSpaceAfterReference([Values(ContextExtractionSampleInput)] string input,
                                                                       [Values(LastLineLength)] int lengthToEndOfCurrentLine,
@@ -443,19 +378,14 @@ AUTOSAR {
             Assert.AreEqual((LastLineLength - lengthToEndOfCurrentLine) + 1, c.ContextColumn);
             Assert.AreEqual(ContextLinesSample.Count(), c.ContextList.Count());
             Assert.IsTrue(c.ContextList.SequenceEqual(ContextLinesSample));
-
             var nppMock = new Mock<INpp>();
-
             //mock last line
             nppMock.Setup(m => m.GetLine(It.IsAny<int>())).Returns(ContextLinesSample.Last() + "\n");
-
             nppMock.Setup(m => m.GetLine(It.Is<int>(i => i == 4))).Returns(ContextLinesSample.Last() + "\n");
             nppMock.Setup(m => m.GetLine(It.Is<int>(i => i != 4))).Returns(ContextLinesSample[3] + "\n");
             //for the sake of simplicity we assume that offset is 0
             nppMock.Setup(m => m.GetLineStart(It.Is<int>(i => i == 4))).Returns(0);
-
             AutoCompletionTokenizer aTokenizer = new AutoCompletionTokenizer(4, caretPosition, nppMock.Object);
-
             Assert.IsTrue(aTokenizer.LineTokens.Count() == 10);
             Assert.IsTrue(aTokenizer.LineTokens.SequenceEqual(expectedTokensTriggerSpaceAfterReference));
             Assert.IsTrue(aTokenizer.TriggerToken.HasValue);
@@ -467,13 +397,12 @@ AUTOSAR {
             Assert.AreEqual(aTokenizer.TriggerToken.Value.Line, 4);
             Assert.AreEqual(aTokenizer.TriggerToken.Value.Type, RTextTokenTypes.Space);
         }
-
         List<Tokenizer.TokenTag> expectedTokensTriggerLeftAngleBracket = new List<Tokenizer.TokenTag>
             {
                 new Tokenizer.TokenTag { BufferPosition = 0, Context = "        ", EndColumn = 8, Line = 4, StartColumn = 0, Type = RTextTokenTypes.Space },
                 new Tokenizer.TokenTag { BufferPosition = 8, Context = "CalprmElementPrototype", EndColumn = 30, Line = 4, StartColumn = 8, Type = RTextTokenTypes.Command },
                 new Tokenizer.TokenTag { BufferPosition = 30, Context = " ", EndColumn = 31, Line = 4, StartColumn = 30, Type = RTextTokenTypes.Space },
-                new Tokenizer.TokenTag { BufferPosition = 31, Context = "cpCahEnableTagePassenger", EndColumn = 55, Line = 4, StartColumn = 31, Type = RTextTokenTypes.RTextName },
+                new Tokenizer.TokenTag { BufferPosition = 31, Context = "cpCahEnableTagePassenger", EndColumn = 55, Line = 4, StartColumn = 31, Type = RTextTokenTypes.Identifier },
                 new Tokenizer.TokenTag { BufferPosition = 55, Context = ",", EndColumn = 56, Line = 4, StartColumn = 55, Type = RTextTokenTypes.Comma },
                 new Tokenizer.TokenTag { BufferPosition = 56, Context = " ", EndColumn = 57, Line = 4, StartColumn = 56, Type = RTextTokenTypes.Space },
                 new Tokenizer.TokenTag { BufferPosition = 57, Context = "type:", EndColumn = 62, Line = 4, StartColumn = 57, Type = RTextTokenTypes.Label },
@@ -482,7 +411,6 @@ AUTOSAR {
                 new Tokenizer.TokenTag { BufferPosition = 89, Context = " ", EndColumn = 90, Line = 4, StartColumn = 89, Type = RTextTokenTypes.Space },
                 new Tokenizer.TokenTag { BufferPosition = 90, Context = "{", EndColumn = 91, Line = 4, StartColumn = 90, Type = RTextTokenTypes.LeftAngleBrakcet }
             };
-
         [Test, Combinatorial]
         public void AutoCompletionTokenizerTriggerLeftAngleBracket([Values(ContextExtractionSampleInput)] string input,
                                                                    [Values(LastLineLength)] int lengthToEndOfCurrentLine,
@@ -493,30 +421,24 @@ AUTOSAR {
             Assert.AreEqual((LastLineLength - lengthToEndOfCurrentLine) + 1, c.ContextColumn);
             Assert.AreEqual(ContextLinesSample.Count(), c.ContextList.Count());
             Assert.IsTrue(c.ContextList.SequenceEqual(ContextLinesSample));
-
             var nppMock = new Mock<INpp>();
-
             //mock last line
             nppMock.Setup(m => m.GetLine(It.IsAny<int>())).Returns(ContextLinesSample.Last() + "\n");
-
             nppMock.Setup(m => m.GetLine(It.Is<int>(i => i == 4))).Returns(ContextLinesSample.Last() + "\n");
             nppMock.Setup(m => m.GetLine(It.Is<int>(i => i != 4))).Returns(ContextLinesSample[3] + "\n");
             //for the sake of simplicity we assume that offset is 0
             nppMock.Setup(m => m.GetLineStart(It.Is<int>(i => i == 4))).Returns(0);
-
             AutoCompletionTokenizer aTokenizer = new AutoCompletionTokenizer(4, caretPosition, nppMock.Object);
-
             Assert.IsTrue(aTokenizer.LineTokens.Count() == 11);
             Assert.IsTrue(aTokenizer.LineTokens.SequenceEqual(expectedTokensTriggerLeftAngleBracket));
             Assert.IsTrue(aTokenizer.TriggerToken.HasValue == false);
         }
-
         List<Tokenizer.TokenTag> expectedTokensTriggerNewLine = new List<Tokenizer.TokenTag>
             {
                 new Tokenizer.TokenTag { BufferPosition = 0, Context = "        ", EndColumn = 8, Line = 4, StartColumn = 0, Type = RTextTokenTypes.Space },
                 new Tokenizer.TokenTag { BufferPosition = 8, Context = "CalprmElementPrototype", EndColumn = 30, Line = 4, StartColumn = 8, Type = RTextTokenTypes.Command },
                 new Tokenizer.TokenTag { BufferPosition = 30, Context = " ", EndColumn = 31, Line = 4, StartColumn = 30, Type = RTextTokenTypes.Space },
-                new Tokenizer.TokenTag { BufferPosition = 31, Context = "cpCahEnableTagePassenger", EndColumn = 55, Line = 4, StartColumn = 31, Type = RTextTokenTypes.RTextName },
+                new Tokenizer.TokenTag { BufferPosition = 31, Context = "cpCahEnableTagePassenger", EndColumn = 55, Line = 4, StartColumn = 31, Type = RTextTokenTypes.Identifier },
                 new Tokenizer.TokenTag { BufferPosition = 55, Context = ",", EndColumn = 56, Line = 4, StartColumn = 55, Type = RTextTokenTypes.Comma },
                 new Tokenizer.TokenTag { BufferPosition = 56, Context = " ", EndColumn = 57, Line = 4, StartColumn = 56, Type = RTextTokenTypes.Space },
                 new Tokenizer.TokenTag { BufferPosition = 57, Context = "type:", EndColumn = 62, Line = 4, StartColumn = 57, Type = RTextTokenTypes.Label },
@@ -526,7 +448,6 @@ AUTOSAR {
                 new Tokenizer.TokenTag { BufferPosition = 90, Context = "{", EndColumn = 91, Line = 4, StartColumn = 90, Type = RTextTokenTypes.LeftAngleBrakcet },
                 new Tokenizer.TokenTag { BufferPosition = 91, Context = "\n", EndColumn = 92, Line = 4, StartColumn = 91, Type = RTextTokenTypes.NewLine }
             };
-
         [Test, Combinatorial]
         public void AutoCompletionTokenizerTriggerNewLine([Values(ContextExtractionSampleInput)] string input,
                                                           [Values(LastLineLength)] int lengthToEndOfCurrentLine,
@@ -537,24 +458,18 @@ AUTOSAR {
             Assert.AreEqual((LastLineLength - lengthToEndOfCurrentLine) + 1, c.ContextColumn);
             Assert.AreEqual(ContextLinesSample.Count(), c.ContextList.Count());
             Assert.IsTrue(c.ContextList.SequenceEqual(ContextLinesSample));
-
             var nppMock = new Mock<INpp>();
-
             //mock last line
             nppMock.Setup(m => m.GetLine(It.IsAny<int>())).Returns(ContextLinesSample.Last() + "\n");
-
             nppMock.Setup(m => m.GetLine(It.Is<int>(i => i == 4))).Returns(ContextLinesSample.Last() + "\n");
             nppMock.Setup(m => m.GetLine(It.Is<int>(i => i != 4))).Returns(ContextLinesSample[3] + "\n");
             //for the sake of simplicity we assume that offset is 0
             nppMock.Setup(m => m.GetLineStart(It.Is<int>(i => i == 4))).Returns(0);
-
             AutoCompletionTokenizer aTokenizer = new AutoCompletionTokenizer(4, caretPosition, nppMock.Object);
-
             Assert.IsTrue(aTokenizer.LineTokens.Count() == 12);
             Assert.IsTrue(aTokenizer.LineTokens.SequenceEqual(expectedTokensTriggerNewLine));
-            Assert.IsTrue(aTokenizer.TriggerToken.HasValue == false);
+            Assert.IsTrue(aTokenizer.TriggerToken.HasValue == true);
         }
-
         [Test, Combinatorial]
         public void AutoCompletionTokenizerTriggerBufferPositionOutOfScope([Values(ContextExtractionSampleInput)] string input,
                                                                            [Values(LastLineLength)] int lengthToEndOfCurrentLine,
@@ -565,19 +480,14 @@ AUTOSAR {
             Assert.AreEqual((LastLineLength - lengthToEndOfCurrentLine) + 1, c.ContextColumn);
             Assert.AreEqual(ContextLinesSample.Count(), c.ContextList.Count());
             Assert.IsTrue(c.ContextList.SequenceEqual(ContextLinesSample));
-
             var nppMock = new Mock<INpp>();
-
             //mock last line
             nppMock.Setup(m => m.GetLine(It.IsAny<int>())).Returns(ContextLinesSample.Last() + "\n");
-
             nppMock.Setup(m => m.GetLine(It.Is<int>(i => i == 4))).Returns(ContextLinesSample.Last() + "\n");
             nppMock.Setup(m => m.GetLine(It.Is<int>(i => i != 4))).Returns(ContextLinesSample[3] + "\n");
             //for the sake of simplicity we assume that offset is 0
             nppMock.Setup(m => m.GetLineStart(It.Is<int>(i => i == 4))).Returns(0);
-
             AutoCompletionTokenizer aTokenizer = new AutoCompletionTokenizer(4, caretPosition, nppMock.Object);
-
             Assert.IsTrue(aTokenizer.LineTokens.Count() == 12);
             Assert.IsTrue(aTokenizer.LineTokens.SequenceEqual(expectedTokensTriggerNewLine));
             Assert.IsTrue(aTokenizer.TriggerToken.HasValue == false);

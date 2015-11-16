@@ -1,19 +1,22 @@
 ﻿<UserControl x:Class="RTextNppPlugin.WpfControls.ConsoleOutput"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:viewModels="clr-namespace:RTextNppPlugin.ViewModels"
-             xmlns:wpfControls="clr-namespace:RTextNppPlugin.WpfControls"                        
+             xmlns:wpfControls="clr-namespace:RTextNppPlugin.WpfControls"
              xmlns:converters="clr-namespace:RTextNppPlugin.WpfControls.Converters"
              xmlns:uc="clr-namespace:LedControl;assembly=LedControl"
-             mc:Ignorable="d" 
-             d:DesignHeight="300" d:DesignWidth="300">      
+             xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
+             xmlns:utilities="clr-namespace:RTextNppPlugin.Utilities"
+             xmlns:behaviors="clr-namespace:RTextNppPlugin.WpfControls.Behaviors"
+             mc:Ignorable="d"
+             d:DesignHeight="300" d:DesignWidth="300">
     <UserControl.Resources>
         <ResourceDictionary>
             <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
             <converters:PercentageConverter x:Key="PercentageConverter"/>
-            <converters:CommandConverter x:Key="AutomateCommandConverter"/>
+            <converters:CommandConverter x:Key="RTextCommandConverter"/>
             <converters:ProgressLabelSizeConverter x:Key="ProgressLabelConverter"/>
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="Styles.xaml"/>
@@ -28,8 +31,8 @@
                         IsHitTestVisible="True"
                         Background="Transparent">
                 <Label>Output channel : </Label>
-                <ComboBox Name="WorkspaceSelector" 
-                          HorizontalAlignment="Stretch" 
+                <ComboBox Name="WorkspaceSelector"
+                          HorizontalAlignment="Stretch"
                           MinWidth="100"
                           IsReadOnly="True"
                           SelectedValue="Workspace"
@@ -41,28 +44,28 @@
                         DockPanel.Dock="Bottom"
                         Style="{StaticResource Workspace_FadeInFadeOutStyle}">
                 <Label>Backend Status : </Label>
-                <uc:Led Height="17" 
-                        FlashingPeriod="300" 
+                <uc:Led Height="17"
+                        FlashingPeriod="300"
                         IsActive="{Binding IsActive, Mode=OneWay}"
-                        ColorOn="Green" 
-                        ColorOff="Red" 
+                        ColorOn="Green"
+                        ColorOff="Red"
                         ColorBusy="Orange"
                         Flashing="{Binding IsBusy, Mode=OneWay}"/>
                 <Label Content="Status: "/>
-                <Label Content="{Binding ActiveCommand, Converter={StaticResource AutomateCommandConverter}}"/>
+                <Label Content="{Binding ActiveCommand, Converter={StaticResource RTextCommandConverter}}"/>
             </StackPanel>
             <Grid HorizontalAlignment="Stretch"
                   VerticalAlignment="Stretch"
                   DockPanel.Dock="Top"
                   x:Name="WorkspaceGrid"
                   SizeChanged="OnWorkspaceGridSizeChanged">
-                <TabControl IsHitTestVisible="True" 
-                            x:Name="OutputTabControl"                            
+                <TabControl IsHitTestVisible="True"
+                            x:Name="OutputTabControl"
                             Style="{StaticResource IsLoading_FadeInFadeOutStyle60PercentInverse}"
                             Background="Transparent">
                     <TabItem Name="Console" IsHitTestVisible="True" Background="Transparent">
                         <TabItem.Header>
-                            <Label IsHitTestVisible="True" 
+                            <Label IsHitTestVisible="True"
                                    Style="{StaticResource LabelNoPaddingStyle}"
                                    PreviewMouseDown="ConsolePreviewMouseDown">Console</Label>
                         </TabItem.Header>
@@ -70,10 +73,10 @@
                                         HorizontalScrollBarVisibility="Visible"
                                         HorizontalAlignment="Stretch"
                                         VerticalAlignment="Stretch"
-                                        IsUndoEnabled="False"                     
-                                        AllowDrop="False"                     
-                                        Background="Black"                                 
-                                        Name="ConsoleViewRichTextBox"                  
+                                        IsUndoEnabled="False"
+                                        AllowDrop="False"
+                                        Background="Black"
+                                        Name="ConsoleViewRichTextBox"
                                         IsReadOnly="True">
                             <wpfControls:ConsoleFlowDocument Channel="{Binding Workspace}"/>
                         </RichTextBox>
@@ -83,10 +86,233 @@
                              Style="{StaticResource Workspace_FadeInFadeOutStyle}"
                              Background="Transparent">
                         <TabItem.Header>
-                            <Label IsHitTestVisible="True"
-                                   Style="{StaticResource LabelNoPaddingStyle}"
-                                   PreviewMouseDown="ErrorListPreviewMouseDown">Errors</Label>
+                            <StackPanel Orientation="Horizontal">
+                                <Border BorderThickness="0 0 0 0" Style="{StaticResource ResourceKey=BorderErrorCollapseAtPositiveCountStyle}">
+                                    <StackPanel Orientation="Horizontal">
+                                        <Label IsHitTestVisible="True"
+                                               Style="{StaticResource LabelNoPaddingStyle}"
+                                               PreviewMouseDown="ErrorListPreviewMouseDown">No errors.</Label>
+                                        <Image Source="/RTextNpp;Component/Resources/ModelNoErrors.png" Height="16" Width="16" Margin="5 0 0 0"/>
+                                    </StackPanel>
+                                </Border>
+                                <Border BorderThickness="0 0 0 0" Style="{StaticResource ResourceKey=BorderErrorCollapseAtZeroCountStyle}">
+                                    <StackPanel Orientation="Horizontal">
+                                        <Label IsHitTestVisible="True"
+                                               Style="{StaticResource LabelNoPaddingStyle}"
+                                               PreviewMouseDown="ErrorListPreviewMouseDown">Found : </Label>
+                                        <Label IsHitTestVisible="True"
+                                               Style="{StaticResource LabelNoPaddingStyle}"
+                                               PreviewMouseDown="ErrorListPreviewMouseDown" Content="{Binding ErrorCount}"/>
+                                        <Label IsHitTestVisible="True"
+                                               Margin="0"
+                                               Padding="5 0 0 5"
+                                               PreviewMouseDown="ErrorListPreviewMouseDown"> errors. </Label>
+                                        <Image Source="/RTextNpp;Component/Resources/Error.png" Height="16" Width="16"/>
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
                         </TabItem.Header>
+                            <DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                                       IsHitTestVisible="True"
+                                       Background="Transparent">
+                            <Border BorderThickness="0 0 0 0" Style="{StaticResource ResourceKey=BorderErrorCollapseAtPositiveCountStyle}" Background="Black">
+                                <Viewbox VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
+                                    <StackPanel Orientation="Vertical">
+                                        <Label Foreground="White">Model contains no errors...</Label>
+                                    </StackPanel>
+                                </Viewbox>
+                            </Border>
+                            <Border BorderThickness="0 0 0 0" Style="{StaticResource ResourceKey=BorderErrorCollapseAtZeroCountStyle}" DockPanel.Dock="Bottom" Background="Black">
+                                <DataGrid ItemsSource                                ="{Binding Errors}"
+                                          Name                                       ="ErrorListDataGrid"
+                                          ScrollViewer.CanContentScroll              ="True"
+                                          ScrollViewer.HorizontalScrollBarVisibility ="Auto"
+                                          ScrollViewer.VerticalScrollBarVisibility   ="Auto"
+                                          Focusable                                  ="True"
+                                          SelectionMode                              ="Single"
+                                          AllowDrop                                  ="False"
+                                          SelectionUnit                              ="FullRow"
+                                          AutoGenerateColumns                        ="False"
+                                          VirtualizingStackPanel.IsVirtualizing      ="True"
+                                          GridLinesVisibility                        ="None"
+                                          HeadersVisibility                          ="Column"
+                                          IsTextSearchEnabled                        ="True"
+                                          TextSearch.TextPath                        ="FilePath"
+                                          IsReadOnly                                 ="True">
+                                    <i:Interaction.Behaviors>
+                                        <behaviors:UpdateWidthOnColumnResizedBehavior/>
+                                    </i:Interaction.Behaviors>
+                                    <DataGrid.Resources>
+                                        <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="Transparent"/>
+                                        <SolidColorBrush x:Key="{x:Static SystemColors.HighlightTextBrushKey}" Color="Blue"/>
+                                    </DataGrid.Resources>
+                                    <DataGrid.CellStyle>
+                                        <Style TargetType="DataGridCell">
+                                            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+                                            <Setter Property="BorderThickness" Value="0"/>
+                                            <Setter Property="Background" Value="Transparent"/>
+                                        </Style>
+                                    </DataGrid.CellStyle>
+                                    <DataGrid.Columns>
+                                        <DataGridTemplateColumn Header="Files Containing Errors"
+                                            IsReadOnly     ="True"
+                                            CanUserSort    ="True"
+                                            SortMemberPath ="FilePath"
+                                            CanUserResize  ="True">
+                                            <DataGridTemplateColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <Border BorderThickness="1"
+                                                            CornerRadius="15"
+                                                            BorderBrush="Red"
+                                                            Padding="0"
+                                                            Name="ErrorItemBorder"
+                                                            Margin="0">
+                                                        <Border.Resources>
+                                                            <!--ErrorItem fade in fade out-->
+                                                            <Storyboard x:Key="MouseEnterErrorExpander">
+                                                                <ColorAnimationUsingKeyFrames Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)" Storyboard.TargetName="ErrorItemBorder" FillBehavior="HoldEnd">
+                                                                    <EasingColorKeyFrame KeyTime="0:0:1" Value="{Binding DataContext.ExpanderHeaderTextForeground, RelativeSource={ RelativeSource Mode=FindAncestor, AncestorType={x:Type DataGrid}}}"/>
+                                                                </ColorAnimationUsingKeyFrames>
+                                                                <ColorAnimationUsingKeyFrames Storyboard.TargetProperty="(Label.Foreground).(SolidColorBrush.Color)" Storyboard.TargetName="ErrorItemExpanderHeader" FillBehavior="HoldEnd">
+                                                                    <EasingColorKeyFrame KeyTime="0:0:1" Value="{Binding DataContext.ExpanderHeaderBackground, RelativeSource={ RelativeSource Mode=FindAncestor, AncestorType={x:Type DataGrid}}}"/>
+                                                                </ColorAnimationUsingKeyFrames>
+                                                            </Storyboard>
+                                                            <Storyboard x:Key="MouseLeaveErrorExpander"/>
+                                                            <Storyboard x:Key="MouseEnterErrorExpanderReverse">
+                                                                <ColorAnimationUsingKeyFrames Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)" Storyboard.TargetName="ErrorItemBorder" FillBehavior="Stop">
+                                                                    <SplineColorKeyFrame KeyTime="0:0:1" Value="{Binding DataContext.ExpanderHeaderBackground, RelativeSource={ RelativeSource Mode=FindAncestor, AncestorType={x:Type DataGrid}}}"/>
+                                                                </ColorAnimationUsingKeyFrames>
+                                                                <ColorAnimationUsingKeyFrames Storyboard.TargetProperty="(Label.Foreground).(SolidColorBrush.Color)" Storyboard.TargetName="ErrorItemExpanderHeader" FillBehavior="Stop">
+                                                                    <SplineColorKeyFrame KeyTime="0:0:1" Value="{Binding DataContext.ExpanderHeaderTextForeground, RelativeSource={ RelativeSource Mode=FindAncestor, AncestorType={x:Type DataGrid}}}"/>
+                                                                </ColorAnimationUsingKeyFrames>
+                                                            </Storyboard>
+                                                            <!--ErrorItem fade in fade out-->
+                                                        </Border.Resources>
+                                                        <Border.Background>
+                                                            <SolidColorBrush Color="{Binding DataContext.ExpanderHeaderBackground, Mode=OneWay, RelativeSource={ RelativeSource Mode=FindAncestor, AncestorType={x:Type DataGrid}}}"/>
+                                                        </Border.Background>
+                                                        <Border.Triggers>
+                                                            <EventTrigger RoutedEvent="MouseEnter">
+                                                                <BeginStoryboard x:Name="MouseEnterErrorExpander_BeginStoryboard" Storyboard="{StaticResource MouseEnterErrorExpander}"/>
+                                                            </EventTrigger>
+                                                            <EventTrigger RoutedEvent="MouseLeave">
+                                                                <BeginStoryboard x:Name="MouseLeaveErrorExpander_BeginStoryboard" Storyboard="{StaticResource MouseEnterErrorExpanderReverse}"/>
+                                                            </EventTrigger>
+                                                        </Border.Triggers>
+                                                        <Expander Style="{DynamicResource CustomExpanderStyle}"
+                                                                  BorderThickness="0"
+                                                                  DataContext="{Binding}"                                                                  
+                                                                  Expanded="OnErrorNodeExpanded"
+                                                                  IsExpanded="{Binding IsFileOpened, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+                                                            <Expander.Header>
+                                                                <Label Name="ErrorItemExpanderHeader" Content="{Binding FilePath}">
+                                                                    <Label.Foreground>
+                                                                        <SolidColorBrush Color="{Binding DataContext.ExpanderHeaderTextForeground, Mode=OneWay, RelativeSource={ RelativeSource Mode=FindAncestor, AncestorType={x:Type DataGrid}}}"/>
+                                                                    </Label.Foreground>
+                                                                </Label>
+                                                            </Expander.Header>
+                                                            <DataGrid Name                                       ="ErrorListView"
+                                                                      AutoGenerateColumns                        ="False"
+                                                                      VirtualizingStackPanel.IsVirtualizing      ="True"
+                                                                      IsSynchronizedWithCurrentItem              ="True"
+                                                                      SelectionMode                              ="Single"
+                                                                      FlowDirection                              ="RightToLeft"
+                                                                      HorizontalContentAlignment                 ="Right"
+                                                                      ItemsSource                                ="{Binding ErrorList}"
+                                                                      ScrollViewer.CanContentScroll              ="True"
+                                                                      ScrollViewer.HorizontalScrollBarVisibility ="Hidden"
+                                                                      ScrollViewer.VerticalScrollBarVisibility   ="Auto"
+                                                                      ColumnWidth                                ="*"
+                                                                      CanUserAddRows                             ="False"
+                                                                      CanUserReorderColumns                      ="False"
+                                                                      CanUserResizeColumns                       ="False"
+                                                                      CanUserDeleteRows                          ="False"
+                                                                      CanUserResizeRows                          ="False"
+                                                                      HorizontalAlignment                        ="Left"
+                                                                      VerticalAlignment                          ="Top"
+                                                                      BorderThickness                            ="0"
+                                                                      PreviewKeyDown                             ="OnErrorListPreviewKeyDown"
+                                                                      PreviewMouseUp                             ="OnErrorListPreviewMouseDown"
+                                                                      EnableColumnVirtualization                 ="False"
+                                                                      HeadersVisibility                          ="None"
+                                                                      VerticalGridLinesBrush                     ="{Binding ElementName=ErrorItemExpanderHeader, Path=Foreground}"
+                                                                      Padding                                    ="0 0 25 0"
+                                                                      SelectionUnit                              ="FullRow"
+                                                                      MaxHeight                                  ="300"
+                                                                      Background                                 ="Transparent"
+                                                                      RowBackground                              ="{Binding Background, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Border}}}"
+                                                                      Cursor                                     ="Hand"
+                                                                      Width                                      ="{Binding Width, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type TabItem}}}"
+                                                                      GridLinesVisibility                        ="Vertical"
+                                                                      IsReadOnly                                 ="True">
+                                                                <i:Interaction.Behaviors>
+                                                                    <behaviors:ErrorListMixedHeaderBehavior/>
+                                                                </i:Interaction.Behaviors>
+                                                                <DataGrid.RowStyle>
+                                                                    <Style TargetType="DataGridRow">
+                                                                        <Setter Property="Foreground" Value="{Binding ElementName=ErrorItemExpanderHeader, Path=Foreground}"/>
+                                                                        <Style.Triggers>
+                                                                            <Trigger Property="IsMouseOver" Value="True">
+                                                                                <Setter Property="Foreground" Value="Red"/>
+                                                                            </Trigger>
+                                                                            <Trigger Property="IsSelected" Value="True">
+                                                                                <Setter Property="Foreground" Value="Red"/>
+                                                                            </Trigger>
+                                                                        </Style.Triggers>
+                                                                    </Style>
+                                                                </DataGrid.RowStyle>
+                                                                <DataGrid.CellStyle>
+                                                                    <Style TargetType="{x:Type DataGridCell}">
+                                                                        <Setter Property="Block.TextAlignment" Value="Right"/>
+                                                                        <Setter Property="BorderThickness" Value="0"/>
+                                                                        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+                                                                        <Style.Triggers>
+                                                                            <Trigger Property="DataGridCell.IsSelected" Value="True">
+                                                                                <Setter Property="Foreground" Value="Red"/>
+                                                                                <Setter Property="Background" Value="{Binding RelativeSource={RelativeSource Self}, Path=Background}"/>
+                                                                            </Trigger>
+                                                                        </Style.Triggers>
+                                                                    </Style>
+                                                                </DataGrid.CellStyle>
+                                                                <DataGrid.Columns>
+                                                                    <DataGridTextColumn IsReadOnly="True" Binding="{Binding Line}">
+                                                                        <DataGridTextColumn.HeaderStyle>
+                                                                            <Style TargetType="{x:Type DataGridColumnHeader}">
+                                                                                <Setter Property="HorizontalAlignment" Value="Stretch"/>
+                                                                                <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                                                                                <Setter Property="Padding" Value="1 0 0 0"/>
+                                                                            </Style>
+                                                                        </DataGridTextColumn.HeaderStyle>
+                                                                    </DataGridTextColumn>
+                                                                    <DataGridTextColumn IsReadOnly="True" Binding="{Binding Message}">
+                                                                        <DataGridTextColumn.HeaderStyle>
+                                                                            <Style TargetType="{x:Type DataGridColumnHeader}">
+                                                                                <Setter Property="HorizontalAlignment" Value="Stretch"/>
+                                                                                <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                                                                                <Setter Property="Padding" Value="1 0 0 0"/>
+                                                                            </Style>
+                                                                        </DataGridTextColumn.HeaderStyle>
+                                                                    </DataGridTextColumn>
+                                                                    <DataGridTextColumn IsReadOnly="True" Binding="{Binding Severity}">
+                                                                        <DataGridTextColumn.HeaderStyle>
+                                                                            <Style TargetType="{x:Type DataGridColumnHeader}">
+                                                                                <Setter Property="HorizontalAlignment" Value="Stretch"/>
+                                                                                <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                                                                                <Setter Property="Padding" Value="1 0 0 0"/>
+                                                                            </Style>
+                                                                        </DataGridTextColumn.HeaderStyle>
+                                                                    </DataGridTextColumn>
+                                                                </DataGrid.Columns>
+                                                            </DataGrid>
+                                                        </Expander>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </DataGridTemplateColumn.CellTemplate>
+                                        </DataGridTemplateColumn>
+                                    </DataGrid.Columns>
+                                </DataGrid>
+                            </Border>
+                        </DockPanel>
                     </TabItem>
                 </TabControl>
                 <Grid HorizontalAlignment="Stretch"
@@ -95,34 +321,34 @@
                       IsHitTestVisible="False"
                       Style="{StaticResource IsLoading_FadeInFadeOutStyle}"
                       Visibility="{Binding IsLoading, Converter={StaticResource ResourceKey=BooleanToVisibilityConverter}}" Cursor="Wait">
-                    <wpfControls:CircularProgressBar HorizontalAlignment="Center" 
-                                                     VerticalAlignment="Center" 
+                    <wpfControls:CircularProgressBar HorizontalAlignment="Center"
+                                                     VerticalAlignment="Center"
                                                      SegmentColor="#FF05143A"
                                                      StrokeThickness="15"
                                                      x:Name="OuterProgressBar"
                                                      Percentage="100" Radius="20"/>
                     <StackPanel Orientation="Vertical"
-                                HorizontalAlignment="Center" 
+                                HorizontalAlignment="Center"
                                 Name="PercentageLabelContainer"
                                 VerticalAlignment="Center">
                         <Viewbox>
                             <StackPanel Orientation="Vertical"
-                                HorizontalAlignment="Center" 
+                                HorizontalAlignment="Center"
                                 VerticalAlignment="Center">
-                                <Label  Content="{Binding ActiveCommand, Converter={StaticResource AutomateCommandConverter}}"                                          
-                                    FontWeight="Bold" 
+                                <Label  Content="{Binding ActiveCommand, Converter={StaticResource RTextCommandConverter}}"
+                                    FontWeight="Bold"
                                     HorizontalAlignment="Center"
                                     VerticalAlignment="Center"
-                                    FontStyle="Italic" 
+                                    FontStyle="Italic"
                                     Name="CommandNameLabel"
                                     FontFamily="/RTextNpp;component/Fonts/#Arial" Foreground="Silver">
                                     <Label.Effect>
                                         <DropShadowEffect/>
                                     </Label.Effect>
                                 </Label>
-                                <Label Content="{Binding ProgressPercentage, Converter={StaticResource PercentageConverter}}"                                        
-                                    FontWeight="Bold" 
-                                    FontStyle="Italic" 
+                                <Label Content="{Binding ProgressPercentage, Converter={StaticResource PercentageConverter}}"
+                                    FontWeight="Bold"
+                                    FontStyle="Italic"
                                     HorizontalAlignment="Center"
                                     VerticalAlignment="Center"
                                     FontFamily="/RTextNpp;component/Fonts/#Arial" Foreground="Silver">
@@ -131,10 +357,9 @@
                                     </Label.Effect>
                                 </Label>
                             </StackPanel>
-                        </Viewbox>                            
+                        </Viewbox>
                     </StackPanel>
-                    <wpfControls:CircularProgressBar
-                                                     Percentage="{Binding ProgressPercentage}"
+                    <wpfControls:CircularProgressBar Percentage="{Binding ProgressPercentage}"
                                                      x:Name="InnerProgressBar"
                                                      StrokeThickness="15" HorizontalAlignment="Center" VerticalAlignment="Center" Angle="363">
                     	<wpfControls:CircularProgressBar.Effect>
@@ -152,7 +377,7 @@
                     	</wpfControls:CircularProgressBar.SegmentColor>
                     </wpfControls:CircularProgressBar>
                 </Grid>
-            </Grid>            
-        </DockPanel>                            
+            </Grid>
+        </DockPanel>
     </Grid>
 </UserControl>

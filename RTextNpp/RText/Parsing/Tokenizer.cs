@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using RTextNppPlugin.Utilities;
-
 namespace RTextNppPlugin.RText.Parsing
 {
     public class Tokenizer
@@ -22,7 +21,6 @@ namespace RTextNppPlugin.RText.Parsing
              * \return  The buffer position at the start of the token. End position can be found by adding the length of the context to it.
              */
             internal int BufferPosition { get; set; }
-
             public override string ToString()
             {
                 return String.Format("Token : {0}\nLine : {1}\nStart column : {2}\nEnd column : {3}\nCaret position at start : {4}\nType : {5}",
@@ -34,13 +32,11 @@ namespace RTextNppPlugin.RText.Parsing
                                       Type
                                     );
             }
-
             internal bool CanTokenHaveReference()
             {
                 return (Type == RTextTokenTypes.Reference ||
-                        Type == RTextTokenTypes.RTextName);
+                        Type == RTextTokenTypes.Identifier);
             }
-
             internal int EndPosition
             {
                 get
@@ -48,9 +44,7 @@ namespace RTextNppPlugin.RText.Parsing
                     return (BufferPosition + (EndColumn - StartColumn));
                 }
             }
-
             #region IEquatable<TokenTag> Members
-
             public bool Equals(TokenTag other)
             {
                 return Type           == other.Type           &&
@@ -60,12 +54,9 @@ namespace RTextNppPlugin.RText.Parsing
                        Line           == other.Line           &&
                        StartColumn    == other.StartColumn;
             }
-
             #endregion
         }
-
         #region[Interface]
-
         internal static Tokenizer.TokenTag FindTokenUnderCursor(INpp nppHelper)
         {
             int aBufferPosition = nppHelper.GetPositionFromMouseLocation();
@@ -83,14 +74,12 @@ namespace RTextNppPlugin.RText.Parsing
             }
             return default(Tokenizer.TokenTag);
         }
-
         internal Tokenizer(int line, INpp nppHelper)
         {
             _lineNumber = line;
             _nppHelper  = nppHelper;
             _lineText   = new StringBuilder(_nppHelper.GetLine(_lineNumber));
         }
-
         internal IEnumerable<TokenTag> Tokenize(params RTextTokenTypes[] typesToKeep)
         {
             int aOffset = _nppHelper.GetLineStart(_lineNumber);
@@ -120,14 +109,13 @@ namespace RTextNppPlugin.RText.Parsing
                             {
                                 aFirstToken = false;
                             }
-                            else if (type == RTextTokenTypes.RTextName)
+                            else if (type == RTextTokenTypes.Identifier)
                             {
                                 if (aFirstToken && !IsLineExtended(_lineNumber))
                                 {
                                     aCurrentTag.Type = RTextTokenTypes.Command;
                                     aFirstToken = false;
                                 }
-
                             }
                             yield return aCurrentTag;
                         }
@@ -139,10 +127,7 @@ namespace RTextNppPlugin.RText.Parsing
             }
             yield break;
         }
-
-
         #endregion
-
         #region[Helpers]
         private bool IsLineExtended(int currentLine)
         {
@@ -166,7 +151,6 @@ namespace RTextNppPlugin.RText.Parsing
             }
         }
         #endregion
-
         #region[Data Members]
         StringBuilder _lineText          = null; //!< Line to tokenize.
         readonly int _lineNumber         = 0;    //!< Line number.

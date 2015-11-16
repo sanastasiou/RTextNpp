@@ -3,7 +3,6 @@
  *
  * Implements the ConsoleFlowDocument "code-behind" class.
  */
-
 using System;
 using RTextNppPlugin.Logging;
 using System.Diagnostics;
@@ -14,16 +13,14 @@ using System.Windows.Documents;
 using System.Windows.Media.Imaging;
 using System.Collections.Generic;
 using System.ComponentModel;
-
 namespace RTextNppPlugin.WpfControls
 {
     /**
      * Interaction logic for ConsoleFlowDocument.xaml.
-     */    
+     */
     public partial class ConsoleFlowDocument : FlowDocument, ILoggingObserver, System.IDisposable, INotifyPropertyChanged
     {
         #region Interface
-
         /**
          * Default constructor.
          */
@@ -33,19 +30,16 @@ namespace RTextNppPlugin.WpfControls
             //subscribe to logger singleton
             Logger.Instance.Subscribe(this);
         }
-
         public string Channel
         {
             get { return GetValue(ChannelProperty).ToString(); }
             set { SetValue(ChannelProperty, value); }
         }
-
         public static readonly DependencyProperty ChannelProperty = DependencyProperty.Register("Channel",
                                                                                                 typeof(string),
                                                                                                 typeof(ConsoleFlowDocument),
                                                                                                 new PropertyMetadata(string.Empty, OnChannelPropertyChanged)
                                                                                                );
-
         /**
          * Appends a msg.
          *
@@ -71,16 +65,13 @@ namespace RTextNppPlugin.WpfControls
                     break;
             }
         }
-
         public void Dispose()
         {
             Dispose(true);
             GC.SuppressFinalize(this);
         }
         #endregion
-
         #region Helpers
-
         protected void OnPropertyChanged(string propertyName)
         {
             if (PropertyChanged != null)
@@ -88,7 +79,6 @@ namespace RTextNppPlugin.WpfControls
                 PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
             }
         }
-
         private void Append(string msg, string style, string channel)
         {
             if (Dispatcher.CheckAccess())
@@ -114,7 +104,6 @@ namespace RTextNppPlugin.WpfControls
                 }
                 else
                 {
-
                     Debug.Assert(Blocks.LastBlock != null);
                     Debug.Assert(Blocks.LastBlock is Paragraph);
                     var run = new Run(msg);
@@ -133,7 +122,6 @@ namespace RTextNppPlugin.WpfControls
                 Dispatcher.BeginInvoke(new Action<string, string, string>(Append), msg, style, channel);
             }
         }
-
         private static void ScrollParent(FrameworkContentElement element)
         {
             if (element != null)
@@ -152,21 +140,18 @@ namespace RTextNppPlugin.WpfControls
                 }
             }
         }
-
         private void Dispose(bool disposing)
         {
             if (_disposed)
             {
                 return;
             }
-
             if (disposing)
             {
                 Logger.Instance.Unsubscribe(this);
             }
             _disposed = true;
         }
-
         private static void OnChannelPropertyChanged(DependencyObject dependencyObject,
                DependencyPropertyChangedEventArgs e)
         {
@@ -174,7 +159,6 @@ namespace RTextNppPlugin.WpfControls
             myUserControl.OnPropertyChanged("Channel");
             myUserControl.OnChannelPropertyChanged(e);
         }
-
         /**
          * Occurs when a user selects a different output channel from the console view.
          *
@@ -206,16 +190,12 @@ namespace RTextNppPlugin.WpfControls
                 }
             }
         }
-
         #endregion
-
         #region Data Members
         private bool _disposed;                                                                 //!< Whether the object has already been disposed.
         private Dictionary<string, List<Run>> _logOutput = new Dictionary<string, List<Run>>(); //!< Holds list of output per channel.
         private string _currentChannel = null;                                                  //!< Holds the current channel.
-
         #endregion
-
         public event PropertyChangedEventHandler PropertyChanged;
     }
 }

@@ -3,7 +3,7 @@
 #---------------------------------#
  
 # version format
-version: 0.6.{build}
+version: 0.7.{build}
  
 # branches to build
 branches:
@@ -16,7 +16,7 @@ branches:
 skip_tags: true
  
 #---------------------------------#
-#    environment configuration    #
+#    environment configuration  #
 #---------------------------------#
  
 # Operating system (build VM template)
@@ -66,14 +66,6 @@ platform:
 configuration:
   - Release
  
-build:
-  parallel: true                  # enable MSBuild parallel builds
-  project: RTextNpp.sln           # path to Visual Studio solution or project
- 
-  # MSBuild verbosity level
-  #verbosity: quiet|minimal|normal|detailed
-  verbosity: minimal
- 
 # scripts to run before build
 before_build:
   nuget restore
@@ -81,15 +73,27 @@ before_build:
 #---------------------------------#
 #       tests configuration       #
 #---------------------------------#
+
+build:
+  parallel: true                  # enable MSBuild parallel builds
+  project: RTextNpp.sln           # path to Visual Studio solution or project
  
-test:
-  assemblies:
-    - Tests.dll
- 
+  # MSBuild verbosity level
+  #verbosity: quiet|minimal|normal|detailed
+  verbosity: minimal
+
+# scripts to run after build
+after_build:
+  7z a Release.zip %APPVEYOR_BUILD_FOLDER%/RTextNpp/bin/x86/Release/RTextNpp.dll %APPVEYOR_BUILD_FOLDER%/RTextNpp.xml
+  
+artifacts:
+  - path: Release.zip
+    name: RTextNpp
+  
 # scripts to run after tests
 after_test:
 # generate report for NUnit testing framework:
-    - packages\OpenCover.4.5.3723\OpenCover.Console.exe -register:user -excludebyattribute:"*.ExcludeFromCodeCoverage*" -skipautoprops -hideskipped:All -excludebyfile:*\*.il -filter:"-[RTextNpp]RTextNppPlugin.Properties -[RTextNpp]RTextNppPlugin.RText.Protocol* -[RTextNpp]RTextNppPlugin.DllExport* -[RTextNpp]RTextNppPlugin.Utilities.Npp* -[RTextNpp]RTextNppPlugin.Forms.ConsoleOutput* +[RTextNpp]RTextNppPlugin* +[RTextNpp]CSScriptIntellisense -[Tests]*" -target:"packages\NUnit.Runners.2.6.4\tools\nunit-console-x86.exe" -targetargs:"/noshadow /nologo /labels /domain:single /framework:4.5 /nodots Tests\bin\x86\Release\Tests.dll" -output:coverage.xml
+    - packages\OpenCover.4.6.166\tools\OpenCover.Console.exe -register:user -excludebyattribute:"*.ExcludeFromCodeCoverage*" -skipautoprops -hideskipped:All -excludebyfile:*\*.il -filter:"-[RTextNpp]RTextNppPlugin.Properties -[RTextNpp]RTextNppPlugin.RText.Protocol* -[RTextNpp]RTextNppPlugin.DllExport* -[RTextNpp]RTextNppPlugin.Utilities.Npp* -[RTextNpp]RTextNppPlugin.Forms.ConsoleOutput* +[RTextNpp]RTextNppPlugin* +[RTextNpp]CSScriptIntellisense -[Tests]*" -target:"nunit-console-x86.exe" -targetargs:"/noshadow /nologo /labels /domain:single /framework:4.5 /nodots Tests\bin\x86\Release\Tests.dll" -output:coverage.xml
     - ps: .\CoverageFix.ps1
     - packages\coveralls.io.1.3.4\tools\coveralls.net.exe --opencover coverage.xml
 
@@ -113,3 +117,17 @@ notifications:
     on_build_success: false
     on_build_failure: false
     on_build_status_changed: true
+
+deploy:
+  tag: v$(appveyor_build_version)
+  release: RTextNpp-v$(appveyor_build_version)
+  description: 'RTextNpp Release $(appveyor_build_version)'
+  provider: GitHub
+  auth_token:
+    secure: +FR1WXoq1dCu2hQXBSk/kv9DBkII1QOJYeWOuGBL7aT1ZVpmohA13d0/hUClL7fy
+  artifact: Release.zip            # upload Release as a single .zip file
+  draft: true
+  prerelease: false
+  on:
+    branch: master                 # release from master branch only
+    appveyor_repo_tag: true        # deploy on tag push only

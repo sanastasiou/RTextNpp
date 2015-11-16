@@ -4,14 +4,11 @@
  **/
 // Copyright 1998-2010 by Neil Hodgson <neilh@scintilla.org>
 // The License.txt file describes the conditions under which this software may be distributed.
-
 #ifndef LEXERBASE_H
 #define LEXERBASE_H
-
 #ifdef SCI_NAMESPACE
 namespace Scintilla {
 #endif
-
 // A simple lexer with no state
 class LexerBase : public ILexer {
 protected:
@@ -33,9 +30,7 @@ public:
     void SCI_METHOD Fold(unsigned int startPos, int lengthDoc, int initStyle, IDocument *pAccess) = 0;
     void * SCI_METHOD PrivateCall(int operation, void *pointer);
 };
-
 #ifdef SCI_NAMESPACE
 }
 #endif
-
 #endif

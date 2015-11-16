@@ -1,0 +1,2 @@
+*.atm:
+cmd /c automate-rtext-service -m 3.1.4 "." -l d --use-gem rtext-0.8.0

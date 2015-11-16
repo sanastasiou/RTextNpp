@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Text;
-
 namespace RTextNppPlugin.Utilities
 {
     public static class StringExtensions
@@ -9,16 +8,13 @@ namespace RTextNppPlugin.Utilities
         {
             return source.IndexOf(toCheck, comp) >= 0;
         }
-
         public static string RemoveNewLine(this string input)
         {
             return input.Replace("\r", "").Replace("\n", "");
         }
-
         public static int GetByteCount(this string text)
         {
             return Encoding.Default.GetByteCount(text);
         }
     }
-
 }

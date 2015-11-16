@@ -2,12 +2,12 @@
 {
     /**
      * @enum    RTextTokenTypes
-     * 
+     *
      * @brief   Enum with all possible RText types.
      */
-    public enum RTextTokenTypes
+    public enum RTextTokenTypes : int
     {
-        Error,
+        Default,
         Comment,
         Notation,
         Reference,
@@ -17,14 +17,21 @@
         Boolean,
         Label,
         Command,
-        RTextName,
+        Identifier,
         Template,
+        Space,
+        Other,
+        Error,
         LeftBracket,
         RightBrakcet,
         LeftAngleBrakcet,
         RightAngleBracket,
         Comma,
-        Space,
-        NewLine        
+        NewLine,
+        AnnotationDebug = 16,
+        AnnotationInfo,
+        AnnotationWarning,
+        AnnotationError,
+        AnnotationFatalError
     }
 }

@@ -1,7 +1,6 @@
 ﻿using System.ComponentModel;
 using System.ComponentModel.Design.Serialization;
 using RTextNppPlugin.RText;
-
 namespace RTextNppPlugin.WpfControls
 {
     /**
@@ -17,13 +16,11 @@ namespace RTextNppPlugin.WpfControls
     {
         private T _wpfControl;
         private U _viewModel = default(U);
-
         public ElementHost(T control)
         {
             _wpfControl = control;
             base.Child  = _wpfControl;
             _viewModel  = (U)_wpfControl.DataContext;
         }
-    } 
-
+    }
 }

@@ -4,16 +4,12 @@
  **/
 // Copyright 1998-2010 by Neil Hodgson <neilh@scintilla.org>
 // The License.txt file describes the conditions under which this software may be distributed.
-
 #ifndef LEXACCESSOR_H
 #define LEXACCESSOR_H
-
 #include "assert.h"
-
 #ifdef SCI_NAMESPACE
 namespace Scintilla {
 #endif
-
 class LexAccessor {
 private:
     IDocument *pAccess;
@@ -35,7 +31,6 @@ private:
     char chWhile;
     unsigned int startSeg;
     int startPosStyling;
-
     void Fill(int position) {
         startPos = position - slopSize;
         if (startPos + bufferSize > lenDoc)
@@ -45,11 +40,9 @@ private:
         endPos = startPos + bufferSize;
         if (endPos > lenDoc)
             endPos = lenDoc;
-
         pAccess->GetCharRange(buf, startPos, endPos-startPos);
         buf[endPos-startPos] = '\0';
     }
-
 public:
     LexAccessor(IDocument *pAccess_) :
         pAccess(pAccess_), startPos(extremePosition), endPos(0),
@@ -77,7 +70,6 @@ public:
     bool IsLeadByte(char ch) {
         return pAccess->IsDBCSLeadByte(ch);
     }
-
     bool Match(int pos, const char *s) {
         for (int i=0; *s; i++) {
             if (*s != SafeGetCharAt(pos+i))
@@ -139,7 +131,6 @@ public:
             if (pos < startSeg) {
                 return;
             }
-
             if (validLen + (pos - startSeg + 1) >= bufferSize)
                 Flush();
             if (validLen + (pos - startSeg + 1) >= bufferSize) {
@@ -164,14 +155,11 @@ public:
         pAccess->DecorationSetCurrentIndicator(indicator);
         pAccess->DecorationFillRange(start, value, end - start);
     }
-
     void ChangeLexerState(int start, int end) {
         pAccess->ChangeLexerState(start, end);
     }
 };
-
 #ifdef SCI_NAMESPACE
 }
 #endif
-
 #endif

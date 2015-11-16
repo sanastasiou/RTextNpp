@@ -1,5 +1,4 @@
 ﻿using RTextNppPlugin.RText;
-
 namespace RTextNppPlugin.ViewModels
 {
     /**
@@ -15,5 +14,6 @@ namespace RTextNppPlugin.ViewModels
         bool IsAutomateWorkspace { get; }
         double ProgressPercentage { get; }
         string ActiveCommand { get; }
+        int ErrorCount { get; }
     }
 }

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Net.Sockets;
 using System.Text;
-
 namespace RTextNppPlugin.RText
 {
     public class SocketConnection
@@ -11,15 +10,12 @@ namespace RTextNppPlugin.RText
         private StringBuilder mReceivedMessage = new StringBuilder(Constants.BUFFER_SIZE);
         private Socket mSocket                 = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
         #endregion
-
         #region [Interface]
         public StringBuilder ReceivedMessage { get { return mReceivedMessage; } set { mReceivedMessage = value; } }
-
         public bool LengthMatched { get; set; }
         public int RequiredLength { get; set; }
         public int JSONLength { get; set; }
         public int BytesToRead { get; private set; }
-
         /**
          * \brief   Sends a request synchronously.
          *
@@ -31,7 +27,6 @@ namespace RTextNppPlugin.RText
         {
             return mSocket.Send(request);
         }
-
         public bool Connected
         {
             get
@@ -39,7 +34,6 @@ namespace RTextNppPlugin.RText
                 return mSocket.Connected;
             }
         }
-
         /**
          * \brief   Cleans up and disposes the socket.
          */
@@ -54,7 +48,6 @@ namespace RTextNppPlugin.RText
             }
             mSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
         }
-
         /**
          * \brief   Ends asynchronous receiving.
          *
@@ -66,7 +59,6 @@ namespace RTextNppPlugin.RText
         {
             BytesToRead = mSocket.EndReceive(asyncResult);
         }
-
         /**
          * \brief   Begins socket connection.
          *
@@ -80,7 +72,6 @@ namespace RTextNppPlugin.RText
         {
             return mSocket.BeginConnect(host, port, requestCallback, this);
         }
-
         /**
          * \brief   Begins asynchronous receiving.
          *
@@ -96,13 +87,11 @@ namespace RTextNppPlugin.RText
         {
             return mSocket.BeginReceive(mBuffer, 0, Constants.BUFFER_SIZE, SocketFlags.None, callback, this);
         }
-
         public void Append()
         {
             mReceivedMessage.Append(Encoding.ASCII.GetString(mBuffer, 0, BytesToRead));
         }
         #endregion
-
         internal void EndConnect(IAsyncResult ar)
         {
             mSocket.EndConnect(ar);

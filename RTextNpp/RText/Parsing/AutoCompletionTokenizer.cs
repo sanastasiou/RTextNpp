@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-
 namespace RTextNppPlugin.RText.Parsing
 {
     using Utilities;
@@ -19,11 +18,10 @@ namespace RTextNppPlugin.RText.Parsing
         internal AutoCompletionTokenizer(int line, int currentCaretPosition, INpp nppHelper)
             : base(line, nppHelper)
         {
-            _nppHelper  = nppHelper;
-            _currentPos = currentCaretPosition;
+            _nppHelper      = nppHelper;
+            _currentPos     = currentCaretPosition;
             FindTriggerToken();
         }
-
         /**
          * Gets the trigger token.
          *
@@ -36,7 +34,6 @@ namespace RTextNppPlugin.RText.Parsing
                 return _triggerToken;
             }
         }
-
         /**
          * Gets the line tokens exluding the trigger point token.
          *
@@ -49,7 +46,6 @@ namespace RTextNppPlugin.RText.Parsing
                 return _tokenList;
             }
         }
-
         #region [Helpers]
         private void FindTriggerToken()
         {
@@ -70,7 +66,6 @@ namespace RTextNppPlugin.RText.Parsing
                     break;
                 }
             }
-
             if (_triggerToken.HasValue)
             {
                 var aTokenType = _triggerToken.Value.Type;
@@ -78,7 +73,6 @@ namespace RTextNppPlugin.RText.Parsing
                     aTokenType == RTextTokenTypes.Comment           ||
                     aTokenType == RTextTokenTypes.Error             ||
                     aTokenType == RTextTokenTypes.LeftAngleBrakcet  ||
-                    aTokenType == RTextTokenTypes.NewLine           ||
                     aTokenType == RTextTokenTypes.Notation          ||
                     aTokenType == RTextTokenTypes.RightAngleBracket ||
                     aTokenType == RTextTokenTypes.RightBrakcet      ||
@@ -90,13 +84,11 @@ namespace RTextNppPlugin.RText.Parsing
                 }
             }
         }
-
         internal static bool TokenLocationPredicate(int caretPosition, TokenTag token)
         {
             return (caretPosition >= token.BufferPosition && caretPosition <= token.BufferPosition + (token.EndColumn - token.StartColumn));
         }
         #endregion
-
         #region [Data Members]
         private readonly int _currentPos  = 0;
         private TokenTag? _triggerToken   = null;

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Windows.Data;
+using System.Windows.Media;
 
 namespace RTextNppPlugin.WpfControls.Converters
 {
@@ -17,7 +18,6 @@ namespace RTextNppPlugin.WpfControls.Converters
                 return true;
             }
         }
-
         public object ConvertBack(object value, Type targetType, object parameter,
                         System.Globalization.CultureInfo culture)
         {
@@ -32,7 +32,6 @@ namespace RTextNppPlugin.WpfControls.Converters
             double perc = (double)value;
             return perc.ToString() + " %";
         }
-
         public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
         {
             throw new NotSupportedException();
@@ -42,17 +41,14 @@ namespace RTextNppPlugin.WpfControls.Converters
     internal class ProgressLabelSizeConverter : IValueConverter
     {
         #region IValueConverter Members
-
         public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
         {
             return 1.0;
         }
-
         public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
         {
             throw new NotImplementedException();
         }
-
         #endregion
     }
 
@@ -78,11 +74,9 @@ namespace RTextNppPlugin.WpfControls.Converters
                     return "Ready.";
             }
         }
-
         public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
         {
             throw new NotSupportedException();
         }
     }
-    
 }

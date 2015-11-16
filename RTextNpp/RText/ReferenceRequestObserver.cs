@@ -1,8 +1,6 @@
 ﻿using System.IO;
 using System.Linq;
 using System.Xml.Linq;
-
-
 namespace RTextNppPlugin.RText
 {
     using CSScriptIntellisense;
@@ -15,26 +13,44 @@ namespace RTextNppPlugin.RText
     class ReferenceRequestObserver
     {
         #region [Data Members]
-        private INpp _nppHelper                                       = null;                        //!< Interface to Npp message system.
-        private ISettings _settings                                   = null;                        //!< Interface to RTextNpp settings.
-        private MouseMonitor _mouseMovementObserver                   = new MouseMonitor();          //!< Low level mouse monitor hook.        
-        private Tokenizer.TokenTag _previousReferenceToken            = default(Tokenizer.TokenTag); //!< Holds previous highlighted reference token.
-        private bool _isKeyboardShortCutActive                        = false;                       //!< Indicates if reference show shortcut key is active.
-        private bool _highLightToken                                  = false;                       //!< Whether a reference token is highlighted.
-        private IWin32 _win32Helper                                   = null;                        //!< Handle to win32 helper instance.
-        private ILinkTargetsWindow _refWindow                         = null;                        //!< Handle to reference window.
-        private DelayedEventHandler _mouseMoveDebouncer               = null;                        //!< Debounces mose movement for a short period of time so that CPU is not taxed.
-        private System.Drawing.Point _previousMousePosition           = new System.Drawing.Point(System.Windows.Forms.Cursor.Position.X, System.Windows.Forms.Cursor.Position.Y);
-        private IntPtr _editorWithActiveHotspot                       = IntPtr.Zero;                 //!< Holds editor handle, where hotspot is currently active.
+        private readonly INpp _nppHelper                             = null;                        //!< Interface to Npp message system.
+        private readonly ISettings _settings                         = null;                        //!< Interface to RTextNpp settings.
+        private readonly MouseMonitor _mouseMovementObserver         = new MouseMonitor();          //!< Low level mouse monitor hook.
+        private Tokenizer.TokenTag _previousReferenceToken           = default(Tokenizer.TokenTag); //!< Holds previous highlighted reference token.
+        private bool _isKeyboardShortCutActive                       = false;                       //!< Indicates if reference show shortcut key is active.
+        private bool _highLightToken                                 = false;                       //!< Whether a reference token is highlighted.
+        private readonly IWin32 _win32Helper                         = null;                        //!< Handle to win32 helper instance.
+        private readonly ILinkTargetsWindow _refWindow               = null;                        //!< Handle to reference window.
+        private readonly VoidDelayedEventHandler _mouseMoveDebouncer = null;                        //!< Debounces mose movement for a short period of time so that CPU is not taxed.
+        private System.Drawing.Point _previousMousePosition          = new System.Drawing.Point(System.Windows.Forms.Cursor.Position.X, System.Windows.Forms.Cursor.Position.Y);
+        private IntPtr _editorWithActiveHotspot                      = IntPtr.Zero;                 //!< Holds editor handle, where hotspot is currently active.
+        private readonly IStyleConfigurationObserver _styleOberver   = null;                        //!< Observer RText styles and provides notification when they change.
         #endregion
-
         #region [Events]
-
         #endregion
-
         #region [Interface]
-        internal ReferenceRequestObserver(INpp nppHelper, ISettings settings, IWin32 win32helper, ILinkTargetsWindow refWindow)
+        internal ReferenceRequestObserver(INpp nppHelper, ISettings settings, IWin32 win32helper, ILinkTargetsWindow refWindow, IStyleConfigurationObserver styleObserver)
         {
+            if(nppHelper == null)
+            {
+                throw new ArgumentNullException("nppHelper");
+            }
+            if(settings == null)
+            {
+                throw new ArgumentNullException("settings");
+            }
+            if(win32helper == null)
+            {
+                throw new ArgumentNullException("win32helper");
+            }
+            if(refWindow == null)
+            {
+                throw new ArgumentNullException("refWindow");
+            }
+            if(styleObserver == null)
+            {
+                throw new ArgumentNullException("styleObserver");
+            }
             _nppHelper                       = nppHelper;
             _settings                        = settings;
             _win32Helper                     = win32helper;
@@ -42,9 +58,9 @@ namespace RTextNppPlugin.RText
             _mouseMovementObserver.MouseClicked += OnMouseMovementObserverMouseClicked;
             IsKeyboardShortCutActive         = false;
             _refWindow                       = refWindow;
-            _mouseMoveDebouncer              = new DelayedEventHandler(new ActionWrapper(DoMouseMovementObserverMouseMove), 100);
+            _mouseMoveDebouncer              = new VoidDelayedEventHandler(new Action(DoMouseMovementObserverMouseMove), 100);
+            _styleOberver                    = styleObserver;
         }
-
         bool OnMouseMovementObserverMouseClicked(VisualUtilities.MouseMessages arg)
         {
             if (_highLightToken)
@@ -58,9 +74,8 @@ namespace RTextNppPlugin.RText
             }
             return false;
         }
-
-        internal bool IsKeyboardShortCutActive 
-        { 
+        internal bool IsKeyboardShortCutActive
+        {
             set
             {
                 if(value != _isKeyboardShortCutActive)
@@ -71,8 +86,8 @@ namespace RTextNppPlugin.RText
                         HideUnderlinedToken();
                     }
                     else
-                    {                       
-                        _refWindow.IssueReferenceLinkRequestCommand(Tokenizer.FindTokenUnderCursor(_nppHelper));                        
+                    {
+                        _refWindow.IssueReferenceLinkRequestCommand(Tokenizer.FindTokenUnderCursor(_nppHelper));
                     }
                     Enable(value);
                 }
@@ -82,7 +97,6 @@ namespace RTextNppPlugin.RText
                 return _isKeyboardShortCutActive;
             }
         }
-
         public Tokenizer.TokenTag UnderlinedToken
         {
             get
@@ -98,7 +112,6 @@ namespace RTextNppPlugin.RText
                 }
             }
         }
-
         internal void UnderlineToken()
         {
             int aReferenceColor = GetReferenceLinkColor();
@@ -109,13 +122,10 @@ namespace RTextNppPlugin.RText
             _win32Helper.ISendMessage(_editorWithActiveHotspot, SciMsg.SCI_SETHOTSPOTACTIVEFORE, 1, aReferenceColor);
             _win32Helper.ISendMessage(_editorWithActiveHotspot, SciMsg.SCI_STARTSTYLING, _previousReferenceToken.BufferPosition, 0);
             _win32Helper.ISendMessage(_editorWithActiveHotspot, SciMsg.SCI_SETSTYLING, _previousReferenceToken.EndColumn - _previousReferenceToken.StartColumn, (int)_previousReferenceToken.Type);
-
             //fix bug which prevents hotspot to be activated when the mouse hasn't been moved
             System.Windows.Forms.Cursor.Position = new System.Drawing.Point(System.Windows.Forms.Cursor.Position.X + 1, System.Windows.Forms.Cursor.Position.Y);
-
             _highLightToken = true;
         }
-
         internal void HideUnderlinedToken()
         {
             if (_highLightToken)
@@ -124,13 +134,11 @@ namespace RTextNppPlugin.RText
                 _win32Helper.ISendMessage(_editorWithActiveHotspot, SciMsg.SCI_STYLESETHOTSPOT, (int)_previousReferenceToken.Type, 0);
                 _win32Helper.ISendMessage(_editorWithActiveHotspot, SciMsg.SCI_STARTSTYLING, _previousReferenceToken.BufferPosition, 0);
                 _win32Helper.ISendMessage(_editorWithActiveHotspot, SciMsg.SCI_SETSTYLING, _previousReferenceToken.EndColumn - _previousReferenceToken.StartColumn, (int)_previousReferenceToken.Type);
-
                 //fix bug which prevents hotspot to be activated when the mouse hasn't been moved
-                System.Windows.Forms.Cursor.Position = new System.Drawing.Point(System.Windows.Forms.Cursor.Position.X - 1, System.Windows.Forms.Cursor.Position.Y);                
+                System.Windows.Forms.Cursor.Position = new System.Drawing.Point(System.Windows.Forms.Cursor.Position.X - 1, System.Windows.Forms.Cursor.Position.Y);
                 _highLightToken = false;
             }
         }
-
         internal bool IsTokenUnderlined
         {
             get
@@ -139,9 +147,7 @@ namespace RTextNppPlugin.RText
             }
         }
         #endregion
-
         #region [Helpers]
-
         private void Enable(bool enable)
         {
             if (enable && !_mouseMovementObserver.IsInstalled)
@@ -154,25 +160,15 @@ namespace RTextNppPlugin.RText
                 _mouseMoveDebouncer.Cancel();
             }
         }
-
         private int GetReferenceLinkColor()
         {
-            string aPluginTokenizerConfigFile = _nppHelper.GetConfigDir() + "\\" + Constants.PluginName + ".xml";
-            if (File.Exists(aPluginTokenizerConfigFile))
+            IWordsStyle aReferenceHighlightStyle = _styleOberver.GetStyle(Constants.Wordstyles.REFERENCE_LINK);
+            if (aReferenceHighlightStyle.StyleName.Equals(Constants.Wordstyles.REFERENCE_LINK))
             {
-                XDocument aColorFile = XDocument.Load(aPluginTokenizerConfigFile);
-
-                var underLineTokenConfig = (from wordStyles in aColorFile.Root.Descendants("WordsStyle")
-                                            where (string)wordStyles.Attribute("name") == Constants.REFERENCE_LINK_NAME
-                                            select wordStyles).First();
-                string aFgColor = (string)underLineTokenConfig.Attribute("fgColor");
-                //need to prepare string in case 0x0000FF is present, information will be lost if we convert this to rgb since an int will just replace leading zeros
-                aFgColor = aFgColor.Replace("00", "01");
                 //for some reason scitnilla expects bgr instead of rgb, documentation is wrong
-                int rgb = int.Parse(aFgColor, System.Globalization.NumberStyles.AllowHexSpecifier);
-                int g = (rgb >> 8) & 0xFF;
-                int r = (rgb >> 16) & 0xFF;
-                int b = rgb & 0xFF;
+                byte g = aReferenceHighlightStyle.Foreground.G;
+                byte r = aReferenceHighlightStyle.Foreground.R;
+                byte b = aReferenceHighlightStyle.Foreground.B;
                 int bgr = b;
                 bgr <<= 8;
                 bgr |= g;
@@ -183,26 +179,24 @@ namespace RTextNppPlugin.RText
             //return blue
             return 0xFF0000;
         }
-
         private void OnMouseMovementObserverMouseMove()
         {
             System.Drawing.Point aCurrentMousePosition = new System.Drawing.Point(System.Windows.Forms.Cursor.Position.X, System.Windows.Forms.Cursor.Position.Y);
             if (_previousMousePosition != aCurrentMousePosition)
             {
                 _previousMousePosition = aCurrentMousePosition;
-                _mouseMoveDebouncer.TriggerHandler();               
+                _mouseMoveDebouncer.TriggerHandler();
             }
         }
-
         private void DoMouseMovementObserverMouseMove()
         {
             if (_isKeyboardShortCutActive)
             {
                 if (!_refWindow.IsMouseInsidedWindow())
-                {                    
+                {
                     var aRefToken = Tokenizer.FindTokenUnderCursor(_nppHelper);
                     if (aRefToken.CanTokenHaveReference() && !aRefToken.Equals(_previousReferenceToken))
-                    {                        
+                    {
                         _refWindow.IssueReferenceLinkRequestCommand(aRefToken);
                     }
                     else if (!aRefToken.CanTokenHaveReference())
@@ -214,7 +208,7 @@ namespace RTextNppPlugin.RText
                     {
                         //tokens are equal - issue command if underlining is not active
                         if (!_refWindow.IsVisible && !_highLightToken)
-                        {                            
+                        {
                             _refWindow.IssueReferenceLinkRequestCommand(aRefToken);
                         }
                     }
@@ -225,7 +219,6 @@ namespace RTextNppPlugin.RText
                 HideUnderlinedToken();
             }
         }
-
-        #endregion                
+        #endregion
     }
 }

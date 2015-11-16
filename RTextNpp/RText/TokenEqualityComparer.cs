@@ -2,7 +2,6 @@
 using System.Linq;
 using RTextNppPlugin.RText.Parsing;
 using System;
-
 namespace RTextNppPlugin.RText
 {
     /**
@@ -15,20 +14,17 @@ namespace RTextNppPlugin.RText
     internal sealed class TokenEqualityComparer
     {
         #region [Data Members]
-        private IEnumerable<Tokenizer.TokenTag> _previousList; //!< Holds the previous tokenizer list        
+        private IEnumerable<Tokenizer.TokenTag> _previousList; //!< Holds the previous tokenizer list
         private string _previousFile;                          //!< Holds the previous file where auto completion request was made
         private int _previousCaretPosition;                    //!< Previous caret position.
         #endregion
-
         #region [Interface]
-
         internal TokenEqualityComparer()
         {
             _previousList          = null;
             _previousFile          = string.Empty;
             _previousCaretPosition = -1;
         }
-
         internal bool AreTokenStreamsEqual(IEnumerable<Tokenizer.TokenTag> currentList, int caretPosition, string file)
         {
             bool areEqual = false;
@@ -53,7 +49,6 @@ namespace RTextNppPlugin.RText
                         isTokenListEqual = true;
                     }
                 }
-
                 if (isTokenListEqual)
                 {
                     var affectedToken = (from t in currentList
@@ -83,10 +78,9 @@ namespace RTextNppPlugin.RText
                             {
                                 areEqual = true;
                             }
-                        }                        
+                        }
                     }
                 }
-
             }
             _previousList          = currentList;
             _previousFile          = file;
@@ -94,7 +88,6 @@ namespace RTextNppPlugin.RText
             return areEqual;
         }
         #endregion
-
         #region [Helpers]
         private bool AreUnevenTokenListsEqual(IEnumerable<Tokenizer.TokenTag> currentList, out int tokenDifference)
         {
@@ -126,7 +119,6 @@ namespace RTextNppPlugin.RText
                 }
             }
         }
-
         private bool AreTokensConsideredEqual(Tokenizer.TokenTag rhs, Tokenizer.TokenTag lhs)
         {
             return !String.IsNullOrEmpty(rhs.Context) &&
@@ -136,7 +128,6 @@ namespace RTextNppPlugin.RText
                    (rhs.Context.ToLower().Contains(lhs.Context.ToLower()) ||
                     lhs.Context.ToLower().Contains(rhs.Context.ToLower()));
         }
-
         #endregion
     }
 }

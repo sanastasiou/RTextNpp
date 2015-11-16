@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Reflection;
-
 namespace Tests.Utilities
 {
     using NUnit.Framework;
@@ -18,20 +17,17 @@ namespace Tests.Utilities
     [TestFixture]
     public class MouseEventExtArgsTest
     {
-
         [Test]
         public void InitializationTest()
         {
             MouseEventExtArgs m = new MouseEventExtArgs(new System.Windows.Forms.MouseEventArgs(System.Windows.Forms.MouseButtons.Left, 0, 0, 0, 0));
             MouseEventExtArgs p = new MouseEventExtArgs(System.Windows.Forms.MouseButtons.Middle, 0, 0, 0, 0);
         }
-
         [Test]
         public void HandledTest()
         {
             MouseEventExtArgs m = new MouseEventExtArgs(new System.Windows.Forms.MouseEventArgs(System.Windows.Forms.MouseButtons.Left, 0, 0, 0, 0));
             m.Handled = true;
-
             Assert.AreEqual(m.Handled, true);
         }
     }

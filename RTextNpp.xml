@@ -1,0 +1,31 @@
+<NotepadPlus>
+    <Languages>
+        <Language name="RTextNpp" ext="atm" commentStart="#" />
+    </Languages>
+    <LexerStyles>
+        <LexerType name="RTextNpp" desc="RText language file." ext="meta atm40" excluded="no">
+            <WordsStyle name="DEFAULT" styleID="0" fgColor="FFFFFF" bgColor="000000" fontName="" fontStyle="0" fontSize="" />
+            <WordsStyle name="COMMENT" styleID="1" fgColor="00FF00" bgColor="000000" fontName="" fontStyle="2" fontSize="" />
+            <WordsStyle name="NOTATION" styleID="2" fgColor="FF80C0" bgColor="000000" fontName="" fontStyle="0" fontSize="" />
+            <WordsStyle name="REFERENCE" styleID="3" fgColor="8080FF" bgColor="000000" fontName="" fontStyle="3" fontSize="" />
+            <WordsStyle name="FLOAT" styleID="4" fgColor="008040" bgColor="000000" fontName="" fontStyle="0" fontSize="" />
+            <WordsStyle name="INTEGER" styleID="5" fgColor="00FF00" bgColor="000000" fontName="" fontStyle="0" fontSize="" />
+            <WordsStyle name="QUOTED_STRING" styleID="6" fgColor="FF80FF" bgColor="000000" fontName="" fontStyle="0" fontSize="" />
+            <WordsStyle name="BOOLEAN" styleID="7" fgColor="00FFFF" bgColor="000000" fontName="" fontStyle="0" fontSize="" />
+            <WordsStyle name="LABEL" styleID="8" fgColor="FF9D6F" bgColor="000000" fontName="" fontStyle="1" fontSize="" />
+            <WordsStyle name="COMMAND" styleID="9" fgColor="11FFFF" bgColor="000000" fontName="" fontStyle="0" fontSize="" />
+            <WordsStyle name="IDENTIFIER" styleID="10" fgColor="FF0000" bgColor="000000" fontName="" fontStyle="0" fontSize="" />
+            <WordsStyle name="TEMPLATE" styleID="11" fgColor="FF8000" bgColor="000000" fontName="" fontStyle="0" fontSize="" />
+            <WordsStyle name="SPACE" styleID="12" fgColor="3F3F3F" bgColor="000000" fontName="" fontStyle="0" fontSize="" />
+            <WordsStyle name="OTHER" styleID="13" fgColor="FFFFFF" bgColor="000000" fontName="" fontStyle="0" fontSize="" />
+            <WordsStyle name="ERROR" styleID="14" fgColor="FF0000" bgColor="FFFFFF" fontName="" fontStyle="7" fontSize="" />
+            <WordsStyle name="REFERENCE_LINK" styleID="15" fgColor="0000FF" bgColor="000000" fontName="" fontStyle="0" fontSize="" />
+            <WordsStyle name="ANNOTATION_DEBUG" styleID="16" fgColor="0000FF" bgColor="FFFFFF" fontName="" fontStyle="0" fontSize="" />
+            <WordsStyle name="ANNOTATION_INFO" styleID="17" fgColor="0000FF" bgColor="FFFFFF" fontName="" fontStyle="0" fontSize="" />
+            <WordsStyle name="ANNOTATION_WARNING" styleID="18" fgColor="0000FF" bgColor="FFFFFF" fontName="" fontStyle="0" fontSize="" />
+            <WordsStyle name="ANNOTATION_ERROR" styleID="19" fgColor="0000FF" bgColor="FFFFFF" fontName="" fontStyle="0" fontSize="" />
+            <WordsStyle name="ANNOTATION_FATAL_ERROR" styleID="20" fgColor="0000FF" bgColor="FFFFFF" fontName="" fontStyle="0" fontSize="" />
+            <WordsStyle name="ERROR_OVERVIEW" styleID="21" fgColor="000000" bgColor="FFFFFF" fontName="" fontStyle="0" fontSize="" />
+        </LexerType>
+    </LexerStyles>
+</NotepadPlus>

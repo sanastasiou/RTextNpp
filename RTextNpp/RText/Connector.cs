@@ -11,8 +11,6 @@ using RTextNppPlugin.RText.StateEngine;
 using RTextNppPlugin.Utilities;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
-
-
 namespace RTextNppPlugin.RText
 {
     /**
@@ -23,9 +21,9 @@ namespace RTextNppPlugin.RText
      */
     public class Connector : IConnector
     {
-        #region [Data Members]        
+        #region [Data Members]
         private IPHostEntry mIpHostInfo                                    = Dns.GetHostEntry("localhost")                   ;            //!< Information describing the IP host
-        private ManualResetEvent mReceivedResponseEvent                    = new ManualResetEvent(false)                     ;            //!< The received response event 
+        private ManualResetEvent mReceivedResponseEvent                    = new ManualResetEvent(false)                     ;            //!< The received response event
         private int mInvocationId                                          = 0                                               ;            //!< Identifier for the invocation
         private SocketConnection mConnection                               = new SocketConnection()                          ;            //!< The receive status, used to store a state between calls of the receive callback
         private Regex mMessageLengthRegex                                  = new Regex(@"^(\d+)\{", RegexOptions.Compiled)   ;            //!< The message length regular expression
@@ -37,55 +35,35 @@ namespace RTextNppPlugin.RText
         private int mLastInvocationId                                      = -1                                              ;            //!< Holds the last invocation id from the backend.
         public readonly RequestBase LOAD_COMMAND                           = new RequestBase { command = Constants.Commands.LOAD_MODEL }; //!< Load command.
         private bool mCancelled                                            = false;                                                       //!< Indicates that a pending command was cancelled via user request.
+        private LoadResponse _currentLoadResponse                          = default(LoadResponse);                                       //!< Indicates last load response.
         #endregion
-
         #region Interface
-
         /**
          * \struct  ProgressResponseStruct
          *
          * \brief   Progress response structure. Maps a command with a progress response message.
          *
          */
+        
         public struct ProgressResponseEventArgs
-        {          
+        {
             public ProgressResponse Response;
             public String Command;
             public String Workspace;
         }
-
+        
         public string Workspace { get { return mBackendProcess.ProcKey; } }
-
         public bool IsCommandCancelled { get { return mCancelled; } }
-
         public delegate void ProgressUpdatedEvent(object source, ProgressResponseEventArgs e);
-
         public event ProgressUpdatedEvent OnProgressUpdated;
-
-        /**
-         *
-         * \brief   Delegate for the CommandCompleted event.
-         *
-         *
-         * \param   source  Source object of the event.
-         * \param   e       Command completed event information.
-         */
-        public delegate void CommandExecuted(object source, CommandCompletedEventArgs e);
-
-        public event CommandExecuted OnCommandExecuted;                                   //!< Event queue for all listeners interested in CommmandExecuted events.
-
         public delegate void StateChangedEvent(object source, StateChangedEventArgs e);
-
         public event StateChangedEvent OnStateChanged;
-
         public class StateChangedEventArgs : EventArgs
         {
             public ConnectorStates StateLeft { get; private set; }
             public ConnectorStates StateEntered { get; private set; }
-
             public String Workspace { get; private set; }
             public String Command { get; private set; }
-
             public StateChangedEventArgs(ConnectorStates stateLeft, ConnectorStates stateEntered, string workspace, string command)
             {
                 StateLeft     = stateLeft;
@@ -94,7 +72,6 @@ namespace RTextNppPlugin.RText
                 Command       = command;
             }
         }
-
         /**
          * \class   CommandCompletedEventArgs
          *
@@ -111,7 +88,6 @@ namespace RTextNppPlugin.RText
              * \return  The response.
              */
             public IResponseBase Response { get; private set; }
-
             /**
              * \property    public int InvocationId
              *
@@ -120,7 +96,6 @@ namespace RTextNppPlugin.RText
              * \return  The identifier of the invocation.
              */
             public int InvocationId { get; private set; }
-
             /**
              * \property    public string ResponseType
              *
@@ -129,7 +104,6 @@ namespace RTextNppPlugin.RText
              * \return  The type of the response.
              */
             public string ResponseType { get; private set; }
-
             /**
              *
              * \brief   Constructor.
@@ -145,7 +119,6 @@ namespace RTextNppPlugin.RText
                 ResponseType = type;
             }
         }
-
         public IConnectorState CurrentState
         {
             get
@@ -160,20 +133,18 @@ namespace RTextNppPlugin.RText
                 }
             }
         }
-
         /**
          * \brief   Constructor.
          *
          * \param   proc    Backend process instance for this connector.
          *
-         */        
+         */
         public Connector( RTextBackendProcess proc) : base()
         {
             mBackendProcess = proc;
             _currentState   = new Disconnected(this);
             mBackendProcess.ProcessExitedEvent += ProcessExitedEvent;
         }
-
         void ProcessExitedEvent(object source, RTextBackendProcess.ProcessExitedEventArgs e)
         {
             //kill any ongoing commands
@@ -182,11 +153,9 @@ namespace RTextNppPlugin.RText
                 mReceivingThreadCancellationSource.Cancel();
             }
             _currentState.ExecuteCommand(StateEngine.Command.Disconnected);
-            
             //reset invocation id counter since the backend process died or exited after an idle timeout
             mInvocationId = 0;
         }
-
         public async Task<IResponseBase> ExecuteAsync<Command>(Command command, int timeout, StateEngine.Command cmd) where Command : RequestBase
         {
             if (!IsBusy())
@@ -204,7 +173,6 @@ namespace RTextNppPlugin.RText
                 return null;
             }
         }
-
         /**
          * \brief   Executes the given command synchronously.
          *
@@ -224,7 +192,7 @@ namespace RTextNppPlugin.RText
             if (!IsBusy())
             {
                 UpdateFsmAndPendingCommand(command, cmd);
-                BeginSend<Command>(command);                
+                BeginSend<Command>(command);
             }
             else
             {
@@ -235,8 +203,7 @@ namespace RTextNppPlugin.RText
                 }
             }
         }
-               
-        public void CancelCommand()
+        internal void CancelCommand()
         {
             mCancelled = true;
             if (mReceivingThreadCancellationSource != null)
@@ -245,7 +212,6 @@ namespace RTextNppPlugin.RText
             }
         }
         #endregion
-
         internal string LogChannel
         {
             get
@@ -253,9 +219,18 @@ namespace RTextNppPlugin.RText
                 return mBackendProcess.Workspace;
             }
         }
-
+        internal LoadResponse ErrorList
+        {
+            get
+            {
+                return _currentLoadResponse;
+            }
+            private set
+            {
+                _currentLoadResponse = value;
+            }
+        }
         #region Helpers
-
         /**
          * Begins an async send. Just send a command without caring about the response of the backend.
          * Callers of this function should subscribe to CommandExecuted event to be able to receive a
@@ -264,14 +239,13 @@ namespace RTextNppPlugin.RText
          * \tparam  Command Type of the command.
          * \param   command The command.
          *
-         */        
+         */
         private void BeginSend<Command>(Command command) where Command : RequestBase
         {
             bool aHasErrorOccured = false;
             try
             {
                 byte[] msg = GetCommandAsByteArray(command);
-
                 if (mConnection.SendRequest(msg) != msg.Length)
                 {
                     Logging.Logger.Instance.Append(Logging.Logger.MessageType.Error,
@@ -294,14 +268,12 @@ namespace RTextNppPlugin.RText
             {
                 aHasErrorOccured = true;
                 Logging.Logger.Instance.Append(Logging.Logger.MessageType.Error, mBackendProcess.Workspace, "void BeginSend<Command>(ref Command command, ref int invocationId) - Exception : {0}", ex.ToString());
-
             }
             if (aHasErrorOccured)
             {
                 _currentState.ExecuteCommand(StateEngine.Command.Disconnected);
             }
         }
-
         /**
          * Sends a command while waiting asynchronously for a respone.
          *
@@ -316,13 +288,10 @@ namespace RTextNppPlugin.RText
             try
             {
                 byte[] msg = GetCommandAsByteArray(command);
-
                 // Send the data through the socket.
                 //wait for manual reset event which indicates that the response has arrived
                 mReceivedResponseEvent.Reset();
-
                 mReceivingThreadCancellationSource = new CancellationTokenSource();
-
                 Task<IResponseBase> errorTask = new Task<IResponseBase>(new Func<IResponseBase>(() =>
                 {
                     while (true)
@@ -337,7 +306,6 @@ namespace RTextNppPlugin.RText
                     }
                     return null;
                 }), mReceivingThreadCancellationSource.Token);
-
                 Task<IResponseBase> receiverTask = new Task<IResponseBase>(new Func<IResponseBase>(() =>
                 {
                     if (!mReceivedResponseEvent.WaitOne(timeout))
@@ -349,7 +317,6 @@ namespace RTextNppPlugin.RText
                 }));
                 receiverTask.Start();
                 errorTask.Start();
-
                 if (mConnection.SendRequest(msg) != msg.Length)
                 {
                     Logging.Logger.Instance.Append(Logging.Logger.MessageType.Error,
@@ -359,7 +326,6 @@ namespace RTextNppPlugin.RText
                     _currentState.ExecuteCommand(StateEngine.Command.Disconnected);
                     return null;
                 }
-               
                 var result = await Task.WhenAny<IResponseBase>(receiverTask, errorTask);
                 if (!mReceivingThreadCancellationSource.IsCancellationRequested)
                 {
@@ -374,11 +340,10 @@ namespace RTextNppPlugin.RText
                 return null;
             }
         }
-
         /**
         *
         * \brief   Tries to connect to a remote end point. If it succeeds signals main thread and sets a flag that the connection is successful.
-        *          
+        *
         * \param ar THe async result
         */
         private void ConnectCallback(IAsyncResult ar)
@@ -393,7 +358,6 @@ namespace RTextNppPlugin.RText
                 Logging.Logger.Instance.Append(Logging.Logger.MessageType.Error, mBackendProcess.Workspace, "void ConnectCallback(IAsyncResult ar) - Exception : {0}", ex.ToString());
             }
         }
-
         /**
          *
          * \brief   Callback for asynchronous receive functionality.
@@ -424,21 +388,19 @@ namespace RTextNppPlugin.RText
                                                 ex.Message);
             }
         }
-
         /**
          * \brief   Query if this object is busy.
          *
          * \return  true if busy, false if not.
-         */        
+         */
         private bool IsBusy()
         {
             return _currentState.State != ConnectorStates.Idle;
         }
-
         /**
         *
-        * \brief   Recursively deserialize JSON messages.        
-        * 
+        * \brief   Recursively deserialize JSON messages.
+        *
         */
         private void TryDeserialize()
         {
@@ -447,7 +409,7 @@ namespace RTextNppPlugin.RText
                 //we know the length but the reveived stream is not enough
                 if (mConnection.RequiredLength <= mConnection.ReceivedMessage.Length)
                 {
-                    OnSufficientResponseLengthAcquired();                   
+                    OnSufficientResponseLengthAcquired();
                 }
             }
             else
@@ -466,7 +428,6 @@ namespace RTextNppPlugin.RText
                 }
             }
         }
-
         private void OnSufficientResponseLengthAcquired()
         {
             mConnection.LengthMatched   = false;
@@ -477,7 +438,6 @@ namespace RTextNppPlugin.RText
             AnalyzeResponse(aJSONmessage);
             TryDeserialize();
         }
-
         /**
          *
          * \brief   Analyzes the last received response.
@@ -487,7 +447,6 @@ namespace RTextNppPlugin.RText
         private void AnalyzeResponse(string response)
         {
             bool aIsResponceReceived = false;
-
             switch (mActiveCommand)
             {
                 case Constants.Commands.LOAD_MODEL:
@@ -511,9 +470,12 @@ namespace RTextNppPlugin.RText
                     aIsResponceReceived = IsNotResponseOrErrorMessage();
                     break;
             }
-            
             if (aIsResponceReceived)
             {
+                if(mActiveCommand == Constants.Commands.LOAD_MODEL)
+                {
+                    ErrorList = (mLastResponse as LoadResponse);
+                }
                 if (mInvocationId - 1 != mLastResponse.invocation_id)
                 {
                     Logging.Logger.Instance.Append(Logging.Logger.MessageType.Error,
@@ -528,16 +490,10 @@ namespace RTextNppPlugin.RText
                 {
                     mLastInvocationId = mLastResponse.invocation_id;
                     mReceivedResponseEvent.Set();
-                    //notify asynchronous subscribers that the response is received
-                    if (OnCommandExecuted != null)
-                    {
-                        OnCommandExecuted(this, new CommandCompletedEventArgs(mLastResponse, mLastInvocationId, mActiveCommand));
-                    }
                     _currentState.ExecuteCommand(StateEngine.Command.ExecuteFinished);
                 }
             }
         }
-
         /**
          *
          * \brief   Updates the progress described by response.
@@ -567,7 +523,6 @@ namespace RTextNppPlugin.RText
                     return true;
             }
         }
-       
         private byte[] PrepareRequestString( string serializedCommand )
         {
             StringBuilder aExtendedString = new StringBuilder(serializedCommand.Length + 10);
@@ -575,17 +530,14 @@ namespace RTextNppPlugin.RText
             aExtendedString.Append(serializedCommand);
             return Encoding.ASCII.GetBytes(aExtendedString.ToString());
         }
-
         private async Task<bool> RestartService()
         {
             if (mBackendProcess.HasExited)
             {
                 Logging.Logger.Instance.Append(Logging.Logger.MessageType.Error, mBackendProcess.Workspace, "RTextService is not running. Trying to restart service...");
-                return await mBackendProcess.InitializeBackendAsync();
             }
-            return true;
+            return await mBackendProcess.InitializeBackendAsync();
         }
-
         private void EnsureModelIsLoaded()
         {
             if (CurrentState.State == ConnectorStates.Disconnected)
@@ -593,31 +545,24 @@ namespace RTextNppPlugin.RText
                 _currentState.ExecuteCommand(Command.Connect);
             }
         }
-
         private void UpdateFsmAndPendingCommand<Command>(Command command, StateEngine.Command cmd) where Command : RequestBase
         {
             mCancelled     = false;
             mActiveCommand = command.command;
             _currentState.ExecuteCommand(cmd);
         }
-
         private byte[] GetCommandAsByteArray<Command>(Command command) where Command : RequestBase
         {
             command.invocation_id = mInvocationId++;
             JsonConvert.SerializeObject(command, Formatting.None);
             return PrepareRequestString(JsonConvert.SerializeObject(command, Formatting.None));
-            
         }
-
         #endregion
-
         #region IConnector Members
-
         public void OnDisconnectedEntry()
         {
             mConnection.CleanUpSocket();
         }
-
         public void OnConnectingEntry()
         {
             try
@@ -640,14 +585,13 @@ namespace RTextNppPlugin.RText
                 Logging.Logger.Instance.Append(Logging.Logger.MessageType.Error, mBackendProcess.Workspace, "void Connect() - Exception : {0}", ex.ToString());
             }
         }
-
         public void OnLoadingEntry()
-        {            
+        {
             mCancelled     = false;
             mActiveCommand = LOAD_COMMAND.command;
             BeginSend(LOAD_COMMAND);
+            ErrorList      = default(LoadResponse);
         }
-
         public void OnStateLeft(ConnectorStates oldState, ConnectorStates newState)
         {
             if (OnStateChanged != null)
@@ -655,7 +599,6 @@ namespace RTextNppPlugin.RText
                 OnStateChanged(this, new StateChangedEventArgs(oldState, newState, mBackendProcess.ProcKey, mActiveCommand));
             }
         }
-
         #endregion
     }
 }

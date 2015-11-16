@@ -39,6 +39,8 @@
     <NMakeBuildCommandLine>rmdir /Q /S ..\TestResults</NMakeBuildCommandLine>
     <NMakeOutput>TestPreBuild.exe</NMakeOutput>
     <NMakePreprocessorDefinitions>WIN32;_DEBUG;$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
+    <NMakeReBuildCommandLine>rmdir /Q /S ..\TestResults</NMakeReBuildCommandLine>
+    <NMakeCleanCommandLine>rmdir /Q /S ..\TestResults</NMakeCleanCommandLine>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <NMakeBuildCommandLine>rmdir /Q /S ..\TestResults

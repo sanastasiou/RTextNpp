@@ -1,8 +1,8 @@
 ﻿
 namespace RTextNppPlugin.Utilities
 {
-    interface IActionWrapper
+    interface IActionWrapper<T>
     {
-        void DoAction();
+        T DoAction();
     }
 }

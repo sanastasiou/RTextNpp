@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Reflection;
-
 namespace Tests.Utilities
 {
     using NUnit.Framework;
@@ -11,7 +10,6 @@ namespace Tests.Utilities
     using System.Threading;
     using System.IO;
     using System.Xml;
-
     [TestFixture]
     class FileUtilitiesTests
     {
@@ -20,7 +18,6 @@ namespace Tests.Utilities
         private Mock<ISettings> _settingsMock = null;
         private XmlDocument _pluginXml        = null;
         #endregion
-
         [SetUp]
         public void Init()
         {
@@ -33,7 +30,6 @@ namespace Tests.Utilities
             aFile.Write(System.Text.Encoding.ASCII.GetBytes(Properties.Resources.WorkspaceRoot), 0, Properties.Resources.WorkspaceRoot.GetByteCount());
             aFile.Close();
         }
-
         [Test]
         public void IsRTextFileTest()
         {
@@ -46,7 +42,6 @@ namespace Tests.Utilities
             Assert.IsTrue(FileUtilities.IsRTextFile("a.atm40", _settingsMock.Object, _nppMock.Object));
             Assert.IsFalse(FileUtilities.IsRTextFile(null, _settingsMock.Object, _nppMock.Object));
         }
-
         [Test]
         public void IsCurrentRTextFileTest()
         {
@@ -55,7 +50,6 @@ namespace Tests.Utilities
             _nppMock.Setup<string>(x => x.GetCurrentFilePath()).Returns("a.atm");
             Assert.IsTrue(FileUtilities.IsRTextFile(_settingsMock.Object, _nppMock.Object));
         }
-
         [Test]
         public void FindWorkspaceTest()
         {
@@ -65,7 +59,6 @@ namespace Tests.Utilities
             File.Delete(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "\\" + ".rtext");
             Assert.AreEqual(FileUtilities.FindWorkspaceRoot(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "\\" + "a.atm"), String.Empty);
         }
-
         [Test]
         public void FindWorkspaceTestInvalidArguments()
         {

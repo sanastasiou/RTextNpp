@@ -3,33 +3,33 @@
  *
  * Implements the logger singleton class.
  */
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Collections.Concurrent;
+using System.Text.RegularExpressions;
 
 namespace RTextNppPlugin.Logging
 {
     public sealed class Logger : ISubscriber
     {
         #region Data Members
-        private static volatile Logger _instance;  //!< Singleton Instance.
-        private static object _lock = new Object();//!< Mutex.
-        private List<ILoggingObserver> _observers; //!< List of observers.
+        private static volatile Logger _instance;                                                         //!< Singleton Instance.
+        private static object _lock                     = new Object();                                   //!< Mutex.
+        private List<ILoggingObserver> _observers;                                                        //!< List of observers.
+        private readonly Regex REPLACE_FORMAT_REGEX     = new Regex(@"\{(\d+)\}", RegexOptions.Compiled); //!< Regex to ensure string format is correct.
+        private const string REPLACEMENT_FORMAT_STRING  = @"~LEFT_LOL~$1~RIGHT_LOL~";                     //!< String replacement for format correctness.
+        private const string LEFT_REPLACEMENT_TOKEN     = @"~LEFT_LOL~";
+        private const string RIGHT_REPLACEMENT_TOKEN    = @"~RIGHT_LOL~";
         #endregion
-
         #region Implementation Details
         private Logger()
         {
             _observers = new List<ILoggingObserver>(10);
         }
-
         #endregion
-
-
         #region Public Inteface
         /**
          * Values that represent MessageType.
@@ -41,7 +41,6 @@ namespace RTextNppPlugin.Logging
             Error,
             FatalError
         }
-
         public static Logger Instance
         {
             get
@@ -51,20 +50,21 @@ namespace RTextNppPlugin.Logging
                     lock (_lock)
                     {
                         if (_instance == null)
+                        {
                             _instance = new Logger();
+                        }
                     }
                 }
-
                 return _instance;
             }
         }
-
         public void Append(string msg, params object[] args)
         {
             #if DEBUG
             try
             {
-                DoAppend(MessageType.Info, Constants.DEBUG_CHANNEL, String.Format(msg, args));
+                var a = PrepareStringForFormat(msg);
+                DoAppend(MessageType.Info, Constants.DEBUG_CHANNEL, String.Format(PrepareStringForFormat(msg), args));
             }
             catch(System.FormatException)
             {
@@ -72,19 +72,18 @@ namespace RTextNppPlugin.Logging
             }
             #endif
         }
-
         public void Append(MessageType type, string channel, string msg, params object[] args)
         {
             try
             {
-                DoAppend(type, channel, String.Format(msg, args));
+                var a = PrepareStringForFormat(msg);
+                DoAppend(type, channel, String.Format(PrepareStringForFormat(msg), args));
             }
             catch (System.FormatException)
             {
                 DoAppend(type, channel, msg);
             }
         }
-
         /**
          * Appends a msg to all observers.
          *
@@ -105,7 +104,6 @@ namespace RTextNppPlugin.Logging
             }
             _observers.ForEach(x => x.Append(type, channel, msg));
         }
-
         public void Subscribe(ILoggingObserver obs)
         {
             lock (_lock)
@@ -116,7 +114,6 @@ namespace RTextNppPlugin.Logging
                 }
             }
         }
-
         public void Unsubscribe(ILoggingObserver obs)
         {
             lock (_lock)
@@ -128,19 +125,12 @@ namespace RTextNppPlugin.Logging
             }
         }
 
-        /**
-         * A DateTime extension method that truncates time to msec, s etc.
-         *
-         * \param   dateTime    The dateTime to act on.
-         * \param   timeSpan    The time span.
-         *
-         * \return  A DateTime.
-         */
-        private DateTime Truncate(DateTime dateTime, TimeSpan timeSpan)
+        private string PrepareStringForFormat(string unformattedString)
         {
-            if (timeSpan == TimeSpan.Zero) return dateTime; // Or could throw an ArgumentException
-            return dateTime.AddTicks(-(dateTime.Ticks % timeSpan.Ticks));
+            var aTemp = REPLACE_FORMAT_REGEX.Replace(unformattedString, REPLACEMENT_FORMAT_STRING);
+            return aTemp.Replace("{", "{{").Replace("}", "}}").Replace(LEFT_REPLACEMENT_TOKEN, "{").Replace(RIGHT_REPLACEMENT_TOKEN, "}");
         }
+
         #endregion
     }
 }

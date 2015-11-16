@@ -1,6 +1,5 @@
 ﻿using System;
 using RTextNppPlugin.DllExport;
-
 namespace RTextNppPlugin
 {
     partial class Plugin
@@ -9,13 +8,11 @@ namespace RTextNppPlugin
         internal static NppData nppData;
         internal static FuncItems _funcItems = new FuncItems();
         #endregion
-
         #region " Helper "
         internal static void SetCommand(int index, string commandName, NppFuncItemDelegate functionPointer, string shortcut)
         {
             SetCommand(index, commandName, functionPointer, new ShortcutKey(shortcut), false);
         }
-
         internal static void SetCommand(int index, string commandName, NppFuncItemDelegate functionPointer)
         {
             SetCommand(index, commandName, functionPointer, new ShortcutKey(), false);
@@ -40,22 +37,19 @@ namespace RTextNppPlugin
             funcItem._init2Check = checkOnInit;
             _funcItems.Add(funcItem);
         }
-
         /**
          * Parse as shortcut key.
          *
          * \param   shortcutSpec    Information describing the shortcut.
          *
          * \return  A ShortcutKey.
-         * \todo    Provide a function which check against saved settings when assigning keys to the key interceptor hook.         
+         * \todo    Provide a function which check against saved settings when assigning keys to the key interceptor hook.
          */
         internal static ShortcutKey ParseAsShortcutKey(string shortcutSpec)
         {
             //var parts = shortcutSpec.Split(':');
-
             //string shortcutName = parts[0];
             //string shortcutData = parts[1];
-
             //try
             //{
             //    var actualData = Config.Shortcuts.GetValue(shortcutName, shortcutData);
@@ -68,6 +62,6 @@ namespace RTextNppPlugin
             //}
             return new ShortcutKey();
         }
-        #endregion              
+        #endregion
     }
 }

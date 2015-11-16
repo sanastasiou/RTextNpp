@@ -1,29 +1,24 @@
 ﻿using System.Collections.Generic;
-
 namespace RTextNppPlugin.RText.Protocol
-{   
-    public class SpecificProblems
+{
+    internal class SpecificError
     {
         public string message { get; set; }
         public string severity { get; set; }
         public int line { get; set; }
     }
-
-    public class Problem
+    internal class Error
     {
         public string file { get; set; }
-        public List<SpecificProblems> problems { get; set; }
+        public List<SpecificError> problems { get; set; }
     }
-
-    public class LoadResponse : ProgressResponse, IResponseBase
+    internal class LoadResponse : ProgressResponse, IResponseBase
     {
-        public List<Problem> problems { get; set; }
+        public List<Error> problems { get; set; }
         public int total_problems { get; set; }
-
         #region IResponseBase Members
         public string type { get; set; }
         public int invocation_id { get; set; }
-
         #endregion
     }
 }

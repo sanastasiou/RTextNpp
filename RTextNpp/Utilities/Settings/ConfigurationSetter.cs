@@ -3,7 +3,6 @@ using System.IO;
 using System.Reflection;
 using System.Xml;
 using RTextNppPlugin.Logging;
-
 namespace RTextNppPlugin.Utilities.Settings
 {
     /**
@@ -16,16 +15,13 @@ namespace RTextNppPlugin.Utilities.Settings
         INpp _nppHelper                               = null;          //!< Access to npp.
         private static object _lock                   = new Object();  //!< Mutex for conqurrent write access.
         private readonly XmlDocument DEFAULT_SETTINGS = null;          //!< Default settings doc.
-
         #endregion
-
         internal ConfigurationSetter(INpp pluginHelper)
         {
             _nppHelper = pluginHelper;
             DEFAULT_SETTINGS = new XmlDocument();
             DEFAULT_SETTINGS.LoadXml(Properties.Resources.RTextNpp_dll);
         }
-
         internal void saveSetting<T>(T setting, Settings.RTextNppSettings settingKey)
         {
             try
@@ -41,13 +37,11 @@ namespace RTextNppPlugin.Utilities.Settings
                 {
                     if (n.Attributes["key"].Value.Equals(settingKey.ToString()))
                     {
-
                         n.Attributes["value"].Value = setting.ToString();
                         lock (_lock)
                         {
                             aDoc.Save(aConfigPath);
                         }
-
                         return;
                     }
                 }
@@ -57,7 +51,6 @@ namespace RTextNppPlugin.Utilities.Settings
                 Logger.Instance.Append(Logger.MessageType.Error, Constants.GENERAL_CHANNEL, "internal void saveSetting<T>(T setting, Settings.RTextNppSettings settingKey) : Exception : {0}", ex.Message);
             }
         }
-
         internal void readSetting<T>(ref T setting, Settings.RTextNppSettings settingKey)
         {
             try
@@ -83,7 +76,6 @@ namespace RTextNppPlugin.Utilities.Settings
                 Logger.Instance.Append(Logger.MessageType.Error, Constants.GENERAL_CHANNEL, "internal void saveSetting<T>(T setting, Settings.RTextNppSettings settingKey) : Exception : {0}", ex.Message);
             }
         }
-
         private void EnsureConfigurationFileExists(string configPath)
         {
             if (!File.Exists(configPath))
@@ -97,19 +89,16 @@ namespace RTextNppPlugin.Utilities.Settings
                 EnsureSettingsAvailability();
             }
         }
-
         private string GetConfigurationPath()
         {
             var configDir = _nppHelper.GetConfigDir();
             return configDir + "\\" + Assembly.GetExecutingAssembly().GetName().Name + ".dll.config";
         }
-
         private void EnsureSettingsAvailability()
         {
             XmlDocument aDoc   = new XmlDocument();
             string aConfigPath = GetConfigurationPath();
             aDoc.Load(GetConfigurationPath());
-
             foreach(var s in Enum.GetValues(typeof(Settings.RTextNppSettings)))
             {
                 bool hasSetting = false;

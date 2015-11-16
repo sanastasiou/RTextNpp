@@ -12,7 +12,6 @@ using RTextNppPlugin.RText.Protocol;
 using RTextNppPlugin.RText.StateEngine;
 using RTextNppPlugin.Utilities;
 using RTextNppPlugin.WpfControls;
-
 namespace RTextNppPlugin.ViewModels
 {
     internal class AutoCompletionViewModel : BindableObject
@@ -30,7 +29,6 @@ namespace RTextNppPlugin.ViewModels
                 Other,
                 Warning
             }
-
             public Completion(string displayText, string insertionText, string description, AutoCompletionType glyph, bool isFuzzy = false)
             {
                 _displayText   = displayText;
@@ -39,7 +37,6 @@ namespace RTextNppPlugin.ViewModels
                 _glyph         = glyph;
                 _isFuzzy       = isFuzzy;
             }
-
             public Completion(Completion completion, bool isFuzzy)
             {
                 _displayText   = completion.DisplayText;
@@ -48,7 +45,6 @@ namespace RTextNppPlugin.ViewModels
                 _glyph         = completion.ImageType;
                 _isFuzzy       = isFuzzy;
             }
-
             public Completion(Completion completion)
             {
                 _displayText   = completion.DisplayText;
@@ -57,19 +53,14 @@ namespace RTextNppPlugin.ViewModels
                 _glyph         = completion.ImageType;
                 IsFuzzy        = IsSelected = false;
             }
-
             public string DisplayText { get { return _displayText; } }
-
             public string Description { get { return _description; } }
-
             public string InsertionText { get { return _insertionText; } }
-
             public AutoCompletionType ImageType { get { return _glyph; } }
-
             public bool IsFuzzy
-            { 
+            {
                 get
-                { 
+                {
                     return _isFuzzy;
                 }
                 set
@@ -81,7 +72,6 @@ namespace RTextNppPlugin.ViewModels
                     }
                 }
             }
-
             public bool IsSelected
             {
                 get
@@ -92,32 +82,24 @@ namespace RTextNppPlugin.ViewModels
                 {
                     if (value != _isSelected)
                     {
-                        _isSelected = value;                        
+                        _isSelected = value;
                         base.RaisePropertyChanged("IsSelected");
                     }
                 }
             }
-
             #endregion
-
             #region [Helpers]
-            
             #endregion
-
             #region [Data Members]
-
             private readonly string _displayText;
             private readonly string _insertionText;
             private readonly string _description;
             private readonly AutoCompletionType _glyph;
             private bool _isFuzzy;
             private bool _isSelected;
-
             #endregion
         }
-
         #region [Interface]
-
         public enum CharProcessResult
         {
             ForceClose,
@@ -125,14 +107,13 @@ namespace RTextNppPlugin.ViewModels
             NoAction,
             MoveToRight
         }
-
         /**
          * Executes the key pressed action.
-         *          
+         *
          * \remark  Enter, Tab, Esc, Cancel and other character types are not handled here.
          *          This function only adjusts the trigger and insertion points by analyzing
          *          Backspace, Space and visible characters.
-         *                   
+         *
          * \param   key The key.
          */
         public void OnKeyPressed(char c)
@@ -140,30 +121,24 @@ namespace RTextNppPlugin.ViewModels
             CharProcessAction = CharProcessResult.NoAction;
             AddCharToTriggerPoint(c);
         }
-
         public CharProcessResult CharProcessAction { get; private set; }
-
-        public Tokenizer.TokenTag? TriggerPoint 
-        { 
+        public Tokenizer.TokenTag? TriggerPoint
+        {
             get
             {
                 return _triggerToken;
             }
-
             private set
             {
                 _triggerToken = value;
             }
         }
-
         public void OnZoomLevelChanged(double newZoomLevel)
         {
             //calculate actual zoom level , based on Scintilla zoom factors...
-            
             //try 8% increments / decrements
-            ZoomLevel = (1.0 + (Constants.ZOOM_FACTOR * newZoomLevel));            
+            ZoomLevel = (1.0 + (Constants.ZOOM_FACTOR * newZoomLevel));
         }
-
         public double ZoomLevel
         {
             get
@@ -179,18 +154,16 @@ namespace RTextNppPlugin.ViewModels
                 }
             }
         }
-        
         public AutoCompletionViewModel(ConnectorManager cmanager)
         {
             _cManager          = cmanager;
             _filteredList      = new FilteredObservableCollection<Completion>(_completionList);
-            FilteredCount      = 0;            
+            FilteredCount      = 0;
             CharProcessAction  = CharProcessResult.NoAction;
             SelectedCompletion = null;
             _completionList.Add(CreateWarningCompletion(Properties.Resources.ERR_BACKEND_CONNECTING, Properties.Resources.ERR_BACKEND_CONNECTING_DESC));
             Pending = false;
         }
-
         public void OnAutoCompletionWindowCollapsing()
         {
             _completionList.Clear();
@@ -206,9 +179,7 @@ namespace RTextNppPlugin.ViewModels
                 _connector.CancelCommand();
             }
         }
-
         public bool Pending { get; private set; }
-
         public int FilteredCount
         {
             get
@@ -224,7 +195,6 @@ namespace RTextNppPlugin.ViewModels
                 }
             }
         }
-
         public void SelectPosition(int newPosition)
         {
             //fix for initial not selected item, when filtering ignore index change events
@@ -236,7 +206,6 @@ namespace RTextNppPlugin.ViewModels
             {
                 throw new ArgumentException(String.Format("newPosition is out of range : {0}", newPosition));
             }
-
             if (SelectedCompletion != null)
             {
                 SelectedCompletion.IsFuzzy = SelectedCompletion.IsSelected = false;
@@ -244,8 +213,7 @@ namespace RTextNppPlugin.ViewModels
             SelectedCompletion         = _filteredList[newPosition];
             SelectedCompletion.IsFuzzy = SelectedCompletion.IsSelected = true;
         }
-
-        public Completion SelectedCompletion 
+        public Completion SelectedCompletion
         {
             get
             {
@@ -260,7 +228,6 @@ namespace RTextNppPlugin.ViewModels
                 }
             }
         }
-
         public BulkObservableCollection<Completion> UnderlyingList
         {
             get
@@ -268,7 +235,6 @@ namespace RTextNppPlugin.ViewModels
                 return _completionList;
             }
         }
-
         public FilteredObservableCollection<Completion> CompletionList
         {
             get
@@ -276,25 +242,22 @@ namespace RTextNppPlugin.ViewModels
                 return _filteredList;
             }
         }
-
         async public Task AugmentAutoCompletion(ContextExtractor extractor, Point caretPoint, AutoCompletionTokenizer tokenizer)
         {
             Pending = true;
             CharProcessAction = CharProcessResult.NoAction;
             _completionList.Clear();
-
             if (!tokenizer.TriggerToken.HasValue)
             {
                 CharProcessAction = CharProcessResult.ForceClose;
                 Pending = false;
                 return;
             }
-
             TriggerPoint = tokenizer.TriggerToken;
             bool areContextEquals = false;
             //get all tokens before the trigger token - if all previous tokens and all context lines match do not request new auto completion options
             if (_cachedOptions != null && _cachedContext != null && !_isWarningCompletionActive)
-            {                
+            {
                 if (_cachedContext.Count() == 1 && extractor.ContextList.Count() == 1)
                 {
                     areContextEquals = (_equalityComparer.AreTokenStreamsEqual(tokenizer.LineTokens, Npp.Instance.GetCaretPosition(), Npp.Instance.GetCurrentFilePath()));
@@ -311,7 +274,6 @@ namespace RTextNppPlugin.ViewModels
                 //prime comparer
                 _equalityComparer.AreTokenStreamsEqual(tokenizer.LineTokens, Npp.Instance.GetCaretPosition(), Npp.Instance.GetCurrentFilePath());
             }
-
             if (areContextEquals)
             {
                 _completionList.AddRange(_cachedOptions);
@@ -319,17 +281,15 @@ namespace RTextNppPlugin.ViewModels
                 Filter();
                 return;
             }
-
             //store cache
             _cachedContext = extractor.ContextList;
-
             AutoCompleteAndReferenceRequest aRequest = new AutoCompleteAndReferenceRequest
             {
                 column        = extractor.ContextColumn,
                 command       = Constants.Commands.CONTENT_COMPLETION,
                 context       = extractor.ContextList,
                 invocation_id = -1
-            };            
+            };
             _connector = _cManager.Connector;
             if (_connector != null)
             {
@@ -338,7 +298,7 @@ namespace RTextNppPlugin.ViewModels
                     case ConnectorStates.Disconnected:
                         _completionList.Add(CreateWarningCompletion(Properties.Resources.ERR_BACKEND_CONNECTING, Properties.Resources.ERR_BACKEND_CONNECTING_DESC));
                         _isWarningCompletionActive = true;
-                        await _connector.ExecuteAsync<AutoCompleteAndReferenceRequest>(aRequest, Constants.SYNCHRONOUS_COMMANDS_TIMEOUT, Command.Execute);                        
+                        await _connector.ExecuteAsync<AutoCompleteAndReferenceRequest>(aRequest, Constants.SYNCHRONOUS_COMMANDS_TIMEOUT, Command.Execute);
                         break;
                     case ConnectorStates.Busy:
                     case ConnectorStates.Loading:
@@ -368,13 +328,12 @@ namespace RTextNppPlugin.ViewModels
                                 _completionList.Clear();
                                 _isWarningCompletionActive = false;
                             }
-                            //add pics                                
+                            //add pics
                             var labeledList = aResponse.options.AsParallel().Select(x => new Completion(
                                 x.display,
                                 x.insert,
                                 string.IsNullOrEmpty(x.desc) ? "No description available." : x.desc,
                                 DetermineCompletionImage(x.display)));
-
                             if (labeledList.Count() != 0)
                             {
                                 if (labeledList.Count() == 1)
@@ -391,7 +350,7 @@ namespace RTextNppPlugin.ViewModels
                                     Pending = false;
                                     Filter();
                                 }
-                                _cachedOptions = new List<Completion>(_completionList);
+                                //_cachedOptions = new List<Completion>(_completionList);
                             }
                             else
                             {
@@ -412,8 +371,7 @@ namespace RTextNppPlugin.ViewModels
                 _isWarningCompletionActive = true;
                 _completionList.Add(CreateWarningCompletion(Properties.Resources.CONNECTOR_INSTANCE_NULL, Properties.Resources.CONNECTOR_INSTANCE_NULL_DESC));
             }
-        }        
-
+        }
         public int SelectedIndex
         {
             get
@@ -429,25 +387,20 @@ namespace RTextNppPlugin.ViewModels
                 }
             }
         }
-
         public void Filter()
         {
             _isFiltering = true;
             string fallBackHint  = _previousHint;
-
             if (SelectedCompletion != null)
             {
                 SelectedCompletion.IsSelected = SelectedCompletion.IsFuzzy = false;
             }
-            
             if(TriggerPoint.HasValue && !String.IsNullOrWhiteSpace(TriggerPoint.Value.Context))
             {
-                _previousHint       = TriggerPoint.Value.Context;                                                
+                _previousHint       = TriggerPoint.Value.Context;
                 int aprefixCount    = 0;
                 int aContainedCount = 0;
                 int aFuzzyCount     = 0;
-
-
                 _filteredList.Filter((x) =>
                 {
                     if (x.InsertionText.StartsWith(_previousHint, StringComparison.OrdinalIgnoreCase))
@@ -467,7 +420,6 @@ namespace RTextNppPlugin.ViewModels
                     }
                     return false;
                 });
-
                 if ((FilteredCount = _filteredList.Count) == 0)
                 {
                     _filteredList.StopFiltering();
@@ -475,7 +427,6 @@ namespace RTextNppPlugin.ViewModels
                     {
                         SelectedIndex = _filteredList.IndexOf(SelectedCompletion);
                     }
-
                     if(SelectedIndex == -1)
                     {
                         if (_filteredList.Count > 0)
@@ -497,8 +448,7 @@ namespace RTextNppPlugin.ViewModels
                         SelectedCompletion.IsFuzzy    = true;
                         SelectedCompletion.IsSelected = false;
                     }
-
-                    FilteredCount = _completionList.Count;                    
+                    FilteredCount = _completionList.Count;
                 }
                 else
                 {
@@ -510,13 +460,12 @@ namespace RTextNppPlugin.ViewModels
                     else if(aContainedCount > 0)
                     {
                         SelectedCompletion = _filteredList.Where(x => x.InsertionText.Contains(_previousHint, StringComparison.OrdinalIgnoreCase)).OrderBy(x => x.InsertionText.Length).First();
-                    }                    
+                    }
                     else
                     {
                         SelectedCompletion = _filteredList.OrderBy(x => x.InsertionText.Length).First();
                     }
                     SelectedIndex = _filteredList.IndexOf(SelectedCompletion);
-
                     SelectedCompletion.IsSelected = SelectedCompletion.IsFuzzy = true;
                 }
             }
@@ -525,23 +474,21 @@ namespace RTextNppPlugin.ViewModels
                 _filteredList.StopFiltering();
                 if (_filteredList.Count > 0)
                 {
-                    SelectedCompletion = _filteredList.First();
+                    SelectedCompletion            = _filteredList.First();
+                    SelectedCompletion.IsFuzzy    = true;
+                    SelectedCompletion.IsSelected = false;
                 }
-                SelectedCompletion.IsFuzzy    = true;
-                SelectedCompletion.IsSelected = false;
                 FilteredCount                 = _completionList.Count;
                 SelectedIndex                 = -1;
             }
             _isFiltering = false;
         }
         #endregion
-
         #region [Helpers]
         Completion CreateWarningCompletion(string warning, string desc)
         {
             return new Completion(warning, String.Empty, desc, Completion.AutoCompletionType.Warning);
         }
-
         private void AddCharToTriggerPoint(char c)
         {
             int aCurrentPosition = Npp.Instance.GetCaretPosition();
@@ -556,17 +503,16 @@ namespace RTextNppPlugin.ViewModels
             bool wasEmpty = (aContext.Length == 0 || t.Type == RTextTokenTypes.Space);
             if (char.IsWhiteSpace(c) && (wasEmpty || t.Type == RTextTokenTypes.Comma ))
             {
-                CharProcessAction = CharProcessResult.MoveToRight;                
+                CharProcessAction = CharProcessResult.MoveToRight;
                 AutoCompletionTokenizer aTokenizer = new AutoCompletionTokenizer(aLineNumber, aCurrentPosition, Npp.Instance);
                 TriggerPoint = aTokenizer.TriggerToken;
                 return;
             }
             if(wasEmpty && c == Constants.BACKSPACE)
             {
-                CharProcessAction = CharProcessResult.ForceClose;                
+                CharProcessAction = CharProcessResult.ForceClose;
                 return;
             }
-
             if (aCurrentPosition >= 0)
             {
                 AutoCompletionTokenizer aTokenizer = new AutoCompletionTokenizer(aLineNumber, aCurrentPosition, Npp.Instance);
@@ -579,11 +525,10 @@ namespace RTextNppPlugin.ViewModels
             else
             {
                 CharProcessAction = CharProcessResult.ForceClose;
-            }            
+            }
         }
-
         private Completion.AutoCompletionType DetermineCompletionImage(string displayText)
-        {            
+        {
             if(displayText.Contains('/'))
             {
                 return Completion.AutoCompletionType.Reference;
@@ -600,17 +545,15 @@ namespace RTextNppPlugin.ViewModels
             {
                 return Completion.AutoCompletionType.Event;
             }
-            if( displayText.Contains("literal", StringComparison.InvariantCultureIgnoreCase) || 
-                displayText.Contains("float", StringComparison.InvariantCultureIgnoreCase)   || 
+            if( displayText.Contains("literal", StringComparison.InvariantCultureIgnoreCase) ||
+                displayText.Contains("float", StringComparison.InvariantCultureIgnoreCase)   ||
                 displayText.Contains("integer", StringComparison.InvariantCultureIgnoreCase))
             {
                 return Completion.AutoCompletionType.Value;
             }
             return Completion.AutoCompletionType.Label;
         }
-
         #endregion
-
         #region [Data Members]
         private readonly BulkObservableCollection<Completion> _completionList      = new BulkObservableCollection<Completion>(); //!< Underlying completion list.
         private readonly FilteredObservableCollection<Completion> _filteredList    = null;                                       //!< UI completion list based on underlying list.
@@ -623,12 +566,12 @@ namespace RTextNppPlugin.ViewModels
         private List<Completion> _cachedOptions                                    = null;                                       //!< Last set of options.
         private bool _isWarningCompletionActive                                    = false;                                      //!< Indicates if a warning option was active.
         private int _selectedIndex                                                 = 0;                                          //!< Indicates the selected index of the filtered option list.
-        private bool _isFiltering                                                  = false;                                      //!< Indicates if filtering function is currently active.        
+        private bool _isFiltering                                                  = false;                                      //!< Indicates if filtering function is currently active.
         private IEnumerable<string> _cachedContext                                 = null;                                       //!< Holds the last context used for an auto completion request.
         private Connector _connector                                               = null;                                       //!< Connector for this auto completion session.
-        private TokenEqualityComparer _equalityComparer                            = new TokenEqualityComparer();                //!< Compares two tokens list for similiary.        
+        private TokenEqualityComparer _equalityComparer                            = new TokenEqualityComparer();                //!< Compares two tokens list for similiary.
         private readonly FuzzyStringComparisonOptions[] APPROXIMATION_CRITERIA     = new FuzzyStringComparisonOptions[]          //!< Used for fuzzy matching of auto completion options.
-        { 
+        {
             FuzzyStringComparisonOptions.UseHammingDistance,
             FuzzyStringComparisonOptions.UseJaccardDistance,
             FuzzyStringComparisonOptions.UseOverlapCoefficient,

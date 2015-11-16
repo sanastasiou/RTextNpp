@@ -15,8 +15,16 @@ namespace ContextExtraction.ExtractionTests
         {
             ContextExtractor c = new ContextExtractor(input, lengthToEndOfCurrentLine);
 
-            Assert.AreEqual(0, c.ContextColumn);
-            Assert.AreEqual(0, c.ContextList.Count());
+            if (input == System.String.Empty && lengthToEndOfCurrentLine == 0)
+            {
+                Assert.AreEqual(1, c.ContextColumn);
+                Assert.AreEqual(1, c.ContextList.Count());
+            }
+            else
+            {
+                Assert.AreEqual(0, c.ContextColumn);
+                Assert.AreEqual(0, c.ContextList.Count());
+            }
         }
 
         const string SingleLineContext = "      PPortPrototype control, providedInterface: /actuator/IActuatorHornControl {";        
@@ -84,19 +92,26 @@ namespace ContextExtraction.ExtractionTests
                                                         c1,c2,
                                                         c3
                                                        ]";
-        const string ExpectedMultilineArrayString = "                                                    LOL type : 3,                                                    b: [                                                         c1,c2,                                                        c3                                                       ]";
+        const string ExpectedMultilineArrayString = "LOL type : 3,                                                    b: [";
 
         [Test, Sequential]
-        public void ValidArguments_BreakAfterLastEleemnt([Values(0, 10, 298)] int lengthToEndOfCurrentLine,
-                                                         [Values(299, 289, 1)] int expectedColumn)
+        public void ValidArguments_BreakAfterLastEleemnt([Values(0, 10, 15)] int lengthToEndOfCurrentLine,
+                                                         [Values(57, 47, 42)] int expectedColumn)
         {
             ContextExtractor c = new ContextExtractor(MultipleLineContextArray, lengthToEndOfCurrentLine);
 
             //adjust column for backend
             Assert.AreEqual(expectedColumn, c.ContextColumn);
-            Assert.AreEqual(2, c.ContextList.Count());
-            Assert.AreEqual("A {", c.ContextList.ElementAt(0));
-            Assert.AreEqual(ExpectedMultilineArrayString, c.ContextList.ElementAt(1));
+            if (expectedColumn == 0)
+            {
+                Assert.AreEqual(0, c.ContextList.Count());
+            }
+            else
+            {
+                Assert.AreEqual(3, c.ContextList.Count());
+                Assert.AreEqual("A {", c.ContextList.ElementAt(0));
+                Assert.AreEqual(ExpectedMultilineArrayString, c.ContextList.ElementAt(1));
+            }
         }
 
         const string ComplexAnalysisText = @"#Some comment...
@@ -136,8 +151,8 @@ AUTOSAR {
 
         [Test, Sequential]
         public void SingleSeparatorContext([Values("\\", ",", "[", "]", "")] string input,
-                                           [Values(1, 2, 2, 2, 0)] int column,
-                                           [Values(1, 1, 1, 1, 0)] int contextLines)
+                                           [Values(1, 2, 2, 2, 1)] int column,
+                                           [Values(1, 1, 1, 1, 1)] int contextLines)
         {
             ContextExtractor c = new ContextExtractor(input, 0);
             Assert.AreEqual(column, c.ContextColumn);
