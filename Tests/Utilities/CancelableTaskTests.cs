@@ -60,11 +60,11 @@
         public void NormalDelayTestTaskExceedsLimit()
         {
             CancelableTask<bool> t = null;
-            Assert.DoesNotThrow(delegate { t = new CancelableTask<bool>(new ActionWrapper<bool, int>(WorkFunction, 200), 100); });
+            Assert.DoesNotThrow(delegate { t = new CancelableTask<bool>(new ActionWrapper<bool, int>(WorkFunction, 2000), 100); });
 
             _retValue = true;
 
-            Assert.DoesNotThrow(delegate { t.Execute(); });
+            t.Execute();
 
             Assert.True(t.IsCancelled);
             Assert.False(t.Result);
