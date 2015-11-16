@@ -16,7 +16,7 @@ branches:
 skip_tags: true
  
 #---------------------------------#
-#    environment configuration    #
+#    environment configuration  #
 #---------------------------------#
  
 # Operating system (build VM template)
@@ -66,26 +66,22 @@ platform:
 configuration:
   - Release
  
-  # MSBuild verbosity level
-  #verbosity: quiet|minimal|normal|detailed
-  verbosity: minimal
- 
 # scripts to run before build
 before_build:
   nuget restore
-  
-build:
-  parallel: true                  # enable MSBuild parallel builds
-  project: RTextNpp.sln           # path to Visual Studio solution or project
-  
+ 
 #---------------------------------#
 #       tests configuration       #
 #---------------------------------#
+
+build:
+  parallel: true                  # enable MSBuild parallel builds
+  project: RTextNpp.sln           # path to Visual Studio solution or project
  
-#test:
-#  assemblies:
-#    - Tests.dll
- 
+  # MSBuild verbosity level
+  #verbosity: quiet|minimal|normal|detailed
+  verbosity: minimal
+
 # scripts to run after tests
 after_test:
 # generate report for NUnit testing framework:
