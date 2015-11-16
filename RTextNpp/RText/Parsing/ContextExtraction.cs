@@ -138,9 +138,9 @@ namespace RTextNppPlugin.RText.Parsing
             List<StringBuilder> aJoinedLines = new List<StringBuilder>(new StringBuilder[it.Count()]);
             using (var enumerator = it.GetEnumerator())
             {
-                bool aIsBroken = false;
-                _currentIndex  = 0;
-                int count = it.Count();
+                bool aIsBroken        = false;
+                _currentIndex         = 0;
+                int count             = it.Count();
                 while (enumerator.MoveNext())
                 {
                     --count;
@@ -176,16 +176,16 @@ namespace RTextNppPlugin.RText.Parsing
                     {
                         if (count == 0 && string.IsNullOrEmpty(enumerator.Current))
                         {
-                            //if (_currentIndex > 0)
-                            //{
-                                //handle special case of empty context
-                                --_currentIndex;
-                            //}
-                            //if(aJoinedLines.Count == 1)
-                            //{
-                            //    //add empty line
-                            //    Append(ref aJoinedLines, false, enumerator.Current);
-                            //}
+                            if (_currentIndex > 0)
+                            {
+                              //handle special case of empty context
+                              --_currentIndex;
+                            }
+                            if(aJoinedLines.Count == 1)
+                            {
+                                //add empty line
+                                Append(ref aJoinedLines, false, enumerator.Current);
+                            }
                             break;
                         }
                         Append(ref aJoinedLines, aWasBroken, enumerator.Current);

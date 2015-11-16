@@ -60,7 +60,7 @@ AUTOSAR {
     }
     InternalBehavior InternalBehavior1, component: /P1/SWC1 {
       ExclusiveArea \
-        ea1 
+        ea1
       ExclusiveArea \
         ea2
       SwcNvBlockNeeds nvm1, defaultBlock: perInstCal1, mirrorBlock: pim1

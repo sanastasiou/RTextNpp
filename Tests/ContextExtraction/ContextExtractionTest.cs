@@ -92,19 +92,26 @@ namespace ContextExtraction.ExtractionTests
                                                         c1,c2,
                                                         c3
                                                        ]";
-        const string ExpectedMultilineArrayString = "                                                    LOL type : 3,                                                    b: [                                                         c1,c2,                                                        c3                                                       ]";
+        const string ExpectedMultilineArrayString = "LOL type : 3,                                                    b: [";
 
         [Test, Sequential]
-        public void ValidArguments_BreakAfterLastEleemnt([Values(0, 10, 298)] int lengthToEndOfCurrentLine,
-                                                         [Values(299, 289, 1)] int expectedColumn)
+        public void ValidArguments_BreakAfterLastEleemnt([Values(0, 10, 15)] int lengthToEndOfCurrentLine,
+                                                         [Values(57, 47, 42)] int expectedColumn)
         {
             ContextExtractor c = new ContextExtractor(MultipleLineContextArray, lengthToEndOfCurrentLine);
 
             //adjust column for backend
             Assert.AreEqual(expectedColumn, c.ContextColumn);
-            Assert.AreEqual(2, c.ContextList.Count());
-            Assert.AreEqual("A {", c.ContextList.ElementAt(0));
-            Assert.AreEqual(ExpectedMultilineArrayString, c.ContextList.ElementAt(1));
+            if (expectedColumn == 0)
+            {
+                Assert.AreEqual(0, c.ContextList.Count());
+            }
+            else
+            {
+                Assert.AreEqual(3, c.ContextList.Count());
+                Assert.AreEqual("A {", c.ContextList.ElementAt(0));
+                Assert.AreEqual(ExpectedMultilineArrayString, c.ContextList.ElementAt(1));
+            }
         }
 
         const string ComplexAnalysisText = @"#Some comment...

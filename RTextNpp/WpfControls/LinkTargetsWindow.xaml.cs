@@ -333,7 +333,7 @@ namespace RTextNppPlugin.WpfControls
                     Hide();
                 }
                 contextEqualityTask.Start();
-                await contextEqualityTask;
+                Task.WaitAll(contextEqualityTask);
                 if (!contextEqualityTask.Result.Item1 && _cachedReferenceLinks != null)
                 {
                     _cachedReferenceLinks.targets.Clear();
