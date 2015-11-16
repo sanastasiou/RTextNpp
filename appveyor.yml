@@ -66,10 +66,6 @@ platform:
 configuration:
   - Release
  
-build:
-  parallel: true                  # enable MSBuild parallel builds
-  project: RTextNpp.sln           # path to Visual Studio solution or project
- 
   # MSBuild verbosity level
   #verbosity: quiet|minimal|normal|detailed
   verbosity: minimal
@@ -77,14 +73,18 @@ build:
 # scripts to run before build
 before_build:
   nuget restore
- 
+  
+build:
+  parallel: true                  # enable MSBuild parallel builds
+  project: RTextNpp.sln           # path to Visual Studio solution or project
+  
 #---------------------------------#
 #       tests configuration       #
 #---------------------------------#
  
-test:
-  assemblies:
-    - Tests.dll
+#test:
+#  assemblies:
+#    - Tests.dll
  
 # scripts to run after tests
 after_test:
