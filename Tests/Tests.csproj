@@ -83,6 +83,7 @@
     <Compile Include="StateMachineTests\StateMachineTests.cs" />
     <Compile Include="Utilities\ActionWrapperTests.cs" />
     <Compile Include="Utilities\BindingProxyTests.cs" />
+    <Compile Include="Utilities\CancelableTaskTests.cs" />
     <Compile Include="Utilities\ConfiguratorTests.cs" />
     <Compile Include="Utilities\DelayedEventHandlerTests.cs" />
     <Compile Include="Utilities\DispatcherUtil.cs" />

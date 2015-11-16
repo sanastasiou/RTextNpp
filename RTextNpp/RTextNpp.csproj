@@ -124,6 +124,7 @@
     <Compile Include="Utilities\Settings\Settings.cs" />
     <Compile Include="Utilities\StringExtensions.cs" />
     <Compile Include="Utilities\Settings\StyleConfigurationObserver.cs" />
+    <Compile Include="Utilities\Threading\CancelableTask.cs" />
     <Compile Include="Utilities\Visual.cs" />
     <Compile Include="Utilities\WinHook.cs" />
     <Compile Include="Utilities\WinMessageInterceptor.cs" />

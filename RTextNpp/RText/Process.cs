@@ -34,7 +34,6 @@ namespace RTextNppPlugin.RText
         bool _isProcessStarting = true;
         Connector _connector = null;
         readonly Regex _backendInitResponseRegex = new Regex(@"^RText service, listening on port (\d+)$", RegexOptions.Compiled);
-        ManualResetEvent _timeoutEvent = new ManualResetEvent(false);
         DispatcherTimer _timer;
         bool _isMessageDisplayed = false;
         string _extension = String.Empty;                                                                                        //!< The associated extension string.
@@ -304,12 +303,12 @@ namespace RTextNppPlugin.RText
             _stdOutReaderTask            = Task.Factory.StartNew(() => ReadStream(_process.StandardOutput, _cancellationSource.Token), _cancellationSource.Token);
             _stdErrReaderTask            = Task.Factory.StartNew(() => ReadStream(_process.StandardError, _cancellationSource.Token), _cancellationSource.Token);
             _isProcessStarting           = true;
-            _timeoutEvent.Reset();
+            //_timeoutEvent.Reset();
             _pInfo.Port                  = -1; //reinit port every time this function is called
             var aPortTask = new Task(() =>
             {
                 //wait till port is retrieved - caller will cancel this
-                while (!_timeoutEvent.WaitOne(Constants.INITIAL_RESPONSE_TIMEOUT)) ;
+                //while (!_timeoutEvent.WaitOne(Constants.INITIAL_RESPONSE_TIMEOUT)) ;
             });
             var aInitTask = aPortTask.ContinueWith((t) =>
             {
@@ -327,6 +326,22 @@ namespace RTextNppPlugin.RText
             });
             aPortTask.Start();
             await aPortTask;
+        }
+
+        private int GetPortNumber(System.IO.StreamReader stream)
+        {
+            while (true)
+            {
+                System.Threading.Thread.Sleep(Constants.OUTPUT_POLL_PERIOD);
+                if (!stream.EndOfStream)
+                {
+                    string aLine = stream.ReadLine();
+                    if (_backendInitResponseRegex.IsMatch(aLine))
+                    {
+                        return Int32.Parse(_backendInitResponseRegex.Match(aLine).Groups[1].Value);                        
+                    }
+                }
+            }
         }
         
         /**
@@ -400,17 +415,21 @@ namespace RTextNppPlugin.RText
          * \brief   Cleanup process.
          * \todo    Send shutdown command instead of killing the process.
          */
-        public void CleanupProcess()
+        public async void CleanupProcess()
         {
+            //clean up process here
+            _process.EnableRaisingEvents = false;
+            Utilities.ProcessUtilities.KillAllProcessesSpawnedBy(_process.Id);
             try
             {
-                //clean up process here
-                _process.EnableRaisingEvents = false;
-                Utilities.ProcessUtilities.KillAllProcessesSpawnedBy(_process.Id);
                 _cancellationSource.Cancel();
-                _stdErrReaderTask.Wait(2000);
-                _stdOutReaderTask.Wait(2000);
+                await _stdErrReaderTask;
+                await _stdOutReaderTask;
                 //todo send shutdown command to rtext service and wait for it to die
+            }
+            catch(OperationCanceledException ex)
+            {
+                System.Diagnostics.Trace.WriteLine(String.Format("Read stream task aborted : {0}"), ex.Message);
             }
             catch (Exception ex)
             {
@@ -454,22 +473,14 @@ namespace RTextNppPlugin.RText
          */
         private void ReadStream(System.IO.StreamReader stream, CancellationToken token)
         {
-            while (!token.IsCancellationRequested)
+            while (true)
             {
+                token.ThrowIfCancellationRequested();
                 System.Threading.Thread.Sleep(Constants.OUTPUT_POLL_PERIOD);
                 if (!stream.EndOfStream)
                 {
                     string aLine = stream.ReadLine();
                     Logging.Logger.Instance.Append(Logging.Logger.MessageType.Info, _pInfo.ProcKey, aLine);
-                    if (_isProcessStarting)
-                    {
-                        if (_backendInitResponseRegex.IsMatch(aLine))
-                        {
-                            _pInfo.Port = Int32.Parse(_backendInitResponseRegex.Match(aLine).Groups[1].Value);
-                            _timeoutEvent.Set();
-                            _isProcessStarting = false;
-                        }
-                    }
                 }
             }
         }
