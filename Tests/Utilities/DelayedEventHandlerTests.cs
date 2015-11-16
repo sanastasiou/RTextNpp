@@ -9,7 +9,7 @@ namespace Tests.Utilities
     class DelayedEventHandlerTests : TestWithActiveDispatcher
     {
         #region [Data Members]
-        DelayedEventHandler _noArgHandler         = null;
+        VoidDelayedEventHandler _noArgHandler     = null;
         bool _isNoArgHandlerCalled                = false;
         int _count = 0;
         #endregion
@@ -56,7 +56,7 @@ namespace Tests.Utilities
             // thread.  Creating the Ticker on the worker thread
             // ensures that its DispatcherTimer uses the worker
             // thread's Dispatcher.
-            _noArgHandler = new DelayedEventHandler(new ActionWrapper(() => { _isNoArgHandlerCalled = true; ++_count; }), 100, DispatcherPriority.Normal);
+            _noArgHandler = new VoidDelayedEventHandler(new Action(() => { _isNoArgHandlerCalled = true; ++_count; }), 100, DispatcherPriority.Normal);
             base._testDelegate.Invoke();
             // Give the Ticker some time to do its work.
             base.WaitWithoutBlockingDispatcher(TimeSpan.FromMilliseconds(500));
@@ -72,7 +72,7 @@ namespace Tests.Utilities
         private void TriggerMultiple()
         {
             _noArgHandler.TriggerHandler();
-            _noArgHandler.TriggerHandler(new ActionWrapper(() => { _isNoArgHandlerCalled = true; ++_count; }));
+            _noArgHandler.TriggerHandler(new Action(() => { _isNoArgHandlerCalled = true; ++_count; }));
         }
         private void TriggerCancel()
         {

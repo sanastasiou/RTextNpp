@@ -5,47 +5,47 @@ using System.Text;
 using System.Threading.Tasks;
 namespace RTextNppPlugin.Utilities
 {
-    public class ActionWrapper<T1> : IActionWrapper
+    public class ActionWrapper<R, T1> : IActionWrapper<R>
     {
-        private readonly Action<T1> _action;
+        private readonly Func<T1, R> _action;
         private readonly T1 _arg;
-        public void DoAction()
+        public R DoAction()
         {
-            _action(_arg);
+            return _action(_arg);
         }
-        public ActionWrapper(Action<T1> action, T1 arg)
+        public ActionWrapper(Func<T1, R> action, T1 arg)
         {
             _action = action;
             _arg    = arg;
         }
     }
-    public class ActionWrapper<T1, T2> : IActionWrapper
+    public class ActionWrapper<R, T1, T2> : IActionWrapper<R>
     {
-        private readonly Action<T1, T2> _action;
+        private readonly Func<T1, T2, R> _action;
         private readonly T1 _arg1;
         private readonly T2 _arg2;
-        public void DoAction()
+        public R DoAction()
         {
-            _action(_arg1, _arg2);
+            return _action(_arg1, _arg2);
         }
-        public ActionWrapper(Action<T1, T2> action, T1 arg1 = default(T1), T2 arg2 = default(T2))
+        public ActionWrapper(Func<T1, T2, R> action, T1 arg1 = default(T1), T2 arg2 = default(T2))
         {
             _action = action;
             _arg1 = arg1;
             _arg2 = arg2;
         }
     }
-    public class ActionWrapper<T1, T2, T3> : IActionWrapper
+    public class ActionWrapper<R, T1, T2, T3> : IActionWrapper<R>
     {
-        private readonly Action<T1, T2, T3> _action;
+        private readonly Func<T1, T2, T3, R> _action;
         private readonly T1 _arg1;
         private readonly T2 _arg2;
         private readonly T3 _arg3;
-        public void DoAction()
+        public R DoAction()
         {
-            _action(_arg1, _arg2, _arg3);
+            return _action(_arg1, _arg2, _arg3);
         }
-        public ActionWrapper(Action<T1, T2, T3> action, T1 arg1 = default(T1), T2 arg2 = default(T2), T3 arg3 = default(T3))
+        public ActionWrapper(Func<T1, T2, T3, R> action, T1 arg1 = default(T1), T2 arg2 = default(T2), T3 arg3 = default(T3))
         {
             _action = action;
             _arg1 = arg1;
@@ -53,7 +53,7 @@ namespace RTextNppPlugin.Utilities
             _arg3 = arg3;
         }
     }
-    public class ActionWrapper : IActionWrapper
+    public class ActionWrapper
     {
         private readonly Action _action;
         public void DoAction()

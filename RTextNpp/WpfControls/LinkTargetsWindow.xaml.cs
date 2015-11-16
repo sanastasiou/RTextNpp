@@ -35,7 +35,7 @@ namespace RTextNppPlugin.WpfControls
         private ISettings _settings                                    = null;                 //!< Reads or write plugin settings.
         private ReferenceRequestObserver _referenceRequestObserver     = null;                 //!< Handles reference requests triggers.
         private IEnumerable<string> _cachedContext                     = null;                 //!< Holds the last context used for reference lookup request.
-        private DelayedEventHandler _referenceRequestDispatcher        = null;                 //!< Debounces link reference requests and dispatches the reuqests to the backend.
+        private DelayedEventHandler<object> _referenceRequestDispatcher= null;                 //!< Debounces link reference requests and dispatches the reuqests to the backend.
         private LinkTargetsResponse _cachedReferenceLinks              = null;                 //!< Holds a cache of reference links from a previous backend request.
         private ConnectorManager _cManager                             = null;                 //!< Instance of ConnectorManager instance.
         private Connector _connector                                   = null;                 //!< Connector which is relevant to the actual focused file.
@@ -62,7 +62,7 @@ namespace RTextNppPlugin.WpfControls
             {
                 if (_referenceRequestDispatcher.IsRunning)
                 {
-                    _referenceRequestDispatcher.TriggerHandler(new ActionWrapper<Tokenizer.TokenTag>(TryHighlightItemUnderMouse, aTokenUnderCursor));
+                    _referenceRequestDispatcher.TriggerHandler(new ActionWrapper<object, Tokenizer.TokenTag>(TryHighlightItemUnderMouse, aTokenUnderCursor));
                 }
                 else
                 {
@@ -80,7 +80,7 @@ namespace RTextNppPlugin.WpfControls
             _win32Helper = win32Helper;
             _settings = settingsHelper;
             _referenceRequestObserver = new ReferenceRequestObserver(_nppHelper, _settings, _win32Helper, this, styleObserver);
-            _referenceRequestDispatcher = new DelayedEventHandler(new ActionWrapper<Tokenizer.TokenTag>(TryHighlightItemUnderMouse, default(Tokenizer.TokenTag)), 500);
+            _referenceRequestDispatcher = new DelayedEventHandler<object>(new ActionWrapper<object, Tokenizer.TokenTag>(TryHighlightItemUnderMouse, default(Tokenizer.TokenTag)), 500);
             _cManager = cmanager;
             _keyMonitor.KeyDown += OnKeyMonitorKeyDown;
             _keyMonitor.KeysToIntercept.Add((int)System.Windows.Forms.Keys.Down);
@@ -468,12 +468,13 @@ namespace RTextNppPlugin.WpfControls
             }
             return null;
         }
-        private void TryHighlightItemUnderMouse(Tokenizer.TokenTag aTokenUnderCursor)
+        private object TryHighlightItemUnderMouse(Tokenizer.TokenTag aTokenUnderCursor)
         {
             Dispatcher.Invoke((MethodInvoker)(async () =>
             {
                 await SendLinkReferenceRequestAsync(aTokenUnderCursor);
             }));
+            return null;
         }
         /**
          * @brief   File clicked. Occurs when a hyperlinked filepath is clicked.

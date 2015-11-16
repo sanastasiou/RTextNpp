@@ -13,18 +13,18 @@ namespace RTextNppPlugin.RText
     class ReferenceRequestObserver
     {
         #region [Data Members]
-        private readonly INpp _nppHelper                              = null;                        //!< Interface to Npp message system.
-        private readonly ISettings _settings                          = null;                        //!< Interface to RTextNpp settings.
-        private readonly MouseMonitor _mouseMovementObserver          = new MouseMonitor();          //!< Low level mouse monitor hook.
-        private Tokenizer.TokenTag _previousReferenceToken            = default(Tokenizer.TokenTag); //!< Holds previous highlighted reference token.
-        private bool _isKeyboardShortCutActive                        = false;                       //!< Indicates if reference show shortcut key is active.
-        private bool _highLightToken                                  = false;                       //!< Whether a reference token is highlighted.
-        private readonly IWin32 _win32Helper                          = null;                        //!< Handle to win32 helper instance.
-        private readonly ILinkTargetsWindow _refWindow                = null;                        //!< Handle to reference window.
-        private readonly DelayedEventHandler _mouseMoveDebouncer      = null;                        //!< Debounces mose movement for a short period of time so that CPU is not taxed.
-        private System.Drawing.Point _previousMousePosition           = new System.Drawing.Point(System.Windows.Forms.Cursor.Position.X, System.Windows.Forms.Cursor.Position.Y);
-        private IntPtr _editorWithActiveHotspot                       = IntPtr.Zero;                 //!< Holds editor handle, where hotspot is currently active.
-        private readonly IStyleConfigurationObserver _styleOberver    = null;                        //!< Observer RText styles and provides notification when they change.
+        private readonly INpp _nppHelper                             = null;                        //!< Interface to Npp message system.
+        private readonly ISettings _settings                         = null;                        //!< Interface to RTextNpp settings.
+        private readonly MouseMonitor _mouseMovementObserver         = new MouseMonitor();          //!< Low level mouse monitor hook.
+        private Tokenizer.TokenTag _previousReferenceToken           = default(Tokenizer.TokenTag); //!< Holds previous highlighted reference token.
+        private bool _isKeyboardShortCutActive                       = false;                       //!< Indicates if reference show shortcut key is active.
+        private bool _highLightToken                                 = false;                       //!< Whether a reference token is highlighted.
+        private readonly IWin32 _win32Helper                         = null;                        //!< Handle to win32 helper instance.
+        private readonly ILinkTargetsWindow _refWindow               = null;                        //!< Handle to reference window.
+        private readonly VoidDelayedEventHandler _mouseMoveDebouncer = null;                        //!< Debounces mose movement for a short period of time so that CPU is not taxed.
+        private System.Drawing.Point _previousMousePosition          = new System.Drawing.Point(System.Windows.Forms.Cursor.Position.X, System.Windows.Forms.Cursor.Position.Y);
+        private IntPtr _editorWithActiveHotspot                      = IntPtr.Zero;                 //!< Holds editor handle, where hotspot is currently active.
+        private readonly IStyleConfigurationObserver _styleOberver   = null;                        //!< Observer RText styles and provides notification when they change.
         #endregion
         #region [Events]
         #endregion
@@ -58,7 +58,7 @@ namespace RTextNppPlugin.RText
             _mouseMovementObserver.MouseClicked += OnMouseMovementObserverMouseClicked;
             IsKeyboardShortCutActive         = false;
             _refWindow                       = refWindow;
-            _mouseMoveDebouncer              = new DelayedEventHandler(new ActionWrapper(DoMouseMovementObserverMouseMove), 100);
+            _mouseMoveDebouncer              = new VoidDelayedEventHandler(new Action(DoMouseMovementObserverMouseMove), 100);
             _styleOberver                    = styleObserver;
         }
         bool OnMouseMovementObserverMouseClicked(VisualUtilities.MouseMessages arg)

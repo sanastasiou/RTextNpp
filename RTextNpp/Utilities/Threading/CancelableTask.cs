@@ -16,12 +16,12 @@ namespace RTextNppPlugin.Utilities.Threading
         CancellationToken _cancellationToken;
         Task<T> _backgroundTask = null;
         T _taskResult           = default(T);
-        Func<T> _taskCallback;
+        IActionWrapper<T> _taskCallback;
         int _cancellationDelay = default(int);
 
         #endregion
 
-        internal CancelableTask (Func<T> taskCallback, int cancellationDelay)
+        internal CancelableTask(IActionWrapper<T> taskCallback, int cancellationDelay)
         {
             if(taskCallback == null)
             {
@@ -55,7 +55,7 @@ namespace RTextNppPlugin.Utilities.Threading
                 _backgroundTask = Task.Run<T>(() =>
                 {
                     //if do action takes longer than delay, task will be cancelled
-                    var aResult = _taskCallback.Invoke();
+                    var aResult = _taskCallback.DoAction();
                     _cancellationToken.ThrowIfCancellationRequested();
 
                     return aResult;

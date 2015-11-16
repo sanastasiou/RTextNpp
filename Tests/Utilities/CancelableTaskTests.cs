@@ -3,14 +3,14 @@
     using System;
     using NUnit.Framework;
     using System.Threading;
+    using RTextNppPlugin.Utilities;
     using RTextNppPlugin.Utilities.Threading;
     [TestFixture]
     class CancelableTaskTests
     {
         private bool _retValue;
-        private int _workDelay;
 
-        private bool WorkFunction()
+        private bool WorkFunction(int _workDelay)
         {
             Thread.Sleep(_workDelay);
             return _retValue;
@@ -20,7 +20,6 @@
         public void Init()
         {
             _retValue = false;
-            _workDelay = 0;
         }
 
         [Test]
@@ -33,10 +32,8 @@
         public void NullDelayTest()
         {
             CancelableTask<bool> t = null;
-            Assert.DoesNotThrow(delegate { t = new CancelableTask<bool>(new Func<bool>(WorkFunction), 0); });
+            Assert.DoesNotThrow(delegate { t = new CancelableTask<bool>(new ActionWrapper<bool, int>(WorkFunction, 100), 0); });
             
-            _workDelay = 100;
-
             Assert.DoesNotThrow(delegate { t.Execute(); });
 
             Assert.True(t.IsCancelled);
@@ -48,9 +45,8 @@
         public void NormalDelayTest()
         {
             CancelableTask<bool> t = null;
-            Assert.DoesNotThrow(delegate { t = new CancelableTask<bool>(new Func<bool>(WorkFunction), 200); });
+            Assert.DoesNotThrow(delegate { t = new CancelableTask<bool>(new ActionWrapper<bool, int>(WorkFunction, 100), 200); });
 
-            _workDelay = 100;
             _retValue = true;
 
             Assert.DoesNotThrow(delegate { t.Execute(); });
@@ -64,9 +60,8 @@
         public void NormalDelayTestTaskExceedsLimit()
         {
             CancelableTask<bool> t = null;
-            Assert.DoesNotThrow(delegate { t = new CancelableTask<bool>(new Func<bool>(WorkFunction), 200); });
+            Assert.DoesNotThrow(delegate { t = new CancelableTask<bool>(new ActionWrapper<bool, int>(WorkFunction, 300), 200); });
 
-            _workDelay = 300;
             _retValue = true;
 
             Assert.DoesNotThrow(delegate { t.Execute(); });

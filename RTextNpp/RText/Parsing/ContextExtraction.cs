@@ -176,7 +176,16 @@ namespace RTextNppPlugin.RText.Parsing
                     {
                         if (count == 0 && string.IsNullOrEmpty(enumerator.Current))
                         {
-                            --_currentIndex;
+                            //if (_currentIndex > 0)
+                            //{
+                                //handle special case of empty context
+                                --_currentIndex;
+                            //}
+                            //if(aJoinedLines.Count == 1)
+                            //{
+                            //    //add empty line
+                            //    Append(ref aJoinedLines, false, enumerator.Current);
+                            //}
                             break;
                         }
                         Append(ref aJoinedLines, aWasBroken, enumerator.Current);

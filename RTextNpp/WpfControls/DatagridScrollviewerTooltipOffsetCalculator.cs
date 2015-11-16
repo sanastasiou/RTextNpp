@@ -9,18 +9,18 @@ namespace RTextNppPlugin.WpfControls
     internal class DatagridScrollviewerTooltipOffsetCalculator
     {
         #region [Data Members]
-        ToolTip _previouslyOpenedToolTip           = null;
-        DelayedEventHandler _delayedToolTipHandler = null;
-        Dispatcher _dispatcher                     = null;
-        IWindowPosition _winPosition               = null;
-        DataGrid _datagrid                         = null;
+        ToolTip _previouslyOpenedToolTip                   = null;
+        DelayedEventHandler<object> _delayedToolTipHandler = null;
+        Dispatcher _dispatcher                             = null;
+        IWindowPosition _winPosition                       = null;
+        DataGrid _datagrid                                 = null;
         readonly double MAX_TOOLTIP_LENGTH;
         #endregion
         #region [Interface]
         internal DatagridScrollviewerTooltipOffsetCalculator(Dispatcher dispatcher, IWindowPosition winPosition, double maxLength, DataGrid datagrid)
         {
             _dispatcher            = dispatcher;
-            _delayedToolTipHandler = new DelayedEventHandler(new ActionWrapper<System.Windows.Controls.ToolTip>(OnToolTipDelayedHandlerExpired, null), 1000, System.Windows.Threading.DispatcherPriority.ApplicationIdle);
+            _delayedToolTipHandler = new DelayedEventHandler<object>(new ActionWrapper<object, System.Windows.Controls.ToolTip>(OnToolTipDelayedHandlerExpired, null), 1000, System.Windows.Threading.DispatcherPriority.ApplicationIdle);
             _winPosition           = winPosition;
             MAX_TOOLTIP_LENGTH     = maxLength;
             _datagrid              = datagrid;
@@ -43,7 +43,7 @@ namespace RTextNppPlugin.WpfControls
             tp.PlacementTarget = placementTarget;
             tp.Placement       = System.Windows.Controls.Primitives.PlacementMode.Right;
             HidePreviouslyOpenedTooltip(tp);
-            _delayedToolTipHandler.TriggerHandler(new ActionWrapper<System.Windows.Controls.ToolTip>(OnToolTipDelayedHandlerExpired, tp));
+            _delayedToolTipHandler.TriggerHandler(new ActionWrapper<object, System.Windows.Controls.ToolTip>(OnToolTipDelayedHandlerExpired, tp));
         }
         internal double CalculateTooltipOffset()
         {
@@ -93,9 +93,10 @@ namespace RTextNppPlugin.WpfControls
         }
         #endregion
         #region [Helpers]
-        private void OnToolTipDelayedHandlerExpired(ToolTip tp)
+        private object OnToolTipDelayedHandlerExpired(ToolTip tp)
         {
             _dispatcher.Invoke(new Action<ToolTip>(ShowDelayedToolTip), tp);
+            return null;
         }
         private void ShowDelayedToolTip(ToolTip tp)
         {

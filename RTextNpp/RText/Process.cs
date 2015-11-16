@@ -14,6 +14,8 @@ namespace RTextNppPlugin.RText
 {
     using RTextNppPlugin.Utilities;
     using RTextNppPlugin.Utilities.Settings;
+    using RTextNppPlugin.Utilities.Threading;
+
     /**
      * \class   RTextBackendProcess
      *
@@ -31,14 +33,13 @@ namespace RTextNppPlugin.RText
         CancellationTokenSource _cancellationSource = null;
         Task _stdOutReaderTask = null;
         Task _stdErrReaderTask = null;
-        bool _isProcessStarting = true;
         Connector _connector = null;
         readonly Regex _backendInitResponseRegex = new Regex(@"^RText service, listening on port (\d+)$", RegexOptions.Compiled);
         DispatcherTimer _timer;
         bool _isMessageDisplayed = false;
         string _extension = String.Empty;                                                                                        //!< The associated extension string.
         string _autoRunKey = String.Empty;                                                                                       //!< The autorun registry value.
-        private readonly DelayedEventHandler _workspaceFileWatcherDebouncer = null;                                              //!< Debounces workspace file (.rtext) changes events.
+        private readonly VoidDelayedEventHandler _workspaceFileWatcherDebouncer = null;                                          //!< Debounces workspace file (.rtext) changes events.
         #endregion
         
         #region Interface
@@ -179,7 +180,7 @@ namespace RTextNppPlugin.RText
         {
             _settings = settings;
             _connector = new Connector(this);
-            _workspaceFileWatcherDebouncer = new DelayedEventHandler(new ActionWrapper(RestartProcess), 1000);
+            _workspaceFileWatcherDebouncer = new VoidDelayedEventHandler(new Action(RestartProcess), 1000);
         }
         
         /**
@@ -219,9 +220,8 @@ namespace RTextNppPlugin.RText
         
         public async Task<bool> InitializeBackendAsync()
         {
-            System.Diagnostics.Trace.WriteLine(String.Format("Before if : process is null : {0}, or process is not running : {1}", _process == null, _process == null ? true : _process.HasExited));
-            //process never started, or process has exited
-            if (_process == null || _process.HasExited)
+            //process never started, or process has exited or port could not be retrieved
+            if (_process == null || _process.HasExited || _pInfo.Port == -1)
             {
                 var task = CreateNewProcessAsync();
                 if (await Task.WhenAny(task, Task.Delay(Constants.INITIAL_RESPONSE_TIMEOUT)) != task)
@@ -232,12 +232,11 @@ namespace RTextNppPlugin.RText
                 }
                 else
                 {
-                    return true;
+                    return _pInfo.Port == -1;
                 }
             }
             else
             {
-                System.Diagnostics.Trace.WriteLine(String.Format("Process exists and is running!"));
                 return true;
             }
         }
@@ -300,42 +299,47 @@ namespace RTextNppPlugin.RText
             _process.Start();
             //start reaading asynchronously with tasks
             _cancellationSource          = new CancellationTokenSource();
-            _stdOutReaderTask            = Task.Factory.StartNew(() => ReadStream(_process.StandardOutput, _cancellationSource.Token), _cancellationSource.Token);
+            _stdOutReaderTask            = new Task(() => ReadStream(_process.StandardOutput, _cancellationSource.Token), _cancellationSource.Token);
             _stdErrReaderTask            = Task.Factory.StartNew(() => ReadStream(_process.StandardError, _cancellationSource.Token), _cancellationSource.Token);
-            _isProcessStarting           = true;
-            //_timeoutEvent.Reset();
             _pInfo.Port                  = -1; //reinit port every time this function is called
             var aPortTask = new Task(() =>
             {
-                //wait till port is retrieved - caller will cancel this
-                //while (!_timeoutEvent.WaitOne(Constants.INITIAL_RESPONSE_TIMEOUT)) ;
-            });
-            var aInitTask = aPortTask.ContinueWith((t) =>
-            {
-                //port could be retrieved - backend is running
-                if (_pInfo.Port != -1)
+                var t = new CancelableTask<int>(new ActionWrapper<int, System.IO.StreamReader>(GetPortNumber, _process.StandardOutput), Constants.INITIAL_RESPONSE_TIMEOUT);
+                t.Execute();
+                if(!t.IsCancelled)
                 {
-                    //load model if specified option is enabled
-                    if (_settings.Get<bool>(Settings.RTextNppSettings.AutoLoadWorkspace))
+                    //port could be retrieved - backend is running
+                    if (t.Result != -1)
                     {
-                        OnTimerElapsed(null, EventArgs.Empty);
+                        _pInfo.Port = t.Result;
+                        //load model if specified option is enabled
+                        if (_settings.Get<bool>(Settings.RTextNppSettings.AutoLoadWorkspace))
+                        {
+                            OnTimerElapsed(null, EventArgs.Empty);
+                        }
                     }
                 }
                 WriteAutoRunValue(_autoRunKey);
                 _autoRunKey = String.Empty;
             });
+
             aPortTask.Start();
-            await aPortTask;
-        }
+            await aPortTask.ContinueWith((t) => { _stdOutReaderTask.Start(); }, TaskContinuationOptions.OnlyOnRanToCompletion);
+            }
 
         private int GetPortNumber(System.IO.StreamReader stream)
         {
             while (true)
             {
                 System.Threading.Thread.Sleep(Constants.OUTPUT_POLL_PERIOD);
+                if(_process.HasExited)
+                {
+                    return -1;
+                }
                 if (!stream.EndOfStream)
                 {
                     string aLine = stream.ReadLine();
+                    Logging.Logger.Instance.Append(Logging.Logger.MessageType.Info, _pInfo.ProcKey, aLine);
                     if (_backendInitResponseRegex.IsMatch(aLine))
                     {
                         return Int32.Parse(_backendInitResponseRegex.Match(aLine).Groups[1].Value);                        
@@ -429,7 +433,7 @@ namespace RTextNppPlugin.RText
             }
             catch(OperationCanceledException ex)
             {
-                System.Diagnostics.Trace.WriteLine(String.Format("Read stream task aborted : {0}"), ex.Message);
+                System.Diagnostics.Trace.WriteLine(String.Format("CleanupProcess : Read stream task aborted : {0}", ex.Message));
             }
             catch (Exception ex)
             {
@@ -437,25 +441,32 @@ namespace RTextNppPlugin.RText
             }
             finally
             {
-                if (_fileSystemWatcher != null)
+                try
                 {
-                    _fileSystemWatcher.Changed -= OnRTextFileCreatedOrDeletedOrModified;
-                    _fileSystemWatcher.Deleted -= OnRTextFileCreatedOrDeletedOrModified;
-                    _fileSystemWatcher.Created -= OnRTextFileCreatedOrDeletedOrModified;
-                    _fileSystemWatcher.Renamed -= OnRTextFileRenamed;
-                    _fileSystemWatcher.Error   -= ProcessError;
-                    _fileSystemWatcher.Dispose();
-                    _fileSystemWatcher = null;
+                    if (_fileSystemWatcher != null)
+                    {
+                        _fileSystemWatcher.Changed -= OnRTextFileCreatedOrDeletedOrModified;
+                        _fileSystemWatcher.Deleted -= OnRTextFileCreatedOrDeletedOrModified;
+                        _fileSystemWatcher.Created -= OnRTextFileCreatedOrDeletedOrModified;
+                        _fileSystemWatcher.Renamed -= OnRTextFileRenamed;
+                        _fileSystemWatcher.Error -= ProcessError;
+                        _fileSystemWatcher.Dispose();
+                        _fileSystemWatcher = null;
+                    }
+                    if (_workspaceSystemWatcher != null)
+                    {
+                        _workspaceSystemWatcher.Changed -= OnWorkspaceDefinitionFileCreatedOrDeletedOrModified;
+                        _workspaceSystemWatcher.Created -= OnWorkspaceDefinitionFileCreatedOrDeletedOrModified;
+                        _workspaceSystemWatcher.Deleted -= OnWorkspaceDefinitionFileCreatedOrDeletedOrModified;
+                        _workspaceSystemWatcher.Error -= ProcessError;
+                        _workspaceSystemWatcher.Renamed -= OnWorkspaceDefinitionFileRenamed;
+                        _workspaceSystemWatcher.Dispose();
+                        _workspaceSystemWatcher = null;
+                    }
                 }
-                if (_workspaceSystemWatcher != null)
+                catch(Exception ex)
                 {
-                    _workspaceSystemWatcher.Changed -= OnWorkspaceDefinitionFileCreatedOrDeletedOrModified;
-                    _workspaceSystemWatcher.Created -= OnWorkspaceDefinitionFileCreatedOrDeletedOrModified;
-                    _workspaceSystemWatcher.Deleted -= OnWorkspaceDefinitionFileCreatedOrDeletedOrModified;
-                    _workspaceSystemWatcher.Error   -= ProcessError;
-                    _workspaceSystemWatcher.Renamed -= OnWorkspaceDefinitionFileRenamed;
-                    _workspaceSystemWatcher.Dispose();
-                    _workspaceSystemWatcher = null;
+                    System.Diagnostics.Trace.WriteLine(String.Format("SEH Exception : {0}", ex.Message));
                 }
                 if (_process != null)
                 {
@@ -473,9 +484,8 @@ namespace RTextNppPlugin.RText
          */
         private void ReadStream(System.IO.StreamReader stream, CancellationToken token)
         {
-            while (true)
+            while (!token.IsCancellationRequested)
             {
-                token.ThrowIfCancellationRequested();
                 System.Threading.Thread.Sleep(Constants.OUTPUT_POLL_PERIOD);
                 if (!stream.EndOfStream)
                 {
@@ -495,7 +505,7 @@ namespace RTextNppPlugin.RText
          */
         private void OnProcessExited(object sender, EventArgs e)
         {
-            if (_process != null && _process.HasExited)
+            if (_process != null)
             {
                 CleanupProcess();
                 //notify connectors that their backend in no longer available!

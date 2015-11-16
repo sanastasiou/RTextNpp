@@ -17,12 +17,12 @@ namespace RTextNppPlugin.WpfControls
     public partial class AutoCompletionWindow : System.Windows.Window, IDisposable, IWin32MessageReceptor, IWindowPosition
     {
         #region [DataMembers]
-        DelayedEventHandler _delayedFilterEventHandler              = null;                 //!< Control options filtering with a delay.
-        KeyInterceptor _keyMonitor                                  = new KeyInterceptor(); //!< Monitors key presses when auto completion is active.
-        GlobalClickInterceptor _autoCompletionMouseMonitor          = null;                 //!< Monitors click events to hide auto completion window.
-        bool _isOnTop                                               = false;                //!< Indicates if window is on top of a token.
-        INpp _nppHelper                                             = null;                 //!< Allows access to Notepad++ functions.
-        DatagridScrollviewerTooltipOffsetCalculator _tpControl      = null;                 //!< Control tooltip placement on right of the completion options.
+        VoidDelayedEventHandler _delayedFilterEventHandler     = null;                 //!< Control options filtering with a delay.
+        KeyInterceptor _keyMonitor                             = new KeyInterceptor(); //!< Monitors key presses when auto completion is active.
+        GlobalClickInterceptor _autoCompletionMouseMonitor     = null;                 //!< Monitors click events to hide auto completion window.
+        bool _isOnTop                                          = false;                //!< Indicates if window is on top of a token.
+        INpp _nppHelper                                        = null;                 //!< Allows access to Notepad++ functions.
+        DatagridScrollviewerTooltipOffsetCalculator _tpControl = null;                 //!< Control tooltip placement on right of the completion options.
         #endregion
         #region [Interface]
         internal AutoCompletionWindow(ConnectorManager cmanager, IWin32 win32Helper, INpp nppHelper)
@@ -31,7 +31,7 @@ namespace RTextNppPlugin.WpfControls
             _autoCompletionMouseMonitor = new GlobalClickInterceptor(win32Helper);
             DataContext                 = new ViewModels.AutoCompletionViewModel(cmanager);
             _keyMonitor.KeyDown         += OnKeyMonitorKeyDown;
-            _delayedFilterEventHandler  = new DelayedEventHandler(new ActionWrapper(PostProcessKeyPressed), 150);
+            _delayedFilterEventHandler  = new VoidDelayedEventHandler(new Action(PostProcessKeyPressed), 150);
             _tpControl                  = new DatagridScrollviewerTooltipOffsetCalculator(Dispatcher,
                                                                                           this,
                                                                                           Constants.MAX_AUTO_COMPLETION_TOOLTIP_WIDTH,
