@@ -84,7 +84,7 @@ build:
 
 # scripts to run after build
 after_build:
-  7z a Release.zip %APPVEYOR_BUILD_FOLDER%/RTextNpp/bin/x86/Release/RTextNpp.dll %APPVEYOR_BUILD_FOLDER%/RTextNpp/RTextNpp.xml
+  7z a Release.zip %APPVEYOR_BUILD_FOLDER%/RTextNpp/bin/x86/Release/RTextNpp.dll %APPVEYOR_BUILD_FOLDER%/RTextNpp.xml
   
 # scripts to run after tests
 after_test:
