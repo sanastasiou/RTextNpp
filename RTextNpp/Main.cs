@@ -19,29 +19,35 @@ namespace RTextNppPlugin
     partial class Plugin
     {
         #region [Fields]
-        private static INpp _nppHelper                                                  = Npp.Instance;
-        private static IWin32 _win32                                                    = new Win32();
-        private static ISettings _settings                                              = new Settings(_nppHelper);
-        private static StyleConfigurationObserver _styleObserver                        = new StyleConfigurationObserver(_nppHelper);
-        private static ConnectorManager _connectorManager                               = new ConnectorManager(_settings, _nppHelper);
-        private static PersistentWpfControlHost<ConsoleOutputForm> _consoleOutput       = new PersistentWpfControlHost<ConsoleOutputForm>(Settings.RTextNppSettings.ConsoleWindowActive, new ConsoleOutputForm(_connectorManager, _nppHelper, _styleObserver), _settings, _nppHelper);
-        private static Options _options                                                 = new Options(_settings);
-        private static FileModificationObserver _fileObserver                           = new FileModificationObserver(_settings, _nppHelper);
-        private static Dictionary<ShortcutKey, Tuple<string, Action>> internalShortcuts = new Dictionary<ShortcutKey, Tuple<string, Action>>();
-        private static AutoCompletionWindow _autoCompletionForm                         = new AutoCompletionWindow(_connectorManager, _win32, _nppHelper);
-        private static Bitmap tbBmp                                                     = Properties.Resources.ConsoleIcon;
-        private static Bitmap tbBmp_tbTab                                               = Properties.Resources.ConsoleIcon;
-        private static Icon tbIcon                                                      = null;
-        private static bool _consoleInitialized                                         = false;
-        private static bool _invokeInProgress                                           = false;
-        private static int _currentZoomLevel                                            = 0;
-        private static ScintillaMessageInterceptor _scintillaMainMsgInterceptor         = null;  //!< Intercepts scintilla messages.
-        private static ScintillaMessageInterceptor _scintillaSecondMsgInterceptor       = null;  //!< Intercepts scintilla messages from second scintilla handle.
-        private static NotepadMessageInterceptor _nppMsgInterceptpr                     = null;  //!< Intercepts notepad ++ messages.
-        private static bool _hasMainScintillaFocus                                      = false; //!< Indicates if the main editor has focus.
-        private static bool _hasSecondScintillaFocus                                    = false; //!< Indicates if the second editor has focus.
-        private static bool _isMenuLoopInactive                                         = false; //!< Indicates that npp menu loop is active.
-        private static LinkTargetsWindow _linkTargetsWindow                             = new LinkTargetsWindow(_nppHelper, _win32, _settings, _connectorManager, _styleObserver); //!< Display reference links.
+        private static INpp _nppHelper                                                                = Npp.Instance;
+        private static IWin32 _win32                                                                  = new Win32();
+        private static ISettings _settings                                                            = new Settings(_nppHelper);
+        private static StyleConfigurationObserver _styleObserver                                      = new StyleConfigurationObserver(_nppHelper);
+        private static ConnectorManager _connectorManager                                             = new ConnectorManager(_settings, _nppHelper);
+        private static PersistentWpfControlHost<ConsoleOutputForm> _consoleOutput                     = new PersistentWpfControlHost<ConsoleOutputForm>(Settings.RTextNppSettings.ConsoleWindowActive, new ConsoleOutputForm(_connectorManager, _nppHelper, _styleObserver), _settings, _nppHelper);
+        private static Options _options                                                               = new Options(_settings);
+        private static FileModificationObserver _fileObserver                                         = new FileModificationObserver(_settings, _nppHelper);
+        private static Dictionary<ShortcutKey, Tuple<string, Action, ShortcutType>> internalShortcuts = new Dictionary<ShortcutKey, Tuple<string, Action, ShortcutType>>();
+        private static AutoCompletionWindow _autoCompletionForm                                       = new AutoCompletionWindow(_connectorManager, _win32, _nppHelper);
+        private static Bitmap tbBmp                                                                   = Properties.Resources.ConsoleIcon;
+        private static Bitmap tbBmp_tbTab                                                             = Properties.Resources.ConsoleIcon;
+        private static Icon tbIcon                                                                    = null;
+        private static bool _consoleInitialized                                                       = false;
+        private static bool _invokeInProgress                                                         = false;
+        private static int _currentZoomLevel                                                          = 0;
+        private static ScintillaMessageInterceptor _scintillaMainMsgInterceptor                       = null;  //!< Intercepts scintilla messages.
+        private static ScintillaMessageInterceptor _scintillaSecondMsgInterceptor                     = null;  //!< Intercepts scintilla messages from second scintilla handle.
+        private static NotepadMessageInterceptor _nppMsgInterceptpr                                   = null;  //!< Intercepts notepad ++ messages.
+        private static bool _hasMainScintillaFocus                                                    = false; //!< Indicates if the main editor has focus.
+        private static bool _hasSecondScintillaFocus                                                  = false; //!< Indicates if the second editor has focus.
+        private static bool _isMenuLoopInactive                                                       = false; //!< Indicates that npp menu loop is active.
+        private static LinkTargetsWindow _linkTargetsWindow                                           = new LinkTargetsWindow(_nppHelper, _win32, _settings, _connectorManager, _styleObserver); //!< Display reference links.
+
+        private enum ShortcutType
+        {
+            ShortcutType_AutoCompletion,
+            ShortcutType_ReferenceLink
+        }
         #endregion
 
         #region [Events]
@@ -56,7 +62,8 @@ namespace RTextNppPlugin
             CSScriptIntellisense.KeyInterceptor.Instance.Install();
             SetCommand((int)Constants.NppMenuCommands.ConsoleWindow, Properties.Resources.RTEXT_SHOW_OUTPUT_WINDOW, ShowConsoleOutput, new ShortcutKey(false, true, true, Keys.R));
             SetCommand((int)Constants.NppMenuCommands.Options, Properties.Resources.RTEXT_SHOW_OPTIONS_WINDOW, ModifyOptions, new ShortcutKey(true, false, true, Keys.R));
-            SetCommand((int)Constants.NppMenuCommands.AutoCompletion, Properties.Resources.SHOW_AUTO_COMPLETION_LIST_NAME, StartAutoCompleteSession, "Ctrl+Space");
+            SetCommand((int)Constants.NppMenuCommands.AutoCompletion, Properties.Resources.AUTO_COMPLETION_DESC, StartAutoCompleteSession, Properties.Resources.AUTO_COMPLETION_SHORTCUT);
+            SetCommand((int)Constants.NppMenuCommands.AutoCompletion, Properties.Resources.FIND_ALL_REFS_DESC, ShowReferenceLinks, Properties.Resources.FIND_ALL_REFS_SHORTCUT);
             _connectorManager.Initialize(nppData);
             foreach(var key in BindInteranalShortcuts())
             {
@@ -90,6 +97,7 @@ namespace RTextNppPlugin
 
         private static void OnKeyInterceptorKeyDown(Keys key, int repeatCount, ref bool handled)
         {
+            //do not auto complete when multi selecting, when menu loop is active, when no rtext file is open
             if (FileUtilities.IsRTextFile(_settings, Npp.Instance) && (Npp.Instance.GetSelections() == 1) && HasScintillaFocus() && !_isMenuLoopInactive)
             {
                 CSScriptIntellisense.Modifiers modifiers = CSScriptIntellisense.KeyInterceptor.GetModifiers();
@@ -104,15 +112,24 @@ namespace RTextNppPlugin
                     {
                         if (modifiers.IsCtrl == shortcut.IsCtrl && modifiers.IsShift == shortcut.IsShift && modifiers.IsAlt == shortcut.IsAlt)
                         {
-                            handled = true;
-                            var handler = internalShortcuts[shortcut];
-                            handled = !_autoCompletionForm.IsVisible;
-                            if (!_autoCompletionForm.IsVisible)
+                            //shortcut matches, find out which one it is
+                            switch (internalShortcuts[shortcut].Item3)
                             {
-                                var res = AsyncInvoke(handler.Item2);
+                                case ShortcutType.ShortcutType_AutoCompletion:
+                                    var handler = internalShortcuts[shortcut];
+                                    handled = !_autoCompletionForm.IsVisible;
+                                    if (!_autoCompletionForm.IsVisible)
+                                    {
+                                        var res = AsyncInvoke(handler.Item2);
+                                    }
+                                    //do nothing if form is already visible
+                                    return;
+                                case ShortcutType.ShortcutType_ReferenceLink:
+                                    break;
+                                default:
+                                    //nothing to do
+                                    break;
                             }
-                            //do nothing if form is already visible
-                            return;
                         }
                     }
                 }
@@ -260,6 +277,14 @@ namespace RTextNppPlugin
         
         #region [Commands]
         
+        /**
+         * Shows reference links.
+         */
+        static void ShowReferenceLinks()
+        {
+
+        }
+
         /**
          * Shows the automatic completion list.
          */
@@ -580,26 +605,26 @@ namespace RTextNppPlugin
          */        
         static IEnumerable<Keys> BindInteranalShortcuts()
         {
-            var uniqueKeys = new Dictionary<Keys, int>();
-            AddInternalShortcuts("Ctrl+Space",
-                                 "Show auto-complete list",
-                                  StartAutoCompleteSession, uniqueKeys);
-            //AddInternalShortcuts("_FindAllReferences:Shift+F12",
-            //                     "Find All References",
-            //                      FindAllReferences, uniqueKeys);
-            //AddInternalShortcuts("_GoToDefinition:F12",
-            //                     "Go To Definition",
-            //                      GoToDefinition, uniqueKeys);
-            return uniqueKeys.Keys;
+            var uniqueKeys = new List<Keys>();
+            AddInternalShortcuts( Properties.Resources.AUTO_COMPLETION_SHORTCUT,
+                                  Properties.Resources.AUTO_COMPLETION_DESC,
+                                  StartAutoCompleteSession, ShortcutType.ShortcutType_AutoCompletion, uniqueKeys);
+            AddInternalShortcuts( Properties.Resources.FIND_ALL_REFS_SHORTCUT,
+                                  Properties.Resources.FIND_ALL_REFS_DESC,
+                                  ShowReferenceLinks, ShortcutType.ShortcutType_ReferenceLink, uniqueKeys);
+            return uniqueKeys;
         }
         
-        static void AddInternalShortcuts(string shortcutSpec, string displayName, Action handler, Dictionary<Keys, int> uniqueKeys)
+        static void AddInternalShortcuts(string shortcutSpec, string displayName, Action handler, ShortcutType type, IList<Keys> uniqueKeys)
         {
-            ShortcutKey shortcut = new ShortcutKey(shortcutSpec);
-            internalShortcuts.Add(shortcut, new Tuple<string, Action>(displayName, handler));
-            var key = (Keys)shortcut._key;
-            if (!uniqueKeys.ContainsKey(key))
-                uniqueKeys.Add(key, 0);
+            ShortcutKey aShortcut = new ShortcutKey(shortcutSpec);
+
+            internalShortcuts.Add(aShortcut, new Tuple<string, Action, ShortcutType>(displayName, handler, type));
+            
+            if (!uniqueKeys.Contains((Keys)aShortcut._key))
+            {
+                uniqueKeys.Add((Keys)aShortcut._key);
+            }
         }
         
         static internal void LoadSettings()

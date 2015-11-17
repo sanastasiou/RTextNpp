@@ -23,7 +23,25 @@ namespace RTextNppPlugin.DllExport
         {
             //Ctrl+Shift+Alt+Key
             var parts = data.Split('+');
-            _key      = Convert.ToByte(Enum.Parse(typeof(Keys), parts.Last()));
+
+            try
+            {
+                Keys aKey = default(Keys);
+                if (!Enum.TryParse(parts.Last(), out aKey))
+                {
+                    _key = 0;
+                }
+                else
+                {
+                    _key = Convert.ToByte(Enum.Parse(typeof(Keys), parts.Last()));
+                }
+            }
+            catch(Exception ex)
+            {
+                Logging.Logger.Instance.Append(ex.Message);
+                _key = 0;
+            }
+
             parts     = parts.Take(parts.Length - 1).ToArray();
             _isCtrl   = Convert.ToByte(parts.Contains("Ctrl"));
             _isShift  = Convert.ToByte(parts.Contains("Shift"));

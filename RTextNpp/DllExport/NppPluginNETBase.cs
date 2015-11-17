@@ -37,31 +37,6 @@ namespace RTextNppPlugin
             funcItem._init2Check = checkOnInit;
             _funcItems.Add(funcItem);
         }
-        /**
-         * Parse as shortcut key.
-         *
-         * \param   shortcutSpec    Information describing the shortcut.
-         *
-         * \return  A ShortcutKey.
-         * \todo    Provide a function which check against saved settings when assigning keys to the key interceptor hook.
-         */
-        internal static ShortcutKey ParseAsShortcutKey(string shortcutSpec)
-        {
-            //var parts = shortcutSpec.Split(':');
-            //string shortcutName = parts[0];
-            //string shortcutData = parts[1];
-            //try
-            //{
-            //    var actualData = Config.Shortcuts.GetValue(shortcutName, shortcutData);
-            //    return new ShortcutKey(actualData);
-            //}
-            //catch
-            //{
-            //    Config.Shortcuts.SetValue(shortcutName, shortcutData);
-            //    return new ShortcutKey(shortcutData);
-            //}
-            return new ShortcutKey();
-        }
         #endregion
     }
 }
