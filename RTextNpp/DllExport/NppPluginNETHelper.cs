@@ -34,6 +34,8 @@ namespace RTextNppPlugin.DllExport
                 else
                 {
                     _key = Convert.ToByte(Enum.Parse(typeof(Keys), parts.Last()));
+                    //remove last part
+                    parts = parts.Take(parts.Length - 1).ToArray();
                 }
             }
             catch(Exception ex)
@@ -42,7 +44,6 @@ namespace RTextNppPlugin.DllExport
                 _key = 0;
             }
 
-            parts     = parts.Take(parts.Length - 1).ToArray();
             _isCtrl   = Convert.ToByte(parts.Contains("Ctrl"));
             _isShift  = Convert.ToByte(parts.Contains("Shift"));
             _isAlt    = Convert.ToByte(parts.Contains("Alt"));

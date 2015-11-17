@@ -85,9 +85,9 @@ namespace RTextNppPlugin.WpfControls
             base.Hide();
             GetModel().OnAutoCompletionWindowCollapsing();
         }
-        internal async Task AugmentAutoCompletion(ContextExtractor extractor, System.Drawing.Point caretPoint, AutoCompletionTokenizer tokenizer)
+        internal async Task AugmentAutoCompletion(ContextExtractor extractor, System.Drawing.Point caretPoint, AutoCompletionTokenizer tokenizer, bool isAutoCompletionShortcutActive)
         {
-            await GetModel().AugmentAutoCompletion(extractor, caretPoint, tokenizer);
+            await GetModel().AugmentAutoCompletion(extractor, caretPoint, tokenizer, isAutoCompletionShortcutActive);
             CharProcessAction = GetModel().CharProcessAction;
             TriggerPoint      = GetModel().TriggerPoint;
         }

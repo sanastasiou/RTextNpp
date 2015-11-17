@@ -42,6 +42,7 @@ namespace RTextNppPlugin
         private static bool _hasSecondScintillaFocus                                                  = false; //!< Indicates if the second editor has focus.
         private static bool _isMenuLoopInactive                                                       = false; //!< Indicates that npp menu loop is active.
         private static LinkTargetsWindow _linkTargetsWindow                                           = new LinkTargetsWindow(_nppHelper, _win32, _settings, _connectorManager, _styleObserver); //!< Display reference links.
+        private static bool _isAutoCompletionShortcutActive                                           = false; //!< Indicates the Ctrl+Space is pressed. Need this to commit auto completion in case of fuzzy matching.
 
         private enum ShortcutType
         {
@@ -97,25 +98,24 @@ namespace RTextNppPlugin
 
         private static void OnKeyInterceptorKeyDown(Keys key, int repeatCount, ref bool handled)
         {
+            _isAutoCompletionShortcutActive = false;
             //do not auto complete when multi selecting, when menu loop is active, when no rtext file is open
             if (FileUtilities.IsRTextFile(_settings, Npp.Instance) && (Npp.Instance.GetSelections() == 1) && HasScintillaFocus() && !_isMenuLoopInactive)
             {
                 CSScriptIntellisense.Modifiers modifiers = CSScriptIntellisense.KeyInterceptor.GetModifiers();
-                if(modifiers.IsAlt && modifiers.IsCtrl)
-                {
-                    _linkTargetsWindow.IsKeyboardShortCutActive(true);
-                    handled = true;
-                }
+
                 foreach (var shortcut in internalShortcuts.Keys)
                 {
-                    if ((byte)key == shortcut._key)
+                    //modifiers check
+                    if (modifiers.IsCtrl == shortcut.IsCtrl && modifiers.IsShift == shortcut.IsShift && modifiers.IsAlt == shortcut.IsAlt)
                     {
-                        if (modifiers.IsCtrl == shortcut.IsCtrl && modifiers.IsShift == shortcut.IsShift && modifiers.IsAlt == shortcut.IsAlt)
+                        if ((shortcut.IsSet && (byte)key == shortcut._key) || !shortcut.IsSet)
                         {
                             //shortcut matches, find out which one it is
                             switch (internalShortcuts[shortcut].Item3)
                             {
                                 case ShortcutType.ShortcutType_AutoCompletion:
+                                    _isAutoCompletionShortcutActive = true;
                                     var handler = internalShortcuts[shortcut];
                                     handled = !_autoCompletionForm.IsVisible;
                                     if (!_autoCompletionForm.IsVisible)
@@ -125,6 +125,11 @@ namespace RTextNppPlugin
                                     //do nothing if form is already visible
                                     return;
                                 case ShortcutType.ShortcutType_ReferenceLink:
+                                    if (modifiers.IsAlt && modifiers.IsCtrl)
+                                    {
+                                        _linkTargetsWindow.IsKeyboardShortCutActive(true);
+                                        handled = true;
+                                    }
                                     break;
                                 default:
                                     //nothing to do
@@ -132,6 +137,7 @@ namespace RTextNppPlugin
                             }
                         }
                     }
+                    
                 }
                 //if any modifier key is pressed - ignore this key press
                 if (modifiers.IsCtrl || modifiers.IsAlt)
@@ -321,7 +327,7 @@ namespace RTextNppPlugin
                                 _autoCompletionForm.Left = aCaretPoint.X;
                                 _autoCompletionForm.Top  = aCaretPoint.Y;
                                 Utilities.VisualUtilities.SetOwnerFromNppPlugin(_autoCompletionForm);
-                                await _autoCompletionForm.AugmentAutoCompletion(aExtractor, aCaretPoint, aTokenizer);
+                                await _autoCompletionForm.AugmentAutoCompletion(aExtractor, aCaretPoint, aTokenizer, _isAutoCompletionShortcutActive);
                                 switch (_autoCompletionForm.CharProcessAction)
                                 {
                                     case ViewModels.AutoCompletionViewModel.CharProcessResult.ForceClose:

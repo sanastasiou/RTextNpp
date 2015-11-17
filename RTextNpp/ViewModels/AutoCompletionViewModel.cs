@@ -242,7 +242,7 @@ namespace RTextNppPlugin.ViewModels
                 return _filteredList;
             }
         }
-        async public Task AugmentAutoCompletion(ContextExtractor extractor, Point caretPoint, AutoCompletionTokenizer tokenizer)
+        async public Task AugmentAutoCompletion(ContextExtractor extractor, Point caretPoint, AutoCompletionTokenizer tokenizer, bool isAutoCompletionShortCutActive)
         {
             Pending = true;
             CharProcessAction = CharProcessResult.NoAction;
@@ -342,7 +342,10 @@ namespace RTextNppPlugin.ViewModels
                                     SelectedCompletion = labeledList.First();
                                     SelectedCompletion.IsSelected = true;
                                     _completionList.Add(labeledList.First());
-                                    CharProcessAction = CharProcessResult.ForceCommit;
+                                    if (isAutoCompletionShortCutActive)
+                                    {
+                                        CharProcessAction = CharProcessResult.ForceCommit;
+                                    }
                                 }
                                 else
                                 {

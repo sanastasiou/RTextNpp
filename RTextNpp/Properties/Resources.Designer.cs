@@ -295,7 +295,7 @@ namespace RTextNppPlugin.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Find all reference links... ( Alt+Ctrl+Hover ) or.
+        ///   Looks up a localized string similar to Find all reference links... ( Alt+Ctrl+Hover ).
         /// </summary>
         internal static string FIND_ALL_REFS_DESC {
             get {
@@ -304,7 +304,7 @@ namespace RTextNppPlugin.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to F12.
+        ///   Looks up a localized string similar to Ctrl+Alt.
         /// </summary>
         internal static string FIND_ALL_REFS_SHORTCUT {
             get {

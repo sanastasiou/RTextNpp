@@ -236,9 +236,9 @@
     <value>Ctrl+Space</value>
   </data>
   <data name="FIND_ALL_REFS_DESC" xml:space="preserve">
-    <value>Find all reference links... ( Alt+Ctrl+Hover ) or</value>
+    <value>Find all reference links... ( Alt+Ctrl+Hover )</value>
   </data>
   <data name="FIND_ALL_REFS_SHORTCUT" xml:space="preserve">
-    <value>F12</value>
+    <value>Ctrl+Alt</value>
   </data>
 </root>
