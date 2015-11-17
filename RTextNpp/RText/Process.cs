@@ -232,7 +232,8 @@ namespace RTextNppPlugin.RText
                 }
                 else
                 {
-                    return _pInfo.Port == -1;
+                    //port retrieved
+                    return _pInfo.Port != -1;
                 }
             }
             else
@@ -240,7 +241,7 @@ namespace RTextNppPlugin.RText
                 return true;
             }
         }
-        
+
         private async Task CreateNewProcessAsync()
         {
             OnProcessExited(null, EventArgs.Empty);
@@ -271,7 +272,7 @@ namespace RTextNppPlugin.RText
                                                              (uint)(System.IO.NotifyFilters.FileName | System.IO.NotifyFilters.LastWrite | System.IO.NotifyFilters.CreationTime),
                                                               true,
                                                               aExtensionsFilter,
-                                                              String.Empty,                                                                                    
+                                                              String.Empty,
                                                               true,
                                                               Windows.Clr.FileWatcherBase.STANDARD_BUFFER_SIZE);
             _fileSystemWatcher.Changed += OnRTextFileCreatedOrDeletedOrModified;
@@ -291,22 +292,22 @@ namespace RTextNppPlugin.RText
             _workspaceSystemWatcher.Deleted += OnWorkspaceDefinitionFileCreatedOrDeletedOrModified;
             _workspaceSystemWatcher.Created += OnWorkspaceDefinitionFileCreatedOrDeletedOrModified;
             _workspaceSystemWatcher.Renamed += OnWorkspaceDefinitionFileRenamed;
-            _workspaceSystemWatcher.Error   += ProcessError;
-            _process.Exited                 += OnProcessExited;
+            _workspaceSystemWatcher.Error += ProcessError;
+            _process.Exited += OnProcessExited;
             //disable doskey or whatever actions are associated with cmd.exe
-            _autoRunKey                  = DisableCmdExeCustomization();
+            _autoRunKey = DisableCmdExeCustomization();
             _process.EnableRaisingEvents = true;
             _process.Start();
             //start reaading asynchronously with tasks
-            _cancellationSource          = new CancellationTokenSource();
-            _stdOutReaderTask            = new Task(() => ReadStream(_process.StandardOutput, _cancellationSource.Token), _cancellationSource.Token);
-            _stdErrReaderTask            = Task.Factory.StartNew(() => ReadStream(_process.StandardError, _cancellationSource.Token), _cancellationSource.Token);
-            _pInfo.Port                  = -1; //reinit port every time this function is called
-            var aPortTask = new Task(() =>
+            _cancellationSource = new CancellationTokenSource();
+            _stdOutReaderTask = new Task(() => ReadStream(_process.StandardOutput, _cancellationSource.Token), _cancellationSource.Token);
+            _stdErrReaderTask = Task.Factory.StartNew(() => ReadStream(_process.StandardError, _cancellationSource.Token), _cancellationSource.Token);
+            _pInfo.Port = -1; //reinit port every time this function is called
+            var aPortTask = new Task<bool>(() =>
             {
                 var t = new CancelableTask<int>(new ActionWrapper<int, System.IO.StreamReader>(GetPortNumber, _process.StandardOutput), Constants.INITIAL_RESPONSE_TIMEOUT);
                 t.Execute();
-                if(!t.IsCancelled)
+                if (!t.IsCancelled)
                 {
                     //port could be retrieved - backend is running
                     if (t.Result != -1)
@@ -321,11 +322,16 @@ namespace RTextNppPlugin.RText
                 }
                 WriteAutoRunValue(_autoRunKey);
                 _autoRunKey = String.Empty;
+                return t.Result != -1;
             });
 
             aPortTask.Start();
-            await aPortTask.ContinueWith((t) => { _stdOutReaderTask.Start(); }, TaskContinuationOptions.OnlyOnRanToCompletion);
+            bool aIsRtextServiceRunning = await aPortTask;
+            if(aIsRtextServiceRunning)
+            {
+                _stdOutReaderTask.Start();
             }
+        }
 
         private int GetPortNumber(System.IO.StreamReader stream)
         {
@@ -334,11 +340,15 @@ namespace RTextNppPlugin.RText
                 System.Threading.Thread.Sleep(Constants.OUTPUT_POLL_PERIOD);
                 if(_process.HasExited)
                 {
+                    while (!stream.EndOfStream)
+                    {
+                        Logging.Logger.Instance.Append(Logging.Logger.MessageType.Info, _pInfo.ProcKey, stream.ReadLine());
+                    }
                     return -1;
                 }
                 if (!stream.EndOfStream)
                 {
-                    string aLine = stream.ReadLine();
+                    var aLine = stream.ReadLine();
                     Logging.Logger.Instance.Append(Logging.Logger.MessageType.Info, _pInfo.ProcKey, aLine);
                     if (_backendInitResponseRegex.IsMatch(aLine))
                     {
@@ -419,7 +429,7 @@ namespace RTextNppPlugin.RText
          * \brief   Cleanup process.
          * \todo    Send shutdown command instead of killing the process.
          */
-        public async void CleanupProcess()
+        public void CleanupProcess()
         {
             //clean up process here
             _process.EnableRaisingEvents = false;
@@ -427,8 +437,14 @@ namespace RTextNppPlugin.RText
             try
             {
                 _cancellationSource.Cancel();
-                await _stdErrReaderTask;
-                await _stdOutReaderTask;
+                if (!(_stdErrReaderTask.IsCanceled || _stdErrReaderTask.IsCompleted || _stdErrReaderTask.IsFaulted))
+                {
+                    _stdErrReaderTask.Wait();
+                }
+                if (!(_stdOutReaderTask.IsCanceled || _stdOutReaderTask.IsCompleted || _stdOutReaderTask.IsFaulted))
+                {
+                    _stdOutReaderTask.Wait();
+                }
                 //todo send shutdown command to rtext service and wait for it to die
             }
             catch(OperationCanceledException ex)
@@ -449,8 +465,7 @@ namespace RTextNppPlugin.RText
                         _fileSystemWatcher.Deleted -= OnRTextFileCreatedOrDeletedOrModified;
                         _fileSystemWatcher.Created -= OnRTextFileCreatedOrDeletedOrModified;
                         _fileSystemWatcher.Renamed -= OnRTextFileRenamed;
-                        _fileSystemWatcher.Error -= ProcessError;
-                        _fileSystemWatcher.Dispose();
+                        _fileSystemWatcher.Error   -= ProcessError;
                         _fileSystemWatcher = null;
                     }
                     if (_workspaceSystemWatcher != null)
@@ -458,9 +473,8 @@ namespace RTextNppPlugin.RText
                         _workspaceSystemWatcher.Changed -= OnWorkspaceDefinitionFileCreatedOrDeletedOrModified;
                         _workspaceSystemWatcher.Created -= OnWorkspaceDefinitionFileCreatedOrDeletedOrModified;
                         _workspaceSystemWatcher.Deleted -= OnWorkspaceDefinitionFileCreatedOrDeletedOrModified;
-                        _workspaceSystemWatcher.Error -= ProcessError;
+                        _workspaceSystemWatcher.Error   -= ProcessError;
                         _workspaceSystemWatcher.Renamed -= OnWorkspaceDefinitionFileRenamed;
-                        _workspaceSystemWatcher.Dispose();
                         _workspaceSystemWatcher = null;
                     }
                 }
@@ -523,7 +537,6 @@ namespace RTextNppPlugin.RText
          */
         private async void RestartProcess()
         {
-            Trace.WriteLine("Restarting process after file modification...");
             try
             {
                 OnProcessExited(null, EventArgs.Empty);
