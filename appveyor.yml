@@ -129,6 +129,8 @@ on_success:
   - git config --replace-all remote.origin.fetch +refs/heads/*:refs/remotes/origin/*
   - if NOT "%APPVEYOR_REPO_BRANCH%" == master git fetch origin
   - if NOT "%APPVEYOR_REPO_BRANCH%" == master git remote show origin
+  - if NOT "%APPVEYOR_REPO_BRANCH%" == master git add *AssemblyInfo.cs
+  - if NOT "%APPVEYOR_REPO_BRANCH%" == master git commit -m "Bumped up version to : v%APPVEYOR_BUILD_VERSION%"
   - if NOT "%APPVEYOR_REPO_BRANCH%" == master git checkout -b master origin/master
   - if NOT "%APPVEYOR_REPO_BRANCH%" == master git checkout %APPVEYOR_REPO_BRANCH%
   - if NOT "%APPVEYOR_REPO_BRANCH%" == master echo After %APPVEYOR_REPO_BRANCH% checkout...
@@ -137,8 +139,6 @@ on_success:
   - if NOT "%APPVEYOR_REPO_BRANCH%" == master git commit -m "Merging commit %APPVEYOR_REPO_COMMIT% from branch %APPVEYOR_REPO_BRANCH% - %APPVEYOR_REPO_COMMIT_MESSAGE%"
   - if NOT "%APPVEYOR_REPO_BRANCH%" == master git checkout master
   - if NOT "%APPVEYOR_REPO_BRANCH%" == master git merge %APPVEYOR_REPO_BRANCH%
-  - if NOT "%APPVEYOR_REPO_BRANCH%" == master git add *AssemblyInfo.cs
-  - if NOT "%APPVEYOR_REPO_BRANCH%" == master git commit -m "Bumped up version to : v%APPVEYOR_BUILD_VERSION%"
   - if NOT "%APPVEYOR_REPO_BRANCH%" == master git push origin master
   #- ps: .\PushMasterTag.ps1
     
