@@ -131,11 +131,9 @@ on_success:
   - git remote show origin
   - git checkout -b master origin/master
   - echo After master checkout...
-  - echo #######################################
   - git branch -a
-  - git checkout -b %APPVEYOR_REPO_BRANCH% origin/%APPVEYOR_REPO_BRANCH%
+  - git checkout %APPVEYOR_REPO_BRANCH%
   - echo After %APPVEYOR_REPO_BRANCH% checkout...
-  - echo #######################################
   - git branch -a
   #- git checkout %APPVEYOR_REPO_BRANCH%
   #- git merge -s ours master
