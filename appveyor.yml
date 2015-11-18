@@ -128,7 +128,6 @@ on_success:
 #When clone depth is 1, origins are missing fix this issue here.
   - git config --replace-all remote.origin.fetch +refs/heads/*:refs/remotes/origin/*
   - git fetch origin
-  - git checkout -b %APPVEYOR_REPO_BRANCH% --track remotes/origin/%APPVEYOR_REPO_BRANCH%
   - git checkout -b master --track remotes/origin/master
   - git remote show origin
   - git branch -a
