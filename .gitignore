@@ -16,3 +16,4 @@ coverage.xml
 TestResults/
 TestFiles/.mcache/model_linebreak.atm.rdump
 *.rdump
+Release.zip
