@@ -1,5 +1,5 @@
 $command = @'
-#cmd.exe /C git push origin master/v%APPVEYOR_BUILD_VERSION%
+#cmd.exe /C git push origin remotes/origin/master
 '@
 
 if($env:appveyor_repo_branch -ne 'master') {
