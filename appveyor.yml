@@ -127,10 +127,10 @@ on_success:
   - git config --global user.name "Stefanos Anastasiou"
 #When clone depth is 1, origins are missing fix this issue here.
   - git config --replace-all remote.origin.fetch +refs/heads/*:refs/remotes/origin/*
+#Discard assembly file changes
+  - git stash save --keep-index
   - if NOT "%APPVEYOR_REPO_BRANCH%" == master git fetch origin
   - if NOT "%APPVEYOR_REPO_BRANCH%" == master git remote show origin
-  - if NOT "%APPVEYOR_REPO_BRANCH%" == master git add *AssemblyInfo.cs
-  - if NOT "%APPVEYOR_REPO_BRANCH%" == master git commit -m "Bumped up version to : v%APPVEYOR_BUILD_VERSION%"
   - if NOT "%APPVEYOR_REPO_BRANCH%" == master git checkout -b master origin/master
   - if NOT "%APPVEYOR_REPO_BRANCH%" == master git checkout %APPVEYOR_REPO_BRANCH%
   - if NOT "%APPVEYOR_REPO_BRANCH%" == master echo After %APPVEYOR_REPO_BRANCH% checkout...
