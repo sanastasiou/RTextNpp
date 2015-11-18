@@ -140,10 +140,9 @@ on_success:
   - git add *AssemblyInfo.cs
   - git commit -m "Bumped up version to : v%APPVEYOR_BUILD_VERSION%"
   - git status
-  - git tag -a -m "RTextNpp Tag : master/v%APPVEYOR_BUILD_VERSION%" v%APPVEYOR_BUILD_VERSION%
-  - git tag -l
-#  - git push origin tag v%APPVEYOR_BUILD_VERSION%
-#- ps: .\PushMasterTag.ps1
+#  - git tag -a -m "RTextNpp Tag : master/v%APPVEYOR_BUILD_VERSION%" v%APPVEYOR_BUILD_VERSION%
+#  - git tag -l
+- ps: .\PushMasterTag.ps1
     
 deploy:
   tag: v$(appveyor_build_version)
