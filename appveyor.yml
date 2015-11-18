@@ -129,11 +129,11 @@ on_success:
   - git config --replace-all remote.origin.fetch +refs/heads/*:refs/remotes/origin/*
   - git fetch origin
   - git remote show origin
+  - git checkout -b master origin/master
   - git branch -a
-  #- git branch master --track remotes/origin/master
   #- git checkout %APPVEYOR_REPO_BRANCH%
   #- git merge -s ours master
-  #- git checkout master
+ # - git checkout master
   #- git pull origin master
   #- git reset --hard %APPVEYOR_REPO_BRANCH%
   #- git merge -m "Merging %APPVEYOR_REPO_BRANCH% commit %APPVEYOR_REPO_COMMIT% - %APPVEYOR_REPO_COMMIT_MESSAGE%" %APPVEYOR_REPO_BRANCH%
