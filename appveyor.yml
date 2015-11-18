@@ -38,6 +38,8 @@ clone_depth: 1                      # clone entire repository history if not def
 environment:
   COVERALLS_REPO_TOKEN:
     secure: ASvn2Aa6Q3wMScKIO6cMbzpzirZ0inBgBJsYkhS7uhXOtmM9EnnD20eBhtXi6NmP
+  GIT_ACCESS_TOKEN:
+    secure: +FR1WXoq1dCu2hQXBSk/kv9DBkII1QOJYeWOuGBL7aT1ZVpmohA13d0/hUClL7fy
   
 # this is how to allow failing jobs in the matrix
 matrix:
@@ -93,9 +95,9 @@ artifacts:
 # scripts to run after tests
 after_test:
 # generate report for NUnit testing framework:
-    - packages\OpenCover.4.6.166\tools\OpenCover.Console.exe -register:user -excludebyattribute:"*.ExcludeFromCodeCoverage*" -skipautoprops -hideskipped:All -excludebyfile:*\*.il -filter:"-[RTextNpp]RTextNppPlugin.Properties -[RTextNpp]RTextNppPlugin.RText.Protocol* -[RTextNpp]RTextNppPlugin.DllExport* -[RTextNpp]RTextNppPlugin.Utilities.Npp* -[RTextNpp]RTextNppPlugin.Forms.ConsoleOutput* +[RTextNpp]RTextNppPlugin* +[RTextNpp]CSScriptIntellisense -[Tests]*" -target:"nunit-console-x86.exe" -targetargs:"/noshadow /nologo /labels /domain:single /framework:4.5 /nodots Tests\bin\x86\Release\Tests.dll" -output:coverage.xml
-    - ps: .\CoverageFix.ps1
-    - packages\coveralls.io.1.3.4\tools\coveralls.net.exe --opencover coverage.xml
+  - packages\OpenCover.4.6.166\tools\OpenCover.Console.exe -register:user -excludebyattribute:"*.ExcludeFromCodeCoverage*" -skipautoprops -hideskipped:All -excludebyfile:*\*.il -filter:"-[RTextNpp]RTextNppPlugin.Properties -[RTextNpp]RTextNppPlugin.RText.Protocol* -[RTextNpp]RTextNppPlugin.DllExport* -[RTextNpp]RTextNppPlugin.Utilities.Npp* -[RTextNpp]RTextNppPlugin.Forms.ConsoleOutput* +[RTextNpp]RTextNppPlugin* +[RTextNpp]CSScriptIntellisense -[Tests]*" -target:"nunit-console-x86.exe" -targetargs:"/noshadow /nologo /labels /domain:single /framework:4.5 /nodots Tests\bin\x86\Release\Tests.dll" -output:coverage.xml
+  - ps: .\CoverageFix.ps1
+  - packages\coveralls.io.1.3.4\tools\coveralls.net.exe --opencover coverage.xml
 
   
 #---------------------------------#
@@ -118,6 +120,13 @@ notifications:
     on_build_failure: false
     on_build_status_changed: true
 
+on_success:
+  - git config --global credential.helper store
+  - ps: Add-Content "$env:USERPROFILE\.git-credentials" "https://$($env:GIT_ACCESS_TOKEN):x-oauth-basic@github.com`n"
+  - git config --global user.email "stefanos.anastasiou@esrlabs.com"
+  - git config --global user.name "Stefanos Anastasiou"
+  - ps: .\PushMasterTag.ps1
+    
 deploy:
   tag: v$(appveyor_build_version)
   release: RTextNpp-v$(appveyor_build_version)
