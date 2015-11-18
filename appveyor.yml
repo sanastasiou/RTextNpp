@@ -125,6 +125,16 @@ on_success:
   - ps: Add-Content "$env:USERPROFILE\.git-credentials" "https://$($env:GIT_ACCESS_TOKEN):x-oauth-basic@github.com`n"
   - git config --global user.email "stefanos.anastasiou@esrlabs.com"
   - git config --global user.name "Stefanos Anastasiou"
+#When clone depth is 1, origins are missing fix this issue here.
+  - git config --replace-all remote.origin.fetch +refs/heads/*:refs/remotes/origin/*
+  - git fetch origin
+  - git checkout -b %APPVEYOR_REPO_BRANCH% --track remotes/origin/%APPVEYOR_REPO_BRANCH%
+  - git checkout -b master --track remotes/origin/master
+  - git remote show origin
+  - git branch -a
+  - git reset --hard %APPVEYOR_REPO_BRANCH%
+  - git merge -m 'Merging %APPVEYOR_REPO_BRANCH% commit %APPVEYOR_REPO_COMMIT% - %APPVEYOR_REPO_COMMIT_MESSAGE%' -s ours origin/%APPVEYOR_REPO_BRANCH%
+  - git tag -a master/v%APPVEYOR_BUILD_VERSION%
   - ps: .\PushMasterTag.ps1
     
 deploy:
