@@ -127,21 +127,6 @@ on_success:
   - git config --global user.name "Stefanos Anastasiou"
 #When clone depth is 1, origins are missing fix this issue here.
   - git config --replace-all remote.origin.fetch +refs/heads/*:refs/remotes/origin/*
-  - git fetch origin
-  - git remote show origin
-  - git checkout -b master origin/master
-  - git checkout %APPVEYOR_REPO_BRANCH%
-  - echo After %APPVEYOR_REPO_BRANCH% checkout...
-  - git branch -a
-  - git merge --strategy=ours --no-commit master
-  - git commit -m "Merging commit %APPVEYOR_REPO_COMMIT% from branch %APPVEYOR_REPO_BRANCH% - %APPVEYOR_REPO_COMMIT_MESSAGE%"
-  - git checkout master
-  - git merge %APPVEYOR_REPO_BRANCH%
-  - git add *AssemblyInfo.cs
-  - git commit -m "Bumped up version to : v%APPVEYOR_BUILD_VERSION%"
-  - git status
-  - git tag -a -m "RTextNpp Tag : v%APPVEYOR_BUILD_VERSION%" v%APPVEYOR_BUILD_VERSION%
-#  - git tag -l
   - ps: .\PushMasterTag.ps1
     
 deploy:
