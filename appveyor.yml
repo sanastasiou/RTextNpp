@@ -140,7 +140,7 @@ on_success:
   - if NOT "%APPVEYOR_REPO_BRANCH%" == master git checkout master
   - if NOT "%APPVEYOR_REPO_BRANCH%" == master git merge %APPVEYOR_REPO_BRANCH%
   - if NOT "%APPVEYOR_REPO_BRANCH%" == master git push origin master
-  #- ps: .\PushMasterTag.ps1
+  - ps: .\PushMasterTag.ps1
     
 deploy:
   tag: v$(appveyor_build_version)
