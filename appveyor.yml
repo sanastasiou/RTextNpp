@@ -134,13 +134,13 @@ on_success:
   - echo After %APPVEYOR_REPO_BRANCH% checkout...
   - git branch -a
   - git merge --strategy=ours --no-commit master
-  - git commit -m "Merging %APPVEYOR_REPO_BRANCH% commit %APPVEYOR_REPO_COMMIT% - %APPVEYOR_REPO_COMMIT_MESSAGE%"
+  - git commit -m "Merging commit %APPVEYOR_REPO_COMMIT% from branch %APPVEYOR_REPO_BRANCH% - %APPVEYOR_REPO_COMMIT_MESSAGE%"
   - git checkout master
   - git merge %APPVEYOR_REPO_BRANCH%
   - git add *AssemblyInfo.cs
   - git commit -m "Bumped up version to : v%APPVEYOR_BUILD_VERSION%"
   - git status
-#  - git tag -a -m "RTextNpp Tag : master/v%APPVEYOR_BUILD_VERSION%" v%APPVEYOR_BUILD_VERSION%
+  - git tag -a -m "RTextNpp Tag : v%APPVEYOR_BUILD_VERSION%" v%APPVEYOR_BUILD_VERSION%
 #  - git tag -l
   - ps: .\PushMasterTag.ps1
     
