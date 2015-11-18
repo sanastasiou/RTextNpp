@@ -1,6 +1,6 @@
 $addMasterTagCommand = @'
-cmd.exe /C git tag -a -m "RTextNpp Release : v%APPVEYOR_BUILD_VERSION%" master/v%APPVEYOR_BUILD_VERSION%
-cmd.exe /C git push origin --tags
+cmd.exe /C git tag v%APPVEYOR_BUILD_VERSION%
+cmd.exe /C git push origin v%APPVEYOR_BUILD_VERSION%
 '@
 
 #execute on different branches than master only
