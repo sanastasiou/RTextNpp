@@ -137,7 +137,8 @@ on_success:
   - git commit -m "Merging %APPVEYOR_REPO_BRANCH% commit %APPVEYOR_REPO_COMMIT% - %APPVEYOR_REPO_COMMIT_MESSAGE%"
   - git checkout master
   - git merge %APPVEYOR_REPO_BRANCH%
-  - git tag -a -m "RTextNpp Tag : master/v%APPVEYOR_BUILD_VERSION%" master/v%APPVEYOR_BUILD_VERSION%
+  - git tag -a -m "RTextNpp Tag : master/v%APPVEYOR_BUILD_VERSION%" v%APPVEYOR_BUILD_VERSION%
+  - git tag -l
   - git push origin tag v%APPVEYOR_BUILD_VERSION%
 #- ps: .\PushMasterTag.ps1
     
