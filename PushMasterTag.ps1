@@ -1,5 +1,5 @@
 $command = @'
-cmd.exe /C git remote -v
+cmd.exe /C git remote show origin
 cmd.exe /C git fetch origin
 cmd.exe /C git checkout -b master --track origin/master
 #cmd.exe /C git pull origin master
