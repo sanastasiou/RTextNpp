@@ -129,7 +129,7 @@ on_success:
   - git config --replace-all remote.origin.fetch +refs/heads/*:refs/remotes/origin/*
   - git fetch origin
   - git checkout -b master --track remotes/origin/master
-  - git git fetch --all
+  - git fetch --all
   - git remote show origin
   - git branch -a
   - git reset --hard %APPVEYOR_REPO_BRANCH%
