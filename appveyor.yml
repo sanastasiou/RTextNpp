@@ -130,15 +130,14 @@ on_success:
   - git fetch origin
   - git remote show origin
   - git checkout -b master origin/master
-  - echo After master checkout...
-  - git branch -a
   - git checkout %APPVEYOR_REPO_BRANCH%
   - echo After %APPVEYOR_REPO_BRANCH% checkout...
   - git branch -a
-  #- git checkout %APPVEYOR_REPO_BRANCH%
-  #- git merge -s ours master
- # - git checkout master
-  #- git pull origin master
+  - git merge --strategy=ours --no-commit master
+  - git commit -m "Merging %APPVEYOR_REPO_BRANCH% commit %APPVEYOR_REPO_COMMIT% - %APPVEYOR_REPO_COMMIT_MESSAGE%"
+  - git checkout master
+  - git merge %APPVEYOR_REPO_BRANCH%
+ # - git pull origin master
   #- git reset --hard %APPVEYOR_REPO_BRANCH%
   #- git merge -m "Merging %APPVEYOR_REPO_BRANCH% commit %APPVEYOR_REPO_COMMIT% - %APPVEYOR_REPO_COMMIT_MESSAGE%" %APPVEYOR_REPO_BRANCH%
   #- git tag -a -m "RTextNpp Tag : master/v%APPVEYOR_BUILD_VERSION%" master/v%APPVEYOR_BUILD_VERSION%
