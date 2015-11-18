@@ -8,8 +8,8 @@ cmd.exe /C git remote show origin
 cmd.exe /C git branch -a
 cmd.exe /C git fetch origin
 cmd.exe /C git checkout -b master --track remotes/origin/master
-#cmd.exe /C git pull origin master
-#cmd.exe /C git merge %APPVEYOR_REPO_BRANCH%
+cmd.exe /C git pull origin master
+cmd.exe /C git merge %APPVEYOR_REPO_BRANCH%
 #cmd.exe /C git tag -a master/v%APPVEYOR_BUILD_VERSION%
 #cmd.exe /C git push origin master/v%APPVEYOR_BUILD_VERSION%
 '@
