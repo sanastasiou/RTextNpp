@@ -1,5 +1,5 @@
 $command = @'
-cmd.exe /C git remote set-fetch origin +refs/heads/*:refs/remotes/origin/*
+cmd.exe /C git config --replace-all remote.origin.fetch +refs/heads/*:refs/remotes/origin/*
 cmd.exe /C git config --get-all remote.origin.fetch
 cmd.exe /C git remote update origin
 cmd.exe /C git remote show origin
