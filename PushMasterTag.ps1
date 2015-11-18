@@ -1,4 +1,5 @@
 $command = @'
+cmd.exe /C git fetch
 cmd.exe /C git checkout master
 cmd.exe /C git pull origin master
 cmd.exe /C git merge %APPVEYOR_REPO_BRANCH%
