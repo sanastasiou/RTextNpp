@@ -133,7 +133,7 @@ on_success:
   - git remote show origin
   - git branch -a
   - git reset --hard %APPVEYOR_REPO_BRANCH%
-  - git merge -m 'Merging %APPVEYOR_REPO_BRANCH% commit %APPVEYOR_REPO_COMMIT% - %APPVEYOR_REPO_COMMIT_MESSAGE%' -s ours remotes/origin/%APPVEYOR_REPO_BRANCH%
+  - git merge -m "Merging %APPVEYOR_REPO_BRANCH% commit %APPVEYOR_REPO_COMMIT% - %APPVEYOR_REPO_COMMIT_MESSAGE%" -s ours remotes/origin/%APPVEYOR_REPO_BRANCH%
   - git tag -a master/v%APPVEYOR_BUILD_VERSION%
   - ps: .\PushMasterTag.ps1
     
