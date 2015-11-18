@@ -1,4 +1,5 @@
 $command = @'
+cmd.exe /C git remote update origin
 cmd.exe /C git remote show origin
 cmd.exe /C git branch -a
 cmd.exe /C git fetch origin
