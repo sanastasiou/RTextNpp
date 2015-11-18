@@ -129,12 +129,15 @@ on_success:
   - git config --replace-all remote.origin.fetch +refs/heads/*:refs/remotes/origin/*
   - git fetch origin
   - git checkout -b master --track remotes/origin/master
+  - git checkout %APPVEYOR_REPO_BRANCH% --track remotes/origin/%APPVEYOR_REPO_BRANCH%
+  - git merge -s ours master
+  - git checkout master
   - git fetch --all
   - git remote show origin
   - git branch -a
-  - git pull origin master
-  - git reset --hard %APPVEYOR_REPO_BRANCH%
-  - git merge -m "Merging %APPVEYOR_REPO_BRANCH% commit %APPVEYOR_REPO_COMMIT% - %APPVEYOR_REPO_COMMIT_MESSAGE%" -s ours remotes/origin/%APPVEYOR_REPO_BRANCH%
+  #- git pull origin master
+  #- git reset --hard %APPVEYOR_REPO_BRANCH%
+  - git merge -m "Merging %APPVEYOR_REPO_BRANCH% commit %APPVEYOR_REPO_COMMIT% - %APPVEYOR_REPO_COMMIT_MESSAGE%" %APPVEYOR_REPO_BRANCH%
   - git tag -a -m "RTextNpp Tag : master/v%APPVEYOR_BUILD_VERSION%" master/v%APPVEYOR_BUILD_VERSION%
   - git push origin master
 #- ps: .\PushMasterTag.ps1
