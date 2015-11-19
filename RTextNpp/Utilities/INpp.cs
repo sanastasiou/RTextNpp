@@ -69,7 +69,7 @@ namespace RTextNppPlugin.Utilities
         
         int GetFirstVisibleLine();
         
-        int GetLengthToEndOfLine(int line);
+        int GetLengthToEndOfLine(int line, int position);
         
         /**
          * \brief   Gets the line fromt the current caret position.
@@ -91,7 +91,7 @@ namespace RTextNppPlugin.Utilities
         
         int GetLineCount();
         
-        int GetLineEnd(int line = -1);
+        int GetLineEnd(int position, int line);
         
         int GetLineNumber();
         

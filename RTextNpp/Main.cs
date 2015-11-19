@@ -307,9 +307,9 @@ namespace RTextNppPlugin
                         {
                             int aLineNumber = Npp.Instance.GetLineNumber();
                             //get text from start till current line end
-                            string aContextBlock = Npp.Instance.GetTextBetween(0, Npp.Instance.GetLineEnd(aLineNumber));
+                            string aContextBlock = Npp.Instance.GetTextBetween(0, _nppHelper.GetLineEnd(_nppHelper.GetCaretPosition(), aLineNumber));
 
-                            ContextExtractor aExtractor = new ContextExtractor(aContextBlock, Npp.Instance.GetLengthToEndOfLine(aLineNumber));
+                            ContextExtractor aExtractor = new ContextExtractor(aContextBlock, _nppHelper.GetLengthToEndOfLine(aLineNumber, _nppHelper.GetCaretPosition()));
                             //if auto completion is inside comment, notation, name, string just return
                             AutoCompletionTokenizer aTokenizer = new AutoCompletionTokenizer(aLineNumber, aCurrentPosition, Npp.Instance);
                             //if a token is found then the window should appear at the start of it, else it should appear at the caret

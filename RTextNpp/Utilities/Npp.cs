@@ -197,7 +197,7 @@ namespace RTextNppPlugin.Utilities
             if (KeyInterceptor.GetModifiers().IsInsert)
             {
                 //delete only if not at end of line
-                if (GetCaretPosition() < GetLineEnd())
+                if (GetCaretPosition() < GetLineEnd(GetCaretPosition(), GetLineNumber()))
                 {
                     DeleteFront();
                 }
@@ -329,10 +329,10 @@ namespace RTextNppPlugin.Utilities
             return (int)_win32.ISendMessage(sci, SciMsg.SCI_LINEFROMPOSITION, position, 0);
         }
         
-        public int GetLengthToEndOfLine(int line)
+        public int GetLengthToEndOfLine(int line, int position)
         {
             IntPtr sci = GetCurrentScintilla(Plugin.nppData);
-            return ((int)_win32.ISendMessage(sci, SciMsg.SCI_GETLINEENDPOSITION, line, 0) - GetCaretPosition());
+            return ((int)_win32.ISendMessage(sci, SciMsg.SCI_GETLINEENDPOSITION, line, 0) - position);
         }
                
         public int GetColumn(int position)
@@ -347,16 +347,9 @@ namespace RTextNppPlugin.Utilities
             return (int)_win32.ISendMessage(sci, SciMsg.SCI_GETCOLUMN, GetCaretPosition(), 0);
         }
         
-        public int GetLineEnd(int line = -1)
+        public int GetLineEnd(int position, int line)
         {
-            if (line == -1)
-            {
-                return GetLineStart(GetLineNumber()) + (int)_win32.ISendMessage(GetCurrentScintilla(Plugin.nppData), SciMsg.SCI_LINELENGTH, GetLineNumber(), 0);
-            }
-            else
-            {
-                return GetLineStart(GetLineNumber()) + (int)_win32.ISendMessage(GetCurrentScintilla(Plugin.nppData), SciMsg.SCI_LINELENGTH, line, 0);
-            }
+            return GetLineStart(GetLineNumber(position)) + (int)_win32.ISendMessage(GetCurrentScintilla(Plugin.nppData), SciMsg.SCI_LINELENGTH, line, 0);            
         }
         
         public int GetLineStart(int line)
