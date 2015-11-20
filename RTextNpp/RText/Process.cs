@@ -245,91 +245,99 @@ namespace RTextNppPlugin.RText
         private async Task CreateNewProcessAsync()
         {
             OnProcessExited(null, EventArgs.Empty);
-            RetrieveCommandLine();
-            //process was never started or has already been started and stopped
-            Match aMatch = Regex.Match(_pInfo.CommandLine, @"(^\s*\S+)(.*)", RegexOptions.Compiled);
-            System.Diagnostics.ProcessStartInfo aProcessStartInfo = new ProcessStartInfo(aMatch.Groups[1].Value, aMatch.Groups[2].Value);
-            _pInfo.Name = aMatch.Groups[1].Value;
-            aProcessStartInfo.CreateNoWindow = true;
-            aProcessStartInfo.RedirectStandardError = true;
-            aProcessStartInfo.RedirectStandardOutput = true;
-            aProcessStartInfo.UseShellExecute = false;
-            aProcessStartInfo.WorkingDirectory = _pInfo.WorkingDirectory;
-            _process = new System.Diagnostics.Process();
-            _process.StartInfo = aProcessStartInfo;
-            //add filewacthers for .rtext file and all associated extensions
-            string aExtensions = _pInfo.ProcKey.Substring(_pInfo.RTextFilePath.Length, _pInfo.ProcKey.Length - _pInfo.RTextFilePath.Length);
-            Regex regexObj = new Regex(@"\.\w+");
-            Match matchResults = regexObj.Match(aExtensions);
-            string aExtensionsFilter = String.Empty;
-            while (matchResults.Success)
+            try
             {
-                aExtensionsFilter += "*" + matchResults.Value + ";";
-                matchResults = matchResults.NextMatch();
-            }
-            aExtensionsFilter = aExtensionsFilter.Substring(0, aExtensionsFilter.Length - 1);
-            _fileSystemWatcher = new Windows.Clr.FileWatcher(System.IO.Path.GetDirectoryName(_pInfo.RTextFilePath),
-                                                             (uint)(System.IO.NotifyFilters.FileName | System.IO.NotifyFilters.LastWrite | System.IO.NotifyFilters.CreationTime),
-                                                              true,
-                                                              aExtensionsFilter,
-                                                              String.Empty,
-                                                              true,
-                                                              Windows.Clr.FileWatcherBase.STANDARD_BUFFER_SIZE);
-            _fileSystemWatcher.Changed += OnRTextFileCreatedOrDeletedOrModified;
-            _fileSystemWatcher.Deleted += OnRTextFileCreatedOrDeletedOrModified;
-            _fileSystemWatcher.Created += OnRTextFileCreatedOrDeletedOrModified;
-            _fileSystemWatcher.Renamed += OnRTextFileRenamed;
-            _fileSystemWatcher.Error += ProcessError;
-            //finally add .rtext wacther
-            _workspaceSystemWatcher = new Windows.Clr.FileWatcher(System.IO.Path.GetDirectoryName(_pInfo.RTextFilePath),
-                                                                  (uint)(System.IO.NotifyFilters.FileName | System.IO.NotifyFilters.LastWrite | System.IO.NotifyFilters.CreationTime),
-                                                                  false,
-                                                                  "*" + Constants.WORKSPACE_TYPE,
+                RetrieveCommandLine();
+                //process was never started or has already been started and stopped
+                Match aMatch = Regex.Match(_pInfo.CommandLine, @"(^\s*\S+)(.*)", RegexOptions.Compiled);
+                System.Diagnostics.ProcessStartInfo aProcessStartInfo = new ProcessStartInfo(aMatch.Groups[1].Value, aMatch.Groups[2].Value);
+                _pInfo.Name = aMatch.Groups[1].Value;
+                aProcessStartInfo.CreateNoWindow = true;
+                aProcessStartInfo.RedirectStandardError = true;
+                aProcessStartInfo.RedirectStandardOutput = true;
+                aProcessStartInfo.UseShellExecute = false;
+                aProcessStartInfo.WorkingDirectory = _pInfo.WorkingDirectory;
+                _process = new System.Diagnostics.Process();
+                _process.StartInfo = aProcessStartInfo;
+                //add filewacthers for .rtext file and all associated extensions
+                string aExtensions = _pInfo.ProcKey.Substring(_pInfo.RTextFilePath.Length, _pInfo.ProcKey.Length - _pInfo.RTextFilePath.Length);
+                Regex regexObj = new Regex(@"\.\w+");
+                Match matchResults = regexObj.Match(aExtensions);
+                string aExtensionsFilter = String.Empty;
+                while (matchResults.Success)
+                {
+                    aExtensionsFilter += "*" + matchResults.Value + ";";
+                    matchResults = matchResults.NextMatch();
+                }
+                aExtensionsFilter = aExtensionsFilter.Substring(0, aExtensionsFilter.Length - 1);
+                _fileSystemWatcher = new Windows.Clr.FileWatcher(System.IO.Path.GetDirectoryName(_pInfo.RTextFilePath),
+                                                                 (uint)(System.IO.NotifyFilters.FileName | System.IO.NotifyFilters.LastWrite | System.IO.NotifyFilters.CreationTime),
+                                                                  true,
+                                                                  aExtensionsFilter,
                                                                   String.Empty,
                                                                   true,
                                                                   Windows.Clr.FileWatcherBase.STANDARD_BUFFER_SIZE);
-            _workspaceSystemWatcher.Changed += OnWorkspaceDefinitionFileCreatedOrDeletedOrModified;
-            _workspaceSystemWatcher.Deleted += OnWorkspaceDefinitionFileCreatedOrDeletedOrModified;
-            _workspaceSystemWatcher.Created += OnWorkspaceDefinitionFileCreatedOrDeletedOrModified;
-            _workspaceSystemWatcher.Renamed += OnWorkspaceDefinitionFileRenamed;
-            _workspaceSystemWatcher.Error += ProcessError;
-            _process.Exited += OnProcessExited;
-            //disable doskey or whatever actions are associated with cmd.exe
-            _autoRunKey = DisableCmdExeCustomization();
-            _process.EnableRaisingEvents = true;
-            _process.Start();
-            //start reaading asynchronously with tasks
-            _cancellationSource = new CancellationTokenSource();
-            _stdOutReaderTask = new Task(() => ReadStream(_process.StandardOutput, _cancellationSource.Token), _cancellationSource.Token);
-            _stdErrReaderTask = Task.Factory.StartNew(() => ReadStream(_process.StandardError, _cancellationSource.Token), _cancellationSource.Token);
-            _pInfo.Port = -1; //reinit port every time this function is called
-            var aPortTask = new Task<bool>(() =>
-            {
-                var t = new CancelableTask<int>(new ActionWrapper<int, System.IO.StreamReader>(GetPortNumber, _process.StandardOutput), Constants.INITIAL_RESPONSE_TIMEOUT);
-                t.Execute();
-                if (!t.IsCancelled)
+                _fileSystemWatcher.Changed += OnRTextFileCreatedOrDeletedOrModified;
+                _fileSystemWatcher.Deleted += OnRTextFileCreatedOrDeletedOrModified;
+                _fileSystemWatcher.Created += OnRTextFileCreatedOrDeletedOrModified;
+                _fileSystemWatcher.Renamed += OnRTextFileRenamed;
+                _fileSystemWatcher.Error += ProcessError;
+                //finally add .rtext wacther
+                _workspaceSystemWatcher = new Windows.Clr.FileWatcher(System.IO.Path.GetDirectoryName(_pInfo.RTextFilePath),
+                                                                      (uint)(System.IO.NotifyFilters.FileName | System.IO.NotifyFilters.LastWrite | System.IO.NotifyFilters.CreationTime),
+                                                                      false,
+                                                                      "*" + Constants.WORKSPACE_TYPE,
+                                                                      String.Empty,
+                                                                      true,
+                                                                      Windows.Clr.FileWatcherBase.STANDARD_BUFFER_SIZE);
+                _workspaceSystemWatcher.Changed += OnWorkspaceDefinitionFileCreatedOrDeletedOrModified;
+                _workspaceSystemWatcher.Deleted += OnWorkspaceDefinitionFileCreatedOrDeletedOrModified;
+                _workspaceSystemWatcher.Created += OnWorkspaceDefinitionFileCreatedOrDeletedOrModified;
+                _workspaceSystemWatcher.Renamed += OnWorkspaceDefinitionFileRenamed;
+                _workspaceSystemWatcher.Error += ProcessError;
+                _process.Exited += OnProcessExited;
+                //disable doskey or whatever actions are associated with cmd.exe
+                _autoRunKey = DisableCmdExeCustomization();
+                _process.EnableRaisingEvents = true;
+                _process.Start();
+                //start reaading asynchronously with tasks
+                _cancellationSource = new CancellationTokenSource();
+                _stdOutReaderTask = new Task(() => ReadStream(_process.StandardOutput, _cancellationSource.Token), _cancellationSource.Token);
+                _stdErrReaderTask = Task.Factory.StartNew(() => ReadStream(_process.StandardError, _cancellationSource.Token), _cancellationSource.Token);
+                _pInfo.Port = -1; //reinit port every time this function is called
+                var aPortTask = new Task<bool>(() =>
                 {
-                    //port could be retrieved - backend is running
-                    if (t.Result != -1)
+                    var t = new CancelableTask<int>(new ActionWrapper<int, System.IO.StreamReader>(GetPortNumber, _process.StandardOutput), Constants.INITIAL_RESPONSE_TIMEOUT);
+                    t.Execute();
+                    if (!t.IsCancelled)
                     {
-                        _pInfo.Port = t.Result;
-                        //load model if specified option is enabled
-                        if (_settings.Get<bool>(Settings.RTextNppSettings.AutoLoadWorkspace))
+                        //port could be retrieved - backend is running
+                        if (t.Result != -1)
                         {
-                            OnTimerElapsed(null, EventArgs.Empty);
+                            _pInfo.Port = t.Result;
+                            //load model if specified option is enabled
+                            if (_settings.Get<bool>(Settings.RTextNppSettings.AutoLoadWorkspace))
+                            {
+                                OnTimerElapsed(null, EventArgs.Empty);
+                            }
                         }
                     }
-                }
-                WriteAutoRunValue(_autoRunKey);
-                _autoRunKey = String.Empty;
-                return t.Result != -1;
-            });
+                    WriteAutoRunValue(_autoRunKey);
+                    _autoRunKey = String.Empty;
+                    return t.Result != -1;
+                });
 
-            aPortTask.Start();
-            bool aIsRtextServiceRunning = await aPortTask;
-            if(aIsRtextServiceRunning)
+                aPortTask.Start();
+                bool aIsRtextServiceRunning = await aPortTask;
+                if (aIsRtextServiceRunning)
+                {
+                    _stdOutReaderTask.Start();
+                }
+            }
+            catch(Exception ex)
             {
-                _stdOutReaderTask.Start();
+                Logging.Logger.Instance.Append(Logging.Logger.MessageType.FatalError, _pInfo.ProcKey, "Exception caught while trying to start rtext service : {0}", ex.Message);
+                OnProcessExited(null, EventArgs.Empty);
             }
         }
 
@@ -431,11 +439,14 @@ namespace RTextNppPlugin.RText
          */
         public void CleanupProcess()
         {
-            //clean up process here
-            _process.EnableRaisingEvents = false;
-            Utilities.ProcessUtilities.KillAllProcessesSpawnedBy(_process.Id);
             try
             {
+                if (_process != null)
+                {
+                    //clean up process here
+                    _process.EnableRaisingEvents = false;
+                }
+                Utilities.ProcessUtilities.KillAllProcessesSpawnedBy(_process.Id);
                 _cancellationSource.Cancel();
                 if (!(_stdErrReaderTask.IsCanceled || _stdErrReaderTask.IsCompleted || _stdErrReaderTask.IsFaulted))
                 {
@@ -485,6 +496,8 @@ namespace RTextNppPlugin.RText
                 if (_process != null)
                 {
                     _process.Exited -= OnProcessExited;
+                    _process.Dispose();
+                    _process = null;
                 }
             }
         }
