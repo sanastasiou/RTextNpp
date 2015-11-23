@@ -979,34 +979,47 @@ namespace RTextNppPlugin.DllExport
         /* Compatible with Windows NMHDR.
          * hwndFrom is really an environment specific window handle or pointer
          * but most clients of Scintilla.h do not have this type visible. */
-        public IntPtr hwndFrom;
-        public uint idFrom;
-        public uint code;
+
+        public IntPtr hwndFrom; //! environment specific window handle/pointer
+        public uint idFrom;     //! CtrlID of the window issuing the notification
+        public uint code;       //! The SCN_* notification code
     }
+
     [StructLayout(LayoutKind.Sequential)]
     public struct SCNotification
     {
         public Sci_NotifyHeader nmhdr;
-        public int position;            /* SCN_STYLENEEDED, SCN_MODIFIED, SCN_DWELLSTART, SCN_DWELLEND */
-        public int ch;                    /* SCN_CHARADDED, SCN_KEY */
-        public int modifiers;            /* SCN_KEY */
-        public int modificationType;    /* SCN_MODIFIED */
-        public IntPtr text;                /* SCN_MODIFIED, SCN_USERLISTSELECTION, SCN_AUTOCSELECTION */
-        public int length;                /* SCN_MODIFIED */
-        public int linesAdded;            /* SCN_MODIFIED */
+        public int position;               /* SCN_STYLENEEDED, SCN_DOUBLECLICK, SCN_MODIFIED, SCN_MARGINCLICK, SCN_NEEDSHOWN, SCN_DWELLSTART, SCN_DWELLEND, SCN_CALLTIPCLICK, SCN_HOTSPOTCLICK, SCN_HOTSPOTDOUBLECLICK, SCN_HOTSPOTRELEASECLICK, SCN_INDICATORCLICK, SCN_INDICATORRELEASE, SCN_USERLISTSELECTION, SCN_AUTOCSELECTION */
+        public int ch;                     /* SCN_CHARADDED, SCN_KEY, SCN_AUTOCCOMPLETE, SCN_AUTOCSELECTION, SCN_USERLISTSELECTION */
+        public int modifiers;              /* SCN_KEY, SCN_DOUBLECLICK, SCN_HOTSPOTCLICK, SCN_HOTSPOTDOUBLECLICK, SCN_HOTSPOTRELEASECLICK, SCN_INDICATORCLICK, SCN_INDICATORRELEASE */
+        public int modificationType;       /* SCN_MODIFIED */
+        public IntPtr text;                /* SCN_MODIFIED, SCN_USERLISTSELECTION, SCN_AUTOCSELECTION, SCN_URIDROPPED */
+        public int length;                 /* SCN_MODIFIED */
+        public int linesAdded;             /* SCN_MODIFIED */
         public int message;                /* SCN_MACRORECORD */
         public uint wParam;                /* SCN_MACRORECORD */
-        public int lParam;                /* SCN_MACRORECORD */
-        public int line;                /* SCN_MODIFIED */
-        public int foldLevelNow;        /* SCN_MODIFIED */
-        public int foldLevelPrev;        /* SCN_MODIFIED */
-        public int margin;                /* SCN_MARGINCLICK */
-        public int listType;            /* SCN_USERLISTSELECTION */
-        public int x;                    /* SCN_DWELLSTART, SCN_DWELLEND */
-        public int y;                    /* SCN_DWELLSTART, SCN_DWELLEND */
-        public int token;                /* SCN_MODIFIED with SC_MOD_CONTAINER */
-        public int annotationLinesAdded;/* SC_MOD_CHANGEANNOTATION */
+        public int lParam;                 /* SCN_MACRORECORD */
+        public int line;                   /* SCN_MODIFIED */
+        public int foldLevelNow;           /* SCN_MODIFIED */
+        public int foldLevelPrev;          /* SCN_MODIFIED */
+        public int margin;                 /* SCN_MARGINCLICK */
+        public int listType;               /* SCN_USERLISTSELECTION */
+        public int x;                      /* SCN_DWELLSTART, SCN_DWELLEND */
+        public int y;                      /* SCN_DWELLSTART, SCN_DWELLEND */
+        public int token;                  /* SCN_MODIFIED with SC_MOD_CONTAINER */
+        public int annotationLinesAdded;   /* SC_MOD_CHANGEANNOTATION */
+        public int updated;	               /* SCN_UPDATEUI */
+        public int listCompletionMethod;   /* SCN_AUTOCSELECTION, SCN_AUTOCCOMPLETED, SCN_USERLISTSELECTION */
     }
+
+    enum ScUpdate : int
+    {
+        SC_UPDATE_CONTENT = 1,
+        SC_UPDATE_SELECTION = 2,
+        SC_UPDATE_V_SCROLL = 4,
+        SC_UPDATE_H_SCROLL = 8
+    }
+
     [Flags]
     public enum SciMsg : uint
     {
@@ -1017,7 +1030,9 @@ namespace RTextNppPlugin.DllExport
         SCI_ADDTEXT = 2001,
         SCI_ADDSTYLEDTEXT = 2002,
         SCI_INSERTTEXT = 2003,
+        SCI_CHANGEINSERTION = 2672,
         SCI_CLEARALL = 2004,
+        SCI_DELETERANGE = 2645,
         SCI_CLEARDOCUMENTSTYLE = 2005,
         SCI_GETLENGTH = 2006,
         SCI_GETCHARAT = 2007,
@@ -1057,6 +1072,9 @@ namespace RTextNppPlugin.DllExport
         SCI_SETBUFFEREDDRAW = 2035,
         SCI_SETTABWIDTH = 2036,
         SCI_GETTABWIDTH = 2121,
+        SCI_CLEARTABSTOPS = 2675,
+        SCI_ADDTABSTOP = 2676,
+        SCI_GETNEXTTABSTOP = 2677,
         SC_CP_UTF8 = 65001,
         SC_CP_DBCS = 1,
         SCI_SETCODEPAGE = 2037,
@@ -1104,6 +1122,8 @@ namespace RTextNppPlugin.DllExport
         SCI_MARKERDEFINE = 2040,
         SCI_MARKERSETFORE = 2041,
         SCI_MARKERSETBACK = 2042,
+        SCI_MARKERSETBACKSELECTED = 2292,
+        SCI_MARKERENABLEHIGHLIGHT = 2293,
         SCI_MARKERADD = 2043,
         SCI_MARKERDELETE = 2044,
         SCI_MARKERDELETEALL = 2045,
@@ -1127,6 +1147,8 @@ namespace RTextNppPlugin.DllExport
         SCI_GETMARGINMASKN = 2245,
         SCI_SETMARGINSENSITIVEN = 2246,
         SCI_GETMARGINSENSITIVEN = 2247,
+        SCI_SETMARGINCURSORN = 2248,
+        SCI_GETMARGINCURSORN = 2249,
         STYLE_DEFAULT = 32,
         STYLE_LINENUMBER = 33,
         STYLE_BRACELIGHT = 34,
@@ -1184,6 +1206,14 @@ namespace RTextNppPlugin.DllExport
         SCI_STYLEGETCHANGEABLE = 2492,
         SCI_STYLEGETHOTSPOT = 2493,
         SCI_STYLESETCASE = 2060,
+        SC_FONT_SIZE_MULTIPLIER = 100,
+        SCI_STYLESETSIZEFRACTIONAL = 2061,
+        SCI_STYLEGETSIZEFRACTIONAL = 2062,
+        SC_WEIGHT_NORMAL = 400,
+        SC_WEIGHT_SEMIBOLD = 600,
+        SC_WEIGHT_BOLD = 700,
+        SCI_STYLESETWEIGHT = 2063,
+        SCI_STYLEGETWEIGHT = 2064,
         SCI_STYLESETCHARACTERSET = 2066,
         SCI_STYLESETHOTSPOT = 2409,
         SCI_SETSELFORE = 2067,
@@ -1201,6 +1231,7 @@ namespace RTextNppPlugin.DllExport
         SCI_GETCARETPERIOD = 2075,
         SCI_SETCARETPERIOD = 2076,
         SCI_SETWORDCHARS = 2077,
+        SCI_GETWORDCHARS = 2646,
         SCI_BEGINUNDOACTION = 2078,
         SCI_ENDUNDOACTION = 2079,
         INDIC_PLAIN = 0,
@@ -1606,7 +1637,6 @@ namespace RTextNppPlugin.DllExport
         SCI_PAGEUPRECTEXTEND = 2433,
         SCI_PAGEDOWNRECTEXTEND = 2434,
         SCI_STUTTEREDPAGEUP = 2435,
-        SCI_DELETERANGE = 2645,
         SCI_STUTTEREDPAGEUPEXTEND = 2436,
         SCI_STUTTEREDPAGEDOWN = 2437,
         SCI_STUTTEREDPAGEDOWNEXTEND = 2438,
@@ -1825,6 +1855,7 @@ namespace RTextNppPlugin.DllExport
         SCN_INDICATORRELEASE = 2024,
         SCN_AUTOCCANCELLED = 2025,
         SCN_AUTOCCHARDELETED = 2026,
+        SCN_HOTSPOTRELEASECLICK = 2027,
         SCN_SCROLLED = 2080
     }
     [StructLayout(LayoutKind.Sequential)]

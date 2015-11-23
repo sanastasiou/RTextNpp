@@ -14,6 +14,8 @@ using RTextNppPlugin.Utilities;
 using RTextNppPlugin.Utilities.Settings;
 using RTextNppPlugin.Utilities.WpfControlHost;
 using RTextNppPlugin.WpfControls;
+using System.Linq;
+
 namespace RTextNppPlugin
 {
     partial class Plugin
@@ -43,6 +45,7 @@ namespace RTextNppPlugin
         private static bool _isMenuLoopInactive                                                       = false; //!< Indicates that npp menu loop is active.
         private static LinkTargetsWindow _linkTargetsWindow                                           = new LinkTargetsWindow(_nppHelper, _win32, _settings, _connectorManager, _styleObserver); //!< Display reference links.
         private static bool _isAutoCompletionShortcutActive                                           = false; //!< Indicates the Ctrl+Space is pressed. Need this to commit auto completion in case of fuzzy matching.
+        private static Utilities.DelayedEventHandler<object> _actionAfterUiUpdateHandler              = new DelayedEventHandler<object>(null, 100);
 
         private enum ShortcutType
         {
@@ -412,8 +415,27 @@ namespace RTextNppPlugin
             _consoleOutput.Focus();
         }
         #endregion
-        
+
+        #region [Properties]
+
+        internal static INpp NppHelper
+        {
+            get
+            {
+                return _nppHelper;
+            }
+        }
+
+        //internal static 
+
+        #endregion
+
         #region [Event Handlers]
+
+        internal static void OnHotspotClicked()
+        {
+            _actionAfterUiUpdateHandler.TriggerHandler(new ActionWrapper<object, string, int>(_nppHelper.JumpToLine, _linkTargetsWindow.Targets.First().FilePath, Int32.Parse(_linkTargetsWindow.Targets.First().Line)));
+        }
 
         static void OnSettingChanged(object source, Settings.SettingChangedEventArgs e)
         {
@@ -558,9 +580,11 @@ namespace RTextNppPlugin
                 PreviewFileClosed( typeof(Plugin), _nppHelper.GetCurrentFile());
             }
         }
+
         #endregion
 
         #region [Helpers]
+        
         /// <summary>
         /// Todo, call this per file activation - else it will be globablly enabled...
         /// </summary>

@@ -157,7 +157,7 @@ namespace RTextNppPlugin.Utilities
         
         string TextBeforePosition(int position, int maxLength);
         
-        void JumpToLine(string file, int line);
+        object JumpToLine(string file, int line);
 
         void SetAnnotationVisible(IntPtr handle, int annotationStyle);
 

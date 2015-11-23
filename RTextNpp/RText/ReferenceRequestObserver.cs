@@ -55,25 +55,12 @@ namespace RTextNppPlugin.RText
             _settings                        = settings;
             _win32Helper                     = win32helper;
             _mouseMovementObserver.MouseMove += OnMouseMovementObserverMouseMove;
-            _mouseMovementObserver.MouseClicked += OnMouseMovementObserverMouseClicked;
             IsKeyboardShortCutActive         = false;
             _refWindow                       = refWindow;
             _mouseMoveDebouncer              = new VoidDelayedEventHandler(new Action(DoMouseMovementObserverMouseMove), 100);
             _styleOberver                    = styleObserver;
         }
-        bool OnMouseMovementObserverMouseClicked(VisualUtilities.MouseMessages arg)
-        {
-            if (_highLightToken)
-            {
-                if (IsKeyboardShortCutActive)
-                {
-                    _nppHelper.JumpToLine(_refWindow.Targets.First().FilePath, Int32.Parse(_refWindow.Targets.First().Line));
-                }
-                //return true to "eat" event, scintilla SCN_HOTSPOTCLICK is broken / cannot be used as is - need to implement delay between this event and ui update event, more complex
-                return true;
-            }
-            return false;
-        }
+
         internal bool IsKeyboardShortCutActive
         {
             set

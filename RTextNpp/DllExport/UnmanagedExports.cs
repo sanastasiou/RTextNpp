@@ -13,44 +13,52 @@ namespace RTextNppPlugin
         {
             name.Append("RTextNpp");
         }
+
         [DllExport(CallingConvention = CallingConvention.StdCall)]
         static void GetLexerStatusText(uint index, [MarshalAs(UnmanagedType.LPWStr, SizeConst = 32)]StringBuilder desc, int bufLength)
         {
             desc.Append("RText file.");
         }
+
         [DllExport(CallingConvention = CallingConvention.StdCall)]
         static int GetLexerCount()
         {
             return 1;
         }
+
         static RTextLexerCliWrapper _lexerWrapper = new RTextLexerCliWrapper();
         [DllExport(CallingConvention = CallingConvention.StdCall)]
         static IntPtr GetLexerFactory(uint index)
         {
             return (index == 0) ? _lexerWrapper.GetLexerFactory() : IntPtr.Zero;
         }
+
         [DllExport(CallingConvention=CallingConvention.Cdecl)]
         static bool isUnicode()
         {
             return true;
         }
+
         [DllExport(CallingConvention = CallingConvention.Cdecl)]
         static void setInfo(NppData notepadPlusData)
         {
             Plugin.nppData = notepadPlusData;
             Plugin.CommandMenuInit();
         }
+
         [DllExport(CallingConvention = CallingConvention.Cdecl)]
         static IntPtr getFuncsArray(ref int nbF)
         {
             nbF = Plugin._funcItems.Items.Count;
             return Plugin._funcItems.NativePointer;
         }
+
         [DllExport(CallingConvention = CallingConvention.Cdecl)]
         static uint messageProc(uint Message, IntPtr wParam, IntPtr lParam)
         {
             return 1;
         }
+
         static IntPtr _ptrPluginName = IntPtr.Zero;
         [DllExport(CallingConvention = CallingConvention.Cdecl)]
         static IntPtr getName()
@@ -59,10 +67,12 @@ namespace RTextNppPlugin
                 _ptrPluginName = Marshal.StringToHGlobalUni(RTextNppPlugin.Constants.PluginName);
             return _ptrPluginName;
         }
+
         [DllExport(CallingConvention = CallingConvention.Cdecl)]
         static void beNotified(IntPtr notifyCode)
         {
             SCNotification nc = (SCNotification)Marshal.PtrToStructure(notifyCode, typeof(SCNotification));
+
             switch (nc.nmhdr.code)
             {
                 case (uint)NppMsg.NPPN_TBMODIFICATION:
@@ -80,15 +90,12 @@ namespace RTextNppPlugin
                     Plugin.OnFileOpened();
                     Plugin.OnZoomLevelModified();
                     Plugin.OnBufferActivated();
-                    Logging.Logger.Instance.Append("File {0} is modification status : {1}", Npp.Instance.GetCurrentFilePath(), Npp.Instance.IsFileModified(Npp.Instance.GetCurrentFilePath()));
                     break;
                 case (uint)SciMsg.SCN_SAVEPOINTLEFT:
                     Plugin.OnFileConsideredModified();
-                    Logging.Logger.Instance.Append("Catching SCN_SAVEPOINTLEFT for file : {0}", Npp.Instance.GetCurrentFilePath());
                     break;
                 case (uint)SciMsg.SCN_SAVEPOINTREACHED:
                     Plugin.OnFileConsideredUnmodified();
-                    Logging.Logger.Instance.Append("Catching SCN_SAVEPOINTREACHED for file : {0}", Npp.Instance.GetCurrentFilePath());
                     break;
                 case (uint)SciMsg.SCN_ZOOM:
                     Plugin.OnZoomLevelModified();
@@ -96,7 +103,19 @@ namespace RTextNppPlugin
                 case (uint)NppMsg.NPPN_FILEBEFORECLOSE:
                     Plugin.OnPreviewFileClosed();
                     break;
+                case (uint)SciMsg.SCN_UPDATEUI:
+                    break;
+                case (uint)SciMsg.SCN_HOTSPOTRELEASECLICK:
+                    Plugin.OnHotspotClicked();
+                    break;
             }
+        }
+
+        private static bool IsBitSet(int bitNumber, int value)
+        {
+            int aBitMask = 1;
+            aBitMask <<= bitNumber;
+            return (value & aBitMask) != 0;
         }
     }
 }

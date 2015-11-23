@@ -64,11 +64,12 @@ namespace RTextNppPlugin.Utilities
             _win32.ISendMessage(aHandle, SciMsg.SCI_ANNOTATIONSETSTYLES, line, stylesDescription.ToString());
         }
 
-        public void JumpToLine(string file, int line)
+        public object JumpToLine(string file, int line)
         {
             OpenFile(file);
             GoToLine(line);
             ScrollUpToLine(line);
+            return null;
         }
         
         public IntPtr GetCurrentScintilla(NppData nppData)
@@ -596,9 +597,10 @@ namespace RTextNppPlugin.Utilities
         public void ClearSelection()
         {
             IntPtr sci = GetCurrentScintilla(Plugin.nppData);
-            int currentPos = (int)_win32.ISendMessage(sci, SciMsg.SCI_GETCURRENTPOS, 0, 0);
-            _win32.ISendMessage(sci, SciMsg.SCI_SETSELECTIONSTART, currentPos, 0);
-            _win32.ISendMessage(sci, SciMsg.SCI_SETSELECTIONEND, currentPos, 0); ;
+            //int currentPos = (int)_win32.ISendMessage(sci, SciMsg.SCI_GETCURRENTPOS, 0, 0);
+            //_win32.ISendMessage(sci, SciMsg.SCI_SETSELECTIONSTART, currentPos, 0);
+            //_win32.ISendMessage(sci, SciMsg.SCI_SETSELECTIONEND, currentPos, 0); ;
+            _win32.ISendMessage(sci, SciMsg.SCI_CLEARSELECTIONS, 0, 0);
         }
         
         public void SetSelection(int start, int end)
