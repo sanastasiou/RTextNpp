@@ -1,5 +1,7 @@
 AUTOSAR {
   ARPackage P1 {
+    #Add some comments....
+    #Some multiline comments....
     IntegerType UInt8
     ConstantSpecification const1 {
       IntegerLiteral lit1, value: 0

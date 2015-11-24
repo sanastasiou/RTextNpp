@@ -6,30 +6,7 @@ namespace RText
     //static initializations
     const std::string RTextLexer::BOOLEAN_TRUE  = "true";
     const std::string RTextLexer::BOOLEAN_FALSE = "false";
-    ILexer* RTextLexer::LexerFactory()
-    {
-        return new RTextLexer();
-    }
-    RTextLexer::RTextLexer() : _firstTokenInLine(true)
-    {
-    }
 
-    RTextLexer:: ~RTextLexer()
-    {
-    }
-
-    void SCI_METHOD RTextLexer::Release()
-    {
-        delete this;
-    }
-    int SCI_METHOD RTextLexer::Version() const
-    {
-        return lvOriginal;
-    }
-    int SCI_METHOD RTextLexer::WordListSet(int n, const char *wl)
-    {
-        return -1;
-    }
     unsigned int RTextLexer::SkipDigitsUntil(Accessor & accessor, char const delimiter, unsigned int & currentPos)const
     {
         unsigned int length = 0;
@@ -48,12 +25,12 @@ namespace RText
             return 0;
         }
     }
+    
     bool RTextLexer::IdentifyFloat(Accessor & accessor, StyleContext const & context, unsigned int & length)const
     {
         length = 0;
         unsigned int currentPos = context.currentPos;
-        char a = accessor[currentPos];
-        //regex cannot be used -- thanks Scintilla..
+
         if (accessor[currentPos] == '+' || accessor[currentPos] == '-' || ::iswdigit(accessor[currentPos]))
         {
             bool const isSignFound = (accessor[currentPos] == '+' || accessor[currentPos] == '-');
@@ -77,6 +54,7 @@ namespace RText
         }
         return false;
     }
+    
     bool RTextLexer::IdentifyInt(Accessor & accessor, StyleContext const & context, unsigned int & length)const
     {
         bool aRet = false;
@@ -106,9 +84,9 @@ namespace RText
         }
         return aRet;
     }
+    
     bool RTextLexer::IdentifyQuotedString(Accessor & accessor, StyleContext const & context, unsigned int & length)const
     {
-        bool aRet                = false;
         unsigned int aCurrentPos = context.currentPos;
         length                   = 0;
         char delimiter = '"';
@@ -136,6 +114,7 @@ namespace RText
         }
         return false;
     }
+    
     bool RTextLexer::IdentifyLabel(Accessor & accessor, StyleContext const & context, unsigned int & length)const
     {
         unsigned int aCurrentPos = context.currentPos;
@@ -157,6 +136,7 @@ namespace RText
         }
         return false;
     }
+    
     bool RTextLexer::IdentifyCharSequence(Accessor & accessor, unsigned int & currentPos, std::string match)const
     {
         for (auto c : match)
@@ -166,6 +146,7 @@ namespace RText
         }
         return true;
     }
+    
     bool RTextLexer::IdentifyBoolean(Accessor & accessor, StyleContext const & context, unsigned int & length)const
     {
         unsigned int aCurrentPos = context.currentPos;
@@ -188,6 +169,7 @@ namespace RText
         }
         return (length > 0);
     }
+    
     bool RTextLexer::IdentifyName(Accessor & accessor, StyleContext const & context, unsigned int & length)const
     {
         unsigned int aCurrentPos = context.currentPos - 1;
@@ -202,6 +184,7 @@ namespace RText
         }
         return (length > 0);
     }
+    
     bool RTextLexer::IsLineExtended(int startPos, char const * const buffer)const
     {
         //no reason to check previous characters
@@ -275,6 +258,7 @@ namespace RText
         }
         return false;
     }
+    
     void SCI_METHOD RTextLexer::Lex(unsigned int startPos, int length, int initStyle, IDocument* pAccess)
     {
         Accessor styler(pAccess, nullptr);
@@ -401,33 +385,88 @@ namespace RText
         }
         context.Complete();
     }
+    
     void SCI_METHOD RTextLexer::Fold(unsigned int startPos, int length, int initStyle, IDocument* pAccess)
     {
         LexAccessor styler(pAccess);
-        unsigned int endPos = startPos + length;
-        char chNext = styler[startPos];
-        int lineCurrent = styler.GetLine(startPos);
-        int levelPrev = styler.LevelAt(lineCurrent) & SC_FOLDLEVELNUMBERMASK;
-        int levelCurrent = levelPrev;
-        char ch;
-        bool atEOL;
-        for (unsigned int i = startPos; i < endPos; i++)
+
+        auto endPos        = startPos + length;
+        int visibleChars   = 0;
+        bool inLineComment = false;
+        auto lineCurrent   = styler.GetLine(startPos);
+        int levelCurrent   = SC_FOLDLEVELBASE;
+        if (lineCurrent > 0)
         {
-            ch = chNext;
-            chNext = styler.SafeGetCharAt(i + 1);
-            atEOL = ((ch == '\r' && chNext != '\n') || (ch == '\n'));
-            if (ch == '{')
+            levelCurrent = styler.LevelAt(lineCurrent - 1) >> 16;
+        }
+        unsigned int lineStartNext  = styler.LineStart(lineCurrent + 1);
+        int levelMinCurrent         = levelCurrent;
+        int levelNext               = levelCurrent;
+        char chNext                 = styler[startPos];
+        int styleNext               = MaskActive(styler.StyleAt(startPos));
+        int style                   = MaskActive(initStyle);
+
+        for (auto i = startPos; i < endPos; i++) {
+            char ch       = chNext;
+            chNext        = styler.SafeGetCharAt(i + 1);
+            style         = styleNext;
+            styleNext     = MaskActive(styler.StyleAt(i + 1));
+            bool atEOL    = i == (lineStartNext - 1);
+            //if ((style == TokenType_Comment))
+            //{
+            //    inLineComment = true;
+            //}
+            //if (IsStreamCommentStyle(style) && !inLineComment) {
+            //    if (!IsStreamCommentStyle(stylePrev)) {
+            //        levelNext++;
+            //    }
+            //    else if (!IsStreamCommentStyle(styleNext) && !atEOL) {
+            //        // Comments don't end at end of line and the next character may be unstyled.
+            //        levelNext--;
+            //    }
+            //}
+            //if (style == TokenType_Comment)
+            //{
+            //    if ((ch == '/') && (chNext == '/')) {
+            //        char chNext2 = styler.SafeGetCharAt(i + 2);
+            //        if (chNext2 == '{') {
+            //            levelNext++;
+            //        }
+            //        else if (chNext2 == '}') {
+            //            levelNext--;
+            //        }
+            //    }
+            //}
+            if (style == TokenType_Other)
             {
-                levelCurrent++;
+                if (ch == '{' || ch == '[') {
+                    // Measure the minimum before a '{' to allow
+                    // folding on "} else {"
+                    if (levelMinCurrent > levelNext)
+                    {
+                        levelMinCurrent = levelNext;
+                    }
+                    levelNext++;
+                }
+                else if (ch == '}' || ch == ']')
+                {
+                    levelNext--;
+                }
             }
-            if (ch == '}')
+            if (!IsASpace(ch))
             {
-                levelCurrent--;
+                visibleChars++;
             }
-            if (atEOL || (i == (endPos - 1)))
+            if (atEOL || (i == endPos - 1))
             {
-                int lev = levelPrev;
-                if (levelCurrent > levelPrev)
+                int levelUse = levelCurrent;
+
+                int lev = levelUse | levelNext << 16;
+                if (visibleChars == 0)
+                {
+                    lev |= SC_FOLDLEVELWHITEFLAG;
+                }
+                if (levelUse < levelNext)
                 {
                     lev |= SC_FOLDLEVELHEADERFLAG;
                 }
@@ -436,20 +475,18 @@ namespace RText
                     styler.SetLevel(lineCurrent, lev);
                 }
                 lineCurrent++;
-                levelPrev = levelCurrent;
+                lineStartNext   = styler.LineStart(lineCurrent + 1);
+                levelCurrent    = levelNext;
+                levelMinCurrent = levelCurrent;
+                if (atEOL && (i == static_cast<decltype(endPos)>(styler.Length() - 1)))
+                {
+                    // There is an empty line at end of file so give it same level and empty
+                    styler.SetLevel(lineCurrent, (levelCurrent | levelCurrent << 16) | SC_FOLDLEVELWHITEFLAG);
+                }
+                visibleChars  = 0;
+                inLineComment = false;
             }
         }
     }
-    bool RTextLexer::IsWhitespace(StyleContext const & context)const
-    {
-        return (!context.atLineEnd && context.Match(' ') || context.Match('\t'));
-    }
-    bool RTextLexer::IsEndOfLineReached(StyleContext const & context)const
-    {
-        return (context.atLineEnd);
-    }
-    void* SCI_METHOD RTextLexer::PrivateCall(int operation, void* pointer)
-    {
-        return nullptr;
-    }
+
 }    // namespace RText
