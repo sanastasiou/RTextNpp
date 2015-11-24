@@ -1,5 +1,7 @@
 #include "Lexer.h"
 #include <string>
+#include <tchar.h>
+#include "atltrace.h"
 
 namespace RText
 {
@@ -301,6 +303,10 @@ namespace RText
                 {
                     context.SetState(TokenType_Reference);
                 }
+                else if (context.Match('<'))
+                {
+                    context.SetState(TokenType_Template);
+                }
                 else if (IdentifyFloat(styler, context, aTokenLength))
                 {
                     context.SetState(TokenType_Float);
@@ -370,6 +376,14 @@ namespace RText
                 }
                 context.SetState(TokenType_Default);
                 break;
+            case TokenType_Template:
+                while (context.ch != '>')
+                {
+                    context.Forward();
+                }
+                context.Forward();
+                context.SetState(TokenType_Default);
+                break;
             case TokenType_Notation:
             case TokenType_Comment:
                 if (IsEndOfLineReached(context))
@@ -392,7 +406,6 @@ namespace RText
 
         auto endPos        = startPos + length;
         int visibleChars   = 0;
-        bool inLineComment = false;
         auto lineCurrent   = styler.GetLine(startPos);
         int levelCurrent   = SC_FOLDLEVELBASE;
         if (lineCurrent > 0)
@@ -405,38 +418,48 @@ namespace RText
         char chNext                 = styler[startPos];
         int styleNext               = MaskActive(styler.StyleAt(startPos));
         int style                   = MaskActive(initStyle);
+        //bool isInComment            = (styler.StyleAt(startPos - 1) == TokenType_Comment);
 
         for (auto i = startPos; i < endPos; i++) {
-            char ch       = chNext;
-            chNext        = styler.SafeGetCharAt(i + 1);
-            style         = styleNext;
-            styleNext     = MaskActive(styler.StyleAt(i + 1));
-            bool atEOL    = i == (lineStartNext - 1);
-            //if ((style == TokenType_Comment))
+            char ch             = chNext;
+            chNext              = styler.SafeGetCharAt(i + 1);
+            //int stylePrev       = style;
+            style               = styleNext;
+            styleNext           = MaskActive(styler.StyleAt(i + 1));
+            bool const atEOL    = (i == (lineStartNext - 1));
+
+            //if ((style == TokenType_Comment) && !isInComment)
             //{
-            //    inLineComment = true;
-            //}
-            //if (IsStreamCommentStyle(style) && !inLineComment) {
-            //    if (!IsStreamCommentStyle(stylePrev)) {
+            //    auto j = i;
+            //    while (::iswspace(styler.SafeGetCharAt(j)))
+            //    {
+            //        ++j;
+            //    }
+            //    //there's a comment somewhere after this one
+            //    if (styler.SafeGetCharAt(j) == '#')
+            //    {
             //        levelNext++;
             //    }
-            //    else if (!IsStreamCommentStyle(styleNext) && !atEOL) {
-            //        // Comments don't end at end of line and the next character may be unstyled.
-            //        levelNext--;
-            //    }
-            //}
-            //if (style == TokenType_Comment)
+            //}                
+            //else if (style != TokenType_Comment && isInComment)
             //{
-            //    if ((ch == '/') && (chNext == '/')) {
-            //        char chNext2 = styler.SafeGetCharAt(i + 2);
-            //        if (chNext2 == '{') {
-            //            levelNext++;
-            //        }
-            //        else if (chNext2 == '}') {
-            //            levelNext--;
-            //        }
+            //    auto j = i;
+            //    while (::iswspace(styler.SafeGetCharAt(j)))
+            //    {
+            //        ++j;
+            //    }
+            //    if (styler.SafeGetCharAt(j) != '#')
+            //    {
+            //        --levelNext;
+            //        isInComment = false;
             //    }
             //}
+            //if (!isInComment)
+            //{
+            //    isInComment = (style == TokenType_Comment);
+            //}
+            
+
             if (style == TokenType_Other)
             {
                 if (ch == '{' || ch == '[') {
@@ -484,7 +507,6 @@ namespace RText
                     styler.SetLevel(lineCurrent, (levelCurrent | levelCurrent << 16) | SC_FOLDLEVELWHITEFLAG);
                 }
                 visibleChars  = 0;
-                inLineComment = false;
             }
         }
     }
