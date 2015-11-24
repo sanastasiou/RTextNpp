@@ -217,15 +217,17 @@ namespace RTextNppPlugin
                         CommitAutoCompletion(false);
                         break;
                     default:
-                        //convert virtual key to ASCII
-                        int nonVirtualKey = Npp.MapVirtualKey((uint)key, 2);
-                        char mappedChar   = Npp.Instance.GetAsciiCharacter((int)key, nonVirtualKey);
-                        if (mappedChar != default(char))
-                        {
+                        //convert virtual key to w/e it has to be converted to
+                        var nonVirtualKey = Npp.MapVirtualKeyEx((uint)key, Npp.MapVirtualKeyMapTypes.MAPVK_VK_TO_CHAR, _nppHelper.LoadKeyboardLayout());
+                        var mappedChar    = Npp.Instance.GetAsciiCharacter((uint)key, nonVirtualKey);
+                        Trace.WriteLine(String.Format("New key captured : {0}", mappedChar));
+                        //if (mappedChar != default(char))
+                        //{
+                        //Convert.ToChar(nonVirtualKey);
                             handled = true;
-                            Npp.Instance.AddText(new string(mappedChar, 1));
-                            OnCharTyped(mappedChar);
-                        }
+                            Npp.Instance.AddText(mappedChar);
+                            //OnCharTyped(mappedChar);
+                        //}
                         break;
                 }
             }

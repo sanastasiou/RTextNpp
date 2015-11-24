@@ -40,7 +40,7 @@ namespace RTextNppPlugin.DllExport
             }
             catch(Exception ex)
             {
-                Logging.Logger.Instance.Append(ex.Message);
+                Logging.Logger.Instance.Append("ShortcutKey::ShortcutKey : {0}", ex.Message);
                 _key = 0;
             }
 
