@@ -15,6 +15,7 @@ using RTextNppPlugin.Utilities.Settings;
 using RTextNppPlugin.Utilities.WpfControlHost;
 using RTextNppPlugin.WpfControls;
 using System.Linq;
+using System.Text;
 
 namespace RTextNppPlugin
 {
@@ -97,146 +98,7 @@ namespace RTextNppPlugin
             {
                 _linkTargetsWindow.IsKeyboardShortCutActive(false);
             }
-        }
-
-        private static void OnKeyInterceptorKeyDown(Keys key, int repeatCount, ref bool handled)
-        {
-            _isAutoCompletionShortcutActive = false;
-            //do not auto complete when multi selecting, when menu loop is active, when no rtext file is open
-            if (FileUtilities.IsRTextFile(_settings, Npp.Instance) && (Npp.Instance.GetSelections() == 1) && HasScintillaFocus() && !_isMenuLoopInactive)
-            {
-                CSScriptIntellisense.Modifiers modifiers = CSScriptIntellisense.KeyInterceptor.GetModifiers();
-
-                foreach (var shortcut in internalShortcuts.Keys)
-                {
-                    //modifiers check
-                    if (modifiers.IsCtrl == shortcut.IsCtrl && modifiers.IsShift == shortcut.IsShift && modifiers.IsAlt == shortcut.IsAlt)
-                    {
-                        if ((shortcut.IsSet && (byte)key == shortcut._key) || !shortcut.IsSet)
-                        {
-                            //shortcut matches, find out which one it is
-                            switch (internalShortcuts[shortcut].Item3)
-                            {
-                                case ShortcutType.ShortcutType_AutoCompletion:
-                                    _isAutoCompletionShortcutActive = true;
-                                    var handler = internalShortcuts[shortcut];
-                                    handled = !_autoCompletionForm.IsVisible;
-                                    if (!_autoCompletionForm.IsVisible)
-                                    {
-                                        var res = AsyncInvoke(handler.Item2);
-                                    }
-                                    //do nothing if form is already visible
-                                    return;
-                                case ShortcutType.ShortcutType_ReferenceLink:
-                                    if (modifiers.IsAlt && modifiers.IsCtrl)
-                                    {
-                                        _linkTargetsWindow.IsKeyboardShortCutActive(true);
-                                        handled = true;
-                                    }
-                                    break;
-                                default:
-                                    //nothing to do
-                                    break;
-                            }
-                        }
-                    }
-                    
-                }
-                //if any modifier key is pressed - ignore this key press
-                if (modifiers.IsCtrl || modifiers.IsAlt)
-                {
-                    if(_autoCompletionForm.IsVisible)
-                    {
-                        CommitAutoCompletion(false);
-                    }
-                    return;
-                }
-                //auto complete Ctrl+Space is handled above - here we handle other special cases
-                switch (key)
-                {
-                    case Keys.Back:
-                        handled = true;
-                        Npp.Instance.DeleteBack(1);
-                        //in case of empty trigger token form needs to close
-                        _autoCompletionForm.OnKeyPressed(Constants.BACKSPACE);
-                        if(_autoCompletionForm.CharProcessAction == ViewModels.AutoCompletionViewModel.CharProcessResult.ForceClose)
-                        {
-                            CommitAutoCompletion(false);
-                        }
-                        break;
-                    case Keys.Delete:
-                        handled = true;
-                        Npp.Instance.DeleteFront();
-                        _autoCompletionForm.OnKeyPressed();
-                        break;
-                    case Keys.Space:
-                        handled = true;
-                        //if completion list is visible, and there is a trigger token other than comma or space and there is some selected option
-                        if (_autoCompletionForm.Completion != null && _autoCompletionForm.Completion.IsSelected)
-                        {
-                            CommitAutoCompletion(true);
-                            Npp.Instance.AddText(Constants.SPACE.ToString());
-                            return;
-                        }
-                        Npp.Instance.AddText(Constants.SPACE.ToString());
-                        _autoCompletionForm.OnKeyPressed(Constants.SPACE);
-                        break;
-                    case Keys.Return:
-                    case Keys.Tab:
-                        if (_autoCompletionForm.IsVisible )
-                        {
-                            handled = true;
-                            if ( _autoCompletionForm.TriggerPoint.HasValue && String.IsNullOrWhiteSpace(_autoCompletionForm.TriggerPoint.Value.Context) &&
-                                (_autoCompletionForm.Completion == null || (_autoCompletionForm.Completion != null && !_autoCompletionForm.Completion.IsSelected))
-                               )
-                            {
-                                Npp.Instance.AddText(Constants.TAB.ToString());
-                                _autoCompletionForm.OnKeyPressed(Constants.TAB);
-                            }
-                            else
-                            {
-                                //special case when trigger point is empty -> move auto completion form after inserting tab char..
-                                CommitAutoCompletion(true);
-                            }
-                        }
-                        break;
-                    case Keys.Oemcomma:
-                        if(_autoCompletionForm.IsVisible)
-                        {
-                            CommitAutoCompletion(true);
-                            Npp.Instance.AddText(Constants.COMMA.ToString());
-                            handled = true;
-                        }
-                        //start auto completion fix window position - handle insertion when token is comma i.e. do not replace comma
-                        OnCharTyped(Constants.COMMA);
-                        break;
-                    case Keys.Escape:
-                    case Keys.Cancel:
-                    case Keys.Left:
-                    case Keys.Right:
-                        CommitAutoCompletion(false);
-                        break;
-                    default:
-                        //convert virtual key to w/e it has to be converted to
-                        var nonVirtualKey = Npp.MapVirtualKeyEx((uint)key, Npp.MapVirtualKeyMapTypes.MAPVK_VK_TO_CHAR, _nppHelper.LoadKeyboardLayout());
-                        var mappedChar    = Npp.Instance.GetAsciiCharacter((uint)key, nonVirtualKey);
-                        Trace.WriteLine(String.Format("New key captured : {0}", mappedChar));
-                        //if (mappedChar != default(char))
-                        //{
-                        //Convert.ToChar(nonVirtualKey);
-                            handled = true;
-                            Npp.Instance.AddText(mappedChar);
-                            //OnCharTyped(mappedChar);
-                        //}
-                        break;
-                }
-            }
-            else
-            {
-                //allow event to fall through
-                handled = false;
-            }
-        }
+        }        
 
         private static void OnCharTyped(char c)
         {
@@ -433,6 +295,167 @@ namespace RTextNppPlugin
         #endregion
 
         #region [Event Handlers]
+
+        private static void OnKeyInterceptorKeyDown(Keys key, int repeatCount, ref bool handled)
+        {
+            Trace.WriteLine(String.Format("Current encoding : {0}", _nppHelper.GetBufferEncoding()));
+            _isAutoCompletionShortcutActive = false;
+            //do not auto complete when multi selecting, when menu loop is active, when no rtext file is open
+            if (FileUtilities.IsRTextFile(_settings, Npp.Instance) && (Npp.Instance.GetSelections() == 1) && HasScintillaFocus() && !_isMenuLoopInactive)
+            {
+                CSScriptIntellisense.Modifiers modifiers = CSScriptIntellisense.KeyInterceptor.GetModifiers();
+
+                foreach (var shortcut in internalShortcuts.Keys)
+                {
+                    //modifiers check
+                    if (modifiers.IsCtrl == shortcut.IsCtrl && modifiers.IsShift == shortcut.IsShift && modifiers.IsAlt == shortcut.IsAlt)
+                    {
+                        if ((shortcut.IsSet && (byte)key == shortcut._key) || !shortcut.IsSet)
+                        {
+                            //shortcut matches, find out which one it is
+                            switch (internalShortcuts[shortcut].Item3)
+                            {
+                                case ShortcutType.ShortcutType_AutoCompletion:
+                                    _isAutoCompletionShortcutActive = true;
+                                    var handler = internalShortcuts[shortcut];
+                                    handled = !_autoCompletionForm.IsVisible;
+                                    if (!_autoCompletionForm.IsVisible)
+                                    {
+                                        var res = AsyncInvoke(handler.Item2);
+                                    }
+                                    //do nothing if form is already visible
+                                    return;
+                                case ShortcutType.ShortcutType_ReferenceLink:
+                                    if (modifiers.IsAlt && modifiers.IsCtrl)
+                                    {
+                                        _linkTargetsWindow.IsKeyboardShortCutActive(true);
+                                        handled = true;
+                                    }
+                                    break;
+                                default:
+                                    //nothing to do
+                                    break;
+                            }
+                        }
+                    }
+
+                }
+                //if any modifier key is pressed - ignore this key press
+                if (modifiers.IsCtrl || modifiers.IsAlt)
+                {
+                    if (_autoCompletionForm.IsVisible)
+                    {
+                        CommitAutoCompletion(false);
+                    }
+                    return;
+                }
+                //auto complete Ctrl+Space is handled above - here we handle other special cases
+                switch (key)
+                {
+                    case Keys.Back:
+                        handled = true;
+                        Npp.Instance.DeleteBack(1);
+                        //in case of empty trigger token form needs to close
+                        _autoCompletionForm.OnKeyPressed(Constants.BACKSPACE);
+                        if (_autoCompletionForm.CharProcessAction == ViewModels.AutoCompletionViewModel.CharProcessResult.ForceClose)
+                        {
+                            CommitAutoCompletion(false);
+                        }
+                        break;
+                    case Keys.Delete:
+                        handled = true;
+                        Npp.Instance.DeleteFront();
+                        _autoCompletionForm.OnKeyPressed();
+                        break;
+                    case Keys.Space:
+                        handled = true;
+                        //if completion list is visible, and there is a trigger token other than comma or space and there is some selected option
+                        if (_autoCompletionForm.Completion != null && _autoCompletionForm.Completion.IsSelected)
+                        {
+                            CommitAutoCompletion(true);
+                            Npp.Instance.AddText(Constants.SPACE.ToString());
+                            return;
+                        }
+                        Npp.Instance.AddText(Constants.SPACE.ToString());
+                        _autoCompletionForm.OnKeyPressed(Constants.SPACE);
+                        break;
+                    case Keys.Return:
+                    case Keys.Tab:
+                        if (_autoCompletionForm.IsVisible)
+                        {
+                            handled = true;
+                            if (_autoCompletionForm.TriggerPoint.HasValue && String.IsNullOrWhiteSpace(_autoCompletionForm.TriggerPoint.Value.Context) &&
+                                (_autoCompletionForm.Completion == null || (_autoCompletionForm.Completion != null && !_autoCompletionForm.Completion.IsSelected))
+                               )
+                            {
+                                Npp.Instance.AddText(Constants.TAB.ToString());
+                                _autoCompletionForm.OnKeyPressed(Constants.TAB);
+                            }
+                            else
+                            {
+                                //special case when trigger point is empty -> move auto completion form after inserting tab char..
+                                CommitAutoCompletion(true);
+                            }
+                        }
+                        break;
+                    case Keys.Oemcomma:
+                        if (_autoCompletionForm.IsVisible)
+                        {
+                            CommitAutoCompletion(true);
+                            Npp.Instance.AddText(Constants.COMMA.ToString());
+                            handled = true;
+                        }
+                        //start auto completion fix window position - handle insertion when token is comma i.e. do not replace comma
+                        OnCharTyped(Constants.COMMA);
+                        break;
+                    case Keys.Escape:
+                    case Keys.Cancel:
+                    case Keys.Left:
+                    case Keys.Right:
+                        CommitAutoCompletion(false);
+                        break;
+                    default:
+                        //convert virtual key to w/e it has to be converted to
+                        var nonVirtualKey = Npp.MapVirtualKeyEx((uint)key, Npp.MapVirtualKeyMapTypes.MAPVK_VK_TO_CHAR, _nppHelper.LoadKeyboardLayout());
+                        var mappedChar = Npp.Instance.GetAsciiCharacter((uint)key, nonVirtualKey);
+                        Trace.WriteLine(String.Format("New key captured : {0}", mappedChar));
+
+                        ///string tToInsert = string.Empty;
+                        ///if(_nppHelper.GetBufferEncoding() == BufferEncoding.Error)
+                        ///{
+                        ///    bool isUnicode = (_nppHelper.GetCodepage() == 65001);
+                        ///    if(isUnicode)
+                        ///    {
+                        ///        tToInsert = Encoding.UTF8.GetString(Encoding.UTF8.GetBytes(mappedChar));
+                        ///    }
+                        ///    else
+                        ///    {
+                        ///        tToInsert = mappedChar;
+                        ///    }
+                        ///}
+                        ///else
+                        ///{
+                        ///    //var aEncoding = Encoding.GetEncoding((int)_nppHelper.GetBufferEncoding());
+                        ///    //tToInsert = Encoding.UTF8.GetString(aEncoding.GetBytes(mappedChar));
+                        ///}
+
+                        //if (mappedChar != default(char))
+                        //{
+                        //Convert.ToChar(nonVirtualKey);
+                        var a = "ä";
+                        handled = true;
+                        Npp.Instance.AddText(a, a.GetByteCount()); //Works for ANSI not for UTF-8
+                        //OnCharTyped(mappedChar);
+                        //}
+                        break;
+                }
+            }
+            else
+            {
+                //allow event to fall through
+                handled = false;
+            }
+        }
 
         internal static void OnHotspotClicked()
         {

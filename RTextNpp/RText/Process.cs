@@ -445,8 +445,8 @@ namespace RTextNppPlugin.RText
                 {
                     //clean up process here
                     _process.EnableRaisingEvents = false;
+                    Utilities.ProcessUtilities.KillAllProcessesSpawnedBy(_process.Id);
                 }
-                Utilities.ProcessUtilities.KillAllProcessesSpawnedBy(_process.Id);
                 _cancellationSource.Cancel();
                 if (!(_stdErrReaderTask.IsCanceled || _stdErrReaderTask.IsCompleted || _stdErrReaderTask.IsFaulted))
                 {

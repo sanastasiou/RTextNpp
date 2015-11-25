@@ -206,6 +206,11 @@ namespace RTextNppPlugin.Utilities
 
             _win32.ISendMessage(instance.CurrentScintilla, SciMsg.SCI_ADDTEXT, s.GetByteCount(), s);
         }
+
+        public void AddText(string s, int len)
+        {
+            _win32.ISendMessage(instance.CurrentScintilla, SciMsg.SCI_ADDTEXT, len, s);
+        }
         
         public void ChangeMenuItemCheck(int CmdId, bool isChecked)
         {
@@ -775,7 +780,7 @@ namespace RTextNppPlugin.Utilities
         public static extern long GetKeyboardLayoutName(System.Text.StringBuilder pwszKLID);
 
         [DllImportAttribute("user32.dll")]
-        public static extern int ToAscii(uint uVirtKey, uint uScanCode, byte[] lpbKeyState, byte[] lpChar, int uFlags);
+        public static extern int ToAscii(uint uVirtKey, uint uScanCode, byte[] lpbKeyState, [Out] StringBuilder lpChar, int uFlags);
 
         [DllImportAttribute("user32.dll")]
         public static extern int ToAsciiEx(uint uVirtKey, uint uScanCode, byte[] lpbKeyState, byte[] lpChar, int uFlags, IntPtr dwhkl);
@@ -786,11 +791,13 @@ namespace RTextNppPlugin.Utilities
         public string GetAsciiCharacter(uint uVirtKey, uint uScanCode)
         {
             byte[] lpKeyState = new byte[256];
+
             GetKeyboardState(lpKeyState);
-            byte[] lpChar = new byte[2];
-            if (ToAsciiEx(uVirtKey, uScanCode, lpKeyState, lpChar, 0, LoadKeyboardLayout()) == 1)
+            var outputBuilder = new StringBuilder(2);
+
+            if (ToAscii(uVirtKey, uScanCode, lpKeyState, outputBuilder, 0) == 1)
             {
-                return new string(new char [] { (char)lpChar[0]});
+                return outputBuilder.ToString(0, 1);
             }
             else
             {
@@ -801,6 +808,21 @@ namespace RTextNppPlugin.Utilities
         public IntPtr LoadKeyboardLayout()
         {
             return LoadKeyboardLayout(GetKeyboardLayoutName(), KLF_ACTIVATE);
+        }
+
+        public int GetCurrentBufferId()
+        {
+            return (int)_win32.ISendMessage(Plugin.nppData._nppHandle, NppMsg.NPPM_GETCURRENTBUFFERID, 0, 0);
+        }
+
+        public BufferEncoding GetBufferEncoding()
+        {
+            return (BufferEncoding)_win32.ISendMessage(Plugin.nppData._nppHandle, NppMsg.NPPM_GETBUFFERENCODING, GetCurrentBufferId(), 0);
+        }
+
+        public int GetCodepage()
+        {
+            return (int)_win32.ISendMessage(GetCurrentScintilla(Plugin.nppData), SciMsg.SCI_GETCODEPAGE, 0, 0);
         }
     }
 }

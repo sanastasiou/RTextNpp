@@ -3,6 +3,20 @@ namespace RTextNppPlugin.Utilities
 {
     using RTextNppPlugin.RText.Parsing;
     using RTextNppPlugin.DllExport;
+
+    public enum BufferEncoding : int
+    {
+        Error         = -1,
+        Uni8Bit       = 0,
+        UniUTF8       = 1,
+        Uni16BE       = 2,
+        Uni16LE       = 3,
+        UniCookie     = 4,
+        Uni7Bit       = 5,
+        Uni16BE_NoBOM = 6,
+        Uni16LE_NoBOM = 7
+    }
+
     internal interface INpp
     {
         IntPtr GetCurrentScintilla(NppData nppData);
@@ -172,5 +186,11 @@ namespace RTextNppPlugin.Utilities
         void SetAnnotationStyles(int line, System.Text.StringBuilder stylesDescription);
 
         IntPtr LoadKeyboardLayout();
+
+        BufferEncoding GetBufferEncoding();
+
+        int GetCurrentBufferId();
+
+        int GetCodepage();
     }
 }
