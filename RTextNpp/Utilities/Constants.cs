@@ -48,14 +48,19 @@ namespace RTextNppPlugin
         public const double ZOOM_FACTOR = 0.08;                                 //!< Relation between actual zoom and scintilla zoom factor for various plugin windows.
         public const double INITIAL_WIDTH_LINK_REFERENCE_LABELS = 70.0;         //!< Initial width of link reference labels in row details template. This is used to align all labels.
         public const double MAX_WIDTH_LINK_REFERENCE_LABELS = 600.0;            //!< Initial width of link reference labels in row details template. This is used to align all labels.
+        
         #region [Error Severity Strings]
+        
         public const string SEVERITY_DEBUG = "debug";
         public const string SEVERITY_INFO = "info";
         public const string SEVERITY_WARNING = "warn";
         public const string SEVERITY_ERROR = "error";
         public const string SEVERITY_FATAL = "fatal";
+        
         #endregion
+        
         #region [NppMenuCommand]
+        
         public enum NppMenuCommands : int
         {
             ConsoleWindow  = 0,
@@ -64,8 +69,11 @@ namespace RTextNppPlugin
             Outline        = 3,
             About          = 4
         }
+        
         #endregion
+        
         #region [CommandTypes]
+        
         public class Commands
         {
             public const string LOAD_MODEL         = "load_model";            //!< Command which loads current model.
@@ -78,8 +86,11 @@ namespace RTextNppPlugin
             public const string REQUEST            = "request";               //!< Request command.
             public const string STOP               = "stop";                  //!< Stops backend.
         }
+       
         #endregion
+        
         #region [Classification Names]
+        
         public class Classifications
         {
             public const string RTEXT_COMMENT       = "RText.Comment";
@@ -97,6 +108,7 @@ namespace RTextNppPlugin
             public const string RTEXT_OTHER         = "RText.Other";
             public const string RTEXT_SPACE         = "Rtext.Space";
         }
+        
         public class Wordstyles
         {
             public const string WORDSTYLES_ELEMENT_NAME = "WordsStyle";
@@ -130,6 +142,7 @@ namespace RTextNppPlugin
             public const string STYLE_ATTRIBUTE_FONTSTYLE = "fontStyle";
             public const string STYLE_ATTRIBUTE_FONTSIZE  = "fontSize";
         }
+        
         #endregion
     };
 }

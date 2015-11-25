@@ -48,14 +48,10 @@ namespace RTextNppPlugin.Utilities
         void Exit();
         
         System.Drawing.Point[] FindIndicatorRanges(int indicator);
-
-        string GetAsciiCharacter(uint uVirtKey, uint uScanCode);
-        
+       
         int GetCaretLineNumber();
         
         int GetCaretPosition();
-
-        string GetKeyboardLayoutName();
         
         System.Drawing.Point GetCaretScreenLocation();
         
@@ -184,12 +180,6 @@ namespace RTextNppPlugin.Utilities
         void SetAnnotationStyle(int line, int annotationStyle);
 
         void SetAnnotationStyles(int line, System.Text.StringBuilder stylesDescription);
-
-        IntPtr LoadKeyboardLayout();
-
-        BufferEncoding GetBufferEncoding();
-
-        int GetCurrentBufferId();
 
         int GetCodepage();
     }

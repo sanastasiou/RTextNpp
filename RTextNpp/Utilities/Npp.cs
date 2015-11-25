@@ -716,13 +716,6 @@ namespace RTextNppPlugin.Utilities
             return (int)_win32.ISendMessage(CurrentScintilla, SciMsg.SCI_TEXTHEIGHT, line, 0);
         }
 
-        public string GetKeyboardLayoutName()
-        {
-            System.Text.StringBuilder name = new System.Text.StringBuilder(KL_NAMELENGTH);
-            GetKeyboardLayoutName(name);
-            return name.ToString();
-        }
-
         /// <summary>
         /// The set of valid MapTypes used in MapVirtualKey
         /// </summary>
@@ -772,52 +765,28 @@ namespace RTextNppPlugin.Utilities
 
         [DllImport("user32.dll")]
         public static extern uint MapVirtualKeyEx(uint uCode, MapVirtualKeyMapTypes uMapType, IntPtr dwhkl);
-
-        [DllImport("user32.dll")]
-        public static extern IntPtr LoadKeyboardLayout(string pwszKLID, uint Flags);
-
-        [DllImport("user32.dll")]
-        public static extern long GetKeyboardLayoutName(System.Text.StringBuilder pwszKLID);
-
-        [DllImportAttribute("user32.dll")]
-        public static extern int ToAscii(uint uVirtKey, uint uScanCode, byte[] lpbKeyState, [Out] StringBuilder lpChar, int uFlags);
-
-        [DllImportAttribute("user32.dll")]
-        public static extern int ToAsciiEx(uint uVirtKey, uint uScanCode, byte[] lpbKeyState, byte[] lpChar, int uFlags, IntPtr dwhkl);
-        
+      
         [DllImportAttribute("user32.dll")]        
         public static extern int GetKeyboardState(byte[] pbKeyState);
-        
-        public string GetAsciiCharacter(uint uVirtKey, uint uScanCode)
+
+        [DllImport("user32.dll")]
+        public static extern int ToUnicode(uint virtualKeyCode, uint scanCode, byte[] keyboardState, [Out, MarshalAs(UnmanagedType.LPWStr, SizeConst = 64)] StringBuilder receivingBuffer, int bufferSize, uint flags);
+
+        public static string GetCharsFromKeys(Keys key, bool shift, bool altGr)
         {
-            byte[] lpKeyState = new byte[256];
-
-            GetKeyboardState(lpKeyState);
-            var outputBuilder = new StringBuilder(2);
-
-            if (ToAscii(uVirtKey, uScanCode, lpKeyState, outputBuilder, 0) == 1)
+            var buf = new StringBuilder(256);
+            var keyboardState = new byte[256];
+            if (shift)
             {
-                return outputBuilder.ToString(0, 1);
+                keyboardState[(int)Keys.ShiftKey] = 0xff;
             }
-            else
+            if (altGr)
             {
-                return string.Empty;
+                keyboardState[(int)Keys.ControlKey] = 0xff;
+                keyboardState[(int)Keys.Menu]       = 0xff;
             }
-        }
-
-        public IntPtr LoadKeyboardLayout()
-        {
-            return LoadKeyboardLayout(GetKeyboardLayoutName(), KLF_ACTIVATE);
-        }
-
-        public int GetCurrentBufferId()
-        {
-            return (int)_win32.ISendMessage(Plugin.nppData._nppHandle, NppMsg.NPPM_GETCURRENTBUFFERID, 0, 0);
-        }
-
-        public BufferEncoding GetBufferEncoding()
-        {
-            return (BufferEncoding)_win32.ISendMessage(Plugin.nppData._nppHandle, NppMsg.NPPM_GETBUFFERENCODING, GetCurrentBufferId(), 0);
+            ToUnicode((uint)key, 0, keyboardState, buf, 256, 0);
+            return buf.ToString();
         }
 
         public int GetCodepage()

@@ -298,7 +298,6 @@ namespace RTextNppPlugin
 
         private static void OnKeyInterceptorKeyDown(Keys key, int repeatCount, ref bool handled)
         {
-            Trace.WriteLine(String.Format("Current encoding : {0}", _nppHelper.GetBufferEncoding()));
             _isAutoCompletionShortcutActive = false;
             //do not auto complete when multi selecting, when menu loop is active, when no rtext file is open
             if (FileUtilities.IsRTextFile(_settings, Npp.Instance) && (Npp.Instance.GetSelections() == 1) && HasScintillaFocus() && !_isMenuLoopInactive)
@@ -325,20 +324,19 @@ namespace RTextNppPlugin
                                     }
                                     //do nothing if form is already visible
                                     return;
-                                case ShortcutType.ShortcutType_ReferenceLink:
-                                    if (modifiers.IsAlt && modifiers.IsCtrl)
-                                    {
-                                        _linkTargetsWindow.IsKeyboardShortCutActive(true);
-                                        handled = true;
-                                    }
-                                    break;
+                                //case ShortcutType.ShortcutType_ReferenceLink:
+                                //    if (modifiers.IsAlt && modifiers.IsCtrl)
+                                //    {
+                                //        _linkTargetsWindow.IsKeyboardShortCutActive(true);
+                                //        handled = true;
+                                //    }
+                                //    break;
                                 default:
                                     //nothing to do
                                     break;
                             }
                         }
                     }
-
                 }
                 //if any modifier key is pressed - ignore this key press
                 if (modifiers.IsCtrl || modifiers.IsAlt)
@@ -347,7 +345,7 @@ namespace RTextNppPlugin
                     {
                         CommitAutoCompletion(false);
                     }
-                    return;
+                    //return;
                 }
                 //auto complete Ctrl+Space is handled above - here we handle other special cases
                 switch (key)
@@ -416,9 +414,22 @@ namespace RTextNppPlugin
                         break;
                     default:
                         //convert virtual key to w/e it has to be converted to
-                        var nonVirtualKey = Npp.MapVirtualKeyEx((uint)key, Npp.MapVirtualKeyMapTypes.MAPVK_VK_TO_CHAR, _nppHelper.LoadKeyboardLayout());
-                        var mappedChar = Npp.Instance.GetAsciiCharacter((uint)key, nonVirtualKey);
-                        Trace.WriteLine(String.Format("New key captured : {0}", mappedChar));
+                        var mappedChar    = Npp.GetCharsFromKeys(key, modifiers.IsShift || modifiers.IsCapsLock, modifiers.IsAlt && modifiers.IsCtrl);
+
+                        Trace.WriteLine(String.Format("Modifier stati : \nIsAlt : {0}\nIsCtrl : {1}\n", modifiers.IsAlt, modifiers.IsCtrl));
+                        Trace.WriteLine(String.Format("Current char : {0}", Npp.GetCharsFromKeys(key, modifiers.IsShift || modifiers.IsCapsLock, modifiers.IsAlt && modifiers.IsCtrl)));
+
+                        if( Encoding.UTF8.CodePage == _nppHelper.GetCodepage())
+                        {
+                            var bytes = Encoding.ASCII.GetBytes(mappedChar);
+                            mappedChar = Encoding.UTF8.GetString(bytes);
+                            //insert text as utf-8
+                            Npp.Instance.AddText(mappedChar, Encoding.UTF8.GetByteCount(mappedChar)); //Works for ANSI not for UTF-8
+                        }
+                        else
+                        {
+                            Npp.Instance.AddText(mappedChar, Encoding.ASCII.GetByteCount(mappedChar)); //Works for ANSI
+                        }
 
                         ///string tToInsert = string.Empty;
                         ///if(_nppHelper.GetBufferEncoding() == BufferEncoding.Error)
@@ -441,10 +452,9 @@ namespace RTextNppPlugin
 
                         //if (mappedChar != default(char))
                         //{
-                        //Convert.ToChar(nonVirtualKey);
-                        var a = "ä";
+
                         handled = true;
-                        Npp.Instance.AddText(a, a.GetByteCount()); //Works for ANSI not for UTF-8
+                        //Npp.Instance.AddText(mappedChar, Encoding.ASCII.GetByteCount(mappedChar)); //Works for ANSI not for UTF-8
                         //OnCharTyped(mappedChar);
                         //}
                         break;
