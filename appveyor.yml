@@ -145,13 +145,13 @@ on_success:
 deploy:
   tag: v$(appveyor_build_version)
   release: RTextNpp-v$(appveyor_build_version)
-  description: 'RTextNpp Release $(appveyor_build_version)'
+  description: 'RTextNpp Release $(appveyor_build_version)\n\n %APPVEYOR_REPO_COMMIT_MESSAGE%'
   provider: GitHub
   auth_token:
     secure: +FR1WXoq1dCu2hQXBSk/kv9DBkII1QOJYeWOuGBL7aT1ZVpmohA13d0/hUClL7fy
   artifact: Release.zip            # upload Release as a single .zip file
-  draft: true
-  prerelease: false
+  draft: false
+  prerelease: true
   on:
     branch: master                 # release from master branch only
     appveyor_repo_tag: true        # deploy on tag push only
