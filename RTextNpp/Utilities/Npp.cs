@@ -68,7 +68,7 @@ namespace RTextNppPlugin.Utilities
         {
             OpenFile(file);
             GoToLine(line);
-            ScrollUpToLine(line);
+            //ScrollUpToLine(line);
             return null;
         }
         
@@ -588,12 +588,65 @@ namespace RTextNppPlugin.Utilities
             IntPtr sci = Plugin.nppData._nppHandle;
             _win32.ISendMessage(sci, NppMsg.NPPM_DOOPEN, 0, file);
         }
-        
+
+        public int FirstVisibleLine
+        {
+            get
+            {
+                IntPtr sci = GetCurrentScintilla(Plugin.nppData);
+                //this is the first "visible" line on screen - it may differ from the actual doc line
+                int firstVisibleLine = (int)_win32.ISendMessage(sci, SciMsg.SCI_GETFIRSTVISIBLELINE, 0, 0);
+                return (int)_win32.ISendMessage(sci, SciMsg.SCI_DOCLINEFROMVISIBLE, firstVisibleLine, 0)  + 1;
+            }
+        }
+
+        public int LastVisibleLine
+        { 
+            get
+            {
+                IntPtr sci = GetCurrentScintilla(Plugin.nppData);
+                //this is the first "visible" line on screen - it may differ from the actual doc line
+                int firstVisibleLine = (int)_win32.ISendMessage(sci, SciMsg.SCI_GETFIRSTVISIBLELINE, 0, 0);
+                int lastVisilbeLine  = firstVisibleLine + LinesOnScreen;
+                return (int)_win32.ISendMessage(sci, SciMsg.SCI_DOCLINEFROMVISIBLE, lastVisilbeLine, 0) + 1;
+            }
+        }
+
+        public int LinesOnScreen
+        { 
+            get
+            {
+                IntPtr sci = GetCurrentScintilla(Plugin.nppData);
+                return (int)_win32.ISendMessage(sci, SciMsg.SCI_LINESONSCREEN, 0, 0);
+            }
+        }
+
         public void GoToLine(int line)
         {
             IntPtr sci = GetCurrentScintilla(Plugin.nppData);
-            _win32.ISendMessage(sci, SciMsg.SCI_ENSUREVISIBLE, line - 1, 0);
-            _win32.ISendMessage(sci, SciMsg.SCI_GOTOLINE, line - 1, 0);
+            int firstVisibleDocLine = FirstVisibleLine;
+            int lastVisibleDocLine  = LastVisibleLine;
+            if(IsLineVisible(firstVisibleDocLine, lastVisibleDocLine, line))
+            {
+                //just move cursor, line is already visible
+                _win32.ISendMessage(sci, SciMsg.SCI_GOTOPOS, GetLineStart(line - 1), 0);
+            }
+            else
+            {
+                //line is not visible
+                //move line in the middle of the screen
+                int linesOnScreen = (int)_win32.ISendMessage(sci, SciMsg.SCI_LINESONSCREEN, 0, 0);
+                int offset = linesOnScreen >> 1;
+                //check if we are behind new line, or after new line
+                int currentLine = GetLineNumber();
+                if(currentLine > line)
+                {
+                    offset = -offset;
+                }
+                _win32.ISendMessage(sci, SciMsg.SCI_ENSUREVISIBLE, line - 1, 0);
+                _win32.ISendMessage(sci, SciMsg.SCI_GOTOLINE, line - 1, 0);
+                _win32.ISendMessage(sci, SciMsg.SCI_LINESCROLL, 0, offset);
+            }
         }
         
         /**
@@ -601,11 +654,10 @@ namespace RTextNppPlugin.Utilities
          *
          * \param   line    The line.
          */
-        public void ScrollUpToLine(int line)
+        public bool IsLineVisible(int line)
         {
             IntPtr sci = GetCurrentScintilla(Plugin.nppData);
-            int firstVisibleLine = (int)_win32.ISendMessage(sci, SciMsg.SCI_GETFIRSTVISIBLELINE, 0, 0);
-            _win32.ISendMessage(sci, SciMsg.SCI_LINESCROLL, 0, (line - (1 + firstVisibleLine)));
+            return (int)_win32.ISendMessage(sci, SciMsg.SCI_GETLINEVISIBLE, line, 0) == 1;
         }
         
         /**
@@ -751,6 +803,11 @@ namespace RTextNppPlugin.Utilities
             }
 
             return buffer;
+        }
+
+        private bool IsLineVisible(int firstLine, int lastLine, int line)
+        {
+            return (line >= firstLine && line <= lastLine);
         }
     }
 }

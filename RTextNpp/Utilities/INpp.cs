@@ -129,9 +129,7 @@ namespace RTextNppPlugin.Utilities
         int GetZoomLevel();
         
         void GoToLine(int line);
-        
-        void ScrollUpToLine(int line);
-        
+             
         int GrabFocus();
         
         IntPtr NppHandle { get; }
@@ -171,5 +169,11 @@ namespace RTextNppPlugin.Utilities
         int GetCodepage();
 
         Encoding Encoding { get; }
+
+        int FirstVisibleLine { get; }
+
+        int LastVisibleLine { get; }
+
+        int LinesOnScreen { get; }
     }
 }
