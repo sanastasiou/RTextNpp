@@ -152,7 +152,7 @@ namespace RTextNppPlugin.RText.Parsing
                         {
                             continue;
                         }
-                        //need to check if "previous joined line" is also a label...
+                        //need to check if "previous joined line" is also a label...just check last line - it's already joined
                         bool isPreviousLineLabel = (_currentIndex >= 0) && (aJoinedLines[_currentIndex] != null) && COMMAND_LABEL_REGEX.Match((aJoinedLines[_currentIndex].ToString())).Success;
                         aIsBroken = !isPreviousLineLabel && ((trimmed.Last() == '[' && !COMMAND_LABEL_REGEX.Match(trimmed).Success) || trimmed.Last() == ',' || trimmed.Last() == '\\');
                         //handle closing bracket after last element
