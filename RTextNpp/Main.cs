@@ -102,12 +102,12 @@ namespace RTextNppPlugin
 
         private static void OnCharTyped(char c)
         {
-            if (!Char.IsControl(c) && !Char.IsWhiteSpace(c))
+            if (!char.IsControl(c) && !char.IsWhiteSpace(c))
             {
                 if (!_autoCompletionForm.IsVisible)
                 {
                     //do not start auto completion with whitespace char...
-                    if (!Char.IsWhiteSpace(c))
+                    if (!char.IsWhiteSpace(c))
                     {
                         var res = AsyncInvoke(StartAutoCompleteSession);
                     }
@@ -324,13 +324,12 @@ namespace RTextNppPlugin
                                     }
                                     //do nothing if form is already visible
                                     return;
-                                //case ShortcutType.ShortcutType_ReferenceLink:
-                                //    if (modifiers.IsAlt && modifiers.IsCtrl)
-                                //    {
-                                //        _linkTargetsWindow.IsKeyboardShortCutActive(true);
-                                //        handled = true;
-                                //    }
-                                //    break;
+                                case ShortcutType.ShortcutType_ReferenceLink:
+                                    if (modifiers.IsAlt && modifiers.IsCtrl)
+                                    {
+                                        _linkTargetsWindow.IsKeyboardShortCutActive(true);
+                                    }
+                                    break;
                                 default:
                                     //nothing to do
                                     break;
@@ -345,7 +344,7 @@ namespace RTextNppPlugin
                     {
                         CommitAutoCompletion(false);
                     }
-                    //return;
+                    return;
                 }
                 //auto complete Ctrl+Space is handled above - here we handle other special cases
                 switch (key)
@@ -414,49 +413,14 @@ namespace RTextNppPlugin
                         break;
                     default:
                         //convert virtual key to w/e it has to be converted to
-                        var mappedChar    = Npp.GetCharsFromKeys(key, modifiers.IsShift || modifiers.IsCapsLock, modifiers.IsAlt && modifiers.IsCtrl);
-
-                        Trace.WriteLine(String.Format("Modifier stati : \nIsAlt : {0}\nIsCtrl : {1}\n", modifiers.IsAlt, modifiers.IsCtrl));
-                        Trace.WriteLine(String.Format("Current char : {0}", Npp.GetCharsFromKeys(key, modifiers.IsShift || modifiers.IsCapsLock, modifiers.IsAlt && modifiers.IsCtrl)));
-
-                        if( Encoding.UTF8.CodePage == _nppHelper.GetCodepage())
+                        var mappedChar = Npp.GetCharsFromKeys(key, modifiers.IsShift || modifiers.IsCapsLock, modifiers.IsAlt && modifiers.IsCtrl);
+                        //only handle letters and whitespace chars
+                        if (mappedChar != string.Empty)
                         {
-                            var bytes = Encoding.ASCII.GetBytes(mappedChar);
-                            mappedChar = Encoding.UTF8.GetString(bytes);
-                            //insert text as utf-8
-                            Npp.Instance.AddText(mappedChar, Encoding.UTF8.GetByteCount(mappedChar)); //Works for ANSI not for UTF-8
+                            Npp.Instance.AddText(mappedChar);
+                            handled = true;
+                            OnCharTyped(mappedChar[0]);
                         }
-                        else
-                        {
-                            Npp.Instance.AddText(mappedChar, Encoding.ASCII.GetByteCount(mappedChar)); //Works for ANSI
-                        }
-
-                        ///string tToInsert = string.Empty;
-                        ///if(_nppHelper.GetBufferEncoding() == BufferEncoding.Error)
-                        ///{
-                        ///    bool isUnicode = (_nppHelper.GetCodepage() == 65001);
-                        ///    if(isUnicode)
-                        ///    {
-                        ///        tToInsert = Encoding.UTF8.GetString(Encoding.UTF8.GetBytes(mappedChar));
-                        ///    }
-                        ///    else
-                        ///    {
-                        ///        tToInsert = mappedChar;
-                        ///    }
-                        ///}
-                        ///else
-                        ///{
-                        ///    //var aEncoding = Encoding.GetEncoding((int)_nppHelper.GetBufferEncoding());
-                        ///    //tToInsert = Encoding.UTF8.GetString(aEncoding.GetBytes(mappedChar));
-                        ///}
-
-                        //if (mappedChar != default(char))
-                        //{
-
-                        handled = true;
-                        //Npp.Instance.AddText(mappedChar, Encoding.ASCII.GetByteCount(mappedChar)); //Works for ANSI not for UTF-8
-                        //OnCharTyped(mappedChar);
-                        //}
                         break;
                 }
             }

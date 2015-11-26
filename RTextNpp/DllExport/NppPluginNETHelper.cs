@@ -2070,6 +2070,12 @@ namespace RTextNppPlugin.DllExport
         {
             return SendMessage(hWnd, Msg, wParam, lParam);
         }
+
+        public virtual IntPtr ISendMessage(IntPtr hWnd, SciMsg Msg, IntPtr wParam, IntPtr lParam)
+        {
+            return SendMessage(hWnd, Msg, wParam, lParam);
+        }
+
         public virtual IntPtr ISendMessage(IntPtr hWnd, SciMsg Msg, int wParam, string lParam)
         {
             return SendMessage(hWnd, Msg, wParam, lParam);
@@ -2119,6 +2125,8 @@ namespace RTextNppPlugin.DllExport
         private static extern IntPtr SendMessage(IntPtr hWnd, NppMsg Msg, IntPtr wParam, [MarshalAs(UnmanagedType.LPWStr)] string lParam);
         [DllImport("user32")]
         private static extern IntPtr SendMessage(IntPtr hWnd, SciMsg Msg, int wParam, IntPtr lParam);
+        [DllImport("user32")]
+        private static extern IntPtr SendMessage(IntPtr hWnd, SciMsg Msg, IntPtr wParam, IntPtr lParam);
         [DllImport("user32")]
         private static extern IntPtr SendMessage(IntPtr hWnd, SciMsg Msg, int wParam, string lParam);
         [DllImport("user32")]

@@ -3,6 +3,7 @@ namespace RTextNppPlugin.Utilities
 {
     using RTextNppPlugin.RText.Parsing;
     using RTextNppPlugin.DllExport;
+    using System.Text;
 
     public enum BufferEncoding : int
     {
@@ -30,8 +31,8 @@ namespace RTextNppPlugin.Utilities
         string GetCurrentFilePath();
         
         void ChangeMenuItemCheck(int CmdId, bool isChecked);
-        
-        void AddText(string s);
+
+        unsafe void AddText(string text);
         
         void ClearIndicator(int indicator, int startPos, int endPos);
         
@@ -42,9 +43,7 @@ namespace RTextNppPlugin.Utilities
         void DeleteFront();
         
         void DeleteRange(int position, int length);
-        
-        void DisplayInNewDocument(string text);
-        
+              
         void Exit();
         
         System.Drawing.Point[] FindIndicatorRanges(int indicator);
@@ -141,7 +140,7 @@ namespace RTextNppPlugin.Utilities
         
         void PlaceIndicator(int indicator, int startPos, int endPos);
         
-        void ReplaceWordFromToken(Tokenizer.TokenTag? token, string insertionText);
+        unsafe void ReplaceWordFromToken(Tokenizer.TokenTag? token, string insertionText);
         
         void SaveCurrentFile();
         
@@ -156,19 +155,7 @@ namespace RTextNppPlugin.Utilities
         void SetIndicatorStyle(int indicator, SciMsg style, System.Drawing.Color color);
         
         void SetSelection(int start, int end);
-        
-        void SetTextBetween(string text, System.Drawing.Point point);
-        
-        void SetTextBetween(string text, int start, int end = -1);
-        
-        string TextAfterCursor(int maxLength);
-        
-        string TextAfterPosition(int position, int maxLength);
-        
-        string TextBeforeCursor(int maxLength);
-        
-        string TextBeforePosition(int position, int maxLength);
-        
+
         object JumpToLine(string file, int line);
 
         void SetAnnotationVisible(IntPtr handle, int annotationStyle);
@@ -182,5 +169,7 @@ namespace RTextNppPlugin.Utilities
         void SetAnnotationStyles(int line, System.Text.StringBuilder stylesDescription);
 
         int GetCodepage();
+
+        Encoding Encoding { get; }
     }
 }

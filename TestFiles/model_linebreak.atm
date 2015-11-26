@@ -1,7 +1,6 @@
 AUTOSAR {
   ARPackage P1 {
-    #Add some comments....
-    #Some multiline comments....
+    #Add some comments..
     IntegerType UInt8
     ConstantSpecification const1 {
       IntegerLiteral lit1, value: 0
@@ -13,6 +12,12 @@ AUTOSAR {
     SenderReceiverInterface ISR1 {
       DataElementPrototype de1, type: /P1/UInt8
     }
+    
+    
+    
+    
+    
+    
     SenderReceiverInterface IMode1 {
       ModeDeclarationGroupPrototype modeGroup1, type: /P1/ModeGroup1
     }

@@ -18,6 +18,7 @@ namespace RTextNppPlugin.DllExport
         IntPtr ISendMessage(IntPtr hWnd, NppMsg Msg, IntPtr wParam, string lParam);
         IntPtr ISendMessage(IntPtr hWnd, SciMsg Msg, int wParam, int lParam);
         IntPtr ISendMessage(IntPtr hWnd, SciMsg Msg, int wParam, IntPtr lParam);
+        IntPtr ISendMessage(IntPtr hWnd, SciMsg Msg, IntPtr wParam, IntPtr lParam);
         IntPtr ISendMessage(IntPtr hWnd, SciMsg Msg, int wParam, string lParam);
         IntPtr ISendMessage(IntPtr hWnd, SciMsg Msg, int wParam, global::System.Text.StringBuilder lParam);
         IntPtr ISetWindowsHookEx(global::RTextNppPlugin.Utilities.VisualUtilities.HookType code, Win32.HookProc func, IntPtr hInstance, int threadID);

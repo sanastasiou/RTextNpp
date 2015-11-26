@@ -25,21 +25,21 @@ namespace RTextNppPlugin.RText
     public class RTextBackendProcess
     {
         #region [Data Members]
-        System.Diagnostics.Process _process = null;
-        ProcessInfo _pInfo = null;
-        Windows.Clr.FileWatcher _fileSystemWatcher = null;                                                                       //!< Observes all rtext files for _odifications.
-        Windows.Clr.FileWatcher _workspaceSystemWatcher = null;                                                                  //!< Observes .rtext file for any _odifications.
-        ISettings _settings = null;                                                                                              //!< Allows access to persistent settings.
-        CancellationTokenSource _cancellationSource = null;
-        Task _stdOutReaderTask = null;
-        Task _stdErrReaderTask = null;
-        Connector _connector = null;
-        readonly Regex _backendInitResponseRegex = new Regex(@"^RText service, listening on port (\d+)$", RegexOptions.Compiled);
-        DispatcherTimer _timer;
-        bool _isMessageDisplayed = false;
-        string _extension = String.Empty;                                                                                        //!< The associated extension string.
-        string _autoRunKey = String.Empty;                                                                                       //!< The autorun registry value.
-        private readonly VoidDelayedEventHandler _workspaceFileWatcherDebouncer = null;                                          //!< Debounces workspace file (.rtext) changes events.
+        private System.Diagnostics.Process _process = null;
+        private ProcessInfo _pInfo = null;
+        private Windows.Clr.FileWatcher _fileSystemWatcher = null;                                                                       //!< Observes all rtext files for _odifications.
+        private Windows.Clr.FileWatcher _workspaceSystemWatcher = null;                                                                  //!< Observes .rtext file for any _odifications.
+        private ISettings _settings = null;                                                                                              //!< Allows access to persistent settings.
+        private CancellationTokenSource _cancellationSource = null;
+        private Task _stdOutReaderTask = null;
+        private Task _stdErrReaderTask = null;
+        private Connector _connector = null;
+        private readonly Regex _backendInitResponseRegex = new Regex(@"^RText service, listening on port (\d+)$", RegexOptions.Compiled);
+        private DispatcherTimer _timer;
+        private bool _isMessageDisplayed = false;
+        private string _extension = String.Empty;                                                                                        //!< The associated extension string.
+        private string _autoRunKey = String.Empty;                                                                                       //!< The autorun registry value.
+        private readonly VoidDelayedEventHandler _workspaceFileWatcherDebouncer = null;                                                  //!< Debounces workspace file (.rtext) changes events.
         #endregion
         
         #region Interface

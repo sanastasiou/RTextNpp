@@ -187,7 +187,7 @@ namespace RText
         return (length > 0);
     }
     
-    bool RTextLexer::IsLineExtended(int startPos, char const * const buffer)const
+    bool RTextLexer::IsLineExtended(int startPos, char const * const buffer, LexAccessor & styler)const
     {
         //no reason to check previous characters
         if (startPos == 0)
@@ -197,65 +197,66 @@ namespace RText
         //go back till we find \,[
         while (startPos-- >= 0)
         {
-            if (::iswspace(buffer[startPos]))
+            auto style = MaskActive(styler.StyleAt(startPos));
+            //ignore whitespace, comments and notations
+            if (::iswspace(buffer[startPos]) && style != TokenType_Comment && style != TokenType_Notation)
             {
                 continue;
             }
             else
             {
-        //IgnoreWhitespace(startPos, buffer);
-        //not space
-        if (IsLineBreakChar(buffer[startPos]))
-        {
-            //we have a line break, but we need to take care the fact that we may be inside a labeled child list - in that case this is no line break...
-            if (buffer[startPos] == '[')
-            {
-                //go back ignoring whitespaces and check for : , if found this is a label
-                while (startPos-- >= 0)
+                //not space and 
+                if (IsLineBreakChar(buffer[startPos]))
                 {
-                    if (::iswspace(buffer[startPos]) || buffer[startPos] == '\\')
+                    //we have a line break, but we need to take care the fact that we may be inside a labeled child list - in that case this is no line break...
+                    if (buffer[startPos] == '[')
                     {
-                        continue;
-                    }
-                    else
-                    {
-                        //end of label detected - this is not a line break - go till start of line - label must be the only element there
-                        if (buffer[startPos] != ':')
+                        //go back ignoring whitespaces and check for : , if found this is a label
+                        while (startPos-- >= 0)
                         {
-                            return true;
-                        }
-                        else
-                        {
-                            //go back till next token - first consume label
-                            while (startPos-- >= 0)
+                            if (::iswspace(buffer[startPos]) || buffer[startPos] == '\\')
                             {
-                                if (::iswalpha(buffer[startPos]))
+                                continue;
+                            }
+                            else
+                            {
+                                //end of label detected - this is not a line break - go till start of line - label must be the only element there
+                                if (buffer[startPos] != ':')
                                 {
-                                    continue;
+                                    return true;
                                 }
                                 else
                                 {
-                                    break;
+                                    //go back till next token - first consume label
+                                    while (startPos-- >= 0)
+                                    {
+                                        if (::iswalpha(buffer[startPos]))
+                                        {
+                                            continue;
+                                        }
+                                        else
+                                        {
+                                            break;
+                                        }
+                                    }
+                                    while (::iswspace(buffer[startPos]) || buffer[startPos] == '\\')
+                                    {
+                                        --startPos;
+                                        continue;
+                                    }
+                                    //label after a comma, so this is an extended line - label is not the first element
+                                    return (buffer[startPos] == ',');
                                 }
                             }
-                            while (::iswspace(buffer[startPos]) || buffer[startPos] == '\\')
-                            {
-                                --startPos;
-                                continue;
-                            }
-                            //label after a comma, so this is an extended line - label is not the first element
-                            return (buffer[startPos] == ',');
                         }
                     }
+                    return true;
                 }
-            }
-            return true;
-        }
-        else
-        {
-            //some other char -> no line break!
-            return false;
-        }
+                else
+                {
+                    //some other char -> no line break!
+                    return false;
+                }
             }
         }
         return false;
@@ -330,7 +331,8 @@ namespace RText
                 }
                 else if (IdentifyName(styler, context, aTokenLength))
                 {
-                    bool const isExtended = IsLineExtended(context.currentPos, pAccess->BufferPointer());
+                    LexAccessor styler(pAccess);
+                    bool const isExtended = IsLineExtended(context.currentPos, pAccess->BufferPointer(), styler);
                     if (_firstTokenInLine && !isExtended)
                     {
                         context.SetState(TokenType_Command);
@@ -405,7 +407,6 @@ namespace RText
         LexAccessor styler(pAccess);
 
         auto endPos        = startPos + length;
-        int visibleChars   = 0;
         auto lineCurrent   = styler.GetLine(startPos);
         int levelCurrent   = SC_FOLDLEVELBASE;
         if (lineCurrent > 0)
@@ -476,19 +477,13 @@ namespace RText
                     levelNext--;
                 }
             }
-            if (!IsASpace(ch))
-            {
-                visibleChars++;
-            }
+
             if (atEOL || (i == endPos - 1))
             {
                 int levelUse = levelCurrent;
 
                 int lev = levelUse | levelNext << 16;
-                if (visibleChars == 0)
-                {
-                    lev |= SC_FOLDLEVELWHITEFLAG;
-                }
+
                 if (levelUse < levelNext)
                 {
                     lev |= SC_FOLDLEVELHEADERFLAG;
@@ -504,9 +499,8 @@ namespace RText
                 if (atEOL && (i == static_cast<decltype(endPos)>(styler.Length() - 1)))
                 {
                     // There is an empty line at end of file so give it same level and empty
-                    styler.SetLevel(lineCurrent, (levelCurrent | levelCurrent << 16) | SC_FOLDLEVELWHITEFLAG);
+                    styler.SetLevel(lineCurrent, (levelCurrent | levelCurrent << 16));
                 }
-                visibleChars  = 0;
             }
         }
     }

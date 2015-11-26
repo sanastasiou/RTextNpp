@@ -158,13 +158,13 @@ namespace RText
         
         RTextLexer();
         
-        bool IsLineExtended(int startPos, char const * const buffer)const;
+        bool IsLineExtended(int startPos, char const * const buffer, LexAccessor & styler)const;
         
         bool IsLineBreakChar(char const c)const;
     
         void IgnoreWhitespace(int startPos, char const * const buffer)const;
     
-        int MaskActive(int const style);
+        int MaskActive(int const style)const;
     };
 
     inline bool RTextLexer::IsHex(int c)const
@@ -206,7 +206,7 @@ namespace RText
         }
     }
 
-    inline int RTextLexer::MaskActive(int const style)
+    inline int RTextLexer::MaskActive(int const style)const
     {
         return style & ~0x40;
     }
