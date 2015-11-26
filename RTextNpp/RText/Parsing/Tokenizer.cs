@@ -128,6 +128,7 @@ namespace RTextNppPlugin.RText.Parsing
             yield break;
         }
         #endregion
+
         #region[Helpers]
         private bool IsLineExtended(int currentLine)
         {
@@ -151,6 +152,7 @@ namespace RTextNppPlugin.RText.Parsing
             }
         }
         #endregion
+
         #region[Data Members]
         StringBuilder _lineText          = null; //!< Line to tokenize.
         readonly int _lineNumber         = 0;    //!< Line number.

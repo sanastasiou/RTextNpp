@@ -152,7 +152,9 @@ namespace RTextNppPlugin.RText.Parsing
                         {
                             continue;
                         }
-                        aIsBroken = ((trimmed.Last() == '[' && !COMMAND_LABEL_REGEX.Match(trimmed).Success) || trimmed.Last() == ',' || trimmed.Last() == '\\');
+                        //need to check if "previous joined line" is also a label...
+                        bool isPreviousLineLabel = (_currentIndex >= 0) && (aJoinedLines[_currentIndex] != null) && COMMAND_LABEL_REGEX.Match((aJoinedLines[_currentIndex].ToString())).Success;
+                        aIsBroken = !isPreviousLineLabel && ((trimmed.Last() == '[' && !COMMAND_LABEL_REGEX.Match(trimmed).Success) || trimmed.Last() == ',' || trimmed.Last() == '\\');
                         //handle closing bracket after last element
                         if (trimmed.First() == ']' && _currentIndex > 0 && (aJoinedLines[_currentIndex] != null && aJoinedLines[_currentIndex].ToString().Contains('[')))
                         {
@@ -218,7 +220,7 @@ namespace RTextNppPlugin.RText.Parsing
         #region [Data Members]
         private Stack<string> _contextLines;   //!< The analyzed context lines.
         private int _currentIndex;             //!< The maximum index of currently joined lines.
-        private static Regex COMMAND_LABEL_REGEX = new Regex(@"^\w+:", RegexOptions.Compiled);
+        private static Regex COMMAND_LABEL_REGEX = new Regex(@"^\s*\w+:", RegexOptions.Compiled);
         #endregion
     }
 }
