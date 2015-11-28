@@ -11,6 +11,7 @@
             RTextLexer
             WindowsUtilities
             NativeFileSystemWatcher
+            NativeHelpers
         </Unmanaged32Assemblies>
     </Costura>
 </Weavers>
