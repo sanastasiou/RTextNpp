@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Interop;
@@ -18,6 +19,7 @@ namespace RTextNppPlugin.Utilities
             WA_ACTIVE,
             WA_CLICKACTIVE
         }
+        
         public enum HookType : int
         {
             WH_JOURNALRECORD   = 0,
@@ -36,6 +38,7 @@ namespace RTextNppPlugin.Utilities
             WH_KEYBOARD_LL     = 13,
             WH_MOUSE_LL        = 14
         }
+        
         public enum MouseMessages
         {
             WM_LBUTTONDOWN     = 0x0201,
@@ -55,6 +58,7 @@ namespace RTextNppPlugin.Utilities
             WM_NCXBUTTONDOWN   = 0x00AB,
             WM_NCXBUTTONDBLCLK = 0x00AD
         }
+        
         public enum WindowsMessage
         {
             WM_NULL                        = 0x0000,
@@ -287,20 +291,24 @@ namespace RTextNppPlugin.Utilities
             WM_USER                        = 0x0400,
             WM_REFLECT                     = WM_USER + 0x1C00,
         }
+        
         internal static void SetOwnerFromNppPlugin(System.Windows.Window window)
         {
             WindowInteropHelper helper = new WindowInteropHelper(window);
             helper.Owner = Plugin.nppData._nppHandle;
         }
+        
         internal static HwndSource HwndSourceFromIntPtr(IntPtr handle)
         {
             return HwndSource.FromHwnd(handle);
         }
+        
         internal static IntPtr HwndFromWpfWindow(System.Windows.Window window)
         {
             var wih = new WindowInteropHelper(window);
             return wih.Handle;
         }
+        
         /**
          *
          * \brief   Finds the parent of this item.
@@ -321,6 +329,7 @@ namespace RTextNppPlugin.Utilities
             else
                 return FindVisualParent<T>(parentObject);
         }
+        
         internal static T GetVisualChild<T>(Visual parent) where T : Visual
         {
             T child = default(T);
@@ -340,6 +349,7 @@ namespace RTextNppPlugin.Utilities
             }
             return child;
         }
+        
         /**
          * \brief   Query if the mouse pointer is inside an UI element.
          *
@@ -367,6 +377,7 @@ namespace RTextNppPlugin.Utilities
             }
             return true;
         }
+        
         /**
          * \brief   Scroll list.
          *
@@ -411,6 +422,7 @@ namespace RTextNppPlugin.Utilities
             }
             return aNewPosition;
         }
+        
         internal static void RepositionWindow(SizeChangedEventArgs e, Window w, ref bool isOnTop, INpp nppHelper, double wordY, int offset = 0)
         {
             bool isTopChanged  = false;
@@ -461,6 +473,7 @@ namespace RTextNppPlugin.Utilities
                 w.Left = newLeft;
             }
         }
+        
         /**
          * Find the scrollbar out of a wpf control, e.g. DataGrid if it exists.
          *
@@ -484,5 +497,237 @@ namespace RTextNppPlugin.Utilities
             }
             return null;
         }
+
+        #region [DPI Scaling]
+        /// <summary>
+        ///        Creates a memory device context (DC) compatible with the specified device.
+        /// </summary>
+        /// <param name="hdc">A handle to an existing DC. If this handle is NULL,
+        ///        the function creates a memory DC compatible with the application's current screen.</param>
+        /// <returns>
+        ///        If the function succeeds, the return value is the handle to a memory DC.
+        ///        If the function fails, the return value is <see cref="System.IntPtr.Zero"/>.
+        /// </returns>
+        [DllImport("gdi32.dll", EntryPoint = "CreateCompatibleDC", SetLastError = true)]
+        private static extern IntPtr CreateCompatibleDC([In] IntPtr hdc);
+
+        [DllImport("gdi32.dll")]
+        private static extern int GetDeviceCaps(IntPtr hdc, int nIndex);
+
+        [DllImport("user32.dll")]
+        private static extern IntPtr MonitorFromWindow(IntPtr hwnd, uint dwFlags);
+
+        [DllImport("shcore.dll")]
+        private static extern int GetDpiForMonitor(IntPtr monitor, int dpiType, out uint newDpiX, out uint newDpiY);
+
+        private enum DeviceCap : int
+        {
+            /// <summary>
+            /// Device driver version
+            /// </summary>
+            DRIVERVERSION = 0,
+            /// <summary>
+            /// Device classification
+            /// </summary>
+            TECHNOLOGY = 2,
+            /// <summary>
+            /// Horizontal size in millimeters
+            /// </summary>
+            HORZSIZE = 4,
+            /// <summary>
+            /// Vertical size in millimeters
+            /// </summary>
+            VERTSIZE = 6,
+            /// <summary>
+            /// Horizontal width in pixels
+            /// </summary>
+            HORZRES = 8,
+            /// <summary>
+            /// Vertical height in pixels
+            /// </summary>
+            VERTRES = 10,
+            /// <summary>
+            /// Number of bits per pixel
+            /// </summary>
+            BITSPIXEL = 12,
+            /// <summary>
+            /// Number of planes
+            /// </summary>
+            PLANES = 14,
+            /// <summary>
+            /// Number of brushes the device has
+            /// </summary>
+            NUMBRUSHES = 16,
+            /// <summary>
+            /// Number of pens the device has
+            /// </summary>
+            NUMPENS = 18,
+            /// <summary>
+            /// Number of markers the device has
+            /// </summary>
+            NUMMARKERS = 20,
+            /// <summary>
+            /// Number of fonts the device has
+            /// </summary>
+            NUMFONTS = 22,
+            /// <summary>
+            /// Number of colors the device supports
+            /// </summary>
+            NUMCOLORS = 24,
+            /// <summary>
+            /// Size required for device descriptor
+            /// </summary>
+            PDEVICESIZE = 26,
+            /// <summary>
+            /// Curve capabilities
+            /// </summary>
+            CURVECAPS = 28,
+            /// <summary>
+            /// Line capabilities
+            /// </summary>
+            LINECAPS = 30,
+            /// <summary>
+            /// Polygonal capabilities
+            /// </summary>
+            POLYGONALCAPS = 32,
+            /// <summary>
+            /// Text capabilities
+            /// </summary>
+            TEXTCAPS = 34,
+            /// <summary>
+            /// Clipping capabilities
+            /// </summary>
+            CLIPCAPS = 36,
+            /// <summary>
+            /// Bitblt capabilities
+            /// </summary>
+            RASTERCAPS = 38,
+            /// <summary>
+            /// Length of the X leg
+            /// </summary>
+            ASPECTX = 40,
+            /// <summary>
+            /// Length of the Y leg
+            /// </summary>
+            ASPECTY = 42,
+            /// <summary>
+            /// Length of the hypotenuse
+            /// </summary>
+            ASPECTXY = 44,
+            /// <summary>
+            /// Shading and Blending caps
+            /// </summary>
+            SHADEBLENDCAPS = 45,
+
+            /// <summary>
+            /// Logical pixels inch in X
+            /// </summary>
+            LOGPIXELSX = 88,
+            /// <summary>
+            /// Logical pixels inch in Y
+            /// </summary>
+            LOGPIXELSY = 90,
+
+            /// <summary>
+            /// Number of entries in physical palette
+            /// </summary>
+            SIZEPALETTE = 104,
+            /// <summary>
+            /// Number of reserved entries in palette
+            /// </summary>
+            NUMRESERVED = 106,
+            /// <summary>
+            /// Actual color resolution
+            /// </summary>
+            COLORRES = 108,
+
+            // Printing related DeviceCaps. These replace the appropriate Escapes
+            /// <summary>
+            /// Physical Width in device units
+            /// </summary>
+            PHYSICALWIDTH = 110,
+            /// <summary>
+            /// Physical Height in device units
+            /// </summary>
+            PHYSICALHEIGHT = 111,
+            /// <summary>
+            /// Physical Printable Area x margin
+            /// </summary>
+            PHYSICALOFFSETX = 112,
+            /// <summary>
+            /// Physical Printable Area y margin
+            /// </summary>
+            PHYSICALOFFSETY = 113,
+            /// <summary>
+            /// Scaling factor x
+            /// </summary>
+            SCALINGFACTORX = 114,
+            /// <summary>
+            /// Scaling factor y
+            /// </summary>
+            SCALINGFACTORY = 115,
+
+            /// <summary>
+            /// Current vertical refresh rate of the display device (for displays only) in Hz
+            /// </summary>
+            VREFRESH = 116,
+            /// <summary>
+            /// Vertical height of entire desktop in pixels
+            /// </summary>
+            DESKTOPVERTRES = 117,
+            /// <summary>
+            /// Horizontal width of entire desktop in pixels
+            /// </summary>
+            DESKTOPHORZRES = 118,
+            /// <summary>
+            /// Preferred blt alignment
+            /// </summary>
+            BLTALIGNMENT = 119
+        }
+
+        private enum MonitorFromWindowProps : int
+        {
+            MONITOR_DEFAULTTONULL    = 0,
+            MONITOR_DEFAULTTOPRIMARY = 1,
+            MONITOR_DEFAULTTONEAREST = 2
+        }
+
+        public static double GetDpiScalingFactor()
+        {
+            double dpiScale = double.NaN;
+            if ((System.Environment.OSVersion.Version.Major == 6 && System.Environment.OSVersion.Version.Minor > 1 ||
+                System.Environment.OSVersion.Version.Major > 6))
+            {
+                Logging.Logger.Instance.Append("Current DPI is : {0}", GetDpiForWindowsGreatedThan7(Plugin.nppData._nppHandle));
+                dpiScale = GetDpiForWindowsGreatedThan7(Plugin.nppData._nppHandle);
+            }
+            else
+            {
+                Logging.Logger.Instance.Append("Current DPI is : {0}", GetDpiForWindowsSmallerOrEqualThan7());
+                dpiScale = GetDpiForWindowsSmallerOrEqualThan7();
+            }
+            return dpiScale;
+        }
+
+        private static double GetDpiForWindowsGreatedThan7(IntPtr hwnd)
+        {
+            var monitor = MonitorFromWindow(hwnd, (int)MonitorFromWindowProps.MONITOR_DEFAULTTONEAREST);
+            uint newDpiX;
+            uint newDpiY;
+            if (0 != (GetDpiForMonitor(monitor, 0, out newDpiX, out newDpiY)))
+            {
+                newDpiX = 96;
+                newDpiY = 96;
+            }
+            return (double)(newDpiX) / 96.0;
+        }
+
+        private static double GetDpiForWindowsSmallerOrEqualThan7()
+        {
+            var hdcMeasure = CreateCompatibleDC(IntPtr.Zero);
+            var newDpiX = GetDeviceCaps(hdcMeasure, (int)DeviceCap.LOGPIXELSX) / 96.0;
+            return newDpiX;
+        }
+        #endregion
     }
 }

@@ -24,6 +24,7 @@ namespace RTextNppPlugin.WpfControls
         INpp _nppHelper                                        = null;                 //!< Allows access to Notepad++ functions.
         DatagridScrollviewerTooltipOffsetCalculator _tpControl = null;                 //!< Control tooltip placement on right of the completion options.
         #endregion
+        
         #region [Interface]
         internal AutoCompletionWindow(ConnectorManager cmanager, IWin32 win32Helper, INpp nppHelper)
         {
@@ -42,10 +43,89 @@ namespace RTextNppPlugin.WpfControls
             _keyMonitor.KeysToIntercept.Add((int)System.Windows.Forms.Keys.PageUp);
             _keyMonitor.KeysToIntercept.Add((int)System.Windows.Forms.Keys.PageDown);
         }
+        
         public bool IsEdgeOfScreenReached(double offset)
         {
             return ((Left + Width + offset) > _nppHelper.GetClientRectFromPoint(new System.Drawing.Point((int)Left, (int)Top)).Right);
         }
+               
+        internal new void Hide()
+        {
+            base.Hide();
+            GetModel().OnAutoCompletionWindowCollapsing();
+        }
+        
+        internal async Task AugmentAutoCompletion(ContextExtractor extractor, System.Drawing.Point caretPoint, AutoCompletionTokenizer tokenizer, bool isAutoCompletionShortcutActive)
+        {
+            await GetModel().AugmentAutoCompletion(extractor, caretPoint, tokenizer, isAutoCompletionShortcutActive);
+            CharProcessAction = GetModel().CharProcessAction;
+            TriggerPoint      = GetModel().TriggerPoint;
+        }
+        
+        internal void PostProcessKeyPressed()
+        {
+            //handle this on UI thread since it will alter UI
+            Dispatcher.Invoke((System.Windows.Forms.MethodInvoker)(() =>
+            {
+                if (!GetModel().Pending)
+                {
+                    GetModel().Filter();
+                    if (GetModel().SelectedCompletion != null)
+                    {
+                        ICollectionView view = CollectionViewSource.GetDefaultView(GetModel().CompletionList);
+                        if (view.CurrentItem != null)
+                        {
+                            AutoCompletionDatagrid.ScrollIntoView(view.CurrentItem);
+                        }
+                    }
+                }
+            }));
+        }
+        
+        internal AutoCompletionViewModel.CharProcessResult CharProcessAction { get; private set; }
+        
+        internal Tokenizer.TokenTag ? TriggerPoint {get;private set;}
+        
+        internal void OnZoomLevelChanged(double newZoomLevel)
+        {
+            if (IsVisible)
+            {
+                //in case the form is visible - move it to the new place...
+                var aCaretPoint = _nppHelper.GetCaretScreenLocationForForm();
+                if (GetModel().TriggerPoint.HasValue)
+                {
+                    aCaretPoint = _nppHelper.GetCaretScreenLocationRelativeToPosition(GetModel().TriggerPoint.Value.BufferPosition);
+                }
+                Left = aCaretPoint.X;
+                Top  = aCaretPoint.Y;
+            }
+            Dispatcher.BeginInvoke(new Action<double>(GetModel().OnZoomLevelChanged), newZoomLevel);
+        }
+        
+        internal AutoCompletionViewModel.Completion Completion { get { return GetModel().SelectedCompletion; } }
+        
+        #endregion
+        
+        #region [Helpers]
+        
+        private AutoCompletionViewModel GetModel()
+        {
+            return ((AutoCompletionViewModel)DataContext);
+        }
+        
+        private void InstallMouseMonitorHooks()
+        {
+            _autoCompletionMouseMonitor.MouseClick += OnAutoCompletionMouseMonitorMouseClick;
+        }
+        
+        private void UninstallMouseMonitorHooks()
+        {
+            _autoCompletionMouseMonitor.MouseClick -= OnAutoCompletionMouseMonitorMouseClick;
+        }
+        #endregion
+        
+        #region EventHandlers
+
         void OnAutoCompletionMouseMonitorMouseWheelMoved(object sender, MouseEventExtArgs e)
         {
             var collectionView = CollectionViewSource.GetDefaultView(GetModel().CompletionList);
@@ -54,6 +134,7 @@ namespace RTextNppPlugin.WpfControls
             AutoCompletionDatagrid.ScrollIntoView(collectionView.CurrentItem);
             e.Handled = true;
         }
+
         void OnAutoCompletionMouseMonitorMouseClick(object sender, MouseEventExtArgs e)
         {
             //if an auto completion is taking to long, then it will not be visible, in this case hide is called to cancel the auto completion request
@@ -80,54 +161,7 @@ namespace RTextNppPlugin.WpfControls
                 }
             }
         }
-        internal new void Hide()
-        {
-            base.Hide();
-            GetModel().OnAutoCompletionWindowCollapsing();
-        }
-        internal async Task AugmentAutoCompletion(ContextExtractor extractor, System.Drawing.Point caretPoint, AutoCompletionTokenizer tokenizer, bool isAutoCompletionShortcutActive)
-        {
-            await GetModel().AugmentAutoCompletion(extractor, caretPoint, tokenizer, isAutoCompletionShortcutActive);
-            CharProcessAction = GetModel().CharProcessAction;
-            TriggerPoint      = GetModel().TriggerPoint;
-        }
-        internal void PostProcessKeyPressed()
-        {
-            //handle this on UI thread since it will alter UI
-            Dispatcher.Invoke((System.Windows.Forms.MethodInvoker)(() =>
-            {
-                if (!GetModel().Pending)
-                {
-                    GetModel().Filter();
-                    if (GetModel().SelectedCompletion != null)
-                    {
-                        ICollectionView view = CollectionViewSource.GetDefaultView(GetModel().CompletionList);
-                        if (view.CurrentItem != null)
-                        {
-                            AutoCompletionDatagrid.ScrollIntoView(view.CurrentItem);
-                        }
-                    }
-                }
-            }));
-        }
-        internal AutoCompletionViewModel.CharProcessResult CharProcessAction { get; private set; }
-        internal Tokenizer.TokenTag ? TriggerPoint {get;private set;}
-        internal void OnZoomLevelChanged(double newZoomLevel)
-        {
-            if (IsVisible)
-            {
-                //in case the form is visible - move it to the new place...
-                var aCaretPoint = _nppHelper.GetCaretScreenLocationForForm();
-                if (GetModel().TriggerPoint.HasValue)
-                {
-                    aCaretPoint = _nppHelper.GetCaretScreenLocationRelativeToPosition(GetModel().TriggerPoint.Value.BufferPosition);
-                }
-                Left = aCaretPoint.X;
-                Top  = aCaretPoint.Y;
-            }
-            Dispatcher.BeginInvoke(new Action<double>(GetModel().OnZoomLevelChanged), newZoomLevel);
-        }
-        internal AutoCompletionViewModel.Completion Completion { get { return GetModel().SelectedCompletion; } }
+
         internal void OnKeyPressed(char c = '\0')
         {
             CharProcessAction = AutoCompletionViewModel.CharProcessResult.NoAction;
@@ -138,35 +172,20 @@ namespace RTextNppPlugin.WpfControls
                 GetModel().OnKeyPressed(c);
                 TriggerPoint = GetModel().TriggerPoint;
                 CharProcessAction = GetModel().CharProcessAction;
-                if(CharProcessAction == AutoCompletionViewModel.CharProcessResult.MoveToRight)
+                if (CharProcessAction == AutoCompletionViewModel.CharProcessResult.MoveToRight)
                 {
-                    Left = _nppHelper.GetCaretScreenLocationForForm(_nppHelper.GetCaretPosition()).X;
+                    Left              = _nppHelper.GetCaretScreenLocationRelativeToPosition(_nppHelper.GetCaretPosition()).X;
                     CharProcessAction = AutoCompletionViewModel.CharProcessResult.NoAction;
                 }
                 //only filter if auto completion form can still remain open
-                if(CharProcessAction != AutoCompletionViewModel.CharProcessResult.ForceClose)
+                if (CharProcessAction != AutoCompletionViewModel.CharProcessResult.ForceClose)
                 {
                     //do heavy lifting in here -> debounce many subsequent calls
                     _delayedFilterEventHandler.TriggerHandler();
                 }
             }
         }
-        #endregion
-        #region [Helpers]
-        private AutoCompletionViewModel GetModel()
-        {
-            return ((AutoCompletionViewModel)DataContext);
-        }
-        private void InstallMouseMonitorHooks()
-        {
-            _autoCompletionMouseMonitor.MouseClick += OnAutoCompletionMouseMonitorMouseClick;
-        }
-        private void UninstallMouseMonitorHooks()
-        {
-            _autoCompletionMouseMonitor.MouseClick -= OnAutoCompletionMouseMonitorMouseClick;
-        }
-        #endregion
-        #region EventHandlers
+
         private void OnKeyMonitorKeyDown(System.Windows.Forms.Keys key, int repeatCount, ref bool handled)
         {
             var collectionView = CollectionViewSource.GetDefaultView(GetModel().CompletionList);
@@ -189,6 +208,7 @@ namespace RTextNppPlugin.WpfControls
             GetModel().SelectPosition(aNewPosition);
             AutoCompletionDatagrid.ScrollIntoView(collectionView.CurrentItem);
         }
+        
         private void OnAutoCompletionDatagridSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             GetModel().SelectPosition(((DataGrid)sender).SelectedIndex);
@@ -199,6 +219,7 @@ namespace RTextNppPlugin.WpfControls
             //keep caret blinking after a selection has been made by clicking
             _nppHelper.GrabFocus();
         }
+        
         private void OnAutoCompletionBorderBackgroundUpdated(object sender, DataTransferEventArgs e)
         {
             var border  = sender as Border;
@@ -209,24 +230,28 @@ namespace RTextNppPlugin.WpfControls
                 _tpControl.ShowTooltip(tp, border);
             }
         }
+        
         private void OnAutoCompletionBorderMouseEnter(object sender, MouseEventArgs e)
         {
             Border border = (Border)sender;
             _tpControl.CancelTooltipRequest(border.ToolTip as ToolTip);
         }
+        
         private void OnAutoCompletionBorderToolTipOpening(object sender, ToolTipEventArgs e)
         {
             var border          = sender as Border;
             var Tp              = border.ToolTip as ToolTip;
             Tp.HorizontalOffset = _tpControl.CalculateTooltipOffset();
         }
+        
         /**
          * \brief   Resizes open auto completion list when the container's size change.
          */
         private void OnContainerSizeChanged(object sender, SizeChangedEventArgs e)
         {
-            VisualUtilities.RepositionWindow(e, this, ref _isOnTop, _nppHelper, _nppHelper.GetCaretScreenLocationForFormAboveWord().Y);
+            VisualUtilities.RepositionWindow(e, this, ref _isOnTop, _nppHelper, _nppHelper.GetCaretScreenLocation().Y);
         }
+        
         private void OnAutoCompletionFormVisibleChanged(object sender, System.Windows.DependencyPropertyChangedEventArgs e)
         {
             if (!IsVisible)
@@ -245,6 +270,7 @@ namespace RTextNppPlugin.WpfControls
                 _delayedFilterEventHandler.Cancel();
             }
         }
+        
         private void OnAutoCompletionDatagridMouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
             if (TriggerPoint != null && !String.IsNullOrEmpty(Completion.InsertionText))
@@ -255,6 +281,7 @@ namespace RTextNppPlugin.WpfControls
             Hide();
         }
         #endregion
+        
         #region IDisposable Members
         /**
          *

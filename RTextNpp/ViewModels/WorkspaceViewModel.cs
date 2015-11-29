@@ -74,6 +74,8 @@ namespace RTextNppPlugin.ViewModels
         {
             _percentage = e.Response.percentage;
             _isLoading  = true;
+            _isBusy     = true;
+            _isActive   = true;
             if (e.Workspace == _mainModel.Workspace)
             {
                 _mainModel.ProgressPercentage = ProgressPercentage;

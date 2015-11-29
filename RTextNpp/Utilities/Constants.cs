@@ -48,9 +48,19 @@ namespace RTextNppPlugin
         public const double ZOOM_FACTOR = 0.08;                                 //!< Relation between actual zoom and scintilla zoom factor for various plugin windows.
         public const double INITIAL_WIDTH_LINK_REFERENCE_LABELS = 70.0;         //!< Initial width of link reference labels in row details template. This is used to align all labels.
         public const double MAX_WIDTH_LINK_REFERENCE_LABELS = 600.0;            //!< Initial width of link reference labels in row details template. This is used to align all labels.
-        
+        public const string SHORTCUTS_FILE = "shortcuts.xml";                   //!< Npp shortcuts file.
+
+        #region [Win32]
+        public class WIN_32
+        {
+            public const string DLL_NAME_KERNEL32 = "kernel32.dll";
+            public const string DLL_NAME_OLE32    = "ole32.dll";
+            public const string DLL_NAME_USER32   = "user32.dll";
+        }
+        #endregion
+
         #region [Error Severity Strings]
-        
+
         public const string SEVERITY_DEBUG = "debug";
         public const string SEVERITY_INFO = "info";
         public const string SEVERITY_WARNING = "warn";

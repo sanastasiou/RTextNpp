@@ -43,9 +43,7 @@ namespace RTextNppPlugin.Utilities
         void DeleteFront();
         
         void DeleteRange(int position, int length);
-              
-        void Exit();
-        
+
         System.Drawing.Point[] FindIndicatorRanges(int indicator);
        
         int GetCaretLineNumber();
@@ -55,12 +53,8 @@ namespace RTextNppPlugin.Utilities
         System.Drawing.Point GetCaretScreenLocation();
         
         System.Drawing.Point GetCaretScreenLocationForForm();
-        
-        System.Drawing.Point GetCaretScreenLocationForForm(int position);
-        
+              
         System.Drawing.Point GetCaretScreenLocationForFormAboveWord(int position);
-        
-        System.Drawing.Point GetCaretScreenLocationForFormAboveWord();
         
         System.Drawing.Point GetCaretScreenLocationRelativeToPosition(int position);
         
@@ -81,14 +75,7 @@ namespace RTextNppPlugin.Utilities
         int GetFirstVisibleLine();
         
         int GetLengthToEndOfLine(int line, int position);
-        
-        /**
-         * \brief   Gets the line fromt the current caret position.
-         *
-         * \return  The line as a string.
-         */
-        string GetLine();
-        
+               
         /**
          * \brief   Gets a line from a line number.
          *
@@ -119,8 +106,6 @@ namespace RTextNppPlugin.Utilities
         int GetSelectionStart();
         
         string GetShortcutsFile();
-        
-        string GetTextBetween(System.Drawing.Point point);
         
         string GetTextBetween(int start, int end = -1);
         

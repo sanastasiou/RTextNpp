@@ -68,7 +68,6 @@ namespace RTextNppPlugin.Utilities
         {
             OpenFile(file);
             GoToLine(line);
-            //ScrollUpToLine(line);
             return null;
         }
         
@@ -281,24 +280,9 @@ namespace RTextNppPlugin.Utilities
             return ranges.ToArray();
         }
         
-        /**
-         * Gets the line.
-         *
-         * \return  The current line from the caret position.
-         */
-        public string GetLine()
-        {
-            return GetLine(GetLineNumber(GetCaretPosition()));
-        }
-        
         public string GetLine(int line)
         {
-            IntPtr sci = GetCurrentScintilla(Plugin.nppData);
-            int length = (int)_win32.ISendMessage(sci, SciMsg.SCI_LINELENGTH, line, 0);
-            var buffer = new StringBuilder(length + 1);
-            _win32.ISendMessage(sci, SciMsg.SCI_GETLINE, line, buffer);
-            buffer.Length = length; //NPP may inject some rubbish at the end of the line
-            return buffer.ToString();
+            return GetLineAsStringBuilder(line).ToString();
         }
         
         public StringBuilder GetLineAsStringBuilder(int line)
@@ -376,7 +360,7 @@ namespace RTextNppPlugin.Utilities
         
         public string GetShortcutsFile()
         {
-            return Path.Combine(Path.GetDirectoryName(Path.GetDirectoryName(GetConfigDir())), "shortcuts.xml");
+            return Path.Combine(Path.GetDirectoryName(Path.GetDirectoryName(GetConfigDir())), Constants.SHORTCUTS_FILE);
         }
         
         [DllImport("user32")]        
@@ -387,7 +371,7 @@ namespace RTextNppPlugin.Utilities
         
         [DllImport("user32.dll")]
         public static extern long GetWindowRect(IntPtr hWnd, ref Rectangle lpRect);
-        
+       
         /**
          * Gets caret screen location relative to buffer position.
          *
@@ -397,24 +381,15 @@ namespace RTextNppPlugin.Utilities
          */
         public Point GetCaretScreenLocationRelativeToPosition(int position)
         {
-            IntPtr sci = GetCurrentScintilla(Plugin.nppData);
-            int x = (int)_win32.ISendMessage(sci, SciMsg.SCI_POINTXFROMPOSITION, 0, position);
-            int y = (int)_win32.ISendMessage(sci, SciMsg.SCI_POINTYFROMPOSITION, 0, position);
-            Point aPoint = new Point(x, y);
+            IntPtr sci      = GetCurrentScintilla(Plugin.nppData);
+            int x           = (int)_win32.ISendMessage(sci, SciMsg.SCI_POINTXFROMPOSITION, 0, position);
+            int y           = (int)_win32.ISendMessage(sci, SciMsg.SCI_POINTYFROMPOSITION, 0, position);
+            Point aPoint    = new Point(x, y);
             ClientToScreen(sci, ref aPoint);
-            aPoint.Y += GetTextHeight(GetCaretLineNumber());
-            return aPoint;
-        }
-        
-        /**
-         * Gets caret screen location for form. ( under a certain buffer position )
-         *
-         * \return  The caret screen location for form.
-         */
-        public Point GetCaretScreenLocationForForm(int position)
-        {
-            Point aPoint = GetCaretScreenLocationRelativeToPosition(position);
-            aPoint.Y += GetTextHeight(GetCaretLineNumber());
+            aPoint.Y        += GetTextHeight(GetCaretLineNumber());
+            double dpiScale = VisualUtilities.GetDpiScalingFactor();
+            aPoint.X        = (int)((double)(aPoint.X) / dpiScale);
+            aPoint.Y        = (int)((double)(aPoint.Y) / dpiScale);
             return aPoint;
         }
         
@@ -428,17 +403,10 @@ namespace RTextNppPlugin.Utilities
             Point aPoint    = GetCaretScreenLocation();
             int aTextHeight = GetTextHeight(GetCaretLineNumber());
             aPoint.Y        += aTextHeight;
+            double dpiScale = VisualUtilities.GetDpiScalingFactor();
+            aPoint.X        = (int)((double)(aPoint.X) / dpiScale);
+            aPoint.Y        = (int)((double)(aPoint.Y) / dpiScale);
             return aPoint;
-        }
-        
-        /**
-         * Gets caret screen location for form above word.
-         *
-         * \return  The caret screen location for form above word is exactly the position of the cursor.
-         */
-        public Point GetCaretScreenLocationForFormAboveWord()
-        {
-            return GetCaretScreenLocation();
         }
         
         /**
@@ -451,23 +419,22 @@ namespace RTextNppPlugin.Utilities
         
         public Point GetCaretScreenLocationForFormAboveWord(int position)
         {
-            IntPtr sci = GetCurrentScintilla(Plugin.nppData);
-            int x = (int)_win32.ISendMessage(sci, SciMsg.SCI_POINTXFROMPOSITION, 0, position);
-            int y = (int)_win32.ISendMessage(sci, SciMsg.SCI_POINTYFROMPOSITION, 0, position);
-            Point point = new Point(x, y);
-            ClientToScreen(sci, ref point);
-            return point;
+            IntPtr sci      = GetCurrentScintilla(Plugin.nppData);
+            int x           = (int)_win32.ISendMessage(sci, SciMsg.SCI_POINTXFROMPOSITION, 0, position);
+            int y           = (int)_win32.ISendMessage(sci, SciMsg.SCI_POINTYFROMPOSITION, 0, position);
+            Point aPoint    = new Point(x, y);
+            ClientToScreen(sci, ref aPoint);
+            double dpiScale = VisualUtilities.GetDpiScalingFactor();
+            aPoint.X        = (int)((double)(aPoint.X) / dpiScale);
+            aPoint.Y        = (int)((double)(aPoint.Y) / dpiScale);
+            return aPoint;
         }
         
         public Point GetCaretScreenLocation()
         {
             IntPtr sci = GetCurrentScintilla(Plugin.nppData);
-            int pos = (int)_win32.ISendMessage(sci, SciMsg.SCI_GETCURRENTPOS, 0, 0);
-            int x = (int)_win32.ISendMessage(sci, SciMsg.SCI_POINTXFROMPOSITION, 0, pos);
-            int y = (int)_win32.ISendMessage(sci, SciMsg.SCI_POINTYFROMPOSITION, 0, pos);
-            Point point = new Point(x, y);
-            ClientToScreen(sci, ref point);
-            return point;
+            int pos    = (int)_win32.ISendMessage(sci, SciMsg.SCI_GETCURRENTPOS, 0, 0);
+            return GetCaretScreenLocationForFormAboveWord(pos);
         }
         
         public int GetPositionFromMouseLocation()
@@ -475,20 +442,10 @@ namespace RTextNppPlugin.Utilities
             IntPtr sci = GetCurrentScintilla(Plugin.nppData);
             Point point = Cursor.Position;
             ScreenToClient(sci, ref point);
+            //dpi conversion here?
             return (int)_win32.ISendMessage(sci, SciMsg.SCI_CHARPOSITIONFROMPOINTCLOSE, point.X, point.Y);
         }
-        
-        public void Exit()
-        {
-            const int WM_COMMAND = 0x111;
-            _win32.ISendMessage(Plugin.nppData._nppHandle, (NppMsg)WM_COMMAND, (int)NppMenuCmd.IDM_FILE_EXIT, 0);
-        }
-        
-        public string GetTextBetween(Point point)
-        {
-            return GetTextBetween(point.X, point.Y);
-        }
-        
+               
         public string GetTextBetween(int start, int end = -1)
         {
             IntPtr sci = GetCurrentScintilla(Plugin.nppData);
@@ -555,9 +512,6 @@ namespace RTextNppPlugin.Utilities
         public void ClearSelection()
         {
             IntPtr sci = GetCurrentScintilla(Plugin.nppData);
-            //int currentPos = (int)_win32.ISendMessage(sci, SciMsg.SCI_GETCURRENTPOS, 0, 0);
-            //_win32.ISendMessage(sci, SciMsg.SCI_SETSELECTIONSTART, currentPos, 0);
-            //_win32.ISendMessage(sci, SciMsg.SCI_SETSELECTIONEND, currentPos, 0); ;
             _win32.ISendMessage(sci, SciMsg.SCI_CLEARSELECTIONS, 0, 0);
         }
         
