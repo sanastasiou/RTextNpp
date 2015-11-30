@@ -58,6 +58,7 @@
     <Compile Include="DllExport\UnmanagedExports.cs" />
     <Compile Include="RText\Connector.cs" />
     <Compile Include="RText\ConnectorManager.cs" />
+    <Compile Include="RText\IAnnotation.cs" />
     <Compile Include="RText\IConnector.cs" />
     <Compile Include="RText\Process.cs" />
     <Compile Include="RText\Protocol\AutoCompleteAndReferenceRequest.cs" />
@@ -334,6 +335,9 @@
       <Project>{c9a9618e-2871-4933-a1f6-f33e7678af97}</Project>
       <Name>RTextLexer</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Scintilla\" />
   </ItemGroup>
   <PropertyGroup>
     <PostBuildEvent>if $(ConfigurationName) == Debug copy /Y "$(ProjectDir)$(OutDir)$(TargetName).dll" "C:\Program Files (x86)\Notepad++\plugins"
