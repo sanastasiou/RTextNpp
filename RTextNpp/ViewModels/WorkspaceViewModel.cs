@@ -30,14 +30,14 @@ namespace RTextNppPlugin.ViewModels
         {
             get
             {
-                return (_isLoading || _isBusy);
+                return (IsLoading || _connector.CurrentState.State == ConnectorStates.Busy);
             }
         }
         new public bool IsLoading
         {
             get
             {
-                return _isLoading;
+                return (_connector.CurrentState.State == ConnectorStates.Loading);
             }
         }
         new public double ProgressPercentage
@@ -60,11 +60,25 @@ namespace RTextNppPlugin.ViewModels
         }
         new public bool IsActive
         {
-            get { return _isActive; }
+            get
+            {
+                return _connector.CurrentState.State != ConnectorStates.Disconnected;
+            }
         }
         new public bool IsAutomateWorkspace
         {
-            get { return true; }
+            get 
+            { 
+                return true;
+            }
+        }
+
+        new public string ActiveCommand
+        {
+            get 
+            {
+                return _connector.ActiveCommand;
+            }
         }
         #endregion
         
@@ -72,14 +86,18 @@ namespace RTextNppPlugin.ViewModels
         
         private void OnConnectorProgressUpdated(object source, Connector.ProgressResponseEventArgs e)
         {
-            _percentage = e.Response.percentage;
-            _isLoading  = true;
-            _isBusy     = true;
-            _isActive   = true;
+            _percentage    = e.Response.percentage;
+            _isLoading     = true;
+            _isBusy        = true;
+            _isActive      = true;
+            _activeCommand = e.Command;
             if (e.Workspace == _mainModel.Workspace)
             {
                 _mainModel.ProgressPercentage = ProgressPercentage;
                 _mainModel.IsLoading          = IsLoading;
+                _mainModel.IsActive           = _isActive;
+                _mainModel.IsBusy             = _isBusy;
+                _mainModel.ActiveCommand      = _activeCommand;
             }
         }
         
@@ -109,14 +127,14 @@ namespace RTextNppPlugin.ViewModels
                         }
                         break;
                     case ConnectorStates.Idle:
-                        _isActive = true;
-                        _isLoading = false;
-                        _isBusy = false;
-                        _activeCommand = String.Empty;
+                        _isActive      = true;
+                        _isLoading     = false;
+                        _isBusy        = false;
+                        _activeCommand = string.Empty;
                         if (e.Workspace == _mainModel.Workspace)
                         {
-                            _mainModel.IsActive = _isActive;
-                            _mainModel.IsBusy = _mainModel.IsLoading = false;
+                            _mainModel.IsActive      = _isActive;
+                            _mainModel.IsBusy        = _mainModel.IsLoading = false;
                             _mainModel.ActiveCommand = _activeCommand;
                         }
                         break;
@@ -125,7 +143,7 @@ namespace RTextNppPlugin.ViewModels
                         _activeCommand = Constants.Commands.STOP;
                         if (e.Workspace == _mainModel.Workspace)
                         {
-                            _mainModel.IsActive = _mainModel.IsLoading = _mainModel.IsBusy = false;
+                            _mainModel.IsActive      = _mainModel.IsLoading = _mainModel.IsBusy = false;
                             _mainModel.ActiveCommand = _activeCommand;
                         }
                         break;

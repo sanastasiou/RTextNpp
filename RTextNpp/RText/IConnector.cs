@@ -9,9 +9,15 @@ namespace RTextNppPlugin.RText
     interface IConnector
     {
         void OnDisconnectedEntry();
+
         void OnConnectingEntry();
+
         void OnStateLeft(ConnectorStates oldState, ConnectorStates newState);
+
         IConnectorState CurrentState { get; set; }
+
         void OnLoadingEntry();
+
+        void OnIdleEntry();
     }
 }

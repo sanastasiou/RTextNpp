@@ -141,6 +141,7 @@ namespace RTextNppPlugin.RText.StateEngine
         public Idle(IConnector connector)
         {
             _connector = connector;
+            OnEntry();
         }
         public void ExecuteCommand(Command command)
         {
@@ -165,6 +166,7 @@ namespace RTextNppPlugin.RText.StateEngine
         }
         public void OnEntry()
         {
+            _connector.OnIdleEntry();
         }
         public void OnExit(ConnectorStates newState)
         {

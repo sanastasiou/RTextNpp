@@ -343,26 +343,34 @@ namespace RTextNppPlugin.RText
 
         private int GetPortNumber(System.IO.StreamReader stream)
         {
-            while (true)
+            try
             {
-                System.Threading.Thread.Sleep(Constants.OUTPUT_POLL_PERIOD);
-                if(_process.HasExited)
+                while (true)
                 {
-                    while (!stream.EndOfStream)
+                    System.Threading.Thread.Sleep(Constants.OUTPUT_POLL_PERIOD);
+                    if (_process.HasExited)
                     {
-                        Logging.Logger.Instance.Append(Logging.Logger.MessageType.Info, _pInfo.ProcKey, stream.ReadLine());
+                        while (!stream.EndOfStream)
+                        {
+                            Logging.Logger.Instance.Append(Logging.Logger.MessageType.Info, _pInfo.ProcKey, stream.ReadLine());
+                        }
+                        return -1;
                     }
-                    return -1;
-                }
-                if (!stream.EndOfStream)
-                {
-                    var aLine = stream.ReadLine();
-                    Logging.Logger.Instance.Append(Logging.Logger.MessageType.Info, _pInfo.ProcKey, aLine);
-                    if (_backendInitResponseRegex.IsMatch(aLine))
+                    if (!stream.EndOfStream)
                     {
-                        return Int32.Parse(_backendInitResponseRegex.Match(aLine).Groups[1].Value);                        
+                        var aLine = stream.ReadLine();
+                        Logging.Logger.Instance.Append(Logging.Logger.MessageType.Info, _pInfo.ProcKey, aLine);
+                        if (_backendInitResponseRegex.IsMatch(aLine))
+                        {
+                            return Int32.Parse(_backendInitResponseRegex.Match(aLine).Groups[1].Value);
+                        }
                     }
                 }
+            }
+            catch
+            {
+                //process died while trying to retrieve port number
+                return -1;
             }
         }
         
