@@ -108,6 +108,9 @@ namespace RTextNppPlugin
                 case (uint)SciMsg.SCN_HOTSPOTRELEASECLICK:
                     Plugin.OnHotspotClicked();
                     break;
+                case (uint)NppMsg.NPPN_FILESAVED:
+                    Plugin.OnFileSaved();
+                    break;
             }
         }
 

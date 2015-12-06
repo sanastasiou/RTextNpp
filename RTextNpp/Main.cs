@@ -444,6 +444,12 @@ namespace RTextNppPlugin
             }
         }
 
+        static internal void OnFileSaved()
+        {
+            //find out file and forward it to appropriate connector
+            _connectorManager.OnFileSaved(_nppHelper.GetCurrentFilePath());
+        }
+
         static internal void PluginCleanUp()
         {
             CSScriptIntellisense.KeyInterceptor.Instance.RemoveAll();

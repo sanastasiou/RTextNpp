@@ -42,9 +42,9 @@ namespace RTextNppPlugin.RText
         private readonly VoidDelayedEventHandler _workspaceFileWatcherDebouncer = null;                                                  //!< Debounces workspace file (.rtext) changes events.
         #endregion
         
-        #region Interface
+        #region [Interface]
         
-        #region Nested Types
+        #region [Nested Types]
         /**
          * \class   ProcessInfo
          *
@@ -139,7 +139,7 @@ namespace RTextNppPlugin.RText
         };
         #endregion
         
-        #region Events
+        #region [Events]
         /**
          *
          * \brief   Delegate for the CommandCompleted event.
@@ -167,6 +167,100 @@ namespace RTextNppPlugin.RText
             }
         }
         #endregion
+
+
+        /**
+         *
+         * \brief   Constructor.
+         *
+         *
+         * \param   rTextFilePath       Full pathname of the .rtext file.
+         * \param   workingDirectory    Pathname of the working directory.
+         * \param   commandLine         The command line.
+         * \param   processKey          The process key.
+         */
+        internal RTextBackendProcess(string rTextFilePath, string workingDirectory, string commandLine, string processKey, string extenstion)
+        {
+            _pInfo = new ProcessInfo(workingDirectory, rTextFilePath, commandLine, processKey);
+            _timer = new DispatcherTimer(DispatcherPriority.ApplicationIdle)
+            {
+                //wait one second before loading _odel in case of thousands of events / sec
+                Interval = TimeSpan.FromMilliseconds(50)
+            };
+            _timer.Tick += OnTimerElapsed;
+            _extension = extenstion;
+        }
+
+        /**
+         *
+         * \brief   Cleanup process.
+         * \todo    Send shutdown command instead of killing the process.
+         */
+        internal void CleanupProcess()
+        {
+            try
+            {
+                if (_process != null)
+                {
+                    //clean up process here
+                    _process.EnableRaisingEvents = false;
+                    Utilities.ProcessUtilities.KillAllProcessesSpawnedBy(_process.Id);
+                }
+                _cancellationSource.Cancel();
+                if (!(_stdErrReaderTask.IsCanceled || _stdErrReaderTask.IsCompleted || _stdErrReaderTask.IsFaulted))
+                {
+                    _stdErrReaderTask.Wait();
+                }
+                if (!(_stdOutReaderTask.IsCanceled || _stdOutReaderTask.IsCompleted || _stdOutReaderTask.IsFaulted))
+                {
+                    _stdOutReaderTask.Wait();
+                }
+                //todo send shutdown command to rtext service and wait for it to die
+            }
+            catch (OperationCanceledException ex)
+            {
+                System.Diagnostics.Trace.WriteLine(String.Format("CleanupProcess : Read stream task aborted : {0}", ex.Message));
+            }
+            catch (Exception ex)
+            {
+                Trace.WriteLine(ex.Message);
+            }
+            finally
+            {
+                try
+                {
+                    if (_fileSystemWatcher != null)
+                    {
+                        _fileSystemWatcher.Changed -= OnRTextFileCreatedOrDeletedOrModified;
+                        _fileSystemWatcher.Deleted -= OnRTextFileCreatedOrDeletedOrModified;
+                        _fileSystemWatcher.Created -= OnRTextFileCreatedOrDeletedOrModified;
+                        _fileSystemWatcher.Renamed -= OnRTextFileRenamed;
+                        _fileSystemWatcher.Error -= ProcessError;
+                        _fileSystemWatcher = null;
+                    }
+                    if (_workspaceSystemWatcher != null)
+                    {
+                        _workspaceSystemWatcher.Changed -= OnWorkspaceDefinitionFileCreatedOrDeletedOrModified;
+                        _workspaceSystemWatcher.Created -= OnWorkspaceDefinitionFileCreatedOrDeletedOrModified;
+                        _workspaceSystemWatcher.Deleted -= OnWorkspaceDefinitionFileCreatedOrDeletedOrModified;
+                        _workspaceSystemWatcher.Error -= ProcessError;
+                        _workspaceSystemWatcher.Renamed -= OnWorkspaceDefinitionFileRenamed;
+                        _workspaceSystemWatcher = null;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Trace.WriteLine(String.Format("SEH Exception : {0}", ex.Message));
+                }
+                if (_process != null)
+                {
+                    _process.Exited -= OnProcessExited;
+                    _process.Dispose();
+                    _process = null;
+                }
+            }
+        }
+
         /**
          * \brief   Constructor.
          *
@@ -189,12 +283,17 @@ namespace RTextNppPlugin.RText
          * \return  The proc key. The process key is the complete filepath of the .rtext file that started this process with the addition of the file extensions that are associated with this process e.g. .atm. This way
          *          It is guaranteed that the key of a process is a unique identifier.
          */
-        public string ProcKey
+        internal string ProcKey
         {
             get
             {
                 return _pInfo.ProcKey;
             }
+        }
+
+        internal void OnFileSaved(string file)
+        {
+            OnWorkspaceModified(file);
         }
         
         /**
@@ -202,23 +301,23 @@ namespace RTextNppPlugin.RText
          *
          * \return  The port. This port is being reported by the backend process upon startup, and it is used by the fronted to establich communication with the backend via sockets.
          */
-        public int Port
+        internal int Port
         {
             get
             {
                 return _pInfo.Port;
             }
         }
-        
-        public string Workspace
+
+        internal string Workspace
         {
             get
             {
                 return (_pInfo != null ? _pInfo.ProcKey : null);
             }
         }
-        
-        public async Task<bool> InitializeBackendAsync()
+
+        internal async Task<bool> InitializeBackendAsync()
         {
             //process never started, or process has exited or port could not be retrieved
             if (_process == null || _process.HasExited || _pInfo.Port == -1)
@@ -240,7 +339,37 @@ namespace RTextNppPlugin.RText
             {
                 return true;
             }
+        }        
+        
+        internal Connector Connector { get { return _connector; } }
+        
+        /**
+         *
+         * \brief   Kills this process.
+         *
+         */
+        internal void Kill()
+        {
+            CleanupProcess();
         }
+        
+        internal bool HasExited
+        {
+            get
+            {
+                if (_process != null)
+                {
+                    return _process.HasExited;
+                }
+                else
+                {
+                    return true;
+                }
+            }
+        }
+        #endregion
+        
+        #region [Helpers]
 
         private async Task CreateNewProcessAsync()
         {
@@ -334,7 +463,7 @@ namespace RTextNppPlugin.RText
                     _stdOutReaderTask.Start();
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Logging.Logger.Instance.Append(Logging.Logger.MessageType.FatalError, _pInfo.ProcKey, "Exception caught while trying to start rtext service : {0}", ex.Message);
                 OnProcessExited(null, EventArgs.Empty);
@@ -373,142 +502,7 @@ namespace RTextNppPlugin.RText
                 return -1;
             }
         }
-        
-        /**
-         * \property    public Connector Connector
-         *
-         * \brief   Gets the connector.
-         *
-         * \return  The connector.
-         */
-        public Connector Connector { get { return _connector; } }
-        
-        /**
-         *
-         * \brief   Kills this process.
-         *
-         */
-        public void Kill()
-        {
-            CleanupProcess();
-        }
-        
-        /**
-         * \property    public bool HasExited
-         *
-         * \brief   Gets a value indicating whether this process has exited.
-         *
-         * \return  true if this object has exited, false if not.
-         */
-        public bool HasExited
-        {
-            get
-            {
-                if (_process != null)
-                {
-                    return _process.HasExited;
-                }
-                else
-                {
-                    return true;
-                }
-            }
-        }
-        #endregion
-        
-        #region Implementation Details
-        
-        /**
-         *
-         * \brief   Constructor.
-         *
-         *
-         * \param   rTextFilePath       Full pathname of the .rtext file.
-         * \param   workingDirectory    Pathname of the working directory.
-         * \param   commandLine         The command line.
-         * \param   processKey          The process key.
-         */
-        public RTextBackendProcess(string rTextFilePath, string workingDirectory, string commandLine, string processKey, string extenstion)
-        {
-            _pInfo = new ProcessInfo(workingDirectory, rTextFilePath, commandLine, processKey);
-            _timer = new DispatcherTimer(DispatcherPriority.ApplicationIdle)
-            {
-                //wait one second before loading _odel in case of thousands of events / sec
-                Interval = TimeSpan.FromMilliseconds(50)
-            };
-            _timer.Tick += OnTimerElapsed;
-            _extension = extenstion;
-        }
-        
-        /**
-         *
-         * \brief   Cleanup process.
-         * \todo    Send shutdown command instead of killing the process.
-         */
-        public void CleanupProcess()
-        {
-            try
-            {
-                if (_process != null)
-                {
-                    //clean up process here
-                    _process.EnableRaisingEvents = false;
-                    Utilities.ProcessUtilities.KillAllProcessesSpawnedBy(_process.Id);
-                }
-                _cancellationSource.Cancel();
-                if (!(_stdErrReaderTask.IsCanceled || _stdErrReaderTask.IsCompleted || _stdErrReaderTask.IsFaulted))
-                {
-                    _stdErrReaderTask.Wait();
-                }
-                if (!(_stdOutReaderTask.IsCanceled || _stdOutReaderTask.IsCompleted || _stdOutReaderTask.IsFaulted))
-                {
-                    _stdOutReaderTask.Wait();
-                }
-                //todo send shutdown command to rtext service and wait for it to die
-            }
-            catch(OperationCanceledException ex)
-            {
-                System.Diagnostics.Trace.WriteLine(String.Format("CleanupProcess : Read stream task aborted : {0}", ex.Message));
-            }
-            catch (Exception ex)
-            {
-                Trace.WriteLine(ex.Message);
-            }
-            finally
-            {
-                try
-                {
-                    if (_fileSystemWatcher != null)
-                    {
-                        _fileSystemWatcher.Changed -= OnRTextFileCreatedOrDeletedOrModified;
-                        _fileSystemWatcher.Deleted -= OnRTextFileCreatedOrDeletedOrModified;
-                        _fileSystemWatcher.Created -= OnRTextFileCreatedOrDeletedOrModified;
-                        _fileSystemWatcher.Renamed -= OnRTextFileRenamed;
-                        _fileSystemWatcher.Error   -= ProcessError;
-                        _fileSystemWatcher = null;
-                    }
-                    if (_workspaceSystemWatcher != null)
-                    {
-                        _workspaceSystemWatcher.Changed -= OnWorkspaceDefinitionFileCreatedOrDeletedOrModified;
-                        _workspaceSystemWatcher.Created -= OnWorkspaceDefinitionFileCreatedOrDeletedOrModified;
-                        _workspaceSystemWatcher.Deleted -= OnWorkspaceDefinitionFileCreatedOrDeletedOrModified;
-                        _workspaceSystemWatcher.Error   -= ProcessError;
-                        _workspaceSystemWatcher.Renamed -= OnWorkspaceDefinitionFileRenamed;
-                        _workspaceSystemWatcher = null;
-                    }
-                }
-                catch(Exception ex)
-                {
-                    System.Diagnostics.Trace.WriteLine(String.Format("SEH Exception : {0}", ex.Message));
-                }
-                if (_process != null)
-                {
-                    _process.Exited -= OnProcessExited;
-                    _process.Dispose();
-                    _process = null;
-                }
-            }
-        }
+
         
         /**
          *

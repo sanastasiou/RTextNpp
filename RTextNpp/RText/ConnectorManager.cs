@@ -45,10 +45,22 @@ namespace RTextNppPlugin.RText
             Plugin.BufferActivated += OnBufferActivated;
         }
 
-        void OnBufferActivated(object source, string file)
+        internal void OnFileSaved(string file)
         {
-            CreateConnector(file);
+            if (FileUtilities.IsRTextFile(file, _settings, _nppHelper))
+            {
+                string rTextFileLocation = FileUtilities.FindWorkspaceRoot(file);
+                if (!string.IsNullOrEmpty(rTextFileLocation))
+                {
+                    string processKey = rTextFileLocation + Path.GetExtension(file);
+                    if(_processList.ContainsKey(processKey))
+                    {
+                        _processList[processKey].OnFileSaved(file);
+                    }
+                }
+            }
         }
+
         internal void ReleaseConnectors()
         {
             var keys = _processList.Keys;
@@ -57,6 +69,13 @@ namespace RTextNppPlugin.RText
                 _processList[key].CleanupProcess();
             }
         }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            Plugin.BufferActivated -= OnBufferActivated;
+        }
+
         /**
          * \brief   Creates a connector.
          *
@@ -137,12 +156,6 @@ namespace RTextNppPlugin.RText
         private readonly INpp _nppHelper     = null;
         #endregion
 
-        public void Dispose()
-        {
-            Dispose(true);
-            Plugin.BufferActivated -= OnBufferActivated;
-        }
-
         #region [Helpers]
         private void Dispose(bool disposing)
         {
@@ -151,6 +164,13 @@ namespace RTextNppPlugin.RText
                 // Dispose any disposable fields here
                 GC.SuppressFinalize(this);
             }
+        }
+        #endregion
+
+        #region [Event Handlers]
+        void OnBufferActivated(object source, string file)
+        {
+            CreateConnector(file);
         }
         #endregion
     }

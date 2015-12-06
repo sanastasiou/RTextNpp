@@ -31,9 +31,13 @@ namespace RTextNppPlugin
             funcItem._cmdID = index;
             funcItem._itemName = commandName;
             if (functionPointer != null)
+            {
                 funcItem._pFunc = new NppFuncItemDelegate(functionPointer);
+            }
             if (shortcut._key != 0)
+            {
                 funcItem._pShKey = shortcut;
+            }
             funcItem._init2Check = checkOnInit;
             _funcItems.Add(funcItem);
         }
