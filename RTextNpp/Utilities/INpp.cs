@@ -1,9 +1,12 @@
 ﻿using System;
+using System.Text;
+
 namespace RTextNppPlugin.Utilities
 {
     using RTextNppPlugin.RText.Parsing;
     using RTextNppPlugin.DllExport;
     using System.Text;
+    using System.Collections.Generic;
 
     public enum BufferEncoding : int
     {
@@ -20,7 +23,13 @@ namespace RTextNppPlugin.Utilities
 
     internal interface INpp
     {
-        IntPtr GetCurrentScintilla(NppData nppData);
+        IntPtr CurrentScintilla { get; }
+
+        IntPtr MainScintilla { get; }
+
+        IntPtr SecondaryScintilla { get; }
+
+        int CurrentDocIndex(NppMsg currentView);
         
         void SwitchToFile(string file);
         
@@ -143,7 +152,7 @@ namespace RTextNppPlugin.Utilities
 
         void SetAnnotationVisible(IntPtr handle, int annotationStyle);
 
-        void ClearAllAnnotations();
+        void ClearAllAnnotations(IntPtr sciPtr);
 
         void AddAnnotation(int line, System.Text.StringBuilder errorDescription);
 
@@ -160,5 +169,13 @@ namespace RTextNppPlugin.Utilities
         int LastVisibleLine { get; }
 
         int LinesOnScreen { get; }
+
+        int NumberOfOpenFiles { get; }
+
+        int NumberOfOpenFilesInPrimaryView { get; }
+
+        int NumberOfOpenFilesInSecondaryView { get; }
+
+        IEnumerable<string> GetOpenFiles(NppMsg view);
     }
 }

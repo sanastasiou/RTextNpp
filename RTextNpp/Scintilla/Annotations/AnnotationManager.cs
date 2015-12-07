@@ -39,23 +39,16 @@ namespace RTextNppPlugin.Scintilla.Annotations
             }
             if (_areAnnotationEnabled)
             {
-                RemoveErrors();
                 RefreshAnnotations();
             }
             else
             {
-                RemoveErrors();
+                RemoveErrors(_nppHelper.MainScintilla);
+                RemoveErrors(_nppHelper.SecondaryScintilla);
             }
         }
 
-        public void RemoveErrors()
-        {
-            var aSciPtr = _nppHelper.GetCurrentScintilla(Plugin.nppData);
-            _nppHelper.SetAnnotationVisible(aSciPtr, Constants.HIDDEN_ANNOTATION_STYLE);
-            _nppHelper.ClearAllAnnotations();
-        }
-
-        public void AddErrors(ViewModels.ErrorListViewModel model)
+        public void AddErrors(ViewModels.ErrorListViewModel model, IntPtr scintilla)
         {
             _model = model;
             if (_areAnnotationEnabled)
@@ -68,7 +61,7 @@ namespace RTextNppPlugin.Scintilla.Annotations
         {
             if(_lastAnnotatedFile != file)
             {
-                RemoveErrors();
+                //RemoveErrors();
             }
             _lastAnnotatedFile = file;
             RefreshAnnotations();
@@ -87,7 +80,7 @@ namespace RTextNppPlugin.Scintilla.Annotations
         #region [Helpers]
         private void RefreshAnnotations()
         {
-            RemoveErrors();
+            //RemoveErrors();
             if(_model != null)
             {
                 //concatenate error that share the same line with \n so that they appear in the same annotation box underneath the same line
@@ -116,8 +109,8 @@ namespace RTextNppPlugin.Scintilla.Annotations
         {
             if (_areAnnotationEnabled)
             {
-                var aSciPtr = _nppHelper.GetCurrentScintilla(Plugin.nppData);
-                _nppHelper.SetAnnotationVisible(aSciPtr, Constants.BOXED_ANNOTATION_STYLE);
+                _nppHelper.SetAnnotationVisible(_nppHelper.MainScintilla, Constants.BOXED_ANNOTATION_STYLE);
+                _nppHelper.SetAnnotationVisible(_nppHelper.SecondaryScintilla, Constants.BOXED_ANNOTATION_STYLE);
             }
         }
 
@@ -133,6 +126,12 @@ namespace RTextNppPlugin.Scintilla.Annotations
                 _settings.OnSettingChanged -= OnSettingChanged;
             }
             _disposed = true;
+        }
+
+        private void RemoveErrors(IntPtr scintilla)
+        {
+            _nppHelper.SetAnnotationVisible(scintilla, Constants.HIDDEN_ANNOTATION_STYLE);
+            _nppHelper.ClearAllAnnotations(scintilla);
         }
         #endregion
     }

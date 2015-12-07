@@ -102,7 +102,7 @@ namespace RTextNppPlugin.RText
         internal void UnderlineToken()
         {
             int aReferenceColor = GetReferenceLinkColor();
-            _editorWithActiveHotspot = _nppHelper.GetCurrentScintilla(Plugin.nppData);
+            _editorWithActiveHotspot = _nppHelper.CurrentScintilla;
             _win32Helper.ISendMessage(_editorWithActiveHotspot, SciMsg.SCI_STYLESETHOTSPOT, (int)_previousReferenceToken.Type, 1);
             _win32Helper.ISendMessage(_editorWithActiveHotspot, SciMsg.SCI_SETHOTSPOTACTIVEUNDERLINE, 1, 0);
             _win32Helper.ISendMessage(_editorWithActiveHotspot, SciMsg.SCI_SETHOTSPOTSINGLELINE, 1, 0);

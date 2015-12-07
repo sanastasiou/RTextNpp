@@ -599,7 +599,7 @@ namespace RTextNppPlugin
             IntPtr aAutoCompletionWindow = VisualUtilities.HwndFromWpfWindow(_autoCompletionForm);
             if (!hasFocus && e.WindowHandle != null && aWindowWithFocus != aAutoCompletionWindow)
             {
-                if (aWindowWithFocus != IntPtr.Zero && aWindowWithFocus != Npp.Instance.CurrentScintilla)
+                if (aWindowWithFocus != IntPtr.Zero && aWindowWithFocus != _nppHelper.CurrentScintilla)
                 {
                     CommitAutoCompletion(false);
                 }

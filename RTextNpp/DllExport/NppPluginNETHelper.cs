@@ -8,6 +8,7 @@ using RTextNppPlugin.Utilities;
 namespace RTextNppPlugin.DllExport
 {
     #region " Notepad++ "
+    
     [StructLayout(LayoutKind.Sequential)]
     public struct NppData
     {
@@ -15,8 +16,10 @@ namespace RTextNppPlugin.DllExport
         public IntPtr _scintillaMainHandle;
         public IntPtr _scintillaSecondHandle;
     }
+    
     public delegate void NppFuncItemDelegate();
     [StructLayout(LayoutKind.Sequential)]
+    
     public struct ShortcutKey
     {
         public ShortcutKey(string data)
@@ -68,6 +71,7 @@ namespace RTextNppPlugin.DllExport
             get { return _key != 0; }
         }
     }
+    
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
     public struct FuncItem
     {
@@ -78,6 +82,7 @@ namespace RTextNppPlugin.DllExport
         public bool _init2Check;
         public ShortcutKey _pShKey;
     }
+    
     public class FuncItems : IDisposable
     {
         List<FuncItem> _funcItems;
@@ -159,6 +164,7 @@ namespace RTextNppPlugin.DllExport
             Dispose();
         }
     }
+    
     [StructLayout(LayoutKind.Sequential)]
     public struct RECT
     {
@@ -171,6 +177,7 @@ namespace RTextNppPlugin.DllExport
         public int Right;
         public int Bottom;
     }
+    
     [Flags]
     public enum NppTbMsg : uint
     {
@@ -195,6 +202,7 @@ namespace RTextNppPlugin.DllExport
         DWS_DF_CONT_BOTTOM    = (CONT_BOTTOM << 28),    // default docking on bottom
         DWS_DF_FLOATING        = 0x80000000            // default state is floating
     }
+    
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
     public struct NppTbData
     {
@@ -210,6 +218,7 @@ namespace RTextNppPlugin.DllExport
         public int iPrevCont;           // int: stores the privious container (toggling between float and dock)
         public string pszModuleName;    // const TCHAR*: it's the plugin file name. It's used to identify the plugin
     }
+    
     public enum LangType
     {
         L_TEXT, L_PHP , L_C, L_CPP, L_CS, L_OBJC, L_JAVA, L_RC,
@@ -222,6 +231,7 @@ namespace RTextNppPlugin.DllExport
         // The end of enumated language type, so it should be always at the end
         L_EXTERNAL
     }
+    
     [Flags]
     public enum NppMsg : uint
     {
@@ -569,11 +579,13 @@ namespace RTextNppPlugin.DllExport
         //scnNotification->nmhdr.hwndFrom = newIndex;
         //scnNotification->nmhdr.idFrom = BufferID;
     }
+    
     [Flags]
     public enum WinMsg : int
     {
         WM_COMMAND = 0x111
     }
+    
     public enum NppMenuCmd : uint
     {
         IDM    = 40000,
@@ -931,6 +943,7 @@ namespace RTextNppPlugin.DllExport
             IDM_SYSTRAYPOPUP_OPENFILE         = (IDM_SYSTRAYPOPUP + 4),
             IDM_SYSTRAYPOPUP_CLOSE            = (IDM_SYSTRAYPOPUP + 5)
     }
+    
     [Flags]
     public enum DockMgrMsg : uint
     {
@@ -965,13 +978,16 @@ namespace RTextNppPlugin.DllExport
             //nmhdr.hwndFrom = hwndNpp;
             //nmhdr.idFrom = ctrlIdNpp;
     }
+    
     [StructLayout(LayoutKind.Sequential)]
     public struct toolbarIcons
     {
         public IntPtr hToolbarBmp;
         public IntPtr hToolbarIcon;
     }
+
     #endregion
+    
     #region " Scintilla "
     [StructLayout(LayoutKind.Sequential)]
     public struct Sci_NotifyHeader
@@ -1972,37 +1988,47 @@ namespace RTextNppPlugin.DllExport
         }
     }
     #endregion
+    
     #region " Platform "
     public class Win32 : IWin32
     {
         // ************************************************************************
         // Filter function delegate
         public delegate int HookProc(int code, UIntPtr wParam, IntPtr lParam);
+        
         #region [Interface]
+        
         public virtual IntPtr IGetMenu(IntPtr hWnd)
         {
             return GetMenu(hWnd);
         }
+        
         public int ICheckMenuItem(IntPtr hmenu, int uIDCheckItem, int uCheck)
         {
             return CheckMenuItem(hmenu, uIDCheckItem, uCheck);
         }
+        
         public virtual int IGetPrivateProfileInt(string lpAppName, string lpKeyName, int nDefault, string lpFileName)
         {
             return GetPrivateProfileInt(lpAppName, lpKeyName, nDefault, lpFileName);
         }
+        
         public virtual bool IWritePrivateProfileString(string lpAppName, string lpKeyName, string lpString, string lpFileName)
         {
             return WritePrivateProfileString(lpAppName, lpKeyName, lpString, lpFileName);
+        
         }
+
         public virtual IntPtr ISendMessage(IntPtr hWnd, SciMsg Msg, string text)
         {
             byte[] bites = Encoding.UTF8.GetBytes(text);
             IntPtr ip = ToUnmanagedArray(bites);
             var result = Win32.SendMessage(hWnd, Msg, bites.Length, ip);
             Marshal.FreeHGlobal(ip);
+        
             return result;
         }
+       
         public virtual IntPtr ToUnmanagedArray(byte[] data)
         {
             unsafe
@@ -2014,58 +2040,72 @@ namespace RTextNppPlugin.DllExport
                 return (IntPtr)newArrayPointer;
             }
         }
+        
         public virtual IntPtr SendMenuCmd(IntPtr hWnd, NppMenuCmd wParam, int lParam)
         {
             return Win32.SendMessage(hWnd, (int)WinMsg.WM_COMMAND, (int)wParam, lParam);
         }
+        
         public virtual IntPtr ISetWindowsHookEx(VisualUtilities.HookType code, HookProc func, IntPtr hInstance, int threadID)
         {
             return SetWindowsHookEx(code, func, hInstance, threadID);
         }
+        
         public virtual int IUnhookWindowsHookEx(IntPtr hhook)
         {
             return UnhookWindowsHookEx(hhook);
         }
+        
         public virtual int ICallNextHookEx(IntPtr hhook, int code, UIntPtr wParam, IntPtr lParam)
         {
             return CallNextHookEx(hhook, code, wParam, lParam);
         }
+        
         public virtual IntPtr ISendMessage(IntPtr hWnd, NppMsg Msg, int wParam, NppMenuCmd lParam)
         {
             return SendMessage(hWnd, Msg, wParam, lParam);
         }
+        
         public virtual IntPtr ISendMessage(IntPtr hWnd, NppMsg Msg, int wParam, IntPtr lParam)
         {
             return SendMessage(hWnd, Msg, wParam, lParam);
         }
+        
         public virtual IntPtr ISendMessage(IntPtr hWnd, NppMsg Msg, int wParam, int lParam)
         {
             return SendMessage(hWnd, Msg, wParam, lParam);
         }
+        
         public virtual IntPtr ISendMessage(IntPtr hWnd, NppMsg Msg, int wParam, out int lParam)
         {
             return SendMessage(hWnd, Msg, wParam, out lParam);
         }
+        
         public virtual IntPtr ISendMessage(IntPtr hWnd, NppMsg Msg, IntPtr wParam, int lParam)
         {
             return SendMessage(hWnd, Msg, wParam, lParam);
         }
+        
         public virtual IntPtr ISendMessage(IntPtr hWnd, NppMsg Msg, int wParam, ref LangType lParam)
         {
             return SendMessage(hWnd, Msg, wParam, ref lParam);
         }
+        
         public virtual IntPtr ISendMessage(IntPtr hWnd, NppMsg Msg, int wParam, [MarshalAs(UnmanagedType.LPWStr)] StringBuilder lParam)
         {
             return SendMessage(hWnd, Msg, wParam, lParam);
         }
+        
         public virtual IntPtr ISendMessage(IntPtr hWnd, NppMsg Msg, int wParam, [MarshalAs(UnmanagedType.LPWStr)] string lParam)
         {
             return SendMessage(hWnd, Msg, wParam, lParam);
         }
+        
         public virtual IntPtr ISendMessage(IntPtr hWnd, NppMsg Msg, IntPtr wParam, [MarshalAs(UnmanagedType.LPWStr)] string lParam)
         {
             return SendMessage(hWnd, Msg, wParam, lParam);
         }
+        
         public virtual IntPtr ISendMessage(IntPtr hWnd, SciMsg Msg, int wParam, IntPtr lParam)
         {
             return SendMessage(hWnd, Msg, wParam, lParam);
@@ -2080,15 +2120,64 @@ namespace RTextNppPlugin.DllExport
         {
             return SendMessage(hWnd, Msg, wParam, lParam);
         }
+        
         public virtual IntPtr ISendMessage(IntPtr hWnd, SciMsg Msg, int wParam, [MarshalAs(UnmanagedType.LPStr)] StringBuilder lParam)
         {
             return SendMessage(hWnd, Msg, wParam, lParam);
         }
+        
         public virtual IntPtr ISendMessage(IntPtr hWnd, SciMsg Msg, int wParam, int lParam)
         {
             return SendMessage(hWnd, Msg, wParam, lParam);
         }
+
+        public virtual int ISendMessage(IntPtr hWnd, NppMsg Msg, out string[] files, int numOfFiles)
+        {
+            string[] fileList = new string[numOfFiles];
+            for (int i = 0; i < fileList.Length; ++i)
+            {
+                fileList[i] = new string('\0', Win32.MAX_PATH);
+            }
+            var allocatedStrings  = AllocStringArray(fileList);
+            int numOfNppOpenFiles = SendMessage(hWnd, Msg, allocatedStrings, numOfFiles);
+            files = new string[numOfFiles];
+
+            for (int i = 0; i < allocatedStrings.Length; ++i )
+            {
+                files[i] = Marshal.PtrToStringUni(allocatedStrings[i]);
+            }
+
+            FreeStringArray(allocatedStrings);
+
+            return numOfNppOpenFiles;
+        }
+
+        public IntPtr[] AllocStringArray(string[] vals)
+        {
+            IntPtr[] ptrs = new IntPtr[vals.Length];
+
+            for (int i = 0; i < vals.Length; i++)
+            {
+                ptrs[i] = Marshal.StringToHGlobalUni(vals[i]);
+            }
+
+            return ptrs;
+        }
+
+        public void FreeStringArray(IntPtr[] ptrs)
+        {
+            for (int i = 0; i < ptrs.Length; i++)
+            {
+                if (ptrs[i] != IntPtr.Zero)
+                {
+                    Marshal.FreeHGlobal(ptrs[i]);
+                    ptrs[i] = IntPtr.Zero;
+                }
+            }
+        }
+
         #endregion
+        
         #region Win32 Imports
         // ************************************************************************
         // Win32: SetWindowsHookEx()
@@ -2109,6 +2198,8 @@ namespace RTextNppPlugin.DllExport
         private static extern IntPtr SendMessage(IntPtr hWnd, NppMsg Msg, int wParam, NppMenuCmd lParam);
         [DllImport("user32")]
         private static extern IntPtr SendMessage(IntPtr hWnd, NppMsg Msg, int wParam, IntPtr lParam);
+        [DllImport("user32", CharSet = CharSet.Auto)]
+        private static extern int SendMessage(IntPtr hWnd, NppMsg Msg, IntPtr[] wParam, int lParam);
         [DllImport("user32")]
         private static extern IntPtr SendMessage(IntPtr hWnd, NppMsg Msg, int wParam, int lParam);
         [DllImport("user32")]
@@ -2148,8 +2239,8 @@ namespace RTextNppPlugin.DllExport
         [DllImport("user32")]
         private static extern int CheckMenuItem(IntPtr hmenu, int uIDCheckItem, int uCheck);
         #endregion
-        private const int WM_CREATE = 1;
     }
+
     public class ClikeStringArray : IDisposable
     {
         IntPtr _nativeArray;
@@ -2190,6 +2281,7 @@ namespace RTextNppPlugin.DllExport
                 _disposed = true;
             }
         }
+
         ~ClikeStringArray()
         {
             Dispose();
