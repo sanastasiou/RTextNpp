@@ -22,24 +22,24 @@ namespace RTextNppPlugin.ViewModels
     internal class ConsoleViewModel : BindableObject, IConsoleViewModelBase, IDisposable
     {
         #region [Data Members]
-        private ObservableCollection<IConsoleViewModelBase> _workspaceCollection = new ObservableCollection<IConsoleViewModelBase>();
-        private int _index                                                       = -1;
-        private bool _isBusy                                                     = false;
-        private bool _isLoading                                                  = false;
-        private bool _isActive                                                   = false;
-        private bool _isAutomateWorkspace                                        = false;
-        private double _progressPercentage                                       = 0.0;
-        private string _workspace                                                = null;
-        private string _currentCommand                                           = String.Empty;
-        private int _errorCount                                                  = 0;
-        private readonly ConnectorManager _cmanager                              = null;
-        private ObservableCollection<ErrorListViewModel> _underlyingErrorList    = null;
-        private INpp _nppHelper                                                  = null;
-        private Color _expanderHeaderBackground                                  = Colors.White;
-        private Color _expanderHeaderTextForeground                              = Colors.Black;
-        IStyleConfigurationObserver _styleObserver                               = null;
-        Dictionary<string, bool> _annotationList                                 = new Dictionary<string, bool>(100);
-        private readonly Dispatcher _dispatcher                                  = null;
+        private ObservableCollection<IConsoleViewModelBase> _workspaceCollection  = new ObservableCollection<IConsoleViewModelBase>();
+        private int _index                                                        = -1;
+        private bool _isBusy                                                      = false;
+        private bool _isLoading                                                   = false;
+        private bool _isActive                                                    = false;
+        private bool _isAutomateWorkspace                                         = false;
+        private double _progressPercentage                                        = 0.0;
+        private string _workspace                                                 = null;
+        private string _currentCommand                                            = String.Empty;
+        private int _errorCount                                                   = 0;
+        private readonly ConnectorManager _cmanager                               = null;
+        private BulkObservableCollection<ErrorListViewModel> _underlyingErrorList = null;
+        private INpp _nppHelper                                                   = null;
+        private Color _expanderHeaderBackground                                   = Colors.White;
+        private Color _expanderHeaderTextForeground                               = Colors.Black;
+        IStyleConfigurationObserver _styleObserver                                = null;
+        private readonly Dispatcher _dispatcher                                   = null;
+        private readonly ISettings _settings                                      = null;
         #endregion
 
         #region [Event Handlers]
@@ -47,34 +47,34 @@ namespace RTextNppPlugin.ViewModels
         void OnBufferActivated(object source, string file)
         {
             //add annotations if not already added
-            if(_annotationList.ContainsKey(file))
-            {
-                if(!_annotationList[file])
-                {
-                    var errorList = _underlyingErrorList.FirstOrDefault(x => x.FilePath.Replace('\\', '/').Equals(file, StringComparison.InvariantCultureIgnoreCase));
-                    if (errorList != null)
-                    {
-                        _annotationList[file] = true;
-                        AddAnnotations(errorList);
-                    }
-                }
-            }
-            else
-            {
-                var errorList = _underlyingErrorList.FirstOrDefault(x => x.FilePath.Replace('\\', '/').Equals(file, StringComparison.InvariantCultureIgnoreCase));
-                if (errorList != null)
-                {
-                    _annotationList[file] = true;
-                    AddAnnotations(errorList);
-                }
-            }
+            //if(_annotationList.ContainsKey(file))
+            //{
+            //    if(!_annotationList[file])
+            //    {
+            //        var errorList = _underlyingErrorList.FirstOrDefault(x => x.FilePath.Replace('\\', '/').Equals(file, StringComparison.InvariantCultureIgnoreCase));
+            //        if (errorList != null)
+            //        {
+            //            _annotationList[file] = true;
+            //            AddAnnotations(errorList);
+            //        }
+            //    }
+            //}
+            //else
+            //{
+            //    var errorList = _underlyingErrorList.FirstOrDefault(x => x.FilePath.Replace('\\', '/').Equals(file, StringComparison.InvariantCultureIgnoreCase));
+            //    if (errorList != null)
+            //    {
+            //        _annotationList[file] = true;
+            //        AddAnnotations(errorList);
+            //    }
+            //}
         }
 
         void OnPreviewFileClosed(object source, string file)
         {
             //clear all annotations here
-            _annotationList[file] = false;
-            _nppHelper.ClearAllAnnotations();
+            //_annotationList[file] = false;
+            //_nppHelper.ClearAllAnnotations();
         }
 
         void OnStyleObserverSettingsChanged(object sender, EventArgs e)
@@ -91,7 +91,7 @@ namespace RTextNppPlugin.ViewModels
          *
          * \param   workspace   The workspace.
          */
-        public ConsoleViewModel(ConnectorManager cmanager, INpp npphelper, IStyleConfigurationObserver styleObserver, Dispatcher dispatcher)
+        public ConsoleViewModel(ConnectorManager cmanager, INpp npphelper, IStyleConfigurationObserver styleObserver, Dispatcher dispatcher, ISettings settings)
         {
             if(cmanager == null)
             {
@@ -107,9 +107,9 @@ namespace RTextNppPlugin.ViewModels
             }
             _cmanager = cmanager;
             #if DEBUG
-            AddWorkspace(Constants.DEBUG_CHANNEL);
+            _workspaceCollection.Add(new WorkspaceViewModelBase(Constants.DEBUG_CHANNEL));
             #endif
-            AddWorkspace(Constants.GENERAL_CHANNEL);
+            _workspaceCollection.Add(new WorkspaceViewModelBase(Constants.GENERAL_CHANNEL));
             //subscribe to connector manager for workspace events
             _cmanager.OnConnectorAdded       += ConnectorManagerOnConnectorAdded;
             Index                            = 0;
@@ -118,8 +118,9 @@ namespace RTextNppPlugin.ViewModels
             _styleObserver.OnSettingsChanged += OnStyleObserverSettingsChanged;
             Plugin.PreviewFileClosed         += OnPreviewFileClosed;
             Plugin.BufferActivated           += OnBufferActivated;
-            _underlyingErrorList = new ObservableCollection<ErrorListViewModel>();
-            _dispatcher = dispatcher;
+            _underlyingErrorList             = new BulkObservableCollection<ErrorListViewModel>();
+            _dispatcher                      = dispatcher;
+            _settings                        = settings;
         }
             
         internal Dispatcher Dispatcher { get; set; }
@@ -127,33 +128,32 @@ namespace RTextNppPlugin.ViewModels
         void ConnectorManagerOnConnectorAdded(object source, ConnectorManager.ConnectorAddedEventArgs e)
         {
             //change to newly added workspace
-            AddWorkspace(e.Workspace, e.Connector);
+            AddWorkspace(e.Workspace, _settings, e.Connector);
         }
         
-        public string GetCurrentLogChannel()
-        {
-            return _workspaceCollection[_index].Workspace;
-        }
-        
-        public void AddWorkspace(string workspace, Connector connector = null)
+        public void AddWorkspace(string workspace, ISettings settings = null, Connector connector = null)
         {
             var workspaceModel = _workspaceCollection.FirstOrDefault(x => x.Workspace.Equals(workspace, StringComparison.InvariantCultureIgnoreCase));
-            if (workspaceModel == null)
+
+            _dispatcher.Invoke(new Action(() =>
             {
-                if (connector == null)
+                if (workspaceModel == null)
                 {
-                    _workspaceCollection.Add(new WorkspaceViewModelBase(workspace));
+                    if (connector == null)
+                    {
+                        _workspaceCollection.Add(new WorkspaceViewModelBase(workspace));
+                    }
+                    else
+                    {
+                        _workspaceCollection.Add(new WorkspaceViewModel(workspace, ref connector, this, _nppHelper, _dispatcher, settings));
+                    }
+                    Index = _workspaceCollection.IndexOf(_workspaceCollection.Last());
                 }
                 else
                 {
-                    _workspaceCollection.Add(new WorkspaceViewModel(workspace, ref connector, this, _nppHelper, _dispatcher));
+                    Index = _workspaceCollection.IndexOf(workspaceModel);
                 }
-                Index = _workspaceCollection.IndexOf(_workspaceCollection.Last());
-            }
-            else
-            {
-                Index = _workspaceCollection.IndexOf(workspaceModel);
-            }
+            }));
         }
 
         public Color ExpanderHeaderBackground
@@ -212,6 +212,14 @@ namespace RTextNppPlugin.ViewModels
                     Workspace           = _workspaceCollection[_index].Workspace;
                     ActiveCommand       = _workspaceCollection[_index].ActiveCommand;
                     ErrorCount          = _workspaceCollection[_index].ErrorCount;
+
+                    if (Errors != null)
+                    {
+                        _dispatcher.Invoke(new Action(() =>
+                        {
+                            AddErrors(_workspaceCollection[_index].WorkspaceErrors);
+                        }));
+                    }
                     base.RaisePropertyChanged("Index");
                 }
             }
@@ -285,12 +293,26 @@ namespace RTextNppPlugin.ViewModels
                 }
             }
         }
-        
-        public ObservableCollection<ErrorListViewModel> Errors
+
+        internal void AddErrors(IEnumerable<ErrorListViewModel> errors)
+        {
+            Errors.Clear();
+            Errors.AddRange(errors);
+        }
+
+        public BulkObservableCollection<ErrorListViewModel> Errors
         {
             get
             {
                 return _underlyingErrorList;
+            }
+        }
+
+        public IEnumerable<ErrorListViewModel> WorkspaceErrors
+        { 
+            get
+            {
+                return Errors as IEnumerable<ErrorListViewModel>;
             }
         }
         
@@ -384,36 +406,6 @@ namespace RTextNppPlugin.ViewModels
             Plugin.BufferActivated           -= OnBufferActivated;
         }
 
-        internal void ClearAnnotations()
-        {
-            _annotationList[_nppHelper.GetCurrentFilePath()] = false;
-            _nppHelper.ClearAllAnnotations();
-        }
-
-        internal void AddAnnotations(ErrorListViewModel model)
-        {
-            if (model != null)
-            {
-                //concatenate error that share the same line with \n so that they appear in the same annotation box underneath the same line
-                var aErrorGroupByLines = model.ErrorList.GroupBy(x => x.Line);
-                foreach (var errorGroup in aErrorGroupByLines)
-                {
-                    StringBuilder aErrorDescription = new StringBuilder(errorGroup.Count() * 50);
-                    int aErrorCounter = 0;
-                    foreach (var error in errorGroup)
-                    {
-                        aErrorDescription.AppendFormat("{0} at line : {1} - {2}", error.Severity, error.Line, error.Message);
-                        if (++aErrorCounter < errorGroup.Count())
-                        {
-                            aErrorDescription.Append("\n");
-                        }
-                    }
-                    //npp offset for line
-                    _nppHelper.SetAnnotationStyle((errorGroup.First().Line -1), 1);
-                    _nppHelper.AddAnnotation((errorGroup.First().Line - 1), aErrorDescription);
-                }
-            }
-        }
         #endregion
         
         #region [Helpers]
@@ -425,7 +417,7 @@ namespace RTextNppPlugin.ViewModels
                 // Dispose any disposable fields here
                 GC.SuppressFinalize(this);
             }
-            _cmanager.OnConnectorAdded -= ConnectorManagerOnConnectorAdded;
+            _cmanager.OnConnectorAdded       -= ConnectorManagerOnConnectorAdded;
             _styleObserver.OnSettingsChanged -= OnStyleObserverSettingsChanged;
         }
       

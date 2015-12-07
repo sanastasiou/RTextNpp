@@ -1,16 +1,12 @@
-﻿using RTextNppPlugin.Logging;
-using RTextNppPlugin.RText;
+﻿using RTextNppPlugin.RText;
 using RTextNppPlugin.Utilities;
+using RTextNppPlugin.Utilities.Settings;
 using RTextNppPlugin.ViewModels;
 using System;
-using System.IO;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Documents;
-using System.Linq;
-using RTextNppPlugin.Utilities.Settings;
 using System.Windows.Input;
-using System.Windows.Media;
+
 namespace RTextNppPlugin.WpfControls
 {
     /// <summary>
@@ -18,10 +14,10 @@ namespace RTextNppPlugin.WpfControls
     /// </summary>
     public partial class ConsoleOutput : UserControl
     {
-        internal ConsoleOutput(ConnectorManager cmanager, INpp nppHelper, IStyleConfigurationObserver styleObserver)
+        internal ConsoleOutput(ConnectorManager cmanager, INpp nppHelper, IStyleConfigurationObserver styleObserver, ISettings settings)
         {
             InitializeComponent();            
-            var dataContext        = new ConsoleViewModel(cmanager, nppHelper, styleObserver, Dispatcher);
+            var dataContext        = new ConsoleViewModel(cmanager, nppHelper, styleObserver, Dispatcher, settings);
             dataContext.Dispatcher = Dispatcher;
             DataContext            = dataContext;
             _nppHelper             = nppHelper;

@@ -1,5 +1,7 @@
 ﻿using System;
 using RTextNppPlugin.RText;
+using System.Collections.Generic;
+using RTextNppPlugin.Utilities.Settings;
 namespace RTextNppPlugin.ViewModels
 {
     class WorkspaceViewModelBase : IConsoleViewModelBase
@@ -11,7 +13,7 @@ namespace RTextNppPlugin.ViewModels
             _workspace = workspace;
         }
         
-        public void AddWorkspace(string workspace, Connector connector = null)
+        public void AddWorkspace(string workspace, ISettings settings = null, Connector connector = null)
         {
             _workspace = workspace;
         }
@@ -55,10 +57,19 @@ namespace RTextNppPlugin.ViewModels
         {
             get { return String.Empty; }
         }
+
+        public IEnumerable<ErrorListViewModel> WorkspaceErrors 
+        { 
+            get
+            {
+                return _errorList;
+            }
+        }
         #endregion
        
         #region [Data Members]
         private string _workspace = null;  //!< Associated namespace name.
+        protected IList<ErrorListViewModel> _errorList = new List<ErrorListViewModel>();
         #endregion
     }
 }

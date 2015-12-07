@@ -22,7 +22,7 @@ namespace RTextNppPlugin.RText
      * \brief   Process wrapper class over the .NET process class. Fixes several bugs regarding IO redirect.
      *
      */
-    public class RTextBackendProcess
+    internal class RTextBackendProcess
     {
         #region [Data Members]
         private System.Diagnostics.Process _process = null;
@@ -664,13 +664,13 @@ namespace RTextNppPlugin.RText
         #endregion
         
         #region Event Handlers
-        void OnWorkspaceDefinitionFileRenamed(object sender, System.IO.RenamedEventArgs e)
+        private void OnWorkspaceDefinitionFileRenamed(object sender, System.IO.RenamedEventArgs e)
         {
             //.rtext should never be renamed - process must be restarted - which will result to an error
             _workspaceFileWatcherDebouncer.TriggerHandler();
         }
-        
-        void OnWorkspaceDefinitionFileCreatedOrDeletedOrModified(object sender, System.IO.FileSystemEventArgs e)
+
+        private void OnWorkspaceDefinitionFileCreatedOrDeletedOrModified(object sender, System.IO.FileSystemEventArgs e)
         {
             //.rtext should never be recreated - process must be restarted
             _workspaceFileWatcherDebouncer.TriggerHandler();
@@ -683,7 +683,7 @@ namespace RTextNppPlugin.RText
          * \param   sender  Source of the event.
          * \param   e       Error event information.
          */
-        void ProcessError(object sender, System.IO.ErrorEventArgs e)
+        private void ProcessError(object sender, System.IO.ErrorEventArgs e)
         {
             if (ReferenceEquals(sender, _fileSystemWatcher))
             {

@@ -27,7 +27,7 @@ namespace RTextNppPlugin
         private static ISettings _settings                                                            = new Settings(_nppHelper);
         private static StyleConfigurationObserver _styleObserver                                      = new StyleConfigurationObserver(_nppHelper);
         private static ConnectorManager _connectorManager                                             = new ConnectorManager(_settings, _nppHelper);
-        private static PersistentWpfControlHost<ConsoleOutputForm> _consoleOutput                     = new PersistentWpfControlHost<ConsoleOutputForm>(Settings.RTextNppSettings.ConsoleWindowActive, new ConsoleOutputForm(_connectorManager, _nppHelper, _styleObserver), _settings, _nppHelper);
+        private static PersistentWpfControlHost<ConsoleOutputForm> _consoleOutput                     = new PersistentWpfControlHost<ConsoleOutputForm>(Settings.RTextNppSettings.ConsoleWindowActive, new ConsoleOutputForm(_connectorManager, _nppHelper, _styleObserver, _settings), _settings, _nppHelper);
         private static Options _options                                                               = new Options(_settings);
         private static FileModificationObserver _fileObserver                                         = new FileModificationObserver(_settings, _nppHelper);
         private static Dictionary<ShortcutKey, Tuple<string, Action, ShortcutType>> internalShortcuts = new Dictionary<ShortcutKey, Tuple<string, Action, ShortcutType>>();
@@ -88,7 +88,6 @@ namespace RTextNppPlugin
             Debugger.Launch();
             #endif
             _styleObserver.EnableStylesObservation();
-            _settings.OnSettingChanged += OnSettingChanged;
         }
      
         private static void OnKeyInterceptorKeyUp(Keys key, int repeatCount, ref bool handled)
@@ -436,14 +435,6 @@ namespace RTextNppPlugin
             _actionAfterUiUpdateHandler.TriggerHandler(new ActionWrapper<object, string, int>(_nppHelper.JumpToLine, _linkTargetsWindow.Targets.First().FilePath, Int32.Parse(_linkTargetsWindow.Targets.First().Line)));
         }
 
-        static void OnSettingChanged(object source, Settings.SettingChangedEventArgs e)
-        {
-            if(e.Setting == Settings.RTextNppSettings.EnableErrorAnnotations)
-            {
-                EnableAnnotations(_settings.Get<bool>(Settings.RTextNppSettings.EnableErrorAnnotations));
-            }
-        }
-
         static internal void OnFileSaved()
         {
             //find out file and forward it to appropriate connector
@@ -456,14 +447,13 @@ namespace RTextNppPlugin
             _fileObserver.CleanBackup();
             _connectorManager.ReleaseConnectors();
             CSScriptIntellisense.KeyInterceptor.Instance.KeyDown -= OnKeyInterceptorKeyDown;
-            CSScriptIntellisense.KeyInterceptor.Instance.KeyUp -= OnKeyInterceptorKeyUp;
-            _scintillaMainMsgInterceptor.ScintillaFocusChanged -= OnMainScintillaFocusChanged;
+            CSScriptIntellisense.KeyInterceptor.Instance.KeyUp   -= OnKeyInterceptorKeyUp;
+            _scintillaMainMsgInterceptor.ScintillaFocusChanged   -= OnMainScintillaFocusChanged;
             _scintillaSecondMsgInterceptor.ScintillaFocusChanged -= OnSecondScintillaFocusChanged;
-            _scintillaMainMsgInterceptor.MouseWheelMoved -= OnScintillaMouseWheelMoved;
-            _scintillaSecondMsgInterceptor.MouseWheelMoved -= OnScintillaMouseWheelMoved;
-            _nppMsgInterceptpr.MenuLoopStateChanged -= OnMenuLoopStateChanged;
-            _linkTargetsWindow.IsVisibleChanged -= OnLinkTargetsWindowIsVisibleChanged;
-            _settings.OnSettingChanged -= OnSettingChanged;
+            _scintillaMainMsgInterceptor.MouseWheelMoved         -= OnScintillaMouseWheelMoved;
+            _scintillaSecondMsgInterceptor.MouseWheelMoved       -= OnScintillaMouseWheelMoved;
+            _nppMsgInterceptpr.MenuLoopStateChanged              -= OnMenuLoopStateChanged;
+            _linkTargetsWindow.IsVisibleChanged                  -= OnLinkTargetsWindowIsVisibleChanged;
         }
 
         internal static void OnBufferActivated()

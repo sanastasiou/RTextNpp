@@ -1,4 +1,6 @@
 ﻿using RTextNppPlugin.RText;
+using RTextNppPlugin.Utilities.Settings;
+using System.Collections.Generic;
 namespace RTextNppPlugin.ViewModels
 {
     /**
@@ -6,7 +8,7 @@ namespace RTextNppPlugin.ViewModels
      */
     interface IConsoleViewModelBase
     {
-        void AddWorkspace(string workspace, Connector connector = null);
+        void AddWorkspace(string workspace, ISettings settings = null, Connector connector = null);
         string Workspace { get; }
         bool IsBusy { get; }
         bool IsActive { get; }
@@ -15,5 +17,6 @@ namespace RTextNppPlugin.ViewModels
         double ProgressPercentage { get; }
         string ActiveCommand { get; }
         int ErrorCount { get; }
+        IEnumerable<ErrorListViewModel> WorkspaceErrors { get; }
     }
 }

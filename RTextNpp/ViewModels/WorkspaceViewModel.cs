@@ -5,13 +5,15 @@ namespace RTextNppPlugin.ViewModels
     using RTextNppPlugin.RText;
     using RTextNppPlugin.RText.Protocol;
     using RTextNppPlugin.RText.StateEngine;
+    using RTextNppPlugin.Scintilla.Annotations;
     using RTextNppPlugin.Utilities;
+    using RTextNppPlugin.Utilities.Settings;
     using System.Collections.Generic;
     using System.Windows.Threading;
     class WorkspaceViewModel : WorkspaceViewModelBase, IConsoleViewModelBase, IDisposable
     {
         #region [Interface]
-        public WorkspaceViewModel(string workspace, ref Connector connector, ConsoleViewModel mainViewModel, INpp nppHelper, Dispatcher dispatcher)
+        public WorkspaceViewModel(string workspace, ref Connector connector, ConsoleViewModel mainViewModel, INpp nppHelper, Dispatcher dispatcher, ISettings settings)
             : base(workspace)
         {
             _connector                   = connector;
@@ -20,6 +22,7 @@ namespace RTextNppPlugin.ViewModels
             _connector.OnProgressUpdated += OnConnectorProgressUpdated;
             _nppHelper                   = nppHelper;
             _dispatcher                  = dispatcher;
+            _annotationsManager          = new AnnotationManager(settings, nppHelper, Plugin.nppData);
         }
         /**
          * \brief   Gets a value indicating whether this workspace is currently loading.
@@ -149,24 +152,33 @@ namespace RTextNppPlugin.ViewModels
                         break;
                 }
 
-                if (e.Workspace == _mainModel.Workspace)
-                {
+
                     if (e.StateEntered == ConnectorStates.Idle && e.StateLeft == ConnectorStates.Loading)
                     {
-                        _mainModel.ErrorCount = _connector.ErrorList.total_problems;
-                        AddErrorsToMainModel();
-
+                        AddErrors();
+                        if (e.Workspace == _mainModel.Workspace)
+                        {
+                            _dispatcher.Invoke(new Action(() =>
+                            {
+                                _mainModel.ErrorCount = _connector.ErrorList.total_problems;
+                                _mainModel.AddErrors(_errorList);
+                            }));
+                            AddAnnotations();
+                        }
                     }
                     else if (e.StateEntered == ConnectorStates.Loading && e.StateLeft == ConnectorStates.Idle)
                     {
-                        _mainModel.ClearAnnotations();
-                        _mainModel.ErrorCount = 0;
-                        _dispatcher.Invoke(new Action(() =>
+                        _errorList.Clear();
+                        if (e.Workspace == _mainModel.Workspace)
                         {
-                            _mainModel.Errors.Clear();
-                        }));
+                            _dispatcher.Invoke(new Action(() =>
+                            {
+                                _mainModel.ErrorCount = 0;
+                                _mainModel.Errors.Clear();
+                            }));
+                        }
                     }
-                }
+                
                 _previousConnectorState = e.StateEntered;
             }
         }
@@ -180,27 +192,26 @@ namespace RTextNppPlugin.ViewModels
        
         #region [Helpers]
                
-        void AddErrorsToMainModel()
+        void AddErrors()
         {
+            _errorList.Clear();
             if (_connector.ErrorList.total_problems > 0)
             {
                 foreach (var errors in _connector.ErrorList.problems.OrderBy(x => x.file))
                 {
-                    _dispatcher.Invoke(new Action<ErrorListViewModel>((x) =>
-                    {
-                        _mainModel.Errors.Add(x);
-                    }), new ErrorListViewModel(errors.file, errors.problems.OrderBy(x => x.line).Select(x => new ErrorItemViewModel(x, errors.file)), false, _nppHelper));
+                    _errorList.Add(new ErrorListViewModel(errors.file, errors.problems.OrderBy(x => x.line).Select(x => new ErrorItemViewModel(x, errors.file)), false, _nppHelper));
 
                 }
-                
-                string aCurrentFilePath = _nppHelper.GetCurrentFilePath().Replace('\\', '/');
-                var aCurrentFileErrors = _mainModel.Errors.FirstOrDefault(x => x.FilePath.Equals(aCurrentFilePath, StringComparison.InvariantCultureIgnoreCase));
-                
-                _mainModel.AddAnnotations(aCurrentFileErrors);
             }
         }
 
-        
+        private void AddAnnotations()
+        {
+            string aCurrentFilePath = _nppHelper.GetCurrentFilePath().Replace('\\', '/');
+            var aCurrentFileErrors  = _errorList.FirstOrDefault(x => x.FilePath.Equals(aCurrentFilePath, StringComparison.InvariantCultureIgnoreCase));
+            _annotationsManager.AddErrors(aCurrentFileErrors);
+        }
+
         #endregion
 
         #region [Data Members]
@@ -214,7 +225,8 @@ namespace RTextNppPlugin.ViewModels
         private ConnectorStates _previousConnectorState = ConnectorStates.Idle; //!< Stores previous connector state.
         private INpp _nppHelper                         = null;                 //!< Npp helper instance.
         private static readonly object _lock            = new object();         //!< Mutex.
-        private readonly Dispatcher _dispatcher         = null;
+        private readonly Dispatcher _dispatcher         = null;                 //!< UI Dispatcher.
+        private IError _annotationsManager              = null;
         #endregion
     }
 }

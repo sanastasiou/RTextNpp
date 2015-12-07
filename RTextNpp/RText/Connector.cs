@@ -19,7 +19,7 @@ namespace RTextNppPlugin.RText
      * \brief   Connector. All commands are going through a connector instance.
      *
      */
-    public class Connector : IConnector
+    internal class Connector : IConnector
     {
         #region [Data Members]
         private ManualResetEvent _receivedResponseEvent                    = new ManualResetEvent(false)                     ;            //!< The received response event

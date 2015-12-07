@@ -68,9 +68,36 @@ namespace RTextNppPlugin
         public const string SEVERITY_FATAL = "fatal";
         
         #endregion
-        
+
+        #region [RText Style IDS]
+        public class StyleId
+        {
+            public const int DEFAULT                = 0;
+            public const int COMMENT                = 1;
+            public const int NOTATION               = 2;
+            public const int REFERENCE              = 3;
+            public const int FLOAT                  = 4;
+            public const int INTEGER                = 5;
+            public const int QUOTED_STRING          = 6;
+            public const int BOOLEAN                = 7;
+            public const int LABEL                  = 8;
+            public const int COMMAND                = 9;
+            public const int IDENTIFIER             = 10;
+            public const int TEMPLATE               = 11;
+            public const int SPACE                  = 12;
+            public const int OTHER                  = 13;
+            public const int REFERENCE_LINK         = 15;
+            public const int ANNOTATION_DEBUG       = 16;
+            public const int ANNOTATION_INFO        = 17;
+            public const int ANNOTATION_WARNING     = 18;
+            public const int ANNOTATION_ERROR       = 19;
+            public const int ANNOTATION_FATAL_ERROR = 20;
+            public const int ERROR_OVERVIEW         = 21;
+        }
+        #endregion
+
         #region [NppMenuCommand]
-        
+
         public enum NppMenuCommands : int
         {
             ConsoleWindow  = 0,
