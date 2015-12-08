@@ -176,6 +176,6 @@ namespace RTextNppPlugin.Utilities
 
         int NumberOfOpenFilesInSecondaryView { get; }
 
-        IEnumerable<string> GetOpenFiles(NppMsg view);
+        string[] GetOpenFiles(NppMsg view);
     }
 }

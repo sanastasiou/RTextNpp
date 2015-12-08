@@ -734,7 +734,7 @@ namespace RTextNppPlugin.RText
             {
                 //find .rtext file of this document
                 string aRTextFilePath = FileUtilities.FindWorkspaceRoot(pathOfModifiedFile);
-                Plugin.GetFileObserver().SaveWorkspaceFiles(aRTextFilePath);
+                Plugin.Instance.FileObserver.SaveWorkspaceFiles(aRTextFilePath);
             }
             if (_connector != null)
             {

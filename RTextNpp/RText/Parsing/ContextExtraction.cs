@@ -34,7 +34,7 @@ namespace RTextNppPlugin.RText.Parsing
                     if (lengthToEnd <= _contextLines.Last().Length)
                     {
                         //adjust for backend
-                        ContextColumn = (_contextLines.Last().Length - lengthToEnd) + Constants.BACKEND_COLUMN_OFFSET;
+                        ContextColumn = (_contextLines.Last().Length - lengthToEnd) + Constants.Scintilla.BACKEND_COLUMN_OFFSET;
                     }
                     else
                     {

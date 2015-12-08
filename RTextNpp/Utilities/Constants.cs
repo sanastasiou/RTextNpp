@@ -37,10 +37,6 @@ namespace RTextNppPlugin
         public const char SPACE = ' ';                                          //!< Space char.
         public const char TAB = '\t';                                           //!< Tab char.
         public const char COMMA = ',';                                          //!< Comma char.
-        public const int BACKEND_COLUMN_OFFSET = 1;                             //!< Backend columns start at one, but the tokenizer starts at 0.
-        public const int BOXED_ANNOTATION_STYLE = 2;                            //!< Indents and boxes annotations. (http://www.scintilla.org/ScintillaDoc.html#SCI_ANNOTATIONSETVISIBLE)
-        public const int HIDDEN_ANNOTATION_STYLE = 0;                           //!< Hides annotations. (http://www.scintilla.org/ScintillaDoc.html#SCI_ANNOTATIONSETVISIBLE)
-        public const string PluginName = "RTextNpp";                            //!< Plugin name.
         public const double MAX_AUXILIARY_WINDOWS_HEIGHT = 400.0;               //!< Max height of auto completion and link reference windows.
         public const double MAX_AUXILIARY_WINDOWS_WIDTH  = 600.0;               //!< Max width of auto completion and link reference windows.
         public const double MIN_AUXILIARY_WINDOWS_WIDTH = 300.0;                //!< Max width of auto completion and link reference windows.
@@ -48,7 +44,19 @@ namespace RTextNppPlugin
         public const double ZOOM_FACTOR = 0.08;                                 //!< Relation between actual zoom and scintilla zoom factor for various plugin windows.
         public const double INITIAL_WIDTH_LINK_REFERENCE_LABELS = 70.0;         //!< Initial width of link reference labels in row details template. This is used to align all labels.
         public const double MAX_WIDTH_LINK_REFERENCE_LABELS = 600.0;            //!< Initial width of link reference labels in row details template. This is used to align all labels.
-        public const string SHORTCUTS_FILE = "shortcuts.xml";                   //!< Npp shortcuts file.
+
+        #region [Scintilla-Npp]
+        public class Scintilla
+        {
+            public const int VIEW_NOT_ACTIVE = -1;                              //!< Inactive view ( not visible ).
+            public const string PLUGIN_NAME = "RTextNpp";                       //!< Plugin name.
+            public const string RTEXT_FILE_DESCRIPTION = "RText file.";         //!< RText file description.
+            public const int BACKEND_COLUMN_OFFSET = 1;                         //!< Backend columns start at one, but the tokenizer starts at 0.
+            public const int BOXED_ANNOTATION_STYLE = 2;                        //!< Indents and boxes annotations. (http://www.scintilla.org/ScintillaDoc.html#SCI_ANNOTATIONSETVISIBLE)
+            public const int HIDDEN_ANNOTATION_STYLE = 0;                       //!< Hides annotations. (http://www.scintilla.org/ScintillaDoc.html#SCI_ANNOTATIONSETVISIBLE)
+            public const string SHORTCUTS_FILE = "shortcuts.xml";               //!< Npp shortcuts file.
+        }
+        #endregion
 
         #region [Win32]
         public class WIN_32

@@ -11,13 +11,13 @@ namespace RTextNppPlugin
         [DllExport(CallingConvention = CallingConvention.StdCall)]
         static void GetLexerName(uint index, StringBuilder name, int bufLength)
         {
-            name.Append("RTextNpp");
+            name.Append(Constants.Scintilla.PLUGIN_NAME);
         }
 
         [DllExport(CallingConvention = CallingConvention.StdCall)]
         static void GetLexerStatusText(uint index, [MarshalAs(UnmanagedType.LPWStr, SizeConst = 32)]StringBuilder desc, int bufLength)
         {
-            desc.Append("RText file.");
+            desc.Append(Constants.Scintilla.RTEXT_FILE_DESCRIPTION);
         }
 
         [DllExport(CallingConvention = CallingConvention.StdCall)]
@@ -42,15 +42,15 @@ namespace RTextNppPlugin
         [DllExport(CallingConvention = CallingConvention.Cdecl)]
         static void setInfo(NppData notepadPlusData)
         {
-            Plugin.nppData = notepadPlusData;
-            Plugin.CommandMenuInit();
+            Plugin.Instance.NppData = notepadPlusData;
+            Plugin.Instance.CommandMenuInit();
         }
 
         [DllExport(CallingConvention = CallingConvention.Cdecl)]
         static IntPtr getFuncsArray(ref int nbF)
         {
-            nbF = Plugin._funcItems.Items.Count;
-            return Plugin._funcItems.NativePointer;
+            nbF = Plugin.Instance.FuncItems.Items.Count;
+            return Plugin.Instance.FuncItems.NativePointer;
         }
 
         [DllExport(CallingConvention = CallingConvention.Cdecl)]
@@ -64,7 +64,7 @@ namespace RTextNppPlugin
         static IntPtr getName()
         {
             if (_ptrPluginName == IntPtr.Zero)
-                _ptrPluginName = Marshal.StringToHGlobalUni(RTextNppPlugin.Constants.PluginName);
+                _ptrPluginName = Marshal.StringToHGlobalUni(RTextNppPlugin.Constants.Scintilla.PLUGIN_NAME);
             return _ptrPluginName;
         }
 
@@ -76,29 +76,29 @@ namespace RTextNppPlugin
             switch (nc.nmhdr.code)
             {
                 case (uint)NppMsg.NPPN_TBMODIFICATION:
-                    Plugin._funcItems.RefreshItems();
-                    Plugin.SetToolBarIcon();
+                    Plugin.Instance.FuncItems.RefreshItems();
+                    Plugin.Instance.SetToolBarIcon();
                     break;
                 case (uint)NppMsg.NPPN_SHUTDOWN:
-                    Plugin.PluginCleanUp();
+                    Plugin.Instance.PluginCleanUp();
                     Marshal.FreeHGlobal(_ptrPluginName);
                     break;
                 case (uint)NppMsg.NPPN_READY:
-                    Plugin.LoadSettings();
+                    Plugin.Instance.LoadSettings();
                     break;
                 case (uint)NppMsg.NPPN_BUFFERACTIVATED:
-                    Plugin.OnFileOpened();
-                    Plugin.OnZoomLevelModified();
-                    Plugin.OnBufferActivated();
+                    Plugin.Instance.OnFileOpened();
+                    Plugin.Instance.OnZoomLevelModified();
+                    Plugin.Instance.OnBufferActivated();
                     break;
                 case (uint)SciMsg.SCN_SAVEPOINTLEFT:
-                    Plugin.OnFileConsideredModified();
+                    Plugin.Instance.OnFileConsideredModified();
                     break;
                 case (uint)SciMsg.SCN_SAVEPOINTREACHED:
-                    Plugin.OnFileConsideredUnmodified();
+                    Plugin.Instance.OnFileConsideredUnmodified();
                     break;
                 case (uint)SciMsg.SCN_ZOOM:
-                    Plugin.OnZoomLevelModified();
+                    Plugin.Instance.OnZoomLevelModified();
                     break;
                 case (uint)NppMsg.NPPN_FILEBEFORECLOSE:
                     Plugin.OnPreviewFileClosed();
@@ -106,10 +106,10 @@ namespace RTextNppPlugin
                 case (uint)SciMsg.SCN_UPDATEUI:
                     break;
                 case (uint)SciMsg.SCN_HOTSPOTRELEASECLICK:
-                    Plugin.OnHotspotClicked();
+                    Plugin.Instance.OnHotspotClicked();
                     break;
                 case (uint)NppMsg.NPPN_FILESAVED:
-                    Plugin.OnFileSaved();
+                    Plugin.Instance.OnFileSaved();
                     break;
             }
         }

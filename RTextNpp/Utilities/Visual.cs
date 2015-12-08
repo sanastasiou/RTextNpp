@@ -295,7 +295,7 @@ namespace RTextNppPlugin.Utilities
         internal static void SetOwnerFromNppPlugin(System.Windows.Window window)
         {
             WindowInteropHelper helper = new WindowInteropHelper(window);
-            helper.Owner = Plugin.nppData._nppHandle;
+            helper.Owner               = Plugin.Instance.NppData._nppHandle;
         }
         
         internal static HwndSource HwndSourceFromIntPtr(IntPtr handle)
@@ -698,8 +698,8 @@ namespace RTextNppPlugin.Utilities
             if ((System.Environment.OSVersion.Version.Major == 6 && System.Environment.OSVersion.Version.Minor > 1 ||
                 System.Environment.OSVersion.Version.Major > 6))
             {
-                Logging.Logger.Instance.Append("Current DPI is : {0}", GetDpiForWindowsGreatedThan7(Plugin.nppData._nppHandle));
-                dpiScale = GetDpiForWindowsGreatedThan7(Plugin.nppData._nppHandle);
+                Logging.Logger.Instance.Append("Current DPI is : {0}", GetDpiForWindowsGreatedThan7(Plugin.Instance.NppData._nppHandle));
+                dpiScale = GetDpiForWindowsGreatedThan7(Plugin.Instance.NppData._nppHandle);
             }
             else
             {

@@ -13,7 +13,15 @@ namespace RTextNppPlugin.RText
      */
     internal sealed class ConnectorManager : IDisposable
     {
-        #region Events
+        #region [Data Members]
+        private Dictionary<string, RTextBackendProcess> _processList = null;
+        private NppData _nppData                                     = default(NppData);
+        private readonly ISettings _settings                         = null;
+        private readonly INpp _nppHelper                             = null;
+        #endregion
+
+        #region [Events]
+        
         /**
          * Connector added event.
          *
@@ -21,7 +29,9 @@ namespace RTextNppPlugin.RText
          * \param   e       Connector added event information.
          */
         internal delegate void ConnectorAddedEvent(object source, ConnectorAddedEventArgs e);
+        
         internal event ConnectorAddedEvent OnConnectorAdded;  //!< Event queue for all listeners interested in OnConnectorAdded events.
+        
         /**
          * Additional information for connector added events.
          */
@@ -35,8 +45,11 @@ namespace RTextNppPlugin.RText
                 Connector = connector;
             }
         }
+        
         #endregion
+        
         #region Interface
+        
         internal ConnectorManager(ISettings settings, INpp nppHelper)
         {
             _settings    = settings;
@@ -112,6 +125,7 @@ namespace RTextNppPlugin.RText
                 }
             }
         }
+        
         /**
          * Initializes this ConnectorManager.
          *
@@ -122,6 +136,7 @@ namespace RTextNppPlugin.RText
         {
             _nppData = nppData;
         }
+        
         /**
          * \brief   Gets the connector of the file which is being viewed.
          *
@@ -148,15 +163,11 @@ namespace RTextNppPlugin.RText
                 return null;
             }
         }
+        
         #endregion
-        #region Data Members
-        private Dictionary<string, RTextBackendProcess> _processList;
-        private NppData _nppData;
-        private readonly ISettings _settings = null;
-        private readonly INpp _nppHelper     = null;
-        #endregion
-
+        
         #region [Helpers]
+        
         private void Dispose(bool disposing)
         {
             if (disposing)
@@ -165,13 +176,16 @@ namespace RTextNppPlugin.RText
                 GC.SuppressFinalize(this);
             }
         }
+        
         #endregion
 
         #region [Event Handlers]
+        
         void OnBufferActivated(object source, string file)
         {
             CreateConnector(file);
         }
+        
         #endregion
     }
 }

@@ -73,8 +73,8 @@ namespace RTextNppPlugin.Utilities
             get
             {
                 int curScintilla;
-                _win32.ISendMessage(Plugin.nppData._nppHandle, NppMsg.NPPM_GETCURRENTSCINTILLA, 0, out curScintilla);
-                return (curScintilla == 0) ? Plugin.nppData._scintillaMainHandle : Plugin.nppData._scintillaSecondHandle;
+                _win32.ISendMessage(Plugin.Instance.NppData._nppHandle, NppMsg.NPPM_GETCURRENTSCINTILLA, 0, out curScintilla);
+                return (curScintilla == 0) ? Plugin.Instance.NppData._scintillaMainHandle : Plugin.Instance.NppData._scintillaSecondHandle;
             }
         }
 
@@ -82,7 +82,7 @@ namespace RTextNppPlugin.Utilities
         {
             get
             {
-                return Plugin.nppData._scintillaMainHandle;
+                return Plugin.Instance.NppData._scintillaMainHandle;
             }
         }
 
@@ -90,13 +90,13 @@ namespace RTextNppPlugin.Utilities
         {
             get
             {
-                return Plugin.nppData._scintillaSecondHandle;
+                return Plugin.Instance.NppData._scintillaSecondHandle;
             }
         }
 
         public int CurrentDocIndex(NppMsg currentView)
         {
-            return (int)_win32.ISendMessage(Plugin.nppData._nppHandle, NppMsg.NPPM_GETCURRENTDOCINDEX, 0, (int)currentView);
+            return (int)_win32.ISendMessage(Plugin.Instance.NppData._nppHandle, NppMsg.NPPM_GETCURRENTDOCINDEX, 0, (int)currentView);
         }
         
         public void SetEditorFocus(int setFocus = 1)
@@ -169,7 +169,7 @@ namespace RTextNppPlugin.Utilities
         public string GetCurrentFilePath()
         {
             StringBuilder path = new StringBuilder(Win32.MAX_PATH);
-            _win32.ISendMessage(Plugin.nppData._nppHandle, NppMsg.NPPM_GETFULLCURRENTPATH, 0, path);
+            _win32.ISendMessage(Plugin.Instance.NppData._nppHandle, NppMsg.NPPM_GETFULLCURRENTPATH, 0, path);
             return path.ToString();
         }
         
@@ -192,8 +192,8 @@ namespace RTextNppPlugin.Utilities
          */
         public void SaveFile(string file)
         {
-            _win32.ISendMessage(Plugin.nppData._nppHandle, NppMsg.NPPM_SWITCHTOFILE, 0, file);
-            _win32.ISendMessage(Plugin.nppData._nppHandle, NppMsg.NPPM_SAVECURRENTFILE, 0, 0);
+            _win32.ISendMessage(Plugin.Instance.NppData._nppHandle, NppMsg.NPPM_SWITCHTOFILE, 0, file);
+            _win32.ISendMessage(Plugin.Instance.NppData._nppHandle, NppMsg.NPPM_SAVECURRENTFILE, 0, 0);
         }
         
         /**
@@ -203,7 +203,7 @@ namespace RTextNppPlugin.Utilities
          */
         public void SwitchToFile(string file)
         {
-            _win32.ISendMessage(Plugin.nppData._nppHandle, NppMsg.NPPM_SWITCHTOFILE, 0, file);
+            _win32.ISendMessage(Plugin.Instance.NppData._nppHandle, NppMsg.NPPM_SWITCHTOFILE, 0, file);
         }
         
         public unsafe void AddText(string text)
@@ -237,7 +237,7 @@ namespace RTextNppPlugin.Utilities
         public string GetCurrentFile()
         {
             var path = new StringBuilder(Win32.MAX_PATH);
-            _win32.ISendMessage(Plugin.nppData._nppHandle, NppMsg.NPPM_GETFULLCURRENTPATH, 0, path);
+            _win32.ISendMessage(Plugin.Instance.NppData._nppHandle, NppMsg.NPPM_GETFULLCURRENTPATH, 0, path);
             return path.ToString();
         }
         
@@ -267,7 +267,7 @@ namespace RTextNppPlugin.Utilities
         public string GetConfigDir()
         {
             var buffer = new StringBuilder(260);
-            _win32.ISendMessage(Plugin.nppData._nppHandle, NppMsg.NPPM_GETPLUGINSCONFIGDIR, 260, buffer);
+            _win32.ISendMessage(Plugin.Instance.NppData._nppHandle, NppMsg.NPPM_GETPLUGINSCONFIGDIR, 260, buffer);
             return buffer.ToString();
         }
         
@@ -368,7 +368,7 @@ namespace RTextNppPlugin.Utilities
         
         public string GetShortcutsFile()
         {
-            return Path.Combine(Path.GetDirectoryName(Path.GetDirectoryName(GetConfigDir())), Constants.SHORTCUTS_FILE);
+            return Path.Combine(Path.GetDirectoryName(Path.GetDirectoryName(GetConfigDir())), Constants.Scintilla.SHORTCUTS_FILE);
         }
         
         [DllImport("user32")]        
@@ -486,7 +486,7 @@ namespace RTextNppPlugin.Utilities
                
         public IntPtr NppHandle
         {
-            get { return Plugin.nppData._nppHandle; }
+            get { return Plugin.Instance.NppData._nppHandle; }
         }
         
         public int GetCaretPosition()
@@ -531,7 +531,7 @@ namespace RTextNppPlugin.Utilities
         
         public void OpenFile(string file)
         {
-            IntPtr sci = Plugin.nppData._nppHandle;
+            IntPtr sci = Plugin.Instance.NppData._nppHandle;
             _win32.ISendMessage(sci, NppMsg.NPPM_DOOPEN, 0, file);
         }
 
@@ -754,7 +754,7 @@ namespace RTextNppPlugin.Utilities
         { 
             get
             {
-                return (int)_win32.ISendMessage(Plugin.nppData._nppHandle, NppMsg.NPPM_GETNBOPENFILES, 0, (int)NppMsg.ALL_OPEN_FILES);
+                return (int)_win32.ISendMessage(Plugin.Instance.NppData._nppHandle, NppMsg.NPPM_GETNBOPENFILES, 0, (int)NppMsg.ALL_OPEN_FILES);
             }
         }
 
@@ -762,7 +762,7 @@ namespace RTextNppPlugin.Utilities
         { 
             get
             {
-                return (int)_win32.ISendMessage(Plugin.nppData._nppHandle, NppMsg.NPPM_GETNBOPENFILES, 0, (int)NppMsg.PRIMARY_VIEW);
+                return (int)_win32.ISendMessage(Plugin.Instance.NppData._nppHandle, NppMsg.NPPM_GETNBOPENFILES, 0, (int)NppMsg.PRIMARY_VIEW);
             }
         }
 
@@ -770,26 +770,26 @@ namespace RTextNppPlugin.Utilities
         { 
             get
             {
-                return (int)_win32.ISendMessage(Plugin.nppData._nppHandle, NppMsg.NPPM_GETNBOPENFILES, 0, (int)NppMsg.SECOND_VIEW);
+                return (int)_win32.ISendMessage(Plugin.Instance.NppData._nppHandle, NppMsg.NPPM_GETNBOPENFILES, 0, (int)NppMsg.SECOND_VIEW);
             }
         }
 
-        public IEnumerable<string> GetOpenFiles(NppMsg view)
+        public string[] GetOpenFiles(NppMsg view)
         {
             string[] aFileList = null;
             switch (view)
             {
                 case NppMsg.ALL_OPEN_FILES:
-                    _win32.ISendMessage(Plugin.nppData._nppHandle, NppMsg.NPPM_GETOPENFILENAMES, out aFileList, NumberOfOpenFiles);
+                    _win32.ISendMessage(Plugin.Instance.NppData._nppHandle, NppMsg.NPPM_GETOPENFILENAMES, out aFileList, NumberOfOpenFiles);
                     break;
                 case NppMsg.PRIMARY_VIEW:
-                    _win32.ISendMessage(Plugin.nppData._nppHandle, NppMsg.NPPM_GETOPENFILENAMESPRIMARY, out  aFileList, NumberOfOpenFilesInPrimaryView);
+                    _win32.ISendMessage(Plugin.Instance.NppData._nppHandle, NppMsg.NPPM_GETOPENFILENAMESPRIMARY, out  aFileList, NumberOfOpenFilesInPrimaryView);
                     break;
                 case NppMsg.SECOND_VIEW:
-                    _win32.ISendMessage(Plugin.nppData._nppHandle, NppMsg.NPPM_GETOPENFILENAMESSECOND, out  aFileList, NumberOfOpenFilesInSecondaryView);
+                    _win32.ISendMessage(Plugin.Instance.NppData._nppHandle, NppMsg.NPPM_GETOPENFILENAMESSECOND, out  aFileList, NumberOfOpenFilesInSecondaryView);
                     break;
                 default:
-                    return new List<string>();
+                    return new string[0];
             }
             return aFileList;
         }

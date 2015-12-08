@@ -12,8 +12,10 @@ namespace RTextNppPlugin.Scintilla.Annotations
     {
         void OnSettingChanged(object source, Settings.SettingChangedEventArgs e);
 
-        void AddErrors(ErrorListViewModel model, IntPtr scintilla);
-
         void OnBufferActivated(string file);
+
+        void RefreshAnnotations();
+
+        IList<ErrorListViewModel> ErrorList { get; set; }
     }
 }

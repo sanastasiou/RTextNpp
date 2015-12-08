@@ -19,34 +19,38 @@ using System.Text;
 
 namespace RTextNppPlugin
 {
-    partial class Plugin
+    internal class Plugin
     {
         #region [Fields]
-        private static INpp _nppHelper                                                                = Npp.Instance;
-        private static IWin32 _win32                                                                  = new Win32();
-        private static ISettings _settings                                                            = new Settings(_nppHelper);
-        private static StyleConfigurationObserver _styleObserver                                      = new StyleConfigurationObserver(_nppHelper);
-        private static ConnectorManager _connectorManager                                             = new ConnectorManager(_settings, _nppHelper);
-        private static PersistentWpfControlHost<ConsoleOutputForm> _consoleOutput                     = new PersistentWpfControlHost<ConsoleOutputForm>(Settings.RTextNppSettings.ConsoleWindowActive, new ConsoleOutputForm(_connectorManager, _nppHelper, _styleObserver, _settings), _settings, _nppHelper);
-        private static Options _options                                                               = new Options(_settings);
-        private static FileModificationObserver _fileObserver                                         = new FileModificationObserver(_settings, _nppHelper);
-        private static Dictionary<ShortcutKey, Tuple<string, Action, ShortcutType>> internalShortcuts = new Dictionary<ShortcutKey, Tuple<string, Action, ShortcutType>>();
-        private static AutoCompletionWindow _autoCompletionForm                                       = new AutoCompletionWindow(_connectorManager, _win32, _nppHelper);
-        private static Bitmap tbBmp                                                                   = Properties.Resources.ConsoleIcon;
-        private static Bitmap tbBmp_tbTab                                                             = Properties.Resources.ConsoleIcon;
-        private static Icon tbIcon                                                                    = null;
-        private static bool _consoleInitialized                                                       = false;
-        private static bool _invokeInProgress                                                         = false;
-        private static int _currentZoomLevel                                                          = 0;
-        private static ScintillaMessageInterceptor _scintillaMainMsgInterceptor                       = null;  //!< Intercepts scintilla messages.
-        private static ScintillaMessageInterceptor _scintillaSecondMsgInterceptor                     = null;  //!< Intercepts scintilla messages from second scintilla handle.
-        private static NotepadMessageInterceptor _nppMsgInterceptpr                                   = null;  //!< Intercepts notepad ++ messages.
-        private static bool _hasMainScintillaFocus                                                    = false; //!< Indicates if the main editor has focus.
-        private static bool _hasSecondScintillaFocus                                                  = false; //!< Indicates if the second editor has focus.
-        private static bool _isMenuLoopInactive                                                       = false; //!< Indicates that npp menu loop is active.
-        private static LinkTargetsWindow _linkTargetsWindow                                           = new LinkTargetsWindow(_nppHelper, _win32, _settings, _connectorManager, _styleObserver); //!< Display reference links.
-        private static bool _isAutoCompletionShortcutActive                                           = false; //!< Indicates the Ctrl+Space is pressed. Need this to commit auto completion in case of fuzzy matching.
-        private static Utilities.DelayedEventHandler<object> _actionAfterUiUpdateHandler              = new DelayedEventHandler<object>(null, 100);
+        private static volatile Plugin instance                                                = null;
+        private static object syncRoot                                                         = new Object();
+        private static INpp _nppHelper                                                         = Npp.Instance;
+        private static IWin32 _win32                                                           = new Win32();
+        private static ISettings _settings                                                     = new Settings(_nppHelper);
+        private static StyleConfigurationObserver _styleObserver                               = new StyleConfigurationObserver(_nppHelper);
+        private static ConnectorManager _connectorManager                                      = new ConnectorManager(_settings, _nppHelper);
+        private PersistentWpfControlHost<ConsoleOutputForm> _consoleOutput                     = new PersistentWpfControlHost<ConsoleOutputForm>(Settings.RTextNppSettings.ConsoleWindowActive, new ConsoleOutputForm(_connectorManager, _nppHelper, _styleObserver, _settings), _settings, _nppHelper);
+        private Options _options                                                               = new Options(_settings);
+        private FileModificationObserver _fileObserver                                         = new FileModificationObserver(_settings, _nppHelper);
+        private Dictionary<ShortcutKey, Tuple<string, Action, ShortcutType>> internalShortcuts = new Dictionary<ShortcutKey, Tuple<string, Action, ShortcutType>>();
+        private AutoCompletionWindow _autoCompletionForm                                       = new AutoCompletionWindow(_connectorManager, _win32, _nppHelper);
+        private Bitmap tbBmp                                                                   = Properties.Resources.ConsoleIcon;
+        private Bitmap tbBmp_tbTab                                                             = Properties.Resources.ConsoleIcon;
+        private Icon tbIcon                                                                    = null;
+        private bool _consoleInitialized                                                       = false;
+        private bool _invokeInProgress                                                         = false;
+        private int _currentZoomLevel                                                          = 0;
+        private ScintillaMessageInterceptor _scintillaMainMsgInterceptor                       = null;  //!< Intercepts scintilla messages.
+        private ScintillaMessageInterceptor _scintillaSecondMsgInterceptor                     = null;  //!< Intercepts scintilla messages from second scintilla handle.
+        private NotepadMessageInterceptor _nppMsgInterceptpr                                   = null;  //!< Intercepts notepad ++ messages.
+        private bool _hasMainScintillaFocus                                                    = false; //!< Indicates if the main editor has focus.
+        private bool _hasSecondScintillaFocus                                                  = false; //!< Indicates if the second editor has focus.
+        private bool _isMenuLoopInactive                                                       = false; //!< Indicates that npp menu loop is active.
+        private LinkTargetsWindow _linkTargetsWindow                                           = new LinkTargetsWindow(_nppHelper, _win32, _settings, _connectorManager, _styleObserver); //!< Display reference links.
+        private bool _isAutoCompletionShortcutActive                                           = false; //!< Indicates the Ctrl+Space is pressed. Need this to commit auto completion in case of fuzzy matching.
+        private Utilities.DelayedEventHandler<object> _actionAfterUiUpdateHandler              = new DelayedEventHandler<object>(null, 100);
+        private NppData _nppData                                                               = default(NppData);
+        private FuncItems _funcItems                                                           = new FuncItems();
 
         private enum ShortcutType
         {
@@ -62,14 +66,30 @@ namespace RTextNppPlugin
         #endregion
 
         #region [Startup/CleanUp]
-        static internal void CommandMenuInit()
+
+        internal void PluginCleanUp()
+        {
+            CSScriptIntellisense.KeyInterceptor.Instance.RemoveAll();
+            _fileObserver.CleanBackup();
+            _connectorManager.ReleaseConnectors();
+            CSScriptIntellisense.KeyInterceptor.Instance.KeyDown -= OnKeyInterceptorKeyDown;
+            CSScriptIntellisense.KeyInterceptor.Instance.KeyUp   -= OnKeyInterceptorKeyUp;
+            _scintillaMainMsgInterceptor.ScintillaFocusChanged   -= OnMainScintillaFocusChanged;
+            _scintillaSecondMsgInterceptor.ScintillaFocusChanged -= OnSecondScintillaFocusChanged;
+            _scintillaMainMsgInterceptor.MouseWheelMoved         -= OnScintillaMouseWheelMoved;
+            _scintillaSecondMsgInterceptor.MouseWheelMoved       -= OnScintillaMouseWheelMoved;
+            _nppMsgInterceptpr.MenuLoopStateChanged              -= OnMenuLoopStateChanged;
+            _linkTargetsWindow.IsVisibleChanged                  -= OnLinkTargetsWindowIsVisibleChanged;
+        }
+
+        internal void CommandMenuInit()
         {
             CSScriptIntellisense.KeyInterceptor.Instance.Install();
             SetCommand((int)Constants.NppMenuCommands.ConsoleWindow, Properties.Resources.RTEXT_SHOW_OUTPUT_WINDOW, ShowConsoleOutput, new ShortcutKey(false, true, true, Keys.R));
             SetCommand((int)Constants.NppMenuCommands.Options, Properties.Resources.RTEXT_SHOW_OPTIONS_WINDOW, ModifyOptions, new ShortcutKey(true, false, true, Keys.R));
             SetCommand((int)Constants.NppMenuCommands.AutoCompletion, Properties.Resources.AUTO_COMPLETION_DESC, StartAutoCompleteSession, Properties.Resources.AUTO_COMPLETION_SHORTCUT);
             SetCommand((int)Constants.NppMenuCommands.AutoCompletion, Properties.Resources.FIND_ALL_REFS_DESC, ShowReferenceLinks, Properties.Resources.FIND_ALL_REFS_SHORTCUT);
-            _connectorManager.Initialize(nppData);
+            _connectorManager.Initialize(_nppData);
             foreach(var key in BindInteranalShortcuts())
             {
                 CSScriptIntellisense.KeyInterceptor.Instance.Add(key);
@@ -89,62 +109,25 @@ namespace RTextNppPlugin
             #endif
             _styleObserver.EnableStylesObservation();
         }
-     
-        private static void OnKeyInterceptorKeyUp(Keys key, int repeatCount, ref bool handled)
-        {
-            CSScriptIntellisense.Modifiers modifiers = CSScriptIntellisense.KeyInterceptor.GetModifiers();
-            if (!modifiers.IsAlt || !modifiers.IsCtrl)
-            {
-                _linkTargetsWindow.IsKeyboardShortCutActive(false);
-            }
-        }        
 
-        private static void OnCharTyped(char c)
+        internal void LoadSettings()
         {
-            if (!char.IsControl(c) && !char.IsWhiteSpace(c))
+            if (_settings.Get<bool>(Settings.RTextNppSettings.ConsoleWindowActive))
             {
-                if (!_autoCompletionForm.IsVisible)
-                {
-                    //do not start auto completion with whitespace char...
-                    if (!char.IsWhiteSpace(c))
-                    {
-                        var res = AsyncInvoke(StartAutoCompleteSession);
-                    }
-                }
-                else
-                {
-                    _autoCompletionForm.OnKeyPressed(c);
-                    if(_autoCompletionForm.CharProcessAction == ViewModels.AutoCompletionViewModel.CharProcessResult.ForceClose)
-                    {
-                        _autoCompletionForm.Hide();
-                    }
-                }
+                ShowConsoleOutput();
+                _win32.ISendMessage(_nppData._nppHandle, NppMsg.NPPM_SETMENUITEMCHECK, _funcItems.Items[0]._cmdID, 1);
             }
+
+            _nppMsgInterceptpr = new NotepadMessageInterceptor(_nppData._nppHandle);
+            _scintillaMainMsgInterceptor = new ScintillaMessageInterceptor(_nppData._scintillaMainHandle);
+            _scintillaMainMsgInterceptor.ScintillaFocusChanged += OnMainScintillaFocusChanged;
+            _scintillaSecondMsgInterceptor = new ScintillaMessageInterceptor(_nppData._scintillaSecondHandle);
+            _scintillaSecondMsgInterceptor.ScintillaFocusChanged += OnSecondScintillaFocusChanged;
+            _scintillaMainMsgInterceptor.MouseWheelMoved += OnScintillaMouseWheelMoved;
+            _scintillaSecondMsgInterceptor.MouseWheelMoved += OnScintillaMouseWheelMoved;
+            _nppMsgInterceptpr.MenuLoopStateChanged += OnMenuLoopStateChanged;
         }
-        
-        private static void CommitAutoCompletion(bool replace)
-        {
-            if(replace && _autoCompletionForm.TriggerPoint != null)
-            {
-                //use current selected item to replace token
-                if (_autoCompletionForm.Completion != null && _autoCompletionForm.Completion.IsSelected)
-                {
-                    Npp.Instance.ReplaceWordFromToken(_autoCompletionForm.TriggerPoint, _autoCompletionForm.Completion.InsertionText);
-                }
-            }
-            _autoCompletionForm.Hide();
-        }
-        
-        private static async Task AsyncInvoke(Action action)
-        {
-            if (!_invokeInProgress)
-            {
-                _invokeInProgress = true;
-                await Task.Delay(10);
-                action();
-                _invokeInProgress = false;
-            }
-        }       
+                    
         #endregion
         
         #region [Commands]
@@ -152,7 +135,7 @@ namespace RTextNppPlugin
         /**
          * Shows reference links.
          */
-        static void ShowReferenceLinks()
+        void ShowReferenceLinks()
         {
 
         }
@@ -160,7 +143,7 @@ namespace RTextNppPlugin
         /**
          * Shows the automatic completion list.
          */
-        static void StartAutoCompleteSession()
+        void StartAutoCompleteSession()
         {
             HandleErrors(() =>
             {
@@ -211,7 +194,7 @@ namespace RTextNppPlugin
                 }
                 else
                 {
-                    _win32.ISendMessage(Plugin.nppData._nppHandle, (NppMsg)WinMsg.WM_COMMAND, (int)NppMenuCmd.IDM_EDIT_AUTOCOMPLETE, 0);
+                    _win32.ISendMessage(_nppData._nppHandle, (NppMsg)WinMsg.WM_COMMAND, (int)NppMenuCmd.IDM_EDIT_AUTOCOMPLETE, 0);
                 }
             });
         }
@@ -219,10 +202,10 @@ namespace RTextNppPlugin
         /**
          * \brief Modify options callback from plugin menu.
          */
-        static void ModifyOptions()
+        void ModifyOptions()
         {
-            _win32.ISendMessage(nppData._nppHandle, NppMsg.NPPM_MODELESSDIALOG, (int)NppMsg.MODELESSDIALOGADD, _options.Handle.ToInt32());
-            if (_options.ShowDialog(Control.FromHandle(nppData._nppHandle)) == DialogResult.OK)
+            _win32.ISendMessage(_nppData._nppHandle, NppMsg.NPPM_MODELESSDIALOG, (int)NppMsg.MODELESSDIALOGADD, _options.Handle.ToInt32());
+            if (_options.ShowDialog(Control.FromHandle(_nppData._nppHandle)) == DialogResult.OK)
             {
                 _options.SaveSettings();
             }
@@ -230,10 +213,10 @@ namespace RTextNppPlugin
             {
                 _options.RestoreSettings();
             }
-            _win32.ISendMessage(nppData._nppHandle, NppMsg.NPPM_MODELESSDIALOG, (int)NppMsg.MODELESSDIALOGREMOVE, _options.Handle.ToInt32());
+            _win32.ISendMessage(_nppData._nppHandle, NppMsg.NPPM_MODELESSDIALOG, (int)NppMsg.MODELESSDIALOGREMOVE, _options.Handle.ToInt32());
         }
         
-        static void ShowConsoleOutput()
+        void ShowConsoleOutput()
         {
             if (!_consoleInitialized)
             {
@@ -257,22 +240,22 @@ namespace RTextNppPlugin
                 // define the default docking behaviour
                 _nppTbData.uMask = NppTbMsg.DWS_DF_CONT_RIGHT | NppTbMsg.DWS_ICONTAB | NppTbMsg.DWS_ICONBAR;
                 _nppTbData.hIconTab = (uint)tbIcon.Handle;
-                _nppTbData.pszModuleName = Constants.PluginName;
+                _nppTbData.pszModuleName = Constants.Scintilla.PLUGIN_NAME;
                 IntPtr _ptrNppTbData = Marshal.AllocHGlobal(Marshal.SizeOf(_nppTbData));
                 Marshal.StructureToPtr(_nppTbData, _ptrNppTbData, false);
                 _consoleOutput.CmdId = _funcItems.Items[(int)Constants.NppMenuCommands.ConsoleWindow]._cmdID;
-                _win32.ISendMessage(nppData._nppHandle, NppMsg.NPPM_DMMREGASDCKDLG, 0, _ptrNppTbData);
-                _win32.ISendMessage(nppData._nppHandle, NppMsg.NPPM_SETMENUITEMCHECK, _funcItems.Items[0]._cmdID, 1);
+                _win32.ISendMessage(_nppData._nppHandle, NppMsg.NPPM_DMMREGASDCKDLG, 0, _ptrNppTbData);
+                _win32.ISendMessage(_nppData._nppHandle, NppMsg.NPPM_SETMENUITEMCHECK, _funcItems.Items[0]._cmdID, 1);
             }
             else
             {
                 if (!_consoleOutput.Visible)
                 {
-                    _win32.ISendMessage(nppData._nppHandle, NppMsg.NPPM_DMMSHOW, 0, _consoleOutput.Handle);
+                    _win32.ISendMessage(_nppData._nppHandle, NppMsg.NPPM_DMMSHOW, 0, _consoleOutput.Handle);
                 }
                 else
                 {
-                    _win32.ISendMessage(nppData._nppHandle, NppMsg.NPPM_DMMHIDE, 0, _consoleOutput.Handle);
+                    _win32.ISendMessage(_nppData._nppHandle, NppMsg.NPPM_DMMHIDE, 0, _consoleOutput.Handle);
                 }
             }
             _consoleOutput.Focus();
@@ -281,7 +264,25 @@ namespace RTextNppPlugin
 
         #region [Properties]
 
-        internal static INpp NppHelper
+        static public Plugin Instance
+        {
+            get
+            {
+                if (instance == null)
+                {
+                    lock (syncRoot)
+                    {
+                        if (instance == null)
+                        {
+                            instance = new Plugin();
+                        }
+                    }
+                }
+                return instance;
+            }
+        }
+
+        internal INpp NppHelper
         {
             get
             {
@@ -289,13 +290,44 @@ namespace RTextNppPlugin
             }
         }
 
-        //internal static 
+        internal FuncItems FuncItems
+        {
+            get
+            {
+                return _funcItems;
+            }
+        }
+
+        internal NppData NppData
+        {
+            get
+            {
+                return _nppData;
+            }
+            set
+            {
+                _nppData = value;
+            }
+        }
+
+        /**
+         * Gets file modification observer. Can be used to save all opened files of a workspace.
+         *
+         * \return  The file observer.
+         */
+        internal FileModificationObserver FileObserver
+        {
+            get
+            {
+                return _fileObserver;
+            }
+        }
 
         #endregion
 
         #region [Event Handlers]
 
-        private static void OnKeyInterceptorKeyDown(Keys key, int repeatCount, ref bool handled)
+        private void OnKeyInterceptorKeyDown(Keys key, int repeatCount, ref bool handled)
         {
             _isAutoCompletionShortcutActive = false;
             //do not auto complete when multi selecting, when menu loop is active, when no rtext file is open
@@ -430,38 +462,23 @@ namespace RTextNppPlugin
             }
         }
 
-        internal static void OnHotspotClicked()
+        internal void OnHotspotClicked()
         {
             _actionAfterUiUpdateHandler.TriggerHandler(new ActionWrapper<object, string, int>(_nppHelper.JumpToLine, _linkTargetsWindow.Targets.First().FilePath, Int32.Parse(_linkTargetsWindow.Targets.First().Line)));
         }
 
-        static internal void OnFileSaved()
+        internal void OnFileSaved()
         {
             //find out file and forward it to appropriate connector
             _connectorManager.OnFileSaved(_nppHelper.GetCurrentFilePath());
         }
 
-        static internal void PluginCleanUp()
-        {
-            CSScriptIntellisense.KeyInterceptor.Instance.RemoveAll();
-            _fileObserver.CleanBackup();
-            _connectorManager.ReleaseConnectors();
-            CSScriptIntellisense.KeyInterceptor.Instance.KeyDown -= OnKeyInterceptorKeyDown;
-            CSScriptIntellisense.KeyInterceptor.Instance.KeyUp   -= OnKeyInterceptorKeyUp;
-            _scintillaMainMsgInterceptor.ScintillaFocusChanged   -= OnMainScintillaFocusChanged;
-            _scintillaSecondMsgInterceptor.ScintillaFocusChanged -= OnSecondScintillaFocusChanged;
-            _scintillaMainMsgInterceptor.MouseWheelMoved         -= OnScintillaMouseWheelMoved;
-            _scintillaSecondMsgInterceptor.MouseWheelMoved       -= OnScintillaMouseWheelMoved;
-            _nppMsgInterceptpr.MenuLoopStateChanged              -= OnMenuLoopStateChanged;
-            _linkTargetsWindow.IsVisibleChanged                  -= OnLinkTargetsWindowIsVisibleChanged;
-        }
-
-        internal static void OnBufferActivated()
+        internal void OnBufferActivated()
         {
             _linkTargetsWindow.CancelPendingRequest();
         }
 
-        private static void OnLinkTargetsWindowIsVisibleChanged(object sender, System.Windows.DependencyPropertyChangedEventArgs e)
+        private void OnLinkTargetsWindowIsVisibleChanged(object sender, System.Windows.DependencyPropertyChangedEventArgs e)
         {
             if (_linkTargetsWindow.Visibility == System.Windows.Visibility.Hidden)
             {
@@ -470,17 +487,17 @@ namespace RTextNppPlugin
             }
         }
         
-        private static void OnSecondScintillaFocusChanged(object source, ScintillaMessageInterceptor.ScintillaFocusChangedEventArgs e)
+        private void OnSecondScintillaFocusChanged(object source, ScintillaMessageInterceptor.ScintillaFocusChangedEventArgs e)
         {
             HandleScintillaFocusChange(e, ref _hasSecondScintillaFocus);
         }
         
-        private static void OnMainScintillaFocusChanged(object source, ScintillaMessageInterceptor.ScintillaFocusChangedEventArgs e)
+        private void OnMainScintillaFocusChanged(object source, ScintillaMessageInterceptor.ScintillaFocusChangedEventArgs e)
         {
             HandleScintillaFocusChange(e, ref _hasMainScintillaFocus);
         }
         
-        private static void OnMenuLoopStateChanged(object source, NotepadMessageInterceptor.MenuLoopStateChangedEventArgs e)
+        private void OnMenuLoopStateChanged(object source, NotepadMessageInterceptor.MenuLoopStateChangedEventArgs e)
         {
             if ((_isMenuLoopInactive = e.IsMenuLoopActive))
             {
@@ -499,25 +516,25 @@ namespace RTextNppPlugin
          *
          * \todo    Handle this for other windows as well, e.g. reference links
          */
-        private static void OnScintillaMouseWheelMoved(object source, ScintillaMessageInterceptor.MouseWheelMovedEventArgs e)
+        private void OnScintillaMouseWheelMoved(object source, ScintillaMessageInterceptor.MouseWheelMovedEventArgs e)
         {
             e.Handled = _autoCompletionForm.OnMessageReceived(e.Msg, e.WParam, e.LParam);
         }
         
-        static internal void SetToolBarIcon()
+        internal void SetToolBarIcon()
         {
             toolbarIcons tbIcons = new toolbarIcons();
             tbIcons.hToolbarBmp = tbBmp.GetHbitmap();
             IntPtr pTbIcons = Marshal.AllocHGlobal(Marshal.SizeOf(tbIcons));
             Marshal.StructureToPtr(tbIcons, pTbIcons, false);
-            _win32.ISendMessage(nppData._nppHandle, NppMsg.NPPM_ADDTOOLBARICON, _funcItems.Items[(int)Constants.NppMenuCommands.ConsoleWindow]._cmdID, pTbIcons);
+            _win32.ISendMessage(_nppData._nppHandle, NppMsg.NPPM_ADDTOOLBARICON, _funcItems.Items[(int)Constants.NppMenuCommands.ConsoleWindow]._cmdID, pTbIcons);
             Marshal.FreeHGlobal(pTbIcons);
         }
         
         /**
          * Handles file opened event to start backend process, in case the relevant  backend process is not yet started.
          */
-        public static void OnFileOpened()
+        public void OnFileOpened()
         {
             string aFileOpened = Npp.Instance.GetCurrentFilePath();
             if (BufferActivated != null)
@@ -530,7 +547,7 @@ namespace RTextNppPlugin
         /**
          * Occurs when undo operation exists for the current document.
          */
-        public static void OnFileConsideredModified()
+        public void OnFileConsideredModified()
         {
             _fileObserver.OnFilemodified(Npp.Instance.GetCurrentFilePath());
         }
@@ -538,26 +555,16 @@ namespace RTextNppPlugin
         /**
          * Occurs when no undo operation exist for the current document.
          */
-        public static void OnFileConsideredUnmodified()
+        public void OnFileConsideredUnmodified()
         {
             _fileObserver.OnFileUnmodified(Npp.Instance.GetCurrentFilePath());
         }
-        
-        /**
-         * Gets file modification observer. Can be used to save all opened files of a workspace.
-         *
-         * \return  The file observer.
-         */
-        public static FileModificationObserver GetFileObserver()
-        {
-            return _fileObserver;
-        }
-        
+               
         /**
          * Scintilla notification that the zomm level has been changed.
          *
          */
-        internal static void OnZoomLevelModified()
+        internal void OnZoomLevelModified()
         {
             int aNewZoomLevel = Npp.Instance.GetZoomLevel();
             if(aNewZoomLevel != _currentZoomLevel)
@@ -579,20 +586,101 @@ namespace RTextNppPlugin
         #endregion
 
         #region [Helpers]
-        
-        /// <summary>
-        /// Todo, call this per file activation - else it will be globablly enabled...
-        /// </summary>
-        /// <param name="enable"></param>
-        static void EnableAnnotations(bool enable)
+
+        private void OnKeyInterceptorKeyUp(Keys key, int repeatCount, ref bool handled)
         {
-            var aMainHandle = nppData._scintillaMainHandle;
-            var aSecondaryHandle = nppData._scintillaSecondHandle;
-            _nppHelper.SetAnnotationVisible(aMainHandle, enable ? Constants.BOXED_ANNOTATION_STYLE : Constants.HIDDEN_ANNOTATION_STYLE);
-            _nppHelper.SetAnnotationVisible(aSecondaryHandle, enable ? Constants.BOXED_ANNOTATION_STYLE : Constants.HIDDEN_ANNOTATION_STYLE);
+            CSScriptIntellisense.Modifiers modifiers = CSScriptIntellisense.KeyInterceptor.GetModifiers();
+            if (!modifiers.IsAlt || !modifiers.IsCtrl)
+            {
+                _linkTargetsWindow.IsKeyboardShortCutActive(false);
+            }
         }
 
-        private static void HandleScintillaFocusChange(ScintillaMessageInterceptor.ScintillaFocusChangedEventArgs e, ref bool hasFocus)
+        private void OnCharTyped(char c)
+        {
+            if (!char.IsControl(c) && !char.IsWhiteSpace(c))
+            {
+                if (!_autoCompletionForm.IsVisible)
+                {
+                    //do not start auto completion with whitespace char...
+                    if (!char.IsWhiteSpace(c))
+                    {
+                        var res = AsyncInvoke(StartAutoCompleteSession);
+                    }
+                }
+                else
+                {
+                    _autoCompletionForm.OnKeyPressed(c);
+                    if (_autoCompletionForm.CharProcessAction == ViewModels.AutoCompletionViewModel.CharProcessResult.ForceClose)
+                    {
+                        _autoCompletionForm.Hide();
+                    }
+                }
+            }
+        }
+
+        private void CommitAutoCompletion(bool replace)
+        {
+            if (replace && _autoCompletionForm.TriggerPoint != null)
+            {
+                //use current selected item to replace token
+                if (_autoCompletionForm.Completion != null && _autoCompletionForm.Completion.IsSelected)
+                {
+                    Npp.Instance.ReplaceWordFromToken(_autoCompletionForm.TriggerPoint, _autoCompletionForm.Completion.InsertionText);
+                }
+            }
+            _autoCompletionForm.Hide();
+        }
+
+        private async Task AsyncInvoke(Action action)
+        {
+            if (!_invokeInProgress)
+            {
+                _invokeInProgress = true;
+                await Task.Delay(10);
+                action();
+                _invokeInProgress = false;
+            }
+        }
+
+        private void SetCommand(int index, string commandName, NppFuncItemDelegate functionPointer, string shortcut)
+        {
+            SetCommand(index, commandName, functionPointer, new ShortcutKey(shortcut), false);
+        }
+
+        private void SetCommand(int index, string commandName, NppFuncItemDelegate functionPointer)
+        {
+            SetCommand(index, commandName, functionPointer, new ShortcutKey(), false);
+        }
+
+        private void SetCommand(int index, string commandName, NppFuncItemDelegate functionPointer, ShortcutKey shortcut)
+        {
+            SetCommand(index, commandName, functionPointer, shortcut, false);
+        }
+
+        private void SetCommand(int index, string commandName, NppFuncItemDelegate functionPointer, bool checkOnInit)
+        {
+            SetCommand(index, commandName, functionPointer, new ShortcutKey(), checkOnInit);
+        }
+
+        private void SetCommand(int index, string commandName, NppFuncItemDelegate functionPointer, ShortcutKey shortcut, bool checkOnInit)
+        {
+            FuncItem funcItem = new FuncItem();
+            funcItem._cmdID = index;
+            funcItem._itemName = commandName;
+            if (functionPointer != null)
+            {
+                funcItem._pFunc = new NppFuncItemDelegate(functionPointer);
+            }
+            if (shortcut._key != 0)
+            {
+                funcItem._pShKey = shortcut;
+            }
+            funcItem._init2Check = checkOnInit;
+            _funcItems.Add(funcItem);
+        }
+
+        private void HandleScintillaFocusChange(ScintillaMessageInterceptor.ScintillaFocusChangedEventArgs e, ref bool hasFocus)
         {
             hasFocus = e.Focused;
             IntPtr aWindowWithFocus = unchecked((IntPtr)(long)(ulong)e.WindowHandle);
@@ -605,8 +693,8 @@ namespace RTextNppPlugin
                 }
             }
         }
-        
-        static bool HasScintillaFocus()
+
+        private bool HasScintillaFocus()
         {
             if (_hasMainScintillaFocus || _hasSecondScintillaFocus)
             {
@@ -627,8 +715,8 @@ namespace RTextNppPlugin
          * Enumerates bind interanal shortcuts in this collection.
          *
          * \return  An enumerator that allows foreach to be used to process interanal shortcuts.
-         */        
-        static IEnumerable<Keys> BindInteranalShortcuts()
+         */
+        private IEnumerable<Keys> BindInteranalShortcuts()
         {
             var uniqueKeys = new List<Keys>();
             AddInternalShortcuts( Properties.Resources.AUTO_COMPLETION_SHORTCUT,
@@ -639,8 +727,8 @@ namespace RTextNppPlugin
                                   ShowReferenceLinks, ShortcutType.ShortcutType_ReferenceLink, uniqueKeys);
             return uniqueKeys;
         }
-        
-        static void AddInternalShortcuts(string shortcutSpec, string displayName, Action handler, ShortcutType type, IList<Keys> uniqueKeys)
+
+        private void AddInternalShortcuts(string shortcutSpec, string displayName, Action handler, ShortcutType type, IList<Keys> uniqueKeys)
         {
             ShortcutKey aShortcut = new ShortcutKey(shortcutSpec);
 
@@ -652,30 +740,13 @@ namespace RTextNppPlugin
             }
         }
         
-        static internal void LoadSettings()
-        {
-            if ( _settings.Get<bool>(Settings.RTextNppSettings.ConsoleWindowActive))
-            {
-                ShowConsoleOutput();
-                _win32.ISendMessage(nppData._nppHandle, NppMsg.NPPM_SETMENUITEMCHECK, _funcItems.Items[0]._cmdID, 1);
-            }
-            EnableAnnotations(_settings.Get<bool>(Settings.RTextNppSettings.EnableErrorAnnotations));
-            _nppMsgInterceptpr                                   = new NotepadMessageInterceptor(nppData._nppHandle);
-            _scintillaMainMsgInterceptor                         = new ScintillaMessageInterceptor(nppData._scintillaMainHandle);
-            _scintillaMainMsgInterceptor.ScintillaFocusChanged   += OnMainScintillaFocusChanged;
-            _scintillaSecondMsgInterceptor                       = new ScintillaMessageInterceptor(nppData._scintillaSecondHandle);
-            _scintillaSecondMsgInterceptor.ScintillaFocusChanged += OnSecondScintillaFocusChanged;
-            _scintillaMainMsgInterceptor.MouseWheelMoved         += OnScintillaMouseWheelMoved;
-            _scintillaSecondMsgInterceptor.MouseWheelMoved       += OnScintillaMouseWheelMoved;
-            _nppMsgInterceptpr.MenuLoopStateChanged              += OnMenuLoopStateChanged;
-        }
         /**
          * Handles exceptions that may be thrown by the action.
          *
          * \param   action  The action to be executed.
          */
         
-        static void HandleErrors(Action action)
+        private void HandleErrors(Action action)
         {
             try
             {
@@ -685,6 +756,10 @@ namespace RTextNppPlugin
             {
                 Logging.Logger.Instance.Append("HandleErrors exception : {0}", e.Message);
             }
+        }
+
+        private Plugin()
+        {
         }
         #endregion
     }

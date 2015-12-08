@@ -23,7 +23,7 @@ namespace RTextNppPlugin.ViewModels
             _connector.OnProgressUpdated += OnConnectorProgressUpdated;
             _nppHelper                   = nppHelper;
             _dispatcher                  = dispatcher;
-            _annotationsManager          = new AnnotationManager(settings, nppHelper, Plugin.nppData);
+            _annotationsManager          = new AnnotationManager(settings, nppHelper, Plugin.Instance.NppData, _connector.Workspace);
         }
         /**
          * \brief   Gets a value indicating whether this workspace is currently loading.
@@ -164,7 +164,6 @@ namespace RTextNppPlugin.ViewModels
                                 _mainModel.ErrorCount = _connector.ErrorList.total_problems;
                                 _mainModel.AddErrors(_errorList);
                             }));
-                            AddAnnotations();
                         }
                     }
                     else if (e.StateEntered == ConnectorStates.Loading && e.StateLeft == ConnectorStates.Idle)
@@ -204,24 +203,8 @@ namespace RTextNppPlugin.ViewModels
 
                 }
             }
-        }
-
-        private void AddAnnotations()
-        {
-            //find out which files are open in both views and add annotations if applicable
-
-            string aCurrentFilePath = _nppHelper.GetCurrentFilePath().Replace('\\', '/');
-            var aCurrentFileErrors  = _errorList.FirstOrDefault(x => x.FilePath.Equals(aCurrentFilePath, StringComparison.InvariantCultureIgnoreCase));
-            _annotationsManager.AddErrors(aCurrentFileErrors, _nppHelper.CurrentScintilla);
-
-            var mainFiles      = _nppHelper.GetOpenFiles(NppMsg.PRIMARY_VIEW);
-            var secondaryFiles = _nppHelper.GetOpenFiles(NppMsg.SECOND_VIEW);
-
-            //check current doc index
-            var mainDoxIndex = _nppHelper.CurrentDocIndex(NppMsg.MAIN_VIEW);
-            var secondaryDocIndex = _nppHelper.CurrentDocIndex(NppMsg.SUB_VIEW);
-
-            //now refresh annotations to file, if file belongs to workspace that was just updated
+            _annotationsManager.ErrorList = _errorList;
+            _annotationsManager.RefreshAnnotations();
         }
 
         #endregion

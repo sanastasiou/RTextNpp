@@ -42,7 +42,7 @@ namespace RTextNppPlugin.Utilities.Settings
         private Windows.Clr.FileWatcher _settingsWatcher = null;
         private object _objectLock                       = new Object();
         private event EventHandler _onSettingsChanged;
-        private const string STYLES_FILE                 = Constants.PluginName + ".xml";
+        private const string STYLES_FILE                 = Constants.Scintilla.PLUGIN_NAME + ".xml";
         private readonly INpp _nppHelper                 = null;
         private enum FondStyle : int
         {
