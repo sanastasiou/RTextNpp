@@ -101,7 +101,7 @@ namespace RTextNppPlugin
                     Plugin.Instance.OnZoomLevelModified();
                     break;
                 case (uint)NppMsg.NPPN_FILEBEFORECLOSE:
-                    Plugin.OnPreviewFileClosed();
+                    Plugin.Instance.OnPreviewFileClosed();
                     break;
                 case (uint)SciMsg.SCN_UPDATEUI:
                     break;

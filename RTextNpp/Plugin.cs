@@ -24,16 +24,16 @@ namespace RTextNppPlugin
         #region [Fields]
         private static volatile Plugin instance                                                = null;
         private static object syncRoot                                                         = new Object();
-        private static INpp _nppHelper                                                         = Npp.Instance;
-        private static IWin32 _win32                                                           = new Win32();
-        private static ISettings _settings                                                     = new Settings(_nppHelper);
-        private static StyleConfigurationObserver _styleObserver                               = new StyleConfigurationObserver(_nppHelper);
-        private static ConnectorManager _connectorManager                                      = new ConnectorManager(_settings, _nppHelper);
-        private PersistentWpfControlHost<ConsoleOutputForm> _consoleOutput                     = new PersistentWpfControlHost<ConsoleOutputForm>(Settings.RTextNppSettings.ConsoleWindowActive, new ConsoleOutputForm(_connectorManager, _nppHelper, _styleObserver, _settings), _settings, _nppHelper);
-        private Options _options                                                               = new Options(_settings);
-        private FileModificationObserver _fileObserver                                         = new FileModificationObserver(_settings, _nppHelper);
+        private INpp _nppHelper                                                                = Npp.Instance;
+        private IWin32 _win32                                                                  = new Win32();
+        private ISettings _settings                                                            = null;
+        private StyleConfigurationObserver _styleObserver                                      = null;
+        private ConnectorManager _connectorManager                                             = null;
+        private PersistentWpfControlHost<ConsoleOutputForm> _consoleOutput                     = null;
+        private Options _options                                                               = null;
+        private FileModificationObserver _fileObserver                                         = null;
         private Dictionary<ShortcutKey, Tuple<string, Action, ShortcutType>> internalShortcuts = new Dictionary<ShortcutKey, Tuple<string, Action, ShortcutType>>();
-        private AutoCompletionWindow _autoCompletionForm                                       = new AutoCompletionWindow(_connectorManager, _win32, _nppHelper);
+        private AutoCompletionWindow _autoCompletionForm                                       = null;
         private Bitmap tbBmp                                                                   = Properties.Resources.ConsoleIcon;
         private Bitmap tbBmp_tbTab                                                             = Properties.Resources.ConsoleIcon;
         private Icon tbIcon                                                                    = null;
@@ -46,7 +46,7 @@ namespace RTextNppPlugin
         private bool _hasMainScintillaFocus                                                    = false; //!< Indicates if the main editor has focus.
         private bool _hasSecondScintillaFocus                                                  = false; //!< Indicates if the second editor has focus.
         private bool _isMenuLoopInactive                                                       = false; //!< Indicates that npp menu loop is active.
-        private LinkTargetsWindow _linkTargetsWindow                                           = new LinkTargetsWindow(_nppHelper, _win32, _settings, _connectorManager, _styleObserver); //!< Display reference links.
+        private LinkTargetsWindow _linkTargetsWindow                                           = null;  //!< Display reference links.
         private bool _isAutoCompletionShortcutActive                                           = false; //!< Indicates the Ctrl+Space is pressed. Need this to commit auto completion in case of fuzzy matching.
         private Utilities.DelayedEventHandler<object> _actionAfterUiUpdateHandler              = new DelayedEventHandler<object>(null, 100);
         private NppData _nppData                                                               = default(NppData);
@@ -66,6 +66,18 @@ namespace RTextNppPlugin
         #endregion
 
         #region [Startup/CleanUp]
+
+        private Plugin()
+        {
+            _settings           = new Settings(_nppHelper);
+            _styleObserver      = new StyleConfigurationObserver(_nppHelper);
+            _connectorManager   = new ConnectorManager(_settings, _nppHelper);
+            _consoleOutput      = new PersistentWpfControlHost<ConsoleOutputForm>(Settings.RTextNppSettings.ConsoleWindowActive, new ConsoleOutputForm(_connectorManager, _nppHelper, _styleObserver, _settings), _settings, _nppHelper);
+            _options            = new Options(_settings);
+            _fileObserver       = new FileModificationObserver(_settings, _nppHelper);
+            _autoCompletionForm = new AutoCompletionWindow(_connectorManager, _win32, _nppHelper);
+            _linkTargetsWindow  = new LinkTargetsWindow(_nppHelper, _win32, _settings, _connectorManager, _styleObserver);
+        }
 
         internal void PluginCleanUp()
         {
@@ -575,7 +587,7 @@ namespace RTextNppPlugin
             }
         }
 
-        internal static void OnPreviewFileClosed()
+        internal void OnPreviewFileClosed()
         {
             if (PreviewFileClosed != null)
             {
@@ -758,9 +770,6 @@ namespace RTextNppPlugin
             }
         }
 
-        private Plugin()
-        {
-        }
         #endregion
     }
 }
