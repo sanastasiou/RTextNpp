@@ -1,11 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Drawing;
-using System.Drawing.Imaging;
-using System.Runtime.InteropServices;
-using System.Threading.Tasks;
-using System.Windows.Forms;
 using RTextNppPlugin.DllExport;
 using RTextNppPlugin.Forms;
 using RTextNppPlugin.RText;
@@ -14,8 +6,15 @@ using RTextNppPlugin.Utilities;
 using RTextNppPlugin.Utilities.Settings;
 using RTextNppPlugin.Utilities.WpfControlHost;
 using RTextNppPlugin.WpfControls;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Drawing;
+using System.Drawing.Imaging;
 using System.Linq;
-using System.Text;
+using System.Runtime.InteropServices;
+using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace RTextNppPlugin
 {
@@ -61,8 +60,8 @@ namespace RTextNppPlugin
 
         #region [Events]
         public delegate void FileEventDelegate(object source, string file);
-        public static event FileEventDelegate PreviewFileClosed;
-        public static event FileEventDelegate BufferActivated;
+        public event FileEventDelegate PreviewFileClosed;
+        public event FileEventDelegate BufferActivated;
         #endregion
 
         #region [Startup/CleanUp]
@@ -71,15 +70,15 @@ namespace RTextNppPlugin
         {
             _settings           = new Settings(_nppHelper);
             _styleObserver      = new StyleConfigurationObserver(_nppHelper);
-            _connectorManager   = new ConnectorManager(_settings, _nppHelper);
-            _consoleOutput      = new PersistentWpfControlHost<ConsoleOutputForm>(Settings.RTextNppSettings.ConsoleWindowActive, new ConsoleOutputForm(_connectorManager, _nppHelper, _styleObserver, _settings), _settings, _nppHelper);
+            _connectorManager   = new ConnectorManager(_settings, _nppHelper, this);
+            _consoleOutput      = new PersistentWpfControlHost<ConsoleOutputForm>(Settings.RTextNppSettings.ConsoleWindowActive, new ConsoleOutputForm(_connectorManager, _nppHelper, _styleObserver, _settings, this), _settings, _nppHelper);
             _options            = new Options(_settings);
             _fileObserver       = new FileModificationObserver(_settings, _nppHelper);
             _autoCompletionForm = new AutoCompletionWindow(_connectorManager, _win32, _nppHelper);
             _linkTargetsWindow  = new LinkTargetsWindow(_nppHelper, _win32, _settings, _connectorManager, _styleObserver);
         }
 
-        internal void PluginCleanUp()
+        public void PluginCleanUp()
         {
             CSScriptIntellisense.KeyInterceptor.Instance.RemoveAll();
             _fileObserver.CleanBackup();
@@ -94,7 +93,7 @@ namespace RTextNppPlugin
             _linkTargetsWindow.IsVisibleChanged                  -= OnLinkTargetsWindowIsVisibleChanged;
         }
 
-        internal void CommandMenuInit()
+        public void CommandMenuInit()
         {
             CSScriptIntellisense.KeyInterceptor.Instance.Install();
             SetCommand((int)Constants.NppMenuCommands.ConsoleWindow, Properties.Resources.RTEXT_SHOW_OUTPUT_WINDOW, ShowConsoleOutput, new ShortcutKey(false, true, true, Keys.R));
@@ -122,7 +121,7 @@ namespace RTextNppPlugin
             _styleObserver.EnableStylesObservation();
         }
 
-        internal void LoadSettings()
+        public void LoadSettings()
         {
             if (_settings.Get<bool>(Settings.RTextNppSettings.ConsoleWindowActive))
             {
@@ -276,7 +275,7 @@ namespace RTextNppPlugin
 
         #region [Properties]
 
-        static public Plugin Instance
+        public static Plugin Instance
         {
             get
             {
@@ -294,15 +293,7 @@ namespace RTextNppPlugin
             }
         }
 
-        internal INpp NppHelper
-        {
-            get
-            {
-                return _nppHelper;
-            }
-        }
-
-        internal FuncItems FuncItems
+        public FuncItems FuncItems
         {
             get
             {
@@ -310,7 +301,7 @@ namespace RTextNppPlugin
             }
         }
 
-        internal NppData NppData
+        public NppData NppData
         {
             get
             {
@@ -327,7 +318,7 @@ namespace RTextNppPlugin
          *
          * \return  The file observer.
          */
-        internal FileModificationObserver FileObserver
+        public FileModificationObserver FileObserver
         {
             get
             {
@@ -474,18 +465,18 @@ namespace RTextNppPlugin
             }
         }
 
-        internal void OnHotspotClicked()
+        public void OnHotspotClicked()
         {
             _actionAfterUiUpdateHandler.TriggerHandler(new ActionWrapper<object, string, int>(_nppHelper.JumpToLine, _linkTargetsWindow.Targets.First().FilePath, Int32.Parse(_linkTargetsWindow.Targets.First().Line)));
         }
 
-        internal void OnFileSaved()
+        public void OnFileSaved()
         {
             //find out file and forward it to appropriate connector
             _connectorManager.OnFileSaved(_nppHelper.GetCurrentFilePath());
         }
 
-        internal void OnBufferActivated()
+        public void OnBufferActivated()
         {
             _linkTargetsWindow.CancelPendingRequest();
         }
@@ -532,8 +523,8 @@ namespace RTextNppPlugin
         {
             e.Handled = _autoCompletionForm.OnMessageReceived(e.Msg, e.WParam, e.LParam);
         }
-        
-        internal void SetToolBarIcon()
+
+        public void SetToolBarIcon()
         {
             toolbarIcons tbIcons = new toolbarIcons();
             tbIcons.hToolbarBmp = tbBmp.GetHbitmap();
@@ -576,7 +567,7 @@ namespace RTextNppPlugin
          * Scintilla notification that the zomm level has been changed.
          *
          */
-        internal void OnZoomLevelModified()
+        public void OnZoomLevelModified()
         {
             int aNewZoomLevel = Npp.Instance.GetZoomLevel();
             if(aNewZoomLevel != _currentZoomLevel)
@@ -587,7 +578,7 @@ namespace RTextNppPlugin
             }
         }
 
-        internal void OnPreviewFileClosed()
+        public void OnPreviewFileClosed()
         {
             if (PreviewFileClosed != null)
             {

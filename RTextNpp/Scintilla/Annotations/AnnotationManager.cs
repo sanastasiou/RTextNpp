@@ -34,14 +34,15 @@ namespace RTextNppPlugin.Scintilla.Annotations
         #endregion
 
         #region [Interface]
-        internal AnnotationManager(ISettings settings, INpp nppHelper, NppData nppData, string workspaceRoot)
+        internal AnnotationManager(ISettings settings, INpp nppHelper, Plugin plugin, string workspaceRoot)
         {
             _settings                  = settings;
             _nppHelper                 = nppHelper;
             _settings.OnSettingChanged += OnSettingChanged;
-            _nppData                   = nppData;
+            _nppData                   = plugin.NppData;
             _areAnnotationEnabled      = _settings.Get<bool>(Settings.RTextNppSettings.EnableErrorAnnotations);
             _workspaceRoot             = workspaceRoot;
+            plugin.BufferActivated     += OnBufferActivated;
         }
 
         public void OnSettingChanged(object source, Utilities.Settings.Settings.SettingChangedEventArgs e)
@@ -61,14 +62,13 @@ namespace RTextNppPlugin.Scintilla.Annotations
             }
         }
 
-        public void OnBufferActivated(string file)
+        public void OnBufferActivated(object source, string file)
         {
-            //if(_lastAnnotatedFile != file)
-            //{
-            //    //RemoveErrors();
-            //}
-            //_lastAnnotatedFile = file;
-            RefreshAnnotations();
+            //only update if connector is already loaded
+            if (ErrorList != null)
+            {
+                RefreshAnnotations();
+            }
 
         }
 
@@ -96,18 +96,25 @@ namespace RTextNppPlugin.Scintilla.Annotations
 
         public void RefreshAnnotations()
         {
-            ErrorListViewModel aPrimaryErrors   = null;
-            ErrorListViewModel aSecondaryErrors = null;
-            var aPrimaryViewAction   = ValidateErrorList(out aPrimaryErrors, NppMsg.PRIMARY_VIEW, NppMsg.MAIN_VIEW);
-            if(aPrimaryViewAction != UpdateAction.NoAction)
+            //ensure model is loaded
+            if (_currentErrors != null)
             {
-                DrawAnnotations(aPrimaryErrors, _nppHelper.MainScintilla, ref _mainViewTask, ref _mainSciCts);
-            }
+                ErrorListViewModel aPrimaryErrors = null;
+                ErrorListViewModel aSecondaryErrors = null;
+                string previousAnnotatedMainFile = _lastMainViewAnnotatedFile;
+                string previousAnnotatedSubFile = _lastSubViewAnnotatedFile;
 
-            var aSecondaryViewAction = ValidateErrorList(out aSecondaryErrors, NppMsg.SECOND_VIEW, NppMsg.SUB_VIEW);
-            if (aSecondaryViewAction != UpdateAction.NoAction)
-            {
-                DrawAnnotations(aSecondaryErrors, _nppHelper.SecondaryScintilla, ref _subViewTask, ref _subSciCts);
+                var aPrimaryViewAction = ValidateErrorList(out aPrimaryErrors, NppMsg.PRIMARY_VIEW, NppMsg.MAIN_VIEW, ref _lastMainViewAnnotatedFile);
+                if (aPrimaryViewAction != UpdateAction.NoAction && !_lastMainViewAnnotatedFile.Equals(previousAnnotatedMainFile))
+                {
+                    DrawAnnotations(aPrimaryErrors, _nppHelper.MainScintilla, ref _mainViewTask, ref _mainSciCts);
+                }
+
+                var aSecondaryViewAction = ValidateErrorList(out aSecondaryErrors, NppMsg.SECOND_VIEW, NppMsg.SUB_VIEW, ref _lastMainViewAnnotatedFile);
+                if (aSecondaryViewAction != UpdateAction.NoAction && !_lastSubViewAnnotatedFile.Equals(previousAnnotatedSubFile))
+                {
+                    DrawAnnotations(aSecondaryErrors, _nppHelper.SecondaryScintilla, ref _subViewTask, ref _subSciCts);
+                }
             }
         }
 
@@ -149,9 +156,10 @@ namespace RTextNppPlugin.Scintilla.Annotations
             Update
         }
 
-        private UpdateAction ValidateErrorList(out ErrorListViewModel errors, NppMsg openFilesView, NppMsg docIndexView)
+        private UpdateAction ValidateErrorList(out ErrorListViewModel errors, NppMsg openFilesView, NppMsg docIndexView, ref string activeViewFile)
         {
-            errors = null;
+            errors          = null;
+            activeViewFile  = string.Empty;
             //get opened files
             var openedFiles = _nppHelper.GetOpenFiles(openFilesView);
             //check current doc index
@@ -172,10 +180,11 @@ namespace RTextNppPlugin.Scintilla.Annotations
             {
                 return UpdateAction.NoAction;
             }
-            var activeFileRText = activeFile.Replace('\\', '/');
+            var activeFileRText = activeViewFile = activeFile.Replace('\\', '/');
 
             //if we are here, it means workspaces match - check if files has errors
             errors = _currentErrors.FirstOrDefault(x => x.FilePath.Equals(activeFileRText, StringComparison.InvariantCultureIgnoreCase));
+
             if (errors == null || errors.ErrorList.Count == 0)
             {
                 return UpdateAction.Delete;
@@ -211,7 +220,6 @@ namespace RTextNppPlugin.Scintilla.Annotations
                         var aErrorGroupByLines = errors.ErrorList.GroupBy(y => y.Line).AsParallel();
                         Parallel.ForEach(aErrorGroupByLines, (errorGroup) =>
                         {
-                            Trace.WriteLine(String.Format("DrawAnnotations inside : {0} sciPtr", sciPtr));
                             StringBuilder aErrorDescription = new StringBuilder(errorGroup.Count() * 50);
                             int aErrorCounter = 0;
                             foreach (var error in errorGroup)

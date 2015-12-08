@@ -40,6 +40,7 @@ namespace RTextNppPlugin.ViewModels
         IStyleConfigurationObserver _styleObserver                                = null;
         private readonly Dispatcher _dispatcher                                   = null;
         private readonly ISettings _settings                                      = null;
+        private readonly Plugin _plugin                                           = null;
         #endregion
 
         #region [Event Handlers]
@@ -91,7 +92,7 @@ namespace RTextNppPlugin.ViewModels
          *
          * \param   workspace   The workspace.
          */
-        public ConsoleViewModel(ConnectorManager cmanager, INpp npphelper, IStyleConfigurationObserver styleObserver, Dispatcher dispatcher, ISettings settings)
+        public ConsoleViewModel(ConnectorManager cmanager, INpp npphelper, IStyleConfigurationObserver styleObserver, Dispatcher dispatcher, ISettings settings, Plugin plugin)
         {
             if(cmanager == null)
             {
@@ -116,8 +117,8 @@ namespace RTextNppPlugin.ViewModels
             _nppHelper                       = npphelper;
             _styleObserver                   = styleObserver;
             _styleObserver.OnSettingsChanged += OnStyleObserverSettingsChanged;
-            Plugin.PreviewFileClosed         += OnPreviewFileClosed;
-            Plugin.BufferActivated           += OnBufferActivated;
+            plugin.PreviewFileClosed         += OnPreviewFileClosed;
+            plugin.BufferActivated           += OnBufferActivated;
             _underlyingErrorList             = new BulkObservableCollection<ErrorListViewModel>();
             _dispatcher                      = dispatcher;
             _settings                        = settings;
@@ -401,9 +402,9 @@ namespace RTextNppPlugin.ViewModels
         public void Dispose()
         {
             Dispose(true);
-            Plugin.PreviewFileClosed         -= OnPreviewFileClosed;
+            _plugin.PreviewFileClosed        -= OnPreviewFileClosed;
             _styleObserver.OnSettingsChanged -= OnStyleObserverSettingsChanged;
-            Plugin.BufferActivated           -= OnBufferActivated;
+            _plugin.BufferActivated          -= OnBufferActivated;
         }
 
         #endregion

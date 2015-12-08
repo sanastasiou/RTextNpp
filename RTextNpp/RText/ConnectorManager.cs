@@ -18,6 +18,7 @@ namespace RTextNppPlugin.RText
         private NppData _nppData                                     = default(NppData);
         private readonly ISettings _settings                         = null;
         private readonly INpp _nppHelper                             = null;
+        private readonly Plugin _plugin                              = null;
         #endregion
 
         #region [Events]
@@ -50,12 +51,12 @@ namespace RTextNppPlugin.RText
         
         #region Interface
         
-        internal ConnectorManager(ISettings settings, INpp nppHelper)
+        internal ConnectorManager(ISettings settings, INpp nppHelper, Plugin plugin)
         {
-            _settings    = settings;
-            _processList = new Dictionary<string, RTextBackendProcess>();
-            _nppHelper   = nppHelper;
-            Plugin.BufferActivated += OnBufferActivated;
+            _settings              = settings;
+            _processList           = new Dictionary<string, RTextBackendProcess>();
+            _nppHelper             = nppHelper;
+            plugin.BufferActivated += OnBufferActivated;
         }
 
         internal void OnFileSaved(string file)
@@ -86,7 +87,7 @@ namespace RTextNppPlugin.RText
         public void Dispose()
         {
             Dispose(true);
-            Plugin.BufferActivated -= OnBufferActivated;
+            _plugin.BufferActivated -= OnBufferActivated;
         }
 
         /**

@@ -83,7 +83,7 @@
     <Compile Include="Logging\ILoggingObserver.cs" />
     <Compile Include="Logging\ISubscriber.cs" />
     <Compile Include="Logging\Logger.cs" />
-    <Compile Include="Main.cs" />
+    <Compile Include="Plugin.cs" />
     <Compile Include="Forms\ConsoleOutput.cs">
       <SubType>Form</SubType>
     </Compile>

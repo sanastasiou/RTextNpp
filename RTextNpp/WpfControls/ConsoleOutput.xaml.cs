@@ -14,10 +14,10 @@ namespace RTextNppPlugin.WpfControls
     /// </summary>
     public partial class ConsoleOutput : UserControl
     {
-        internal ConsoleOutput(ConnectorManager cmanager, INpp nppHelper, IStyleConfigurationObserver styleObserver, ISettings settings)
+        internal ConsoleOutput(ConnectorManager cmanager, INpp nppHelper, IStyleConfigurationObserver styleObserver, ISettings settings, Plugin plugin)
         {
             InitializeComponent();            
-            var dataContext        = new ConsoleViewModel(cmanager, nppHelper, styleObserver, Dispatcher, settings);
+            var dataContext        = new ConsoleViewModel(cmanager, nppHelper, styleObserver, Dispatcher, settings, plugin);
             dataContext.Dispatcher = Dispatcher;
             DataContext            = dataContext;
             _nppHelper             = nppHelper;

@@ -12,7 +12,7 @@ namespace RTextNppPlugin.Scintilla.Annotations
     {
         void OnSettingChanged(object source, Settings.SettingChangedEventArgs e);
 
-        void OnBufferActivated(string file);
+        void OnBufferActivated(object source, string file);
 
         void RefreshAnnotations();
 

@@ -23,7 +23,7 @@ namespace RTextNppPlugin.ViewModels
             _connector.OnProgressUpdated += OnConnectorProgressUpdated;
             _nppHelper                   = nppHelper;
             _dispatcher                  = dispatcher;
-            _annotationsManager          = new AnnotationManager(settings, nppHelper, Plugin.Instance.NppData, _connector.Workspace);
+            _annotationsManager          = new AnnotationManager(settings, nppHelper, Plugin.Instance, _connector.Workspace);
         }
         /**
          * \brief   Gets a value indicating whether this workspace is currently loading.
