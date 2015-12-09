@@ -31,11 +31,6 @@
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
-            this.groupBox3 = new System.Windows.Forms.GroupBox();
-            this.textBox2 = new System.Windows.Forms.TextBox();
-            this.textBox1 = new System.Windows.Forms.TextBox();
-            this.label2 = new System.Windows.Forms.Label();
-            this.label1 = new System.Windows.Forms.Label();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
             this._errorSquiggyLinesCheckBox = new System.Windows.Forms.CheckBox();
             this._errorMarkersCheckBox = new System.Windows.Forms.CheckBox();
@@ -55,7 +50,6 @@
             this.groupBox1.SuspendLayout();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
-            this.groupBox3.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.tabPage2.SuspendLayout();
             this.groupBox5.SuspendLayout();
@@ -107,7 +101,6 @@
             // 
             // tabPage1
             // 
-            this.tabPage1.Controls.Add(this.groupBox3);
             this.tabPage1.Controls.Add(this.groupBox2);
             this.tabPage1.Location = new System.Drawing.Point(4, 22);
             this.tabPage1.Name = "tabPage1";
@@ -116,51 +109,6 @@
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "Error Settings";
             this.tabPage1.UseVisualStyleBackColor = true;
-            // 
-            // groupBox3
-            // 
-            this.groupBox3.Controls.Add(this.textBox2);
-            this.groupBox3.Controls.Add(this.textBox1);
-            this.groupBox3.Controls.Add(this.label2);
-            this.groupBox3.Controls.Add(this.label1);
-            this.groupBox3.Location = new System.Drawing.Point(244, 6);
-            this.groupBox3.Name = "groupBox3";
-            this.groupBox3.Size = new System.Drawing.Size(249, 93);
-            this.groupBox3.TabIndex = 1;
-            this.groupBox3.TabStop = false;
-            this.groupBox3.Text = "Error Options";
-            // 
-            // textBox2
-            // 
-            this.textBox2.Location = new System.Drawing.Point(146, 45);
-            this.textBox2.Name = "textBox2";
-            this.textBox2.Size = new System.Drawing.Size(93, 20);
-            this.textBox2.TabIndex = 3;
-            // 
-            // textBox1
-            // 
-            this.textBox1.Location = new System.Drawing.Point(146, 19);
-            this.textBox1.Name = "textBox1";
-            this.textBox1.Size = new System.Drawing.Size(93, 20);
-            this.textBox1.TabIndex = 2;
-            // 
-            // label2
-            // 
-            this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(7, 48);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(134, 13);
-            this.label2.TabIndex = 1;
-            this.label2.Text = "Max number of error lines : ";
-            // 
-            // label1
-            // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(7, 22);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(133, 13);
-            this.label1.TabIndex = 0;
-            this.label1.Text = "Max number of errors       : ";
             // 
             // groupBox2
             // 
@@ -174,31 +122,33 @@
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "Error Reporting";
             // 
-            // ErrorSquiggyLinesCheckBox
+            // _errorSquiggyLinesCheckBox
             // 
             this._errorSquiggyLinesCheckBox.AutoSize = true;
+            this._errorSquiggyLinesCheckBox.Enabled = false;
             this._errorSquiggyLinesCheckBox.Location = new System.Drawing.Point(6, 65);
-            this._errorSquiggyLinesCheckBox.Name = "ErrorSquiggyLinesCheckBox";
+            this._errorSquiggyLinesCheckBox.Name = "_errorSquiggyLinesCheckBox";
             this._errorSquiggyLinesCheckBox.Size = new System.Drawing.Size(153, 17);
             this._errorSquiggyLinesCheckBox.TabIndex = 2;
             this._errorSquiggyLinesCheckBox.Text = "Enable Error Squiggy Lines";
             this._errorSquiggyLinesCheckBox.UseVisualStyleBackColor = true;
             // 
-            // ErrorMarkersCheckBox
+            // _errorMarkersCheckBox
             // 
             this._errorMarkersCheckBox.AutoSize = true;
+            this._errorMarkersCheckBox.Enabled = false;
             this._errorMarkersCheckBox.Location = new System.Drawing.Point(6, 42);
-            this._errorMarkersCheckBox.Name = "ErrorMarkersCheckBox";
+            this._errorMarkersCheckBox.Name = "_errorMarkersCheckBox";
             this._errorMarkersCheckBox.Size = new System.Drawing.Size(125, 17);
             this._errorMarkersCheckBox.TabIndex = 1;
             this._errorMarkersCheckBox.Text = "Enable Error Markers";
             this._errorMarkersCheckBox.UseVisualStyleBackColor = true;
             // 
-            // ErrorAnnotationCheckBox
+            // _errorAnnotationCheckBox
             // 
             this._errorAnnotationCheckBox.AutoSize = true;
             this._errorAnnotationCheckBox.Location = new System.Drawing.Point(6, 19);
-            this._errorAnnotationCheckBox.Name = "ErrorAnnotationCheckBox";
+            this._errorAnnotationCheckBox.Name = "_errorAnnotationCheckBox";
             this._errorAnnotationCheckBox.Size = new System.Drawing.Size(143, 17);
             this._errorAnnotationCheckBox.TabIndex = 0;
             this._errorAnnotationCheckBox.Text = "Enable Error Annotations";
@@ -329,8 +279,6 @@
             this.groupBox1.ResumeLayout(false);
             this.tabControl1.ResumeLayout(false);
             this.tabPage1.ResumeLayout(false);
-            this.groupBox3.ResumeLayout(false);
-            this.groupBox3.PerformLayout();
             this.groupBox2.ResumeLayout(false);
             this.groupBox2.PerformLayout();
             this.tabPage2.ResumeLayout(false);
@@ -348,15 +296,10 @@
         private System.Windows.Forms.GroupBox groupBox1;
         private System.Windows.Forms.TabControl tabControl1;
         private System.Windows.Forms.TabPage tabPage1;
-        private System.Windows.Forms.GroupBox groupBox3;
         private System.Windows.Forms.GroupBox groupBox2;
         private System.Windows.Forms.TabPage tabPage2;
         private System.Windows.Forms.TabPage tabPage3;
         private System.Windows.Forms.TabPage tabPage4;
-        private System.Windows.Forms.TextBox textBox2;
-        private System.Windows.Forms.TextBox textBox1;
-        private System.Windows.Forms.Label label2;
-        private System.Windows.Forms.Label label1;
         private System.Windows.Forms.CheckBox _autoloadWorkspaceCheckButton;
         private System.Windows.Forms.CheckBox _autoSaveFileCheckBox;
         private System.Windows.Forms.CheckBox _autoSelectWorkspaceCheckBox;
