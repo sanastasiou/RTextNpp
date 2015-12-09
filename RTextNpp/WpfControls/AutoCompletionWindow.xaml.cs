@@ -12,6 +12,8 @@ using RTextNppPlugin.RText.Parsing;
 using RTextNppPlugin.Utilities;
 using RTextNppPlugin.ViewModels;
 using System.Linq;
+using RTextNppPlugin.Scintilla;
+
 namespace RTextNppPlugin.WpfControls
 {
     public partial class AutoCompletionWindow : System.Windows.Window, IDisposable, IWin32MessageReceptor, IWindowPosition
@@ -157,7 +159,7 @@ namespace RTextNppPlugin.WpfControls
                 {
                     //click is made outside of grid but inside window! - leave focus to editor i.e. make those areas not focusable
                     e.Handled = true;
-                    _nppHelper.GrabFocus();
+                    _nppHelper.GrabFocus(_nppHelper.CurrentScintilla);
                 }
             }
         }
@@ -217,7 +219,7 @@ namespace RTextNppPlugin.WpfControls
                 AutoCompletionDatagrid.ScrollIntoView(GetModel().SelectedCompletion);
             }
             //keep caret blinking after a selection has been made by clicking
-            _nppHelper.GrabFocus();
+            _nppHelper.GrabFocus(_nppHelper.CurrentScintilla);
         }
         
         private void OnAutoCompletionBorderBackgroundUpdated(object sender, DataTransferEventArgs e)

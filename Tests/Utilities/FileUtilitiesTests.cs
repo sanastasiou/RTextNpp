@@ -10,6 +10,7 @@ namespace Tests.Utilities
     using System.Threading;
     using System.IO;
     using System.Xml;
+    using RTextNppPlugin.Scintilla;
     [TestFixture]
     class FileUtilitiesTests
     {

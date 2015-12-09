@@ -1,4 +1,5 @@
-﻿using System;
+﻿using RTextNppPlugin.Scintilla;
+using System;
 namespace RTextNppPlugin.Utilities.Settings
 {
     internal sealed class Settings : ISettings
@@ -7,7 +8,7 @@ namespace RTextNppPlugin.Utilities.Settings
         private ConfigurationSetter _configSetter;
         #endregion
         
-        #region Events
+        #region [Events]
         public delegate void SettingChangedEvent(object source, SettingChangedEventArgs e);
         
         public event SettingChangedEvent OnSettingChanged;                                  //!< Event queue for all listeners interested in OnConnectorAdded events.

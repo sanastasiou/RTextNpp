@@ -5,6 +5,7 @@ namespace ContextExtraction.AutoCompletion
     using Moq;
     using NUnit.Framework;
     using RTextNppPlugin.RText.Parsing;
+    using RTextNppPlugin.Scintilla;
     using RTextNppPlugin.Utilities;
     [TestFixture]
     class AutoCompletionTokenizerTests

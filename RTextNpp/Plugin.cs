@@ -2,6 +2,7 @@ using RTextNppPlugin.DllExport;
 using RTextNppPlugin.Forms;
 using RTextNppPlugin.RText;
 using RTextNppPlugin.RText.Parsing;
+using RTextNppPlugin.Scintilla;
 using RTextNppPlugin.Utilities;
 using RTextNppPlugin.Utilities.Settings;
 using RTextNppPlugin.Utilities.WpfControlHost;
@@ -486,7 +487,7 @@ namespace RTextNppPlugin
             if (_linkTargetsWindow.Visibility == System.Windows.Visibility.Hidden)
             {
                 //give focus back to npp
-                _nppHelper.GrabFocus();
+                _nppHelper.GrabFocus(_nppHelper.CurrentScintilla);
             }
         }
         
@@ -707,7 +708,7 @@ namespace RTextNppPlugin
             {
                 if(_autoCompletionForm.IsVisible)
                 {
-                    Npp.Instance.GrabFocus();
+                    Npp.Instance.GrabFocus(_nppHelper.CurrentScintilla);
                     return true;
                 }
             }

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using RTextNppPlugin.Utilities;
+using RTextNppPlugin.Scintilla;
 namespace RTextNppPlugin.RText.Parsing
 {
     public class Tokenizer

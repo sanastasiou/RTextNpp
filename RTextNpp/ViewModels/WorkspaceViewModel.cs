@@ -6,6 +6,7 @@ namespace RTextNppPlugin.ViewModels
     using RTextNppPlugin.RText;
     using RTextNppPlugin.RText.Protocol;
     using RTextNppPlugin.RText.StateEngine;
+    using RTextNppPlugin.Scintilla;
     using RTextNppPlugin.Scintilla.Annotations;
     using RTextNppPlugin.Utilities;
     using RTextNppPlugin.Utilities.Settings;

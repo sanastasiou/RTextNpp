@@ -5,6 +5,8 @@ using RTextNppPlugin.DllExport;
 using RTextNppPlugin.Utilities;
 using RTextNppPlugin.Utilities.Settings;
 using RTextNppPlugin.Logging;
+using RTextNppPlugin.Scintilla;
+
 namespace RTextNppPlugin.RText
 {
     /**

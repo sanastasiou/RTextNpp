@@ -3,6 +3,8 @@ using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using RTextNppPlugin.Utilities.Settings;
+using RTextNppPlugin.Scintilla;
+
 namespace RTextNppPlugin.Utilities
 {
     class FileModificationObserver

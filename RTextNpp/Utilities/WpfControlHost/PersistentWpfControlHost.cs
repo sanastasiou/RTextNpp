@@ -1,6 +1,7 @@
 ﻿using System;
 namespace RTextNppPlugin.Utilities.WpfControlHost
 {
+    using RTextNppPlugin.Scintilla;
     using RTextNppPlugin.Utilities.Settings;
     internal class PersistentWpfControlHost<T> : WpfControlHostBase<T>, IDisposable where T : System.Windows.Forms.Form
     {

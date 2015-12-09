@@ -10,6 +10,8 @@ using CSScriptIntellisense;
 using System.Diagnostics;
 using RTextNppPlugin.Utilities.Settings;
 using AJ.Common;
+using RTextNppPlugin.Scintilla;
+
 namespace RTextNppPlugin.Utilities
 {
     internal static class FileUtilities

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using RTextNppPlugin.Scintilla;
+using System;
 using System.Diagnostics;
 using System.Timers;
 namespace RTextNppPlugin.Utilities.WpfControlHost
@@ -13,7 +14,7 @@ namespace RTextNppPlugin.Utilities.WpfControlHost
      */
     internal class WpfControlHostBase<T> : IDisposable where T : System.Windows.Forms.Form
     {
-        #region Interface
+        #region [Interface]
         /**
          * Gets the underlying element host.
          *
@@ -108,6 +109,7 @@ namespace RTextNppPlugin.Utilities.WpfControlHost
             }
         }
         #endregion
+        
         #region [Event Handlers]
         private void OnRefreshTimerElapsed(object sender, ElapsedEventArgs e)
         {
@@ -144,7 +146,8 @@ namespace RTextNppPlugin.Utilities.WpfControlHost
             }
         }
         #endregion
-        #region Helpers
+        
+        #region [Helpers]
         /**
          * Finaliser.
          */
@@ -185,6 +188,7 @@ namespace RTextNppPlugin.Utilities.WpfControlHost
             _cmdId = id;
         }
         #endregion
+        
         #region [Data Members]
         private readonly INpp _nppHelper = null;                                       //!< Npp helper instance, used to communicate with Npp.
         private T _elementHost;                                                        //!< The element host to be redrawed.

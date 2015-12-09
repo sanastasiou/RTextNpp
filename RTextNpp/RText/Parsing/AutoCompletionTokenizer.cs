@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 namespace RTextNppPlugin.RText.Parsing
 {
+    using RTextNppPlugin.Scintilla;
     using Utilities;
     /**
      * \brief   An automatic completion tokenizer. This class finds the token for which autocompletion is invoked.

@@ -1,10 +1,12 @@
-﻿using System;
+﻿using RTextNppPlugin.Scintilla;
+using System;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Interop;
 using System.Windows.Media;
+
 namespace RTextNppPlugin.Utilities
 {
     public interface IWin32MessageReceptor

@@ -11,6 +11,7 @@ namespace Tests.Utilities
     using System.IO;
     using System.Xml;
     using MoqExtensions;
+    using RTextNppPlugin.Scintilla;
     [TestFixture]
     class FIleModificationObserverTests
     {

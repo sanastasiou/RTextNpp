@@ -7,6 +7,7 @@ namespace ContextExtraction.Tokenizer
     using RTextNppPlugin.RText.Parsing;
     using RTextNppPlugin.Utilities;
     using System;
+    using RTextNppPlugin.Scintilla;
     [TestFixture]
     class TokenizerTests
     {

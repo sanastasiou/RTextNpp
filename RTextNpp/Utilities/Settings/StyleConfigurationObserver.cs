@@ -1,4 +1,5 @@
 ﻿using RTextNppPlugin.Logging;
+using RTextNppPlugin.Scintilla;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -126,6 +127,7 @@ namespace RTextNppPlugin.Utilities.Settings
             }
         }
         #endregion
+        
         #region [Interface]
         event EventHandler IStyleConfigurationObserver.OnSettingsChanged
         {
@@ -190,6 +192,7 @@ namespace RTextNppPlugin.Utilities.Settings
             return default(IWordsStyle);
         }
         #endregion
+        
         #region [Helpers]
         private Color ConvertRGBToColor(string rgbString)
         {
@@ -282,6 +285,7 @@ namespace RTextNppPlugin.Utilities.Settings
             Dispose(false);
         }
         #endregion
+        
         #region [Event Handlers]
         private void OnRTextFileCreatedOrDeletedOrModified(object sender, FileSystemEventArgs e)
         {

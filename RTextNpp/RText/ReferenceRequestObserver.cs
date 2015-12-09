@@ -1,11 +1,13 @@
 ﻿using System.IO;
 using System.Linq;
 using System.Xml.Linq;
+
 namespace RTextNppPlugin.RText
 {
     using CSScriptIntellisense;
     using DllExport;
     using Parsing;
+    using RTextNppPlugin.Scintilla;
     using System;
     using Utilities;
     using Utilities.Settings;
@@ -26,8 +28,10 @@ namespace RTextNppPlugin.RText
         private IntPtr _editorWithActiveHotspot                      = IntPtr.Zero;                 //!< Holds editor handle, where hotspot is currently active.
         private readonly IStyleConfigurationObserver _styleOberver   = null;                        //!< Observer RText styles and provides notification when they change.
         #endregion
+        
         #region [Events]
         #endregion
+        
         #region [Interface]
         internal ReferenceRequestObserver(INpp nppHelper, ISettings settings, IWin32 win32helper, ILinkTargetsWindow refWindow, IStyleConfigurationObserver styleObserver)
         {
@@ -134,6 +138,7 @@ namespace RTextNppPlugin.RText
             }
         }
         #endregion
+        
         #region [Helpers]
         private void Enable(bool enable)
         {

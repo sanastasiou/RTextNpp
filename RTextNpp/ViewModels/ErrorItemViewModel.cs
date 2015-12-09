@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using RTextNppPlugin.Utilities;
 using System.Windows.Media;
+using RTextNppPlugin.Scintilla;
 
 namespace RTextNppPlugin.ViewModels
 {

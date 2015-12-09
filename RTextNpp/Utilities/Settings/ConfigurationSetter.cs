@@ -3,6 +3,8 @@ using System.IO;
 using System.Reflection;
 using System.Xml;
 using RTextNppPlugin.Logging;
+using RTextNppPlugin.Scintilla;
+
 namespace RTextNppPlugin.Utilities.Settings
 {
     /**

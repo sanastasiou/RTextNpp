@@ -1,4 +1,5 @@
 ﻿using RTextNppPlugin.RText;
+using RTextNppPlugin.Scintilla;
 using RTextNppPlugin.Utilities;
 using RTextNppPlugin.Utilities.Settings;
 using RTextNppPlugin.WpfControls;

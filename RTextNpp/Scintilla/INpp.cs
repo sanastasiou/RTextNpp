@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Text;
 
-namespace RTextNppPlugin.Utilities
+namespace RTextNppPlugin.Scintilla
 {
     using RTextNppPlugin.RText.Parsing;
     using RTextNppPlugin.DllExport;
@@ -124,7 +124,7 @@ namespace RTextNppPlugin.Utilities
         
         void GoToLine(int line);
              
-        int GrabFocus();
+        int GrabFocus(IntPtr sciPtr);
         
         IntPtr NppHandle { get; }
         
@@ -177,5 +177,7 @@ namespace RTextNppPlugin.Utilities
         int NumberOfOpenFilesInSecondaryView { get; }
 
         string[] GetOpenFiles(NppMsg view);
+
+        void ActivateDoc(int view, int index);
     }
 }

@@ -12,6 +12,7 @@ using RTextNppPlugin.RText.Protocol;
 using RTextNppPlugin.RText.StateEngine;
 using RTextNppPlugin.Utilities;
 using RTextNppPlugin.WpfControls;
+using RTextNppPlugin.Scintilla;
 namespace RTextNppPlugin.ViewModels
 {
     internal class AutoCompletionViewModel : BindableObject

@@ -10,6 +10,7 @@ using System.Windows.Threading;
 using System.Windows.Media;
 using RTextNppPlugin.Utilities.Settings;
 using System.Text;
+using RTextNppPlugin.Scintilla;
 
 
 namespace RTextNppPlugin.ViewModels

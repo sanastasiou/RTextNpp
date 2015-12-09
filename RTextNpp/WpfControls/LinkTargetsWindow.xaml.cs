@@ -5,6 +5,7 @@ using RTextNppPlugin.RText;
 using RTextNppPlugin.RText.Parsing;
 using RTextNppPlugin.RText.Protocol;
 using RTextNppPlugin.RText.StateEngine;
+using RTextNppPlugin.Scintilla;
 using RTextNppPlugin.Utilities;
 using RTextNppPlugin.Utilities.Settings;
 using RTextNppPlugin.ViewModels;
@@ -19,6 +20,7 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Forms;
 using System.Windows.Media;
+
 namespace RTextNppPlugin.WpfControls
 {
     /**

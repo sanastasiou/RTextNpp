@@ -53,7 +53,8 @@ namespace RTextNppPlugin.Scintilla.Annotations
             }
             if (_areAnnotationEnabled)
             {
-                RefreshAnnotations();
+                RefreshAnnotations(NppMsg.PRIMARY_VIEW, NppMsg.MAIN_VIEW, ref _lastMainViewAnnotatedFile, _nppHelper.MainScintilla, ref _mainViewTask, ref _mainSciCts);
+                RefreshAnnotations(NppMsg.SECOND_VIEW, NppMsg.SUB_VIEW, ref _lastSubViewAnnotatedFile, _nppHelper.SecondaryScintilla, ref _subViewTask, ref _subSciCts);
             }
             else
             {
@@ -67,9 +68,19 @@ namespace RTextNppPlugin.Scintilla.Annotations
             //only update if connector is already loaded
             if (ErrorList != null)
             {
-                RefreshAnnotations();
+                string previousAnnotatedMainFile = _lastMainViewAnnotatedFile;
+                string previousAnnotatedSubFile  = _lastSubViewAnnotatedFile;
+                _lastMainViewAnnotatedFile       = FindActiveFile(NppMsg.PRIMARY_VIEW, NppMsg.MAIN_VIEW);
+                _lastSubViewAnnotatedFile        = FindActiveFile(NppMsg.SECOND_VIEW, NppMsg.SUB_VIEW);
+                if(previousAnnotatedMainFile != _lastMainViewAnnotatedFile && !string.IsNullOrEmpty(_lastMainViewAnnotatedFile ))
+                {
+                    RefreshAnnotations(NppMsg.PRIMARY_VIEW, NppMsg.MAIN_VIEW, ref _lastMainViewAnnotatedFile, _nppHelper.MainScintilla, ref _mainViewTask, ref _mainSciCts);
+                }
+                if(previousAnnotatedSubFile != _lastSubViewAnnotatedFile && !string.IsNullOrEmpty(_lastSubViewAnnotatedFile))
+                {
+                    RefreshAnnotations(NppMsg.SECOND_VIEW, NppMsg.SUB_VIEW, ref _lastSubViewAnnotatedFile, _nppHelper.SecondaryScintilla, ref _subViewTask, ref _subSciCts);
+                }
             }
-
         }
 
         // Public implementation of Dispose pattern callable by consumers.
@@ -96,35 +107,42 @@ namespace RTextNppPlugin.Scintilla.Annotations
 
         public void RefreshAnnotations()
         {
+            RefreshAnnotations(NppMsg.PRIMARY_VIEW, NppMsg.MAIN_VIEW, ref _lastMainViewAnnotatedFile, _nppHelper.MainScintilla, ref _mainViewTask, ref _mainSciCts);
+            RefreshAnnotations(NppMsg.SECOND_VIEW, NppMsg.SUB_VIEW, ref _lastSubViewAnnotatedFile, _nppHelper.SecondaryScintilla, ref _subViewTask, ref _subSciCts);
+            //ensure that after a new buffer is activated annotations will be redrawn once - in case scintilla didn't have focus
+            var aCurrentDoc = _nppHelper.GetCurrentFilePath();
+            if(!_lastMainViewAnnotatedFile.Equals(aCurrentDoc))
+            {
+                _lastMainViewAnnotatedFile = string.Empty;
+            }
+            if (!_lastSubViewAnnotatedFile.Equals(aCurrentDoc))
+            {
+                _lastSubViewAnnotatedFile = string.Empty;
+            }
+        }
+        #endregion
+
+        #region [Helpers]
+        private void RefreshAnnotations(NppMsg openFilesView, NppMsg docIndexView, ref string activeViewFile, IntPtr sciPtr, ref Task viewTask, ref CancellationTokenSource cts)
+        {
             //ensure model is loaded
             if (_currentErrors != null)
             {
-                ErrorListViewModel aPrimaryErrors = null;
-                ErrorListViewModel aSecondaryErrors = null;
-                string previousAnnotatedMainFile = _lastMainViewAnnotatedFile;
-                string previousAnnotatedSubFile = _lastSubViewAnnotatedFile;
-
-                var aPrimaryViewAction = ValidateErrorList(out aPrimaryErrors, NppMsg.PRIMARY_VIEW, NppMsg.MAIN_VIEW, ref _lastMainViewAnnotatedFile);
-                if (aPrimaryViewAction != UpdateAction.NoAction && !_lastMainViewAnnotatedFile.Equals(previousAnnotatedMainFile))
+                ErrorListViewModel aErrors = null;
+                var aAction = ValidateErrorList(out aErrors, openFilesView, docIndexView, ref activeViewFile);
+                if (aAction != UpdateAction.NoAction)
                 {
-                    DrawAnnotations(aPrimaryErrors, _nppHelper.MainScintilla, ref _mainViewTask, ref _mainSciCts);
-                }
-
-                var aSecondaryViewAction = ValidateErrorList(out aSecondaryErrors, NppMsg.SECOND_VIEW, NppMsg.SUB_VIEW, ref _lastMainViewAnnotatedFile);
-                if (aSecondaryViewAction != UpdateAction.NoAction && !_lastSubViewAnnotatedFile.Equals(previousAnnotatedSubFile))
-                {
-                    DrawAnnotations(aSecondaryErrors, _nppHelper.SecondaryScintilla, ref _subViewTask, ref _subSciCts);
+                    DrawAnnotations(aErrors, sciPtr, ref viewTask, ref cts);
                 }
             }
         }
 
-        #endregion
-
-        #region [Helpers]
         private void ShowAnnotations(IntPtr scintilla)
         {
             if (_areAnnotationEnabled)
             {
+                //if doc is not active, annotations aren't displayed...not sure if it's scintilla bug
+                //_nppHelper.ActivateDoc((int)NppMsg.SUB_VIEW, 0);
                 _nppHelper.SetAnnotationVisible(scintilla, Constants.Scintilla.BOXED_ANNOTATION_STYLE);
             }
         }
@@ -158,29 +176,23 @@ namespace RTextNppPlugin.Scintilla.Annotations
 
         private UpdateAction ValidateErrorList(out ErrorListViewModel errors, NppMsg openFilesView, NppMsg docIndexView, ref string activeViewFile)
         {
-            errors          = null;
-            activeViewFile  = string.Empty;
+            errors            = null;
+            activeViewFile    = string.Empty;
             //get opened files
-            var openedFiles = _nppHelper.GetOpenFiles(openFilesView);
+            var openedFiles   = _nppHelper.GetOpenFiles(openFilesView);
             //check current doc index
-            int viewIndex   = _nppHelper.CurrentDocIndex(docIndexView);
+            int viewIndex     = _nppHelper.CurrentDocIndex(docIndexView);
 
-            string activeFile = string.Empty;
+            string activeFile = FindActiveFile(openFilesView, docIndexView);
 
-            if (viewIndex != Constants.Scintilla.VIEW_NOT_ACTIVE)
-            {
-                activeFile        = openedFiles[viewIndex];
-                var viewWorkspace = Utilities.FileUtilities.FindWorkspaceRoot(activeFile) + Path.GetExtension(activeFile);
-                if(!viewWorkspace.Equals(_workspaceRoot))
-                {
-                    return UpdateAction.NoAction;
-                }
-            }
-            else
+            if (string.IsNullOrEmpty(activeFile))
             {
                 return UpdateAction.NoAction;
             }
-            var activeFileRText = activeViewFile = activeFile.Replace('\\', '/');
+
+            activeViewFile = activeFile;
+
+            var activeFileRText = activeFile.Replace('\\', '/');
 
             //if we are here, it means workspaces match - check if files has errors
             errors = _currentErrors.FirstOrDefault(x => x.FilePath.Equals(activeFileRText, StringComparison.InvariantCultureIgnoreCase));
@@ -218,7 +230,7 @@ namespace RTextNppPlugin.Scintilla.Annotations
                     {
                         //concatenate error that share the same line with \n so that they appear in the same annotation box underneath the same line
                         var aErrorGroupByLines = errors.ErrorList.GroupBy(y => y.Line).AsParallel();
-                        Parallel.ForEach(aErrorGroupByLines, (errorGroup) =>
+                        foreach(var errorGroup in aErrorGroupByLines)
                         {
                             StringBuilder aErrorDescription = new StringBuilder(errorGroup.Count() * 50);
                             int aErrorCounter = 0;
@@ -233,7 +245,7 @@ namespace RTextNppPlugin.Scintilla.Annotations
                             //npp offset for line todo - add multiple styles
                             _nppHelper.SetAnnotationStyle((errorGroup.First().Line - 1), Constants.StyleId.ANNOTATION_ERROR);
                             _nppHelper.AddAnnotation((errorGroup.First().Line - 1), aErrorDescription);
-                        });
+                        }
                     }, cts.Token);
                     var showAnnotationTask = runningTask.ContinueWith(r => { if (r.IsCompleted) ShowAnnotations(sciPtr); }, TaskContinuationOptions.OnlyOnRanToCompletion);
                 }
@@ -246,6 +258,27 @@ namespace RTextNppPlugin.Scintilla.Annotations
                     Trace.WriteLine("DrawAnnotations failed.");
                 }
             }
+        }
+
+        private string FindActiveFile(NppMsg openFilesView, NppMsg docIndexView)
+        {
+            //get opened files
+            var openedFiles = _nppHelper.GetOpenFiles(openFilesView);
+            //check current doc index
+            int viewIndex   = _nppHelper.CurrentDocIndex(docIndexView);
+
+            string activeFile = string.Empty;
+
+            if (viewIndex != Constants.Scintilla.VIEW_NOT_ACTIVE)
+            {
+                var aTempFile = openedFiles[viewIndex];
+                var viewWorkspace = Utilities.FileUtilities.FindWorkspaceRoot(aTempFile) + Path.GetExtension(aTempFile);
+                if(viewWorkspace.Equals(_workspaceRoot))
+                {
+                    return aTempFile;
+                }
+            }
+            return string.Empty;
         }
         #endregion
     }

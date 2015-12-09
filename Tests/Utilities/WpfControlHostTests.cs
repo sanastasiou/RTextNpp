@@ -8,6 +8,7 @@ namespace Tests.Utilities
     using RTextNppPlugin.Utilities;
     using RTextNppPlugin.Utilities.Settings;
     using RTextNppPlugin.Utilities.WpfControlHost;
+    using RTextNppPlugin.Scintilla;
     [TestFixture]
     class WpfControlHostTests
     {

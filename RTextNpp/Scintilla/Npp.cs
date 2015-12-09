@@ -10,11 +10,13 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows.Forms;
-namespace RTextNppPlugin.Utilities
+
+namespace RTextNppPlugin.Scintilla
 {
     using CSScriptIntellisense;
     using RTextNppPlugin.DllExport;
     using RTextNppPlugin.RText.Parsing;
+    using RTextNppPlugin.Utilities;
     public class Npp : INpp
     {
         #region [Singleton Data Members]
@@ -516,9 +518,9 @@ namespace RTextNppPlugin.Utilities
             _win32.ISendMessage(CurrentScintilla, SciMsg.SCI_SETSELECTIONEND, end, 0); ;
         }
         
-        public int GrabFocus()
+        public int GrabFocus(IntPtr sciPtr)
         {
-            int currentPos = (int)_win32.ISendMessage(CurrentScintilla, SciMsg.SCI_GRABFOCUS, 0, 0);
+            int currentPos = (int)_win32.ISendMessage(sciPtr, SciMsg.SCI_GRABFOCUS, 0, 0);
             return currentPos;
         }
         
@@ -792,6 +794,11 @@ namespace RTextNppPlugin.Utilities
                     return new string[0];
             }
             return aFileList;
+        }
+
+        public void ActivateDoc(int view, int index)
+        {
+            _win32.ISendMessage(Plugin.Instance.NppData._nppHandle, NppMsg.NPPM_ACTIVATEDOC, view, index);
         }
     }
 }

@@ -10,6 +10,7 @@ namespace Tests.Utilities
     using Moq;
     using MoqExtensions;
     using RTextNppPlugin.RText;
+    using RTextNppPlugin.Scintilla;
     [TestFixture]
     class TokenEqualityComparerTests
     {
