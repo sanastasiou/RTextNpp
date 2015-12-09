@@ -63,6 +63,9 @@ namespace RTextNppPlugin
         public delegate void FileEventDelegate(object source, string file);
         public event FileEventDelegate PreviewFileClosed;
         public event FileEventDelegate BufferActivated;
+
+        public delegate void ScintillaFocusChangedEventDelegate(IntPtr sciPtr, bool hasFocus);
+        public event ScintillaFocusChangedEventDelegate ScintillaFocusChanged;
         #endregion
 
         #region [Startup/CleanUp]
@@ -314,6 +317,22 @@ namespace RTextNppPlugin
             }
         }
 
+        public bool HasMainSciFocus
+        {
+            get
+            {
+                return _hasMainScintillaFocus;
+            }
+        }
+
+        public bool HasSecondSciFocus
+        {
+            get
+            {
+                return _hasSecondScintillaFocus;
+            }
+        }
+
         /**
          * Gets file modification observer. Can be used to save all opened files of a workspace.
          *
@@ -477,8 +496,15 @@ namespace RTextNppPlugin
             _connectorManager.OnFileSaved(_nppHelper.GetCurrentFilePath());
         }
 
-        public void OnBufferActivated()
+        public void OnBufferActivated(IntPtr hwndFrom, int bufferid)
         {
+            string aFileOpened = _nppHelper.GetPathFromBufferId(bufferid);
+            if (BufferActivated != null)
+            {
+                BufferActivated(this, aFileOpened);
+            }
+            _fileObserver.OnFileOpened(aFileOpened);
+
             _linkTargetsWindow.CancelPendingRequest();
         }
 
@@ -493,12 +519,20 @@ namespace RTextNppPlugin
         
         private void OnSecondScintillaFocusChanged(object source, ScintillaMessageInterceptor.ScintillaFocusChangedEventArgs e)
         {
-            HandleScintillaFocusChange(e, ref _hasSecondScintillaFocus);
+            HandleScintillaFocusChanged(e, ref _hasSecondScintillaFocus);
+            if(ScintillaFocusChanged != null)
+            {
+                ScintillaFocusChanged(_nppHelper.SecondaryScintilla, _hasSecondScintillaFocus);
+            }
         }
         
         private void OnMainScintillaFocusChanged(object source, ScintillaMessageInterceptor.ScintillaFocusChangedEventArgs e)
         {
-            HandleScintillaFocusChange(e, ref _hasMainScintillaFocus);
+            HandleScintillaFocusChanged(e, ref _hasMainScintillaFocus);
+            if (ScintillaFocusChanged != null)
+            {
+                ScintillaFocusChanged(_nppHelper.MainScintilla, _hasMainScintillaFocus);
+            }
         }
         
         private void OnMenuLoopStateChanged(object source, NotepadMessageInterceptor.MenuLoopStateChangedEventArgs e)
@@ -533,19 +567,6 @@ namespace RTextNppPlugin
             Marshal.StructureToPtr(tbIcons, pTbIcons, false);
             _win32.ISendMessage(_nppData._nppHandle, NppMsg.NPPM_ADDTOOLBARICON, _funcItems.Items[(int)Constants.NppMenuCommands.ConsoleWindow]._cmdID, pTbIcons);
             Marshal.FreeHGlobal(pTbIcons);
-        }
-        
-        /**
-         * Handles file opened event to start backend process, in case the relevant  backend process is not yet started.
-         */
-        public void OnFileOpened()
-        {
-            string aFileOpened = Npp.Instance.GetCurrentFilePath();
-            if (BufferActivated != null)
-            {
-                BufferActivated(typeof(Plugin), _nppHelper.GetCurrentFilePath());
-            }
-            _fileObserver.OnFileOpened(aFileOpened);
         }
         
         /**
@@ -684,7 +705,7 @@ namespace RTextNppPlugin
             _funcItems.Add(funcItem);
         }
 
-        private void HandleScintillaFocusChange(ScintillaMessageInterceptor.ScintillaFocusChangedEventArgs e, ref bool hasFocus)
+        private void HandleScintillaFocusChanged(ScintillaMessageInterceptor.ScintillaFocusChangedEventArgs e, ref bool hasFocus)
         {
             hasFocus = e.Focused;
             IntPtr aWindowWithFocus = unchecked((IntPtr)(long)(ulong)e.WindowHandle);

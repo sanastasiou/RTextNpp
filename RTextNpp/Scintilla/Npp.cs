@@ -10,6 +10,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows.Forms;
+using System.Linq;
 
 namespace RTextNppPlugin.Scintilla
 {
@@ -96,9 +97,9 @@ namespace RTextNppPlugin.Scintilla
             }
         }
 
-        public int CurrentDocIndex(NppMsg currentView)
+        public int CurrentDocIndex(IntPtr scintilla)
         {
-            return (int)_win32.ISendMessage(Plugin.Instance.NppData._nppHandle, NppMsg.NPPM_GETCURRENTDOCINDEX, 0, (int)currentView);
+            return (int)_win32.ISendMessage(Plugin.Instance.NppData._nppHandle, NppMsg.NPPM_GETCURRENTDOCINDEX, 0, (int)(scintilla == MainScintilla ? NppMsg.MAIN_VIEW : NppMsg.SUB_VIEW));
         }
         
         public void SetEditorFocus(int setFocus = 1)
@@ -776,22 +777,30 @@ namespace RTextNppPlugin.Scintilla
             }
         }
 
-        public string[] GetOpenFiles(NppMsg view)
+        public string[] GetOpenFiles(IntPtr scintilla)
         {
             string[] aFileList = null;
+            NppMsg view = NppMsg.ALL_OPEN_FILES;
+            if(scintilla == MainScintilla)
+            {
+                view = NppMsg.PRIMARY_VIEW;
+            }
+            else if(scintilla == SecondaryScintilla)
+            {
+                view = NppMsg.SECOND_VIEW;
+            }
             switch (view)
             {
-                case NppMsg.ALL_OPEN_FILES:
-                    _win32.ISendMessage(Plugin.Instance.NppData._nppHandle, NppMsg.NPPM_GETOPENFILENAMES, out aFileList, NumberOfOpenFiles);
-                    break;
                 case NppMsg.PRIMARY_VIEW:
                     _win32.ISendMessage(Plugin.Instance.NppData._nppHandle, NppMsg.NPPM_GETOPENFILENAMESPRIMARY, out  aFileList, NumberOfOpenFilesInPrimaryView);
                     break;
                 case NppMsg.SECOND_VIEW:
                     _win32.ISendMessage(Plugin.Instance.NppData._nppHandle, NppMsg.NPPM_GETOPENFILENAMESSECOND, out  aFileList, NumberOfOpenFilesInSecondaryView);
                     break;
+                case NppMsg.ALL_OPEN_FILES:
                 default:
-                    return new string[0];
+                    _win32.ISendMessage(Plugin.Instance.NppData._nppHandle, NppMsg.NPPM_GETOPENFILENAMES, out aFileList, NumberOfOpenFiles);
+                    break;
             }
             return aFileList;
         }
@@ -799,6 +808,63 @@ namespace RTextNppPlugin.Scintilla
         public void ActivateDoc(int view, int index)
         {
             _win32.ISendMessage(Plugin.Instance.NppData._nppHandle, NppMsg.NPPM_ACTIVATEDOC, view, index);
+        }
+
+        public void FindActiveBufferViewAndIndex(out NppMsg view, out int index)
+        {
+            var activeBuffer  = GetCurrentFilePath();
+            var mainViewFiles = GetOpenFiles(MainScintilla);
+            var subViewFiles  = GetOpenFiles(SecondaryScintilla);
+            view  = NppMsg.MAIN_VIEW;
+            index = -1;
+            for(int i = 0; i < mainViewFiles.Length; ++i)
+            {
+                if (mainViewFiles[i].Equals(activeBuffer))
+                {
+                    view = NppMsg.MAIN_VIEW;
+                    index = i;
+                    return;
+                }
+            }
+            for (int i = 0; i < subViewFiles.Length; ++i)
+            {
+                if (subViewFiles[i].Equals(activeBuffer))
+                {
+                    view = NppMsg.SUB_VIEW;
+                    index = i;
+                    break;
+                }
+            }
+        }
+
+        public string GetPathFromBufferId(int bufferid)
+        {
+            int filePathLength = (int)_win32.ISendMessage(Plugin.Instance.NppData._nppHandle, NppMsg.NPPM_GETFULLPATHFROMBUFFERID, bufferid, IntPtr.Zero);
+            StringBuilder aFilePath = new StringBuilder(filePathLength + 1);
+            _win32.ISendMessage(Plugin.Instance.NppData._nppHandle, NppMsg.NPPM_GETFULLPATHFROMBUFFERID, bufferid, aFilePath);
+            return aFilePath.ToString();
+        }
+
+        public IntPtr FindScintillaFromFilepath(string filepath)
+        {
+            var mainViewFiles = GetOpenFiles(MainScintilla);
+            var subViewFiles  = GetOpenFiles(SecondaryScintilla);
+
+            for (int i = 0; i < mainViewFiles.Length; ++i)
+            {
+                if (mainViewFiles[i].Equals(filepath))
+                {
+                    return MainScintilla;
+                }
+            }
+            for (int i = 0; i < subViewFiles.Length; ++i)
+            {
+                if (subViewFiles[i].Equals(filepath))
+                {
+                    return SecondaryScintilla;
+                }
+            }
+            return IntPtr.Zero;
         }
     }
 }

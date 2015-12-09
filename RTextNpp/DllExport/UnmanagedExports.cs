@@ -64,7 +64,9 @@ namespace RTextNppPlugin
         static IntPtr getName()
         {
             if (_ptrPluginName == IntPtr.Zero)
+            {
                 _ptrPluginName = Marshal.StringToHGlobalUni(RTextNppPlugin.Constants.Scintilla.PLUGIN_NAME);
+            }
             return _ptrPluginName;
         }
 
@@ -87,9 +89,9 @@ namespace RTextNppPlugin
                     Plugin.Instance.LoadSettings();
                     break;
                 case (uint)NppMsg.NPPN_BUFFERACTIVATED:
-                    Plugin.Instance.OnFileOpened();
+                    //force zoom update
                     Plugin.Instance.OnZoomLevelModified();
-                    Plugin.Instance.OnBufferActivated();
+                    Plugin.Instance.OnBufferActivated(nc.nmhdr.hwndFrom, (int)nc.nmhdr.idFrom);
                     break;
                 case (uint)SciMsg.SCN_SAVEPOINTLEFT:
                     Plugin.Instance.OnFileConsideredModified();

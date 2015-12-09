@@ -29,7 +29,7 @@ namespace RTextNppPlugin.Scintilla
 
         IntPtr SecondaryScintilla { get; }
 
-        int CurrentDocIndex(NppMsg currentView);
+        int CurrentDocIndex(IntPtr scintilla);
         
         void SwitchToFile(string file);
         
@@ -176,8 +176,14 @@ namespace RTextNppPlugin.Scintilla
 
         int NumberOfOpenFilesInSecondaryView { get; }
 
-        string[] GetOpenFiles(NppMsg view);
+        string[] GetOpenFiles(IntPtr scintilla);
 
         void ActivateDoc(int view, int index);
+
+        void FindActiveBufferViewAndIndex(out NppMsg view, out int index);
+
+        string GetPathFromBufferId(int bufferid);
+
+        IntPtr FindScintillaFromFilepath(string filepath);
     }
 }
