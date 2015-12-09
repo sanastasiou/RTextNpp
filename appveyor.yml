@@ -86,10 +86,10 @@ build:
 
 # scripts to run after build
 after_build:
-  7z a Release.zip %APPVEYOR_BUILD_FOLDER%/RTextNpp/bin/x86/Release/RTextNpp.dll %APPVEYOR_BUILD_FOLDER%/RTextNpp.xml
+  7z a RTextNpp-v$(appveyor_build_version).zip %APPVEYOR_BUILD_FOLDER%/RTextNpp/bin/x86/Release/RTextNpp.dll %APPVEYOR_BUILD_FOLDER%/RTextNpp.xml
   
 artifacts:
-  - path: RTextNpp-v$(appveyor_build_version)-Release.zip
+  - path: RTextNpp-v$(appveyor_build_version).zip
     name: RTextNpp
   
 # scripts to run after tests
@@ -148,7 +148,7 @@ deploy:
   provider: GitHub
   auth_token:
     secure: +FR1WXoq1dCu2hQXBSk/kv9DBkII1QOJYeWOuGBL7aT1ZVpmohA13d0/hUClL7fy
-  artifact: Release.zip            # upload Release as a single .zip file
+  artifact: RTextNpp-v$(appveyor_build_version).zip # upload Release as a single .zip file
   draft: true
   prerelease: false
   on:
