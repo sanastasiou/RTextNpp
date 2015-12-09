@@ -86,10 +86,10 @@ build:
 
 # scripts to run after build
 after_build:
-  7z a RTextNpp-v{appveyor_build_version}.zip %APPVEYOR_BUILD_FOLDER%/RTextNpp/bin/x86/Release/RTextNpp.dll %APPVEYOR_BUILD_FOLDER%/RTextNpp.xml
+  7z a RTextNpp-v%APPVEYOR_BUILD_VERSION%.zip %APPVEYOR_BUILD_FOLDER%/RTextNpp/bin/x86/Release/RTextNpp.dll %APPVEYOR_BUILD_FOLDER%/RTextNpp.xml
   
 artifacts:
-  - path: RTextNpp-v{appveyor_build_version}.zip
+  - path: RTextNpp-v%APPVEYOR_BUILD_VERSION%.zip
     name: RTextNpp
   
 # scripts to run after tests
