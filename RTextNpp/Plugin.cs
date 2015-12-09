@@ -465,6 +465,11 @@ namespace RTextNppPlugin
                     case Keys.Right:
                         CommitAutoCompletion(false);
                         break;
+                    case Keys.OemOpenBrackets:
+                    case Keys.OemCloseBrackets:
+                    case Keys.OemQuotes:
+                        handled = false;
+                        break;
                     default:
                         //convert virtual key to w/e it has to be converted to
                         var mappedChar = Npp.GetCharsFromKeys(key, modifiers.IsShift || modifiers.IsCapsLock, modifiers.IsAlt && modifiers.IsCtrl);

@@ -261,25 +261,28 @@ namespace RTextNppPlugin.Scintilla.Annotations
             HideAnnotations(sciPtr);
             try
             {
-                //concatenate error that share the same line with \n so that they appear in the same annotation box underneath the same line
-                var aErrorGroupByLines = errors.ErrorList.GroupBy(y => y.Line).AsParallel();
-                foreach (var errorGroup in aErrorGroupByLines)
+                if (errors != null)
                 {
-                    StringBuilder aErrorDescription = new StringBuilder(errorGroup.Count() * 50);
-                    int aErrorCounter = 0;
-                    foreach (var error in errorGroup)
+                    //concatenate error that share the same line with \n so that they appear in the same annotation box underneath the same line
+                    var aErrorGroupByLines = errors.ErrorList.GroupBy(y => y.Line).AsParallel();
+                    foreach (var errorGroup in aErrorGroupByLines)
                     {
-                        aErrorDescription.AppendFormat("{0} at line : {1} - {2}", error.Severity, error.Line, error.Message);
-                        if (++aErrorCounter < errorGroup.Count())
+                        StringBuilder aErrorDescription = new StringBuilder(errorGroup.Count() * 50);
+                        int aErrorCounter = 0;
+                        foreach (var error in errorGroup)
                         {
-                            aErrorDescription.Append("\n");
+                            aErrorDescription.AppendFormat("{0} at line : {1} - {2}", error.Severity, error.Line, error.Message);
+                            if (++aErrorCounter < errorGroup.Count())
+                            {
+                                aErrorDescription.Append("\n");
+                            }
                         }
+                        //npp offset for line todo - add multiple styles
+                        _nppHelper.SetAnnotationStyle((errorGroup.First().Line - 1), Constants.StyleId.ANNOTATION_ERROR);
+                        _nppHelper.AddAnnotation((errorGroup.First().Line - 1), aErrorDescription);
                     }
-                    //npp offset for line todo - add multiple styles
-                    _nppHelper.SetAnnotationStyle((errorGroup.First().Line - 1), Constants.StyleId.ANNOTATION_ERROR);
-                    _nppHelper.AddAnnotation((errorGroup.First().Line - 1), aErrorDescription);
+                    ShowAnnotations(sciPtr);
                 }
-                ShowAnnotations(sciPtr);
             }
             catch (Exception)
             {
