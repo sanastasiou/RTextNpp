@@ -1,5 +1,4 @@
 ﻿using RTextNppPlugin.DllExport;
-using RTextNppPlugin.RText;
 using RTextNppPlugin.Utilities;
 using RTextNppPlugin.Utilities.Settings;
 using RTextNppPlugin.ViewModels;
@@ -9,44 +8,22 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace RTextNppPlugin.Scintilla.Annotations
 {
-    class AnnotationManager : IError, IDisposable
+    class AnnotationManager : ErrorBase, IError
     {
         #region [Data Members]
-        private readonly ISettings _settings                        = null;
-        private readonly INpp _nppHelper                            = null;
         private const Settings.RTextNppSettings SETTING             = Settings.RTextNppSettings.EnableErrorAnnotations;
-        private bool _areAnnotationEnabled                          = false;
-        private string _lastMainViewAnnotatedFile                   = string.Empty;
-        private string _lastSubViewAnnotatedFile                    = string.Empty;
-        private bool _disposed                                      = false;
-        private readonly NppData _nppData                           = default(NppData);
-        private IList<ErrorListViewModel> _currentErrors            = null;
-        private string _workspaceRoot                               = string.Empty;
-        private DelayedEventHandler<object> _bufferActivatedHandler = null;
-        private bool _hasMainScintillaFocus                         = true;
-        private bool _hasSecondScintillaFocus                       = true;
         #endregion
 
         #region [Interface]
-        internal AnnotationManager(ISettings settings, INpp nppHelper, Plugin plugin, string workspaceRoot)
+        internal AnnotationManager(ISettings settings, INpp nppHelper, Plugin plugin, string workspaceRoot) : 
+            base (settings, nppHelper, plugin, workspaceRoot, 100)
         {
-            _settings                    = settings;
-            _nppHelper                   = nppHelper;
-            _settings.OnSettingChanged   += OnSettingChanged;
-            _nppData                     = plugin.NppData;
-            _areAnnotationEnabled        = _settings.Get<bool>(Settings.RTextNppSettings.EnableErrorAnnotations);
-            _workspaceRoot               = workspaceRoot;
-            plugin.BufferActivated       += OnBufferActivated;
-            _bufferActivatedHandler      = new DelayedEventHandler<object>(null, 100);
-            plugin.ScintillaFocusChanged += OnScintillaFocusChanged;
         }
 
-        public void OnSettingChanged(object source, Utilities.Settings.Settings.SettingChangedEventArgs e)
+        public override void OnSettingChanged(object source, Utilities.Settings.Settings.SettingChangedEventArgs e)
         {
             if (e.Setting == SETTING)
             {
@@ -62,33 +39,6 @@ namespace RTextNppPlugin.Scintilla.Annotations
                 HideAnnotations(_nppHelper.MainScintilla);
                 HideAnnotations(_nppHelper.SecondaryScintilla);
                 _lastMainViewAnnotatedFile = _lastSubViewAnnotatedFile = string.Empty;
-            }
-        }
-
-        public void OnBufferActivated(object source, string file)
-        {
-            _bufferActivatedHandler.TriggerHandler(new ActionWrapper<object, string>(OnBufferActivated, file));
-        }
-
-        // Public implementation of Dispose pattern callable by consumers.
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        public IList<ErrorListViewModel> ErrorList
-        { 
-            get
-            {
-                return _currentErrors;
-            }
-            set
-            {
-                if (value != null)
-                {
-                    _currentErrors = new List<ErrorListViewModel>(value);
-                }
             }
         }
 
@@ -111,21 +61,7 @@ namespace RTextNppPlugin.Scintilla.Annotations
 
         #region [Helpers]
 
-        #region [Event Handlers]
-        private void OnScintillaFocusChanged(IntPtr sciPtr, bool hasFocus)
-        {
-            if(sciPtr == _nppHelper.MainScintilla)
-            {
-                _hasMainScintillaFocus = hasFocus;
-            }
-            else if(sciPtr == _nppHelper.SecondaryScintilla)
-            {
-                _hasSecondScintillaFocus = hasFocus;
-            }
-        }
-        #endregion
-
-        private object OnBufferActivated(string file)
+        protected override object OnBufferActivated(string file)
         {
             //only update if connector is already loaded
             if (ErrorList != null)
@@ -187,22 +123,6 @@ namespace RTextNppPlugin.Scintilla.Annotations
             }
         }
 
-        // Protected implementation of Dispose pattern.
-        protected virtual void Dispose(bool disposing)
-        {
-            if (_disposed)
-            {
-                return;
-            }
-            if (disposing)
-            {
-                _settings.OnSettingChanged            -= OnSettingChanged;
-                Plugin.Instance.BufferActivated       -= OnBufferActivated;
-                Plugin.Instance.ScintillaFocusChanged -= OnScintillaFocusChanged;
-            }
-            _disposed = true;
-        }
-
         private void HideAnnotations(IntPtr scintilla)
         {
             var openFiles = _nppHelper.GetOpenFiles(scintilla);
@@ -215,13 +135,6 @@ namespace RTextNppPlugin.Scintilla.Annotations
                     _nppHelper.SetAnnotationVisible(scintilla, Constants.Scintilla.HIDDEN_ANNOTATION_STYLE);
                 }
             }
-        }
-
-        private enum UpdateAction
-        {
-            NoAction,
-            Delete,
-            Update
         }
 
         private UpdateAction ValidateErrorList(out ErrorListViewModel errors, IntPtr sciPtr, ref string activeViewFile)
@@ -288,40 +201,6 @@ namespace RTextNppPlugin.Scintilla.Annotations
             {
                 Trace.WriteLine("DrawAnnotations failed.");
             }
-        }
-
-        private string FindActiveFile(IntPtr sciPtr)
-        {
-            //get opened files
-            var openedFiles = _nppHelper.GetOpenFiles(sciPtr);
-            //check current doc index
-            int viewIndex   = _nppHelper.CurrentDocIndex(sciPtr);
-
-            string activeFile = string.Empty;
-
-            if (viewIndex != Constants.Scintilla.VIEW_NOT_ACTIVE)
-            {
-                var aTempFile = openedFiles[viewIndex];
-                var viewWorkspace = Utilities.FileUtilities.FindWorkspaceRoot(aTempFile) + Path.GetExtension(aTempFile);
-                if(viewWorkspace.Equals(_workspaceRoot))
-                {
-                    return aTempFile;
-                }
-            }
-            return string.Empty;
-        }
-
-        private bool HasSciFocus(IntPtr sciPtr)
-        {
-            if(sciPtr == _nppHelper.MainScintilla)
-            {
-                return _hasMainScintillaFocus;
-            }
-            else if(sciPtr == _nppHelper.SecondaryScintilla)
-            {
-                return _hasSecondScintillaFocus;
-            }
-            return false;
         }
         #endregion
     }

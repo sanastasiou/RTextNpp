@@ -58,6 +58,7 @@
     <Compile Include="RText\Connector.cs" />
     <Compile Include="RText\ConnectorManager.cs" />
     <Compile Include="Scintilla\Annotations\AnnotationManager.cs" />
+    <Compile Include="Scintilla\Annotations\ErrorBase.cs" />
     <Compile Include="Scintilla\Annotations\IError.cs" />
     <Compile Include="RText\IConnector.cs" />
     <Compile Include="RText\Process.cs" />
