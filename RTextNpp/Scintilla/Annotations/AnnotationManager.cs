@@ -67,7 +67,7 @@ namespace RTextNppPlugin.Scintilla.Annotations
         {
             var openFiles = _nppHelper.GetOpenFiles(scintilla);
             var docIndex  = _nppHelper.CurrentDocIndex(scintilla);
-            if(Utilities.FileUtilities.IsRTextFile(openFiles[docIndex], _settings, _nppHelper))
+            if(docIndex != Constants.Scintilla.VIEW_NOT_ACTIVE && Utilities.FileUtilities.IsRTextFile(openFiles[docIndex], _settings, _nppHelper))
             {
                 if((Utilities.FileUtilities.FindWorkspaceRoot(openFiles[docIndex]) + Path.GetExtension(openFiles[docIndex])).Equals(_workspaceRoot))
                 {

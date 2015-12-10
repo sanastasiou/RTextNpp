@@ -23,8 +23,10 @@ namespace RTextNppPlugin.Scintilla.Annotations
             _areAnnotationEnabled = _settings.Get<bool>(Settings.RTextNppSettings.EnableErrorMarkers);
             for(int i = 0; i < 5; ++i)
             {
-                Trace.WriteLine(String.Format("Margin type for n : [{0}] is {1}", i, _nppHelper.GetMarginTypeN(_nppHelper.MainScintilla, i)));
+                Trace.WriteLine(String.Format("Margin type for  n : [{0}] is {1}", i, _nppHelper.GetMarginTypeN(_nppHelper.MainScintilla, i)));
                 Trace.WriteLine(String.Format("Margin width for n : [{0}] is {1}", i, _nppHelper.GetMarginWidthN(_nppHelper.MainScintilla, i)));
+                Trace.WriteLine(String.Format("Margin mask for  n : [{0}] is {1}", i, _nppHelper.GetMarginMaskN(_nppHelper.MainScintilla, i)));
+
             }
         }
 
