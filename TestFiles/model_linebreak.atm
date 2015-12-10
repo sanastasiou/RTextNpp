@@ -10,11 +10,7 @@ AUTOSAR {
       ApplicationError err1
     }
     SenderReceiverInterface ISR1 {
-      DataElementPrototype de1, type: /P1/UInt8 l ,
-    }
-    
-    
-    
+      DataElementPrototype de1, type: /P1/UInt8
     
     
     
@@ -98,6 +94,7 @@ AUTOSAR {
       RunnableEntity run8 {
         WaitPoint wp1, trigger: oie1
       }
+
       RunnableEntity run9 {
         CalprmAccess cpa1 {
           CalprmAccess_CalprmElementPrototype portPrototype: calPPort, calprmElementPrototype: ce1
@@ -124,6 +121,7 @@ AUTOSAR {
           DataReadAccess_dataElement rPortPrototype: receiverPort, dataElementPrototype: de1
         }
       }
+      
       PortAPIOption port: serverPort
       PerInstanceMemory pim1
       OperationInvokedEvent oie1, startOnEvent: run1

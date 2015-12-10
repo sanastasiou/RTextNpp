@@ -25,6 +25,7 @@ namespace RTextNppPlugin.ViewModels
             _nppHelper                   = nppHelper;
             _dispatcher                  = dispatcher;
             _annotationsManager          = new AnnotationManager(settings, nppHelper, Plugin.Instance, _connector.Workspace);
+            _marginsManager              = new MarginManager(settings, nppHelper, Plugin.Instance, _connector.Workspace);
         }
         /**
          * \brief   Gets a value indicating whether this workspace is currently loading.
@@ -205,7 +206,9 @@ namespace RTextNppPlugin.ViewModels
                 }
             }
             _annotationsManager.ErrorList = _errorList;
-            _annotationsManager.RefreshAnnotations();
+            _marginsManager.ErrorList     = _errorList;
+            _annotationsManager.Refresh();
+            _marginsManager.Refresh();
         }
 
         #endregion
@@ -222,7 +225,8 @@ namespace RTextNppPlugin.ViewModels
         private INpp _nppHelper                         = null;                 //!< Npp helper instance.
         private static readonly object _lock            = new object();         //!< Mutex.
         private readonly Dispatcher _dispatcher         = null;                 //!< UI Dispatcher.
-        private IError _annotationsManager              = null;
+        private IError _annotationsManager              = null;                 //!< Manages annotations display.
+        private IError _marginsManager                  = null;                 //!< Manages margins display.
         #endregion
     }
 }

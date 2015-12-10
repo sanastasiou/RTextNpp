@@ -185,5 +185,15 @@ namespace RTextNppPlugin.Scintilla
         string GetPathFromBufferId(int bufferid);
 
         IntPtr FindScintillaFromFilepath(string filepath);
+
+        void ClearAllTextMargins(IntPtr sciPtr);
+
+        void SetMarginText(IntPtr sciPtr, int line, string text);
+
+        void SetMarginStyle(IntPtr sciPtr, int line, int style);
+
+        int GetMarginTypeN(IntPtr sciPtr, int margin);
+
+        int GetMarginWidthN(IntPtr sciPtr, int margin);
     }
 }

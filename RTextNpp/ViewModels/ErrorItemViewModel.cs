@@ -25,6 +25,7 @@ namespace RTextNppPlugin.ViewModels
         public string Message { get; private set; }
         public SeverityType Severity { get; private set; }
         public int Line { get; private set; }
+        public int LineForScintilla { get { return Line - 1; } }
         public string File { get; private set; }
         public string FilePath { get; private set; }
         public ErrorItemViewModel(SpecificError error, string filepath)

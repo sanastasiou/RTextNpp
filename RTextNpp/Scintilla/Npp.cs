@@ -866,5 +866,30 @@ namespace RTextNppPlugin.Scintilla
             }
             return IntPtr.Zero;
         }
+
+        public void ClearAllTextMargins(IntPtr sciPtr)
+        {
+            _win32.ISendMessage(sciPtr, SciMsg.SCI_MARGINTEXTCLEARALL, 0, 0);
+        }
+
+        public void SetMarginText(IntPtr sciPtr, int line, string text)
+        {
+            _win32.ISendMessage(sciPtr, SciMsg.SCI_MARGINSETTEXT, line, text);
+        }
+
+        public void SetMarginStyle(IntPtr sciPtr, int line, int style)
+        {
+            _win32.ISendMessage(sciPtr, SciMsg.SCI_MARGINSETSTYLE, line, style);
+        }
+
+        public int GetMarginTypeN(IntPtr sciPtr, int margin)
+        {
+            return (int)_win32.ISendMessage(sciPtr, SciMsg.SCI_GETMARGINTYPEN, margin, 0);
+        }
+
+        public int GetMarginWidthN(IntPtr sciPtr, int margin)
+        {
+           return (int)_win32.ISendMessage(sciPtr, SciMsg.SCI_GETMARGINWIDTHN, margin, 0);
+        }
     }
 }

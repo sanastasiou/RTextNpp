@@ -136,7 +136,6 @@
             // _errorMarkersCheckBox
             // 
             this._errorMarkersCheckBox.AutoSize = true;
-            this._errorMarkersCheckBox.Enabled = false;
             this._errorMarkersCheckBox.Location = new System.Drawing.Point(6, 42);
             this._errorMarkersCheckBox.Name = "_errorMarkersCheckBox";
             this._errorMarkersCheckBox.Size = new System.Drawing.Size(125, 17);
