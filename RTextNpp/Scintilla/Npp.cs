@@ -107,9 +107,9 @@ namespace RTextNppPlugin.Scintilla
             _win32.ISendMessage(CurrentScintilla, SciMsg.SCI_SETFOCUS, setFocus, 0);
         }
         
-        public int GetZoomLevel()
+        public int GetZoomLevel(IntPtr sciPtr)
         {
-            return (int)_win32.ISendMessage(CurrentScintilla, SciMsg.SCI_GETZOOM, 0, 0);
+            return (int)_win32.ISendMessage(sciPtr, SciMsg.SCI_GETZOOM, 0, 0);
         }
         
         public int GetSelectionStart()

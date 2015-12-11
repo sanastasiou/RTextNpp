@@ -30,6 +30,7 @@ namespace RTextNppPlugin.ViewModels
                 Other,
                 Warning
             }
+            
             public Completion(string displayText, string insertionText, string description, AutoCompletionType glyph, bool isFuzzy = false)
             {
                 _displayText   = displayText;
@@ -38,6 +39,7 @@ namespace RTextNppPlugin.ViewModels
                 _glyph         = glyph;
                 _isFuzzy       = isFuzzy;
             }
+            
             public Completion(Completion completion, bool isFuzzy)
             {
                 _displayText   = completion.DisplayText;
@@ -46,6 +48,7 @@ namespace RTextNppPlugin.ViewModels
                 _glyph         = completion.ImageType;
                 _isFuzzy       = isFuzzy;
             }
+            
             public Completion(Completion completion)
             {
                 _displayText   = completion.DisplayText;
@@ -54,10 +57,15 @@ namespace RTextNppPlugin.ViewModels
                 _glyph         = completion.ImageType;
                 IsFuzzy        = IsSelected = false;
             }
+            
             public string DisplayText { get { return _displayText; } }
+            
             public string Description { get { return _description; } }
+            
             public string InsertionText { get { return _insertionText; } }
+            
             public AutoCompletionType ImageType { get { return _glyph; } }
+            
             public bool IsFuzzy
             {
                 get
@@ -73,6 +81,7 @@ namespace RTextNppPlugin.ViewModels
                     }
                 }
             }
+            
             public bool IsSelected
             {
                 get
@@ -89,8 +98,7 @@ namespace RTextNppPlugin.ViewModels
                 }
             }
             #endregion
-            #region [Helpers]
-            #endregion
+                       
             #region [Data Members]
             private readonly string _displayText;
             private readonly string _insertionText;
@@ -108,6 +116,7 @@ namespace RTextNppPlugin.ViewModels
             NoAction,
             MoveToRight
         }
+        
         /**
          * Executes the key pressed action.
          *
@@ -122,7 +131,9 @@ namespace RTextNppPlugin.ViewModels
             CharProcessAction = CharProcessResult.NoAction;
             AddCharToTriggerPoint(c);
         }
+        
         public CharProcessResult CharProcessAction { get; private set; }
+        
         public Tokenizer.TokenTag? TriggerPoint
         {
             get
@@ -134,12 +145,14 @@ namespace RTextNppPlugin.ViewModels
                 _triggerToken = value;
             }
         }
+        
         public void OnZoomLevelChanged(double newZoomLevel)
         {
             //calculate actual zoom level , based on Scintilla zoom factors...
             //try 8% increments / decrements
             ZoomLevel = (1.0 + (Constants.ZOOM_FACTOR * newZoomLevel));
         }
+        
         public double ZoomLevel
         {
             get
@@ -155,6 +168,7 @@ namespace RTextNppPlugin.ViewModels
                 }
             }
         }
+        
         public AutoCompletionViewModel(ConnectorManager cmanager)
         {
             _cManager          = cmanager;
@@ -165,6 +179,7 @@ namespace RTextNppPlugin.ViewModels
             _completionList.Add(CreateWarningCompletion(Properties.Resources.ERR_BACKEND_CONNECTING, Properties.Resources.ERR_BACKEND_CONNECTING_DESC));
             Pending = false;
         }
+        
         public void OnAutoCompletionWindowCollapsing()
         {
             _completionList.Clear();
@@ -180,7 +195,9 @@ namespace RTextNppPlugin.ViewModels
                 _connector.CancelCommand();
             }
         }
+        
         public bool Pending { get; private set; }
+        
         public int FilteredCount
         {
             get
@@ -196,6 +213,7 @@ namespace RTextNppPlugin.ViewModels
                 }
             }
         }
+        
         public void SelectPosition(int newPosition)
         {
             //fix for initial not selected item, when filtering ignore index change events
@@ -214,6 +232,7 @@ namespace RTextNppPlugin.ViewModels
             SelectedCompletion         = _filteredList[newPosition];
             SelectedCompletion.IsFuzzy = SelectedCompletion.IsSelected = true;
         }
+        
         public Completion SelectedCompletion
         {
             get
@@ -229,6 +248,7 @@ namespace RTextNppPlugin.ViewModels
                 }
             }
         }
+        
         public BulkObservableCollection<Completion> UnderlyingList
         {
             get
@@ -236,6 +256,7 @@ namespace RTextNppPlugin.ViewModels
                 return _completionList;
             }
         }
+        
         public FilteredObservableCollection<Completion> CompletionList
         {
             get
@@ -243,6 +264,7 @@ namespace RTextNppPlugin.ViewModels
                 return _filteredList;
             }
         }
+        
         async public Task AugmentAutoCompletion(ContextExtractor extractor, Point caretPoint, AutoCompletionTokenizer tokenizer, bool isAutoCompletionShortCutActive)
         {
             Pending = true;
@@ -376,6 +398,7 @@ namespace RTextNppPlugin.ViewModels
                 _completionList.Add(CreateWarningCompletion(Properties.Resources.CONNECTOR_INSTANCE_NULL, Properties.Resources.CONNECTOR_INSTANCE_NULL_DESC));
             }
         }
+        
         public int SelectedIndex
         {
             get
@@ -391,6 +414,7 @@ namespace RTextNppPlugin.ViewModels
                 }
             }
         }
+        
         public void Filter()
         {
             _isFiltering = true;
@@ -487,6 +511,7 @@ namespace RTextNppPlugin.ViewModels
             }
             _isFiltering = false;
         }
+        
         #endregion
         
         #region [Helpers]

@@ -92,7 +92,7 @@ namespace RTextNppPlugin.Scintilla.Annotations
                         int aErrorCounter = 0;
                         foreach (var error in errorGroup)
                         {
-                            aErrorDescription.AppendFormat("{0} at line : {1} - {2}", error.Severity, error.Line, error.Message);
+                            aErrorDescription.AppendFormat("{0} : {2}", error.Severity, error.Line, error.Message);
                             if (++aErrorCounter < errorGroup.Count())
                             {
                                 aErrorDescription.Append("\n");

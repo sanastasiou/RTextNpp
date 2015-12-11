@@ -9,10 +9,13 @@ AUTOSAR {
       OperationPrototype op1, possibleError: err1
       ApplicationError err1
     }
+    Sen
+    
+    
+    
     SenderReceiverInterface ISR1 {
       DataElementPrototype de1, type: /P1/UInt8
-    
-    
+    }
     
     SenderReceiverInterface IMode1 {
       ModeDeclarationGroupPrototype modeGroup1, type: /P1/ModeGroup1

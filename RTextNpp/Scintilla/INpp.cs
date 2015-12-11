@@ -120,7 +120,7 @@ namespace RTextNppPlugin.Scintilla
         
         int GetTextHeight(int line);
         
-        int GetZoomLevel();
+        int GetZoomLevel(IntPtr sciPtr);
         
         void GoToLine(int line);
              

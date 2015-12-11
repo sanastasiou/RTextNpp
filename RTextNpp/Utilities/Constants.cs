@@ -41,7 +41,7 @@ namespace RTextNppPlugin
         public const double MAX_AUXILIARY_WINDOWS_WIDTH  = 600.0;               //!< Max width of auto completion and link reference windows.
         public const double MIN_AUXILIARY_WINDOWS_WIDTH = 300.0;                //!< Max width of auto completion and link reference windows.
         public const double MAX_AUTO_COMPLETION_TOOLTIP_WIDTH = 300.0;          //!< Max width of auto completion tooltip.
-        public const double ZOOM_FACTOR = 0.08;                                 //!< Relation between actual zoom and scintilla zoom factor for various plugin windows.
+        public const double ZOOM_FACTOR = 0.12;                                 //!< Relation between actual zoom and scintilla zoom factor for various plugin windows.
         public const double INITIAL_WIDTH_LINK_REFERENCE_LABELS = 70.0;         //!< Initial width of link reference labels in row details template. This is used to align all labels.
         public const double MAX_WIDTH_LINK_REFERENCE_LABELS = 600.0;            //!< Initial width of link reference labels in row details template. This is used to align all labels.
 
@@ -56,6 +56,7 @@ namespace RTextNppPlugin
             public const int HIDDEN_ANNOTATION_STYLE = 0;                       //!< Hides annotations. (http://www.scintilla.org/ScintillaDoc.html#SCI_ANNOTATIONSETVISIBLE)
             public const string SHORTCUTS_FILE = "shortcuts.xml";               //!< Npp shortcuts file.
             public const double ANNOTATIONS_UPDATE_DELAY = 100.0;               //!< Update delay when drawing new annotations from beginning from the time when a new buffer gets activated.
+            public const int SC_MAX_MARGIN = 4;                                 //!< Maximum number of allowed margins in the editor.
         }
         #endregion
 

@@ -66,6 +66,9 @@ namespace RTextNppPlugin
 
         public delegate void ScintillaFocusChangedEventDelegate(IntPtr sciPtr, bool hasFocus);
         public event ScintillaFocusChangedEventDelegate ScintillaFocusChanged;
+
+        public delegate void ScintillaZoomChangedEventDelegate(IntPtr sciPtr, int newZoomLevel);
+        public event ScintillaZoomChangedEventDelegate ScintillaZoomChanged;
         #endregion
 
         #region [Startup/CleanUp]
@@ -115,7 +118,7 @@ namespace RTextNppPlugin
             {
                 CSScriptIntellisense.KeyInterceptor.Instance.Add((Keys)key);
             }
-            _currentZoomLevel = Npp.Instance.GetZoomLevel();
+            _currentZoomLevel = Npp.Instance.GetZoomLevel(_nppHelper.CurrentScintilla);
             _autoCompletionForm.OnZoomLevelChanged(_currentZoomLevel);
             _linkTargetsWindow.OnZoomLevelChanged(_currentZoomLevel);
             _linkTargetsWindow.IsVisibleChanged += OnLinkTargetsWindowIsVisibleChanged;
@@ -133,14 +136,14 @@ namespace RTextNppPlugin
                 _win32.ISendMessage(_nppData._nppHandle, NppMsg.NPPM_SETMENUITEMCHECK, _funcItems.Items[0]._cmdID, 1);
             }
 
-            _nppMsgInterceptpr = new NotepadMessageInterceptor(_nppData._nppHandle);
-            _scintillaMainMsgInterceptor = new ScintillaMessageInterceptor(_nppData._scintillaMainHandle);
-            _scintillaMainMsgInterceptor.ScintillaFocusChanged += OnMainScintillaFocusChanged;
-            _scintillaSecondMsgInterceptor = new ScintillaMessageInterceptor(_nppData._scintillaSecondHandle);
+            _nppMsgInterceptpr                                   = new NotepadMessageInterceptor(_nppData._nppHandle);
+            _scintillaMainMsgInterceptor                         = new ScintillaMessageInterceptor(_nppData._scintillaMainHandle);
+            _scintillaMainMsgInterceptor.ScintillaFocusChanged   += OnMainScintillaFocusChanged;
+            _scintillaSecondMsgInterceptor                       = new ScintillaMessageInterceptor(_nppData._scintillaSecondHandle);
             _scintillaSecondMsgInterceptor.ScintillaFocusChanged += OnSecondScintillaFocusChanged;
-            _scintillaMainMsgInterceptor.MouseWheelMoved += OnScintillaMouseWheelMoved;
-            _scintillaSecondMsgInterceptor.MouseWheelMoved += OnScintillaMouseWheelMoved;
-            _nppMsgInterceptpr.MenuLoopStateChanged += OnMenuLoopStateChanged;
+            _scintillaMainMsgInterceptor.MouseWheelMoved         += OnScintillaMouseWheelMoved;
+            _scintillaSecondMsgInterceptor.MouseWheelMoved       += OnScintillaMouseWheelMoved;
+            _nppMsgInterceptpr.MenuLoopStateChanged              += OnMenuLoopStateChanged;
         }
                     
         #endregion
@@ -596,12 +599,16 @@ namespace RTextNppPlugin
          */
         public void OnZoomLevelModified()
         {
-            int aNewZoomLevel = Npp.Instance.GetZoomLevel();
+            int aNewZoomLevel = Npp.Instance.GetZoomLevel(_nppHelper.CurrentScintilla);
             if(aNewZoomLevel != _currentZoomLevel)
             {
                 _currentZoomLevel = aNewZoomLevel;
                 _autoCompletionForm.OnZoomLevelChanged(_currentZoomLevel);
                 _linkTargetsWindow.OnZoomLevelChanged(_currentZoomLevel);
+            }
+            if(ScintillaZoomChanged != null)
+            {
+                ScintillaZoomChanged(_nppHelper.CurrentScintilla, aNewZoomLevel);
             }
         }
 
