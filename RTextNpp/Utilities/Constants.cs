@@ -66,6 +66,7 @@ namespace RTextNppPlugin
             public const string DLL_NAME_KERNEL32 = "kernel32.dll";
             public const string DLL_NAME_OLE32    = "ole32.dll";
             public const string DLL_NAME_USER32   = "user32.dll";
+            public const uint WM_USER             = 0x400;
         }
         #endregion
 

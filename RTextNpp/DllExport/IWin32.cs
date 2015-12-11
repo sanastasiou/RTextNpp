@@ -11,7 +11,6 @@ namespace RTextNppPlugin.DllExport
         IntPtr IGetMenu(IntPtr hWnd);
         int IGetPrivateProfileInt(string lpAppName, string lpKeyName, int nDefault, string lpFileName);
         IntPtr ISendMessage(IntPtr hWnd, NppMsg Msg, int wParam, out int lParam);
-        IntPtr ISendMessage(IntPtr hWnd, NppMsg Msg, int wParam, ref LangType lParam);
         int ISendMessage(IntPtr hWnd, NppMsg Msg, out string[] files, int numOfFiles);
         IntPtr ISendMessage(IntPtr hWnd, NppMsg Msg, int wParam, NppMenuCmd lParam);
         IntPtr ISendMessage(IntPtr hWnd, NppMsg Msg, int wParam, int lParam);
