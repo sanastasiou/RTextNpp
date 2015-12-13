@@ -8,19 +8,20 @@ using System.Text;
 using System.Threading.Tasks;
 using System.IO;
 using RTextNppPlugin.DllExport;
+using RTextNppPlugin.Utilities;
 
 namespace RTextNppPlugin.Scintilla.Annotations
 {
     class MarginManager : ErrorBase, IError
     {
         #region [Data Members]
-        private const Settings.RTextNppSettings SETTING   = Settings.RTextNppSettings.EnableErrorMarkers;
-        private double _currentPixelFactorMainScintilla   = 0.0;
-        private double _currentPixelFactorSecondScintilla = 0.0;
-        private const double PIXEL_ZOOM_FACTOR            = 30.0;
-        private const int ERROR_DESCRIPTION_MARGIN        = Constants.Scintilla.SC_MAX_MARGIN - 1;
-        private const double MAX_ZOOM_LEVEL               = 30.0;
-        private const double ZOOM_LEVEL_OFFSET            = 10.0;
+        private const Settings.RTextNppSettings SETTING             = Settings.RTextNppSettings.EnableErrorMarkers;
+        private double _currentPixelFactorMainScintilla             = 0.0;
+        private double _currentPixelFactorSecondScintilla           = 0.0;
+        private const double PIXEL_ZOOM_FACTOR                      = 30.0;
+        private const int ERROR_DESCRIPTION_MARGIN                  = Constants.Scintilla.SC_MAX_MARGIN - 1;
+        private const double MAX_ZOOM_LEVEL                         = 30.0;
+        private const double ZOOM_LEVEL_OFFSET                      = 10.0;
         #endregion
 
         #region [Interface]
@@ -53,22 +54,24 @@ namespace RTextNppPlugin.Scintilla.Annotations
 
         void OnScintillaZoomChanged(IntPtr sciPtr, int newZoomLevel)
         {
-            int previousMaxLength = (int)(_nppHelper.GetMarginWidthN(sciPtr, ERROR_DESCRIPTION_MARGIN) / GetMarginLength(sciPtr));
-            if(sciPtr == _nppHelper.MainScintilla)
-            {                
-                _currentPixelFactorMainScintilla = CalculatedPixels(newZoomLevel);
-                Trace.WriteLine(String.Format("Current pixel factor : {0}", _currentPixelFactorMainScintilla));
-                if(_lastMainViewAnnotatedFile != string.Empty)
-                {
-                    _nppHelper.SetMarginWidthN(sciPtr, ERROR_DESCRIPTION_MARGIN, (int)((double)previousMaxLength * _currentPixelFactorMainScintilla));
-                }
-            }
-            else
+            if (newZoomLevel > (-ZOOM_LEVEL_OFFSET))
             {
-                _currentPixelFactorSecondScintilla = CalculatedPixels(newZoomLevel);
-                if(_lastSubViewAnnotatedFile != string.Empty)
+                int previousMaxLength = (int)(_nppHelper.GetMarginWidthN(sciPtr, ERROR_DESCRIPTION_MARGIN) / GetMarginLength(sciPtr));
+                if (sciPtr == _nppHelper.MainScintilla)
                 {
-                    _nppHelper.SetMarginWidthN(sciPtr, ERROR_DESCRIPTION_MARGIN, (int)((double)previousMaxLength * _currentPixelFactorSecondScintilla));
+                    _currentPixelFactorMainScintilla = CalculatedPixels(newZoomLevel);
+                    if (_lastMainViewAnnotatedFile != string.Empty)
+                    {
+                        _nppHelper.SetMarginWidthN(sciPtr, ERROR_DESCRIPTION_MARGIN, (int)((double)previousMaxLength * _currentPixelFactorMainScintilla));
+                    }
+                }
+                else
+                {
+                    _currentPixelFactorSecondScintilla = CalculatedPixels(newZoomLevel);
+                    if (_lastSubViewAnnotatedFile != string.Empty)
+                    {
+                        _nppHelper.SetMarginWidthN(sciPtr, ERROR_DESCRIPTION_MARGIN, (int)((double)previousMaxLength * _currentPixelFactorSecondScintilla));
+                    }
                 }
             }
         }        
@@ -139,19 +142,6 @@ namespace RTextNppPlugin.Scintilla.Annotations
                         {
                             maxCharLenghtForMargin = aDescriptionLength;
                         }
-                        //StringBuilder aErrorDescription = new StringBuilder(errorGroup.Count() * 50);
-                        //int aErrorCounter = 0;
-                        //foreach (var error in errorGroup)
-                        //{
-                        //    aErrorDescription.AppendFormat("{0} at line : {1} - {2}", error.Severity, error.Line, error.Message);
-                        //    if (++aErrorCounter < errorGroup.Count())
-                        //    {
-                        //        aErrorDescription.Append("\n");
-                        //    }
-                        //}
-                        ////npp offset for line todo - add multiple styles
-                        //_nppHelper.SetAnnotationStyle((errorGroup.First().Line - 1), Constants.StyleId.ANNOTATION_ERROR);
-                        //_nppHelper.AddAnnotation((errorGroup.First().Line - 1), aErrorDescription);
                     }
                     ShowAnnotations(sciPtr, maxCharLenghtForMargin);
                 }
@@ -165,8 +155,6 @@ namespace RTextNppPlugin.Scintilla.Annotations
         private double CalculatedPixels(int zoomLevel)
         {
             double zoomLevelWithOffset = zoomLevel + ZOOM_LEVEL_OFFSET;
-
-            //result should be able to fit "Warning" regardless of zoom - that's our measure
             return (zoomLevelWithOffset / MAX_ZOOM_LEVEL) * PIXEL_ZOOM_FACTOR;
         }
 
