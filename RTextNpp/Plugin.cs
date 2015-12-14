@@ -69,6 +69,9 @@ namespace RTextNppPlugin
 
         public delegate void ScintillaZoomChangedEventDelegate(IntPtr sciPtr, int newZoomLevel);
         public event ScintillaZoomChangedEventDelegate ScintillaZoomChanged;
+
+        public delegate void UiPainted();
+        public event UiPainted ScintillaUiPainted;
         #endregion
 
         #region [Startup/CleanUp]
@@ -567,7 +570,7 @@ namespace RTextNppPlugin
             e.Handled = _autoCompletionForm.OnMessageReceived(e.Msg, e.WParam, e.LParam);
         }
 
-        public void SetToolBarIcon()
+        internal void SetToolBarIcon()
         {
             toolbarIcons tbIcons = new toolbarIcons();
             tbIcons.hToolbarBmp = tbBmp.GetHbitmap();
@@ -580,7 +583,7 @@ namespace RTextNppPlugin
         /**
          * Occurs when undo operation exists for the current document.
          */
-        public void OnFileConsideredModified()
+        internal void OnFileConsideredModified()
         {
             _fileObserver.OnFilemodified(Npp.Instance.GetCurrentFilePath());
         }
@@ -588,7 +591,7 @@ namespace RTextNppPlugin
         /**
          * Occurs when no undo operation exist for the current document.
          */
-        public void OnFileConsideredUnmodified()
+        internal void OnFileConsideredUnmodified()
         {
             _fileObserver.OnFileUnmodified(Npp.Instance.GetCurrentFilePath());
         }
@@ -597,7 +600,7 @@ namespace RTextNppPlugin
          * Scintilla notification that the zomm level has been changed.
          *
          */
-        public void OnZoomLevelModified()
+        internal void OnZoomLevelModified()
         {
             int aNewZoomLevel = Npp.Instance.GetZoomLevel(_nppHelper.CurrentScintilla);
             if(aNewZoomLevel != _currentZoomLevel)
@@ -612,11 +615,19 @@ namespace RTextNppPlugin
             }
         }
 
-        public void OnPreviewFileClosed()
+        internal void OnPreviewFileClosed()
         {
             if (PreviewFileClosed != null)
             {
                 PreviewFileClosed( typeof(Plugin), _nppHelper.GetCurrentFile());
+            }
+        }
+
+        internal void OnScnPainted()
+        {
+            if(ScintillaUiPainted != null)
+            {
+                ScintillaUiPainted();
             }
         }
 

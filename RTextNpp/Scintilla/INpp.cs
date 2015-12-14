@@ -201,5 +201,11 @@ namespace RTextNppPlugin.Scintilla
         int GetMarginWidthN(IntPtr sciPtr, int margin);
 
         int GetMarginMaskN(IntPtr sciPtr, int margin);
+
+        int SetMarginMaskN(IntPtr sciPtr, int margin, int mask);
+
+        int GetStyleBackground(IntPtr sciPtr, int styleNumber);
+
+        void SetStyleBackground(IntPtr sciPtr, int styleNumber, int background);
     }
 }

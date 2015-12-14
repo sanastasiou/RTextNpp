@@ -99,7 +99,7 @@ namespace RTextNppPlugin.Scintilla.Annotations
                             }
                         }
                         //npp offset for line todo - add multiple styles
-                        _nppHelper.SetAnnotationStyle((errorGroup.First().LineForScintilla), Constants.StyleId.ANNOTATION_ERROR);
+                        _nppHelper.SetAnnotationStyle((errorGroup.First().LineForScintilla), (int)Constants.StyleId.ANNOTATION_ERROR);
                         _nppHelper.AddAnnotation((errorGroup.First().LineForScintilla), aErrorDescription);
                     }
                     ShowAnnotations(sciPtr);

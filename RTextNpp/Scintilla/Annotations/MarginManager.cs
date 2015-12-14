@@ -18,10 +18,15 @@ namespace RTextNppPlugin.Scintilla.Annotations
         private const Settings.RTextNppSettings SETTING             = Settings.RTextNppSettings.EnableErrorMarkers;
         private double _currentPixelFactorMainScintilla             = 0.0;
         private double _currentPixelFactorSecondScintilla           = 0.0;
-        private const double PIXEL_ZOOM_FACTOR                      = 30.0;
+        private const double PIXEL_ZOOM_FACTOR                      = 24.0;
         private const int ERROR_DESCRIPTION_MARGIN                  = Constants.Scintilla.SC_MAX_MARGIN - 1;
         private const double MAX_ZOOM_LEVEL                         = 30.0;
         private const double ZOOM_LEVEL_OFFSET                      = 10.0;
+        private int _maxCharLengthMainSci                           = 0;
+        private int _maxCharLengthSubSci                            = 0;
+        private VoidDelayedEventHandler _paintedEventHandler        = null;
+        private int _lineNumberStyleBackgroundMain                  = int.MinValue;
+        private int _lineNumberStyleBackgroundSecondary             = int.MinValue;
         #endregion
 
         #region [Interface]
@@ -34,9 +39,21 @@ namespace RTextNppPlugin.Scintilla.Annotations
             _nppHelper.SetMarginTypeN(_nppHelper.MainScintilla, ERROR_DESCRIPTION_MARGIN, SciMsg.SC_MARGIN_TEXT);
             _nppHelper.SetMarginTypeN(_nppHelper.SecondaryScintilla, ERROR_DESCRIPTION_MARGIN, SciMsg.SC_MARGIN_TEXT);
 
+            //force margin to use line number background
+            _nppHelper.SetMarginMaskN(_nppHelper.MainScintilla, ERROR_DESCRIPTION_MARGIN, 0);
+            _nppHelper.SetMarginMaskN(_nppHelper.SecondaryScintilla, ERROR_DESCRIPTION_MARGIN, 0);
+
             //initialize pixel factors
             _currentPixelFactorMainScintilla   = CalculatedPixels(_nppHelper.GetZoomLevel(_nppHelper.MainScintilla));
             _currentPixelFactorSecondScintilla = CalculatedPixels(_nppHelper.GetZoomLevel(_nppHelper.SecondaryScintilla));
+
+            //initliaze painted event debouncer
+            _paintedEventHandler                = new VoidDelayedEventHandler(UpdateBackgroundMargin, updateDelay);
+            _lineNumberStyleBackgroundMain      = _nppHelper.GetStyleBackground(_nppHelper.MainScintilla, (int)SciMsg.STYLE_LINENUMBER);
+            _lineNumberStyleBackgroundSecondary = _nppHelper.GetStyleBackground(_nppHelper.SecondaryScintilla, (int)SciMsg.STYLE_LINENUMBER);
+            plugin.ScintillaUiPainted           += OnScintillaUiPainted;
+            _nppHelper.SetStyleBackground(_nppHelper.MainScintilla, (int)Constants.StyleId.ANNOTATION_ERROR, _lineNumberStyleBackgroundMain);
+            _nppHelper.SetStyleBackground(_nppHelper.SecondaryScintilla, (int)Constants.StyleId.ANNOTATION_ERROR, _lineNumberStyleBackgroundSecondary);
         }
 
         public override void OnSettingChanged(object source, Utilities.Settings.Settings.SettingChangedEventArgs e)
@@ -48,21 +65,48 @@ namespace RTextNppPlugin.Scintilla.Annotations
             ProcessSettingChanged();
         }
 
+        protected override void Dispose(bool disposing)
+        {
+            if (_disposed)
+            {
+                return;
+            }
+            if(disposing)
+            {
+                Plugin.Instance.ScintillaUiPainted -= OnScintillaUiPainted;
+            }
+            base.Dispose(disposing);
+
+        }
+
         #endregion
 
         #region [Event Handlers]
+
+        private void OnScintillaUiPainted()
+        {
+            int previousLineNumberStyleBackgroundMain      = _lineNumberStyleBackgroundMain;
+            int previousLineNumberStyleBackgroundSecondary = _lineNumberStyleBackgroundSecondary;
+            int currentLineNumberStyleBackgroundMain       = _nppHelper.GetStyleBackground(_nppHelper.MainScintilla, (int)SciMsg.STYLE_LINENUMBER);
+            int currentLineNumberStyleBackgroundSecondary  = _nppHelper.GetStyleBackground(_nppHelper.SecondaryScintilla, (int)SciMsg.STYLE_LINENUMBER);
+
+            if (previousLineNumberStyleBackgroundMain != currentLineNumberStyleBackgroundMain || previousLineNumberStyleBackgroundSecondary != currentLineNumberStyleBackgroundSecondary)
+            {
+                _paintedEventHandler.TriggerHandler();
+            }
+        }
 
         void OnScintillaZoomChanged(IntPtr sciPtr, int newZoomLevel)
         {
             if (newZoomLevel > (-ZOOM_LEVEL_OFFSET))
             {
-                int previousMaxLength = (int)(_nppHelper.GetMarginWidthN(sciPtr, ERROR_DESCRIPTION_MARGIN) / GetMarginLength(sciPtr));
+                int previousMaxLength = GetMaxCharLength(sciPtr);
                 if (sciPtr == _nppHelper.MainScintilla)
                 {
                     _currentPixelFactorMainScintilla = CalculatedPixels(newZoomLevel);
                     if (_lastMainViewAnnotatedFile != string.Empty)
                     {
-                        _nppHelper.SetMarginWidthN(sciPtr, ERROR_DESCRIPTION_MARGIN, (int)((double)previousMaxLength * _currentPixelFactorMainScintilla));
+                        _nppHelper.SetMarginWidthN(sciPtr, ERROR_DESCRIPTION_MARGIN, (int)Math.Ceiling(((double)previousMaxLength * _currentPixelFactorMainScintilla)));
                     }
                 }
                 else
@@ -70,7 +114,7 @@ namespace RTextNppPlugin.Scintilla.Annotations
                     _currentPixelFactorSecondScintilla = CalculatedPixels(newZoomLevel);
                     if (_lastSubViewAnnotatedFile != string.Empty)
                     {
-                        _nppHelper.SetMarginWidthN(sciPtr, ERROR_DESCRIPTION_MARGIN, (int)((double)previousMaxLength * _currentPixelFactorSecondScintilla));
+                        _nppHelper.SetMarginWidthN(sciPtr, ERROR_DESCRIPTION_MARGIN, (int)Math.Ceiling(((double)previousMaxLength * _currentPixelFactorSecondScintilla)));
                     }
                 }
             }
@@ -105,7 +149,7 @@ namespace RTextNppPlugin.Scintilla.Annotations
         {
             if (_areAnnotationEnabled)
             {
-                _nppHelper.SetMarginWidthN(scintilla, ERROR_DESCRIPTION_MARGIN, (int)((double)maxRequiredLength * GetMarginLength(scintilla)));
+                _nppHelper.SetMarginWidthN(scintilla, ERROR_DESCRIPTION_MARGIN, (int)Math.Ceiling(((double)maxRequiredLength * GetMarginLength(scintilla))));
             }
         }
 
@@ -128,14 +172,13 @@ namespace RTextNppPlugin.Scintilla.Annotations
             HideAnnotations(sciPtr);
             try
             {
-                if (errors != null)
+                if (errors != null && GetMarginLength(sciPtr) != 0)
                 {
                     int maxCharLenghtForMargin = 0;
-                    //concatenate error that share the same line with \n so that they appear in the same annotation box underneath the same line
-                    var aErrorGroupByLines = errors.ErrorList.GroupBy(y => y.Line).AsParallel();
+                    var aErrorGroupByLines     = errors.ErrorList.GroupBy(y => y.Line).AsParallel();
                     foreach (var errorGroup in aErrorGroupByLines)
                     {
-                        _nppHelper.SetMarginStyle(sciPtr, errorGroup.First().LineForScintilla, 1);
+                        _nppHelper.SetMarginStyle(sciPtr, errorGroup.First().LineForScintilla, (int)ConvertSeverityToStyleId(errorGroup.First().Severity));
                         _nppHelper.SetMarginText(sciPtr, errorGroup.First().LineForScintilla, errorGroup.First().Severity.ToString());
                         int aDescriptionLength = errorGroup.First().Severity.ToString().Length;
                         if(aDescriptionLength > maxCharLenghtForMargin)
@@ -143,6 +186,7 @@ namespace RTextNppPlugin.Scintilla.Annotations
                             maxCharLenghtForMargin = aDescriptionLength;
                         }
                     }
+                    SetMaxCharLength(sciPtr, maxCharLenghtForMargin);
                     ShowAnnotations(sciPtr, maxCharLenghtForMargin);
                 }
             }
@@ -165,6 +209,32 @@ namespace RTextNppPlugin.Scintilla.Annotations
                 return _currentPixelFactorMainScintilla;
             }
             return _currentPixelFactorSecondScintilla;
+        }
+
+        private int GetMaxCharLength(IntPtr scintillaPtr)
+        {
+            if(scintillaPtr == _nppHelper.MainScintilla)
+            {
+                return _maxCharLengthMainSci;
+            }
+            return _maxCharLengthSubSci;
+        }
+
+        private void SetMaxCharLength(IntPtr scintillaPtr, int maxCharLength)
+        {
+            if (scintillaPtr == _nppHelper.MainScintilla)
+            {
+                _maxCharLengthMainSci = maxCharLength;
+            }
+            else
+            {
+                _maxCharLengthSubSci = maxCharLength;
+            }
+        }
+
+        private void UpdateBackgroundMargin()
+        {
+            //update 
         }
         #endregion
     }

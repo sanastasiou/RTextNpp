@@ -105,13 +105,14 @@ namespace RTextNppPlugin
                 case (uint)NppMsg.NPPN_FILEBEFORECLOSE:
                     Plugin.Instance.OnPreviewFileClosed();
                     break;
-                case (uint)SciMsg.SCN_UPDATEUI:
-                    break;
                 case (uint)SciMsg.SCN_HOTSPOTRELEASECLICK:
                     Plugin.Instance.OnHotspotClicked();
                     break;
                 case (uint)NppMsg.NPPN_FILESAVED:
                     Plugin.Instance.OnFileSaved();
+                    break;
+                case (uint)SciMsg.SCN_PAINTED:
+                    Plugin.Instance.OnScnPainted();
                     break;
             }
         }

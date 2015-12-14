@@ -19,7 +19,7 @@ namespace RTextNppPlugin.Scintilla.Annotations
         protected bool _areAnnotationEnabled                        = false;
         protected string _lastMainViewAnnotatedFile                 = string.Empty;
         protected string _lastSubViewAnnotatedFile                  = string.Empty;
-        private bool _disposed                                      = false;
+        protected bool _disposed                                    = false;
         private readonly NppData _nppData                           = default(NppData);
         protected IList<ErrorListViewModel> _currentErrors          = null;
         protected string _workspaceRoot                             = string.Empty;
@@ -138,6 +138,25 @@ namespace RTextNppPlugin.Scintilla.Annotations
         #endregion
 
         #region [Helpers]
+        protected Constants.StyleId ConvertSeverityToStyleId(ErrorItemViewModel.SeverityType severity)
+        {
+            switch (severity)
+            {
+                case ErrorItemViewModel.SeverityType.Debug:
+                    return Constants.StyleId.ANNOTATION_DEBUG;
+                case ErrorItemViewModel.SeverityType.Info:
+                    return Constants.StyleId.ANNOTATION_INFO;
+                case ErrorItemViewModel.SeverityType.Warning:
+                    return Constants.StyleId.ANNOTATION_WARNING;
+                case ErrorItemViewModel.SeverityType.Error:
+                    return Constants.StyleId.ANNOTATION_ERROR;
+                case ErrorItemViewModel.SeverityType.Fatal:
+                    return Constants.StyleId.ANNOTATION_FATAL_ERROR;
+                default:
+                    return Constants.StyleId.ANNOTATION_ERROR;
+            }
+        }
+
         protected string FindActiveFile(IntPtr sciPtr)
         {
             //get opened files

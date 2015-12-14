@@ -906,5 +906,20 @@ namespace RTextNppPlugin.Scintilla
         {
             return (int)_win32.ISendMessage(sciPtr, SciMsg.SCI_GETMARGINMASKN, margin, 0);
         }
+
+        public int SetMarginMaskN(IntPtr sciPtr, int margin, int mask)
+        {
+            return (int)_win32.ISendMessage(sciPtr, SciMsg.SCI_SETMARGINMASKN, margin, mask);
+        }
+
+        public int GetStyleBackground(IntPtr sciPtr, int styleNumber)
+        {
+            return (int)_win32.ISendMessage(sciPtr, SciMsg.SCI_STYLEGETBACK, styleNumber, 0);
+        }
+
+        public void SetStyleBackground(IntPtr sciPtr, int styleNumber, int background)
+        {
+            _win32.ISendMessage(sciPtr, SciMsg.SCI_STYLESETBACK, styleNumber, background);
+        }
     }
 }
