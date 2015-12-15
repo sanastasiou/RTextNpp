@@ -81,7 +81,7 @@ namespace RTextNppPlugin
             _settings           = new Settings(_nppHelper);
             _styleObserver      = new StyleConfigurationObserver(_nppHelper);
             _connectorManager   = new ConnectorManager(_settings, _nppHelper, this);
-            _consoleOutput      = new PersistentWpfControlHost<ConsoleOutputForm>(Settings.RTextNppSettings.ConsoleWindowActive, new ConsoleOutputForm(_connectorManager, _nppHelper, _styleObserver, _settings, this), _settings, _nppHelper);
+            _consoleOutput      = new PersistentWpfControlHost<ConsoleOutputForm>(Settings.RTextNppSettings.ConsoleWindowActive, new ConsoleOutputForm(_connectorManager, _nppHelper, _styleObserver, _settings), _settings, _nppHelper);
             _options            = new Options(_settings);
             _fileObserver       = new FileModificationObserver(_settings, _nppHelper);
             _autoCompletionForm = new AutoCompletionWindow(_connectorManager, _win32, _nppHelper);
@@ -221,7 +221,7 @@ namespace RTextNppPlugin
         }
         
         /**
-         * \brief Modify options callback from plugin menu.
+         * \brief Modify options callback from plug-in menu.
          */
         void ModifyOptions()
         {
@@ -258,7 +258,7 @@ namespace RTextNppPlugin
                 _nppTbData.hClient = _consoleOutput.Handle;
                 _nppTbData.pszName = Properties.Resources.RTEXT_OUTPUT_WINDOW_CAPTION;
                 _nppTbData.dlgID = (int)Constants.NppMenuCommands.ConsoleWindow;
-                // define the default docking behaviour
+                // define the default docking behavior
                 _nppTbData.uMask = NppTbMsg.DWS_DF_CONT_RIGHT | NppTbMsg.DWS_ICONTAB | NppTbMsg.DWS_ICONBAR;
                 _nppTbData.hIconTab = (uint)tbIcon.Handle;
                 _nppTbData.pszModuleName = Constants.Scintilla.PLUGIN_NAME;
@@ -359,7 +359,7 @@ namespace RTextNppPlugin
         private void OnKeyInterceptorKeyDown(Keys key, int repeatCount, ref bool handled)
         {
             _isAutoCompletionShortcutActive = false;
-            //do not auto complete when multi selecting, when menu loop is active, when no rtext file is open
+            //do not auto complete when multi selecting, when menu loop is active, when no RText file is open
             if (FileUtilities.IsRTextFile(_settings, Npp.Instance) && (Npp.Instance.GetSelections() == 1) && HasScintillaFocus() && !_isMenuLoopInactive)
             {
                 CSScriptIntellisense.Modifiers modifiers = CSScriptIntellisense.KeyInterceptor.GetModifiers();
@@ -556,7 +556,7 @@ namespace RTextNppPlugin
         
         /**
          * \brief   Executes action when mouse wheel movement is detected.
-         *          This is used to route low level windows events from scintilla to the plugin,
+         *          This is used to route low level windows events from scintilla to the plug-in,
          *          which would otherwise be lost. e.g. for scrolling via a touchpad.
          *
          * \param   msg     The message.
@@ -597,7 +597,7 @@ namespace RTextNppPlugin
         }
                
         /**
-         * Scintilla notification that the zomm level has been changed.
+         * Scintilla notification that the zoom level has been changed.
          *
          */
         internal void OnZoomLevelModified()
@@ -760,9 +760,9 @@ namespace RTextNppPlugin
         }
         
         /**
-         * Enumerates bind interanal shortcuts in this collection.
+         * Enumerates bind internal shortcuts in this collection.
          *
-         * \return  An enumerator that allows foreach to be used to process interanal shortcuts.
+         * \return  An enumerator that allows for-each to be used to process internal shortcuts.
          */
         private IEnumerable<Keys> BindInteranalShortcuts()
         {

@@ -11,9 +11,9 @@ namespace RTextNppPlugin.Forms
     [ExcludeFromCodeCoverage]
     partial class ConsoleOutputForm : Form
     {
-        internal ConsoleOutputForm(ConnectorManager cmanager, INpp nppHelper, IStyleConfigurationObserver styleObserver, ISettings settings, Plugin plugin)
+        internal ConsoleOutputForm(ConnectorManager cmanager, INpp nppHelper, IStyleConfigurationObserver styleObserver, ISettings settings)
         {
-            _consoleOutputHost = new ElementHost<WpfControls.ConsoleOutput, ViewModels.ConsoleViewModel>(new ConsoleOutput(cmanager, nppHelper, styleObserver, settings, plugin));
+            _consoleOutputHost = new ElementHost<WpfControls.ConsoleOutput, ViewModels.ConsoleViewModel>(new ConsoleOutput(cmanager, nppHelper, styleObserver, settings));
             InitializeComponent();
         }
         private System.Windows.Forms.Integration.ElementHost _consoleOutputHost;

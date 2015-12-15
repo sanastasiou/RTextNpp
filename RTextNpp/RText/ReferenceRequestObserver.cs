@@ -23,7 +23,7 @@ namespace RTextNppPlugin.RText
         private bool _highLightToken                                 = false;                       //!< Whether a reference token is highlighted.
         private readonly IWin32 _win32Helper                         = null;                        //!< Handle to win32 helper instance.
         private readonly ILinkTargetsWindow _refWindow               = null;                        //!< Handle to reference window.
-        private readonly VoidDelayedEventHandler _mouseMoveDebouncer = null;                        //!< Debounces mose movement for a short period of time so that CPU is not taxed.
+        private readonly VoidDelayedEventHandler _mouseMoveDebouncer = null;                        //!< Debounces mouse movement for a short period of time so that CPU is not taxed.
         private System.Drawing.Point _previousMousePosition          = new System.Drawing.Point(System.Windows.Forms.Cursor.Position.X, System.Windows.Forms.Cursor.Position.Y);
         private IntPtr _editorWithActiveHotspot                      = IntPtr.Zero;                 //!< Holds editor handle, where hotspot is currently active.
         private readonly IStyleConfigurationObserver _styleOberver   = null;                        //!< Observer RText styles and provides notification when they change.
@@ -154,10 +154,10 @@ namespace RTextNppPlugin.RText
         }
         private int GetReferenceLinkColor()
         {
-            IWordsStyle aReferenceHighlightStyle = _styleOberver.GetStyle(Constants.Wordstyles.REFERENCE_LINK);
-            if (aReferenceHighlightStyle.StyleName.Equals(Constants.Wordstyles.REFERENCE_LINK))
+            IWordsStyle aReferenceHighlightStyle = _styleOberver.GetStyle(Constants.StyleId.REFERENCE_LINK);
+            if (aReferenceHighlightStyle.StyleId == (int)Constants.StyleId.REFERENCE_LINK)
             {
-                //for some reason scitnilla expects bgr instead of rgb, documentation is wrong
+                //for some reason scintilla expects bgr instead of rgb, documentation is wrong
                 byte g = aReferenceHighlightStyle.Foreground.G;
                 byte r = aReferenceHighlightStyle.Foreground.R;
                 byte b = aReferenceHighlightStyle.Foreground.B;

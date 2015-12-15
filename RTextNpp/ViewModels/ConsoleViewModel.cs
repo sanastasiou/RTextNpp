@@ -17,8 +17,8 @@ namespace RTextNppPlugin.ViewModels
 {
     /**
      * A ViewModel for the console.
-     * The model is responsible for holding information about all loaded rtext workspaces.
-     * The model provide means to update the console, error list and rtext find windows.
+     * The model is responsible for holding information about all loaded RText workspaces.
+     * The model provide means to update the console, error list and RText find windows.
      */
     internal class ConsoleViewModel : BindableObject, IConsoleViewModelBase, IDisposable
     {
@@ -41,47 +41,13 @@ namespace RTextNppPlugin.ViewModels
         IStyleConfigurationObserver _styleObserver                                = null;
         private readonly Dispatcher _dispatcher                                   = null;
         private readonly ISettings _settings                                      = null;
-        private readonly Plugin _plugin                                           = null;
         #endregion
 
         #region [Event Handlers]
 
-        void OnBufferActivated(object source, string file)
-        {
-            //add annotations if not already added
-            //if(_annotationList.ContainsKey(file))
-            //{
-            //    if(!_annotationList[file])
-            //    {
-            //        var errorList = _underlyingErrorList.FirstOrDefault(x => x.FilePath.Replace('\\', '/').Equals(file, StringComparison.InvariantCultureIgnoreCase));
-            //        if (errorList != null)
-            //        {
-            //            _annotationList[file] = true;
-            //            AddAnnotations(errorList);
-            //        }
-            //    }
-            //}
-            //else
-            //{
-            //    var errorList = _underlyingErrorList.FirstOrDefault(x => x.FilePath.Replace('\\', '/').Equals(file, StringComparison.InvariantCultureIgnoreCase));
-            //    if (errorList != null)
-            //    {
-            //        _annotationList[file] = true;
-            //        AddAnnotations(errorList);
-            //    }
-            //}
-        }
-
-        void OnPreviewFileClosed(object source, string file)
-        {
-            //clear all annotations here
-            //_annotationList[file] = false;
-            //_nppHelper.ClearAllAnnotations();
-        }
-
         void OnStyleObserverSettingsChanged(object sender, EventArgs e)
         {
-            IWordsStyle aErrorOverviewStyle = _styleObserver.GetStyle(Constants.Wordstyles.ERROR_OVERVIEW);
+            IWordsStyle aErrorOverviewStyle = _styleObserver.GetStyle(Constants.StyleId.ERROR_OVERVIEW);
             ExpanderHeaderBackground = aErrorOverviewStyle.Background;
             ExpanderHeaderTextForeground = aErrorOverviewStyle.Foreground;
         }
@@ -93,7 +59,7 @@ namespace RTextNppPlugin.ViewModels
          *
          * \param   workspace   The workspace.
          */
-        public ConsoleViewModel(ConnectorManager cmanager, INpp npphelper, IStyleConfigurationObserver styleObserver, Dispatcher dispatcher, ISettings settings, Plugin plugin)
+        public ConsoleViewModel(ConnectorManager cmanager, INpp npphelper, IStyleConfigurationObserver styleObserver, Dispatcher dispatcher, ISettings settings)
         {
             if(cmanager == null)
             {
@@ -118,8 +84,6 @@ namespace RTextNppPlugin.ViewModels
             _nppHelper                       = npphelper;
             _styleObserver                   = styleObserver;
             _styleObserver.OnSettingsChanged += OnStyleObserverSettingsChanged;
-            plugin.PreviewFileClosed         += OnPreviewFileClosed;
-            plugin.BufferActivated           += OnBufferActivated;
             _underlyingErrorList             = new BulkObservableCollection<ErrorListViewModel>();
             _dispatcher                      = dispatcher;
             _settings                        = settings;
@@ -147,7 +111,7 @@ namespace RTextNppPlugin.ViewModels
                     }
                     else
                     {
-                        _workspaceCollection.Add(new WorkspaceViewModel(workspace, ref connector, this, _nppHelper, _dispatcher, settings));
+                        _workspaceCollection.Add(new WorkspaceViewModel(workspace, ref connector, this, _nppHelper, _dispatcher, settings, _styleObserver));
                     }
                     Index = _workspaceCollection.IndexOf(_workspaceCollection.Last());
                 }
@@ -244,7 +208,7 @@ namespace RTextNppPlugin.ViewModels
         }
         
         /**
-         * \brief   Gets a value indicating whether the backend is loading is model loading.
+         * \brief   Gets a value indicating whether the back-end is loading is model loading.
          *
          * \return  true if this object is model loading, false if not.
          */
@@ -321,7 +285,7 @@ namespace RTextNppPlugin.ViewModels
         /**
          * Gets the progress percentage.
          *
-         * \return  The progress percentage of current backend command.
+         * \return  The progress percentage of current back-end command.
          */
         public double ProgressPercentage
         {
@@ -403,9 +367,7 @@ namespace RTextNppPlugin.ViewModels
         public void Dispose()
         {
             Dispose(true);
-            _plugin.PreviewFileClosed        -= OnPreviewFileClosed;
             _styleObserver.OnSettingsChanged -= OnStyleObserverSettingsChanged;
-            _plugin.BufferActivated          -= OnBufferActivated;
         }
 
         #endregion

@@ -138,24 +138,7 @@ namespace RTextNppPlugin.Scintilla.Annotations
         #endregion
 
         #region [Helpers]
-        protected Constants.StyleId ConvertSeverityToStyleId(ErrorItemViewModel.SeverityType severity)
-        {
-            switch (severity)
-            {
-                case ErrorItemViewModel.SeverityType.Debug:
-                    return Constants.StyleId.ANNOTATION_DEBUG;
-                case ErrorItemViewModel.SeverityType.Info:
-                    return Constants.StyleId.ANNOTATION_INFO;
-                case ErrorItemViewModel.SeverityType.Warning:
-                    return Constants.StyleId.ANNOTATION_WARNING;
-                case ErrorItemViewModel.SeverityType.Error:
-                    return Constants.StyleId.ANNOTATION_ERROR;
-                case ErrorItemViewModel.SeverityType.Fatal:
-                    return Constants.StyleId.ANNOTATION_FATAL_ERROR;
-                default:
-                    return Constants.StyleId.ANNOTATION_ERROR;
-            }
-        }
+        abstract protected Constants.StyleId ConvertSeverityToStyleId(ErrorItemViewModel.SeverityType severity);
 
         protected string FindActiveFile(IntPtr sciPtr)
         {

@@ -15,7 +15,7 @@ namespace RTextNppPlugin.ViewModels
     class WorkspaceViewModel : WorkspaceViewModelBase, IConsoleViewModelBase, IDisposable
     {
         #region [Interface]
-        public WorkspaceViewModel(string workspace, ref Connector connector, ConsoleViewModel mainViewModel, INpp nppHelper, Dispatcher dispatcher, ISettings settings)
+        public WorkspaceViewModel(string workspace, ref Connector connector, ConsoleViewModel mainViewModel, INpp nppHelper, Dispatcher dispatcher, ISettings settings, IStyleConfigurationObserver styleObserver)
             : base(workspace)
         {
             _connector                   = connector;
@@ -25,7 +25,7 @@ namespace RTextNppPlugin.ViewModels
             _nppHelper                   = nppHelper;
             _dispatcher                  = dispatcher;
             _annotationsManager          = new AnnotationManager(settings, nppHelper, Plugin.Instance, _connector.Workspace);
-            _marginsManager              = new MarginManager(settings, nppHelper, Plugin.Instance, _connector.Workspace);
+            _marginsManager              = new MarginManager(settings, nppHelper, Plugin.Instance, _connector.Workspace, styleObserver);
         }
         /**
          * \brief   Gets a value indicating whether this workspace is currently loading.

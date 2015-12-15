@@ -1,6 +1,6 @@
 <NotepadPlus>
     <Languages>
-        <Language name="RTextNpp" ext="atm" commentStart="#" />
+    <Language name="RTextNpp" ext="atm" commentStart="#" tabSettings="130" />
     </Languages>
     <LexerStyles>
         <LexerType name="RTextNpp" desc="RText language file." ext="meta atm40" excluded="no">
@@ -26,6 +26,11 @@
             <WordsStyle name="ANNOTATION_ERROR" styleID="19" fgColor="0000FF" bgColor="FFFFFF" fontName="" fontStyle="0" fontSize="" />
             <WordsStyle name="ANNOTATION_FATAL_ERROR" styleID="20" fgColor="0000FF" bgColor="FFFFFF" fontName="" fontStyle="0" fontSize="" />
             <WordsStyle name="ERROR_OVERVIEW" styleID="21" fgColor="000000" bgColor="FFFFFF" fontName="" fontStyle="0" fontSize="" />
+            <WordsStyle name="MARGIN_DEBUG" styleID="22" fgColor="0000FF" bgColor="FFFFFF" fontName="" fontStyle="0" fontSize="" />
+            <WordsStyle name="MARGIN_INFO" styleID="23" fgColor="0000FF" bgColor="FFFFFF" fontName="" fontStyle="0" fontSize="" />
+            <WordsStyle name="MARGIN_WARNING" styleID="24" fgColor="0000FF" bgColor="FFFFFF" fontName="" fontStyle="0" fontSize="" />
+            <WordsStyle name="MARGIN_ERROR" styleID="25" fgColor="0000FF" bgColor="FFFFFF" fontName="" fontStyle="0" fontSize="" />
+            <WordsStyle name="MARGIN_FATAL_ERROR" styleID="26" fgColor="0000FF" bgColor="FFFFFF" fontName="" fontStyle="0" fontSize="" />
         </LexerType>
     </LexerStyles>
 </NotepadPlus>

@@ -25,12 +25,12 @@ namespace RTextNppPlugin.Scintilla.Annotations
         private int _maxCharLengthMainSci                           = 0;
         private int _maxCharLengthSubSci                            = 0;
         private VoidDelayedEventHandler _paintedEventHandler        = null;
-        private int _lineNumberStyleBackgroundMain                  = int.MinValue;
-        private int _lineNumberStyleBackgroundSecondary             = int.MinValue;
+        private int _lineNumberStyleBackground                      = int.MinValue;
+        private IStyleConfigurationObserver _styleObserver          = null;
         #endregion
 
         #region [Interface]
-        internal MarginManager(ISettings settings, INpp nppHelper, Plugin plugin, string workspaceRoot, double updateDelay = Constants.Scintilla.ANNOTATIONS_UPDATE_DELAY) :
+        internal MarginManager(ISettings settings, INpp nppHelper, Plugin plugin, string workspaceRoot, IStyleConfigurationObserver styleObserver, double updateDelay = Constants.Scintilla.ANNOTATIONS_UPDATE_DELAY) :
             base(settings, nppHelper, plugin, workspaceRoot, updateDelay)
         {
             _areAnnotationEnabled = _settings.Get<bool>(Settings.RTextNppSettings.EnableErrorMarkers);
@@ -47,13 +47,11 @@ namespace RTextNppPlugin.Scintilla.Annotations
             _currentPixelFactorMainScintilla   = CalculatedPixels(_nppHelper.GetZoomLevel(_nppHelper.MainScintilla));
             _currentPixelFactorSecondScintilla = CalculatedPixels(_nppHelper.GetZoomLevel(_nppHelper.SecondaryScintilla));
 
-            //initliaze painted event debouncer
+            //initialize painted event debouncer
             _paintedEventHandler                = new VoidDelayedEventHandler(UpdateBackgroundMargin, updateDelay);
-            _lineNumberStyleBackgroundMain      = _nppHelper.GetStyleBackground(_nppHelper.MainScintilla, (int)SciMsg.STYLE_LINENUMBER);
-            _lineNumberStyleBackgroundSecondary = _nppHelper.GetStyleBackground(_nppHelper.SecondaryScintilla, (int)SciMsg.STYLE_LINENUMBER);
-            plugin.ScintillaUiPainted           += OnScintillaUiPainted;
-            _nppHelper.SetStyleBackground(_nppHelper.MainScintilla, (int)Constants.StyleId.ANNOTATION_ERROR, _lineNumberStyleBackgroundMain);
-            _nppHelper.SetStyleBackground(_nppHelper.SecondaryScintilla, (int)Constants.StyleId.ANNOTATION_ERROR, _lineNumberStyleBackgroundSecondary);
+            //plugin.ScintillaUiPainted           += OnScintillaUiPainted;
+            _styleObserver = styleObserver;
+            NormalizeMarginsBackground();
         }
 
         public override void OnSettingChanged(object source, Utilities.Settings.Settings.SettingChangedEventArgs e)
@@ -79,18 +77,35 @@ namespace RTextNppPlugin.Scintilla.Annotations
 
         }
 
+        protected override Constants.StyleId ConvertSeverityToStyleId(ErrorItemViewModel.SeverityType severity)
+        {
+            switch (severity)
+            {
+                case ErrorItemViewModel.SeverityType.Debug:
+                    return Constants.StyleId.MARGIN_DEBUG;
+                case ErrorItemViewModel.SeverityType.Info:
+                    return Constants.StyleId.MARGIN_INFO;
+                case ErrorItemViewModel.SeverityType.Warning:
+                    return Constants.StyleId.MARGIN_WARNING;
+                case ErrorItemViewModel.SeverityType.Error:
+                    return Constants.StyleId.MARGIN_ERROR;
+                case ErrorItemViewModel.SeverityType.Fatal:
+                    return Constants.StyleId.MARGIN_FATAL_ERROR;
+                default:
+                    return Constants.StyleId.MARGIN_ERROR;
+            }
+        }
+
         #endregion
 
         #region [Event Handlers]
 
         private void OnScintillaUiPainted()
         {
-            int previousLineNumberStyleBackgroundMain      = _lineNumberStyleBackgroundMain;
-            int previousLineNumberStyleBackgroundSecondary = _lineNumberStyleBackgroundSecondary;
+            int previousLineNumberStyleBackgroundMain      = _lineNumberStyleBackground;
             int currentLineNumberStyleBackgroundMain       = _nppHelper.GetStyleBackground(_nppHelper.MainScintilla, (int)SciMsg.STYLE_LINENUMBER);
-            int currentLineNumberStyleBackgroundSecondary  = _nppHelper.GetStyleBackground(_nppHelper.SecondaryScintilla, (int)SciMsg.STYLE_LINENUMBER);
 
-            if (previousLineNumberStyleBackgroundMain != currentLineNumberStyleBackgroundMain || previousLineNumberStyleBackgroundSecondary != currentLineNumberStyleBackgroundSecondary)
+            if (previousLineNumberStyleBackgroundMain != currentLineNumberStyleBackgroundMain)
             {
                 _paintedEventHandler.TriggerHandler();
             }
@@ -235,6 +250,19 @@ namespace RTextNppPlugin.Scintilla.Annotations
         private void UpdateBackgroundMargin()
         {
             //update 
+        }
+
+        private void NormalizeMarginsBackground()
+        {
+            _lineNumberStyleBackground = _nppHelper.GetStyleBackground(_nppHelper.MainScintilla, (int)SciMsg.STYLE_LINENUMBER);
+            
+            //initialize style backgrounds for all margin styles
+            for (var i = Constants.StyleId.MARGIN_DEBUG; i < Constants.StyleId.MARGIN_FATAL_ERROR; ++i)
+            {
+                _nppHelper.SetStyleBackground(_nppHelper.MainScintilla, (int)i, _lineNumberStyleBackground);
+                _nppHelper.SetStyleBackground(_nppHelper.SecondaryScintilla, (int)i, _lineNumberStyleBackground);
+                //_styleObserver.SaveStyleBackground(i, _lineNumberStyleBackground);
+            }
         }
         #endregion
     }
