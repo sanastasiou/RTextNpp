@@ -207,5 +207,7 @@ namespace RTextNppPlugin.Scintilla
         int GetStyleBackground(IntPtr sciPtr, int styleNumber);
 
         void SetStyleBackground(IntPtr sciPtr, int styleNumber, int background);
+
+        int GetStyleForeground(IntPtr sciPtr, int styleNumber);
     }
 }

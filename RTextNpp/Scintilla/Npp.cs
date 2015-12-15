@@ -921,5 +921,10 @@ namespace RTextNppPlugin.Scintilla
         {
             _win32.ISendMessage(sciPtr, SciMsg.SCI_STYLESETBACK, styleNumber, background);
         }
+
+        public int GetStyleForeground(IntPtr sciPtr, int styleNumber)
+        {
+            return (int)_win32.ISendMessage(sciPtr, SciMsg.SCI_STYLEGETFORE, styleNumber, 0);
+        }
     }
 }

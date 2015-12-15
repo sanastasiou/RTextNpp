@@ -85,7 +85,7 @@ namespace RTextNppPlugin
             _options            = new Options(_settings);
             _fileObserver       = new FileModificationObserver(_settings, _nppHelper);
             _autoCompletionForm = new AutoCompletionWindow(_connectorManager, _win32, _nppHelper);
-            _linkTargetsWindow  = new LinkTargetsWindow(_nppHelper, _win32, _settings, _connectorManager, _styleObserver);
+            _linkTargetsWindow  = new LinkTargetsWindow(_nppHelper, _win32, _settings, _connectorManager);
         }
 
         public void PluginCleanUp()

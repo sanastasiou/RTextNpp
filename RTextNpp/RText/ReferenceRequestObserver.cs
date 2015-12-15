@@ -26,14 +26,13 @@ namespace RTextNppPlugin.RText
         private readonly VoidDelayedEventHandler _mouseMoveDebouncer = null;                        //!< Debounces mouse movement for a short period of time so that CPU is not taxed.
         private System.Drawing.Point _previousMousePosition          = new System.Drawing.Point(System.Windows.Forms.Cursor.Position.X, System.Windows.Forms.Cursor.Position.Y);
         private IntPtr _editorWithActiveHotspot                      = IntPtr.Zero;                 //!< Holds editor handle, where hotspot is currently active.
-        private readonly IStyleConfigurationObserver _styleOberver   = null;                        //!< Observer RText styles and provides notification when they change.
         #endregion
         
         #region [Events]
         #endregion
         
         #region [Interface]
-        internal ReferenceRequestObserver(INpp nppHelper, ISettings settings, IWin32 win32helper, ILinkTargetsWindow refWindow, IStyleConfigurationObserver styleObserver)
+        internal ReferenceRequestObserver(INpp nppHelper, ISettings settings, IWin32 win32helper, ILinkTargetsWindow refWindow)
         {
             if(nppHelper == null)
             {
@@ -51,10 +50,7 @@ namespace RTextNppPlugin.RText
             {
                 throw new ArgumentNullException("refWindow");
             }
-            if(styleObserver == null)
-            {
-                throw new ArgumentNullException("styleObserver");
-            }
+
             _nppHelper                       = nppHelper;
             _settings                        = settings;
             _win32Helper                     = win32helper;
@@ -62,7 +58,7 @@ namespace RTextNppPlugin.RText
             IsKeyboardShortCutActive         = false;
             _refWindow                       = refWindow;
             _mouseMoveDebouncer              = new VoidDelayedEventHandler(new Action(DoMouseMovementObserverMouseMove), 100);
-            _styleOberver                    = styleObserver;
+
         }
 
         internal bool IsKeyboardShortCutActive
@@ -105,12 +101,12 @@ namespace RTextNppPlugin.RText
         }
         internal void UnderlineToken()
         {
-            int aReferenceColor = GetReferenceLinkColor();
             _editorWithActiveHotspot = _nppHelper.CurrentScintilla;
             _win32Helper.ISendMessage(_editorWithActiveHotspot, SciMsg.SCI_STYLESETHOTSPOT, (int)_previousReferenceToken.Type, 1);
             _win32Helper.ISendMessage(_editorWithActiveHotspot, SciMsg.SCI_SETHOTSPOTACTIVEUNDERLINE, 1, 0);
             _win32Helper.ISendMessage(_editorWithActiveHotspot, SciMsg.SCI_SETHOTSPOTSINGLELINE, 1, 0);
-            _win32Helper.ISendMessage(_editorWithActiveHotspot, SciMsg.SCI_SETHOTSPOTACTIVEFORE, 1, aReferenceColor);
+            _win32Helper.ISendMessage(_editorWithActiveHotspot, SciMsg.SCI_SETHOTSPOTACTIVEFORE, 1, _nppHelper.GetStyleForeground(_editorWithActiveHotspot, (int)Constants.StyleId.REFERENCE_LINK));
+            _win32Helper.ISendMessage(_editorWithActiveHotspot, SciMsg.SCI_SETHOTSPOTACTIVEBACK, 1, _nppHelper.GetStyleBackground(_editorWithActiveHotspot, (int)Constants.StyleId.REFERENCE_LINK));
             _win32Helper.ISendMessage(_editorWithActiveHotspot, SciMsg.SCI_STARTSTYLING, _previousReferenceToken.BufferPosition, 0);
             _win32Helper.ISendMessage(_editorWithActiveHotspot, SciMsg.SCI_SETSTYLING, _previousReferenceToken.EndColumn - _previousReferenceToken.StartColumn, (int)_previousReferenceToken.Type);
             //fix bug which prevents hotspot to be activated when the mouse hasn't been moved
@@ -152,25 +148,7 @@ namespace RTextNppPlugin.RText
                 _mouseMoveDebouncer.Cancel();
             }
         }
-        private int GetReferenceLinkColor()
-        {
-            IWordsStyle aReferenceHighlightStyle = _styleOberver.GetStyle(Constants.StyleId.REFERENCE_LINK);
-            if (aReferenceHighlightStyle.StyleId == (int)Constants.StyleId.REFERENCE_LINK)
-            {
-                //for some reason scintilla expects bgr instead of rgb, documentation is wrong
-                byte g = aReferenceHighlightStyle.Foreground.G;
-                byte r = aReferenceHighlightStyle.Foreground.R;
-                byte b = aReferenceHighlightStyle.Foreground.B;
-                int bgr = b;
-                bgr <<= 8;
-                bgr |= g;
-                bgr <<= 8;
-                bgr |= r;
-                return bgr;
-            }
-            //return blue
-            return 0xFF0000;
-        }
+
         private void OnMouseMovementObserverMouseMove()
         {
             System.Drawing.Point aCurrentMousePosition = new System.Drawing.Point(System.Windows.Forms.Cursor.Position.X, System.Windows.Forms.Cursor.Position.Y);

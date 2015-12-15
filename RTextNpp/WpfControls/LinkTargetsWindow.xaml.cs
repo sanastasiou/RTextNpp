@@ -34,17 +34,17 @@ namespace RTextNppPlugin.WpfControls
         #region [Data Members]
         private INpp _nppHelper                                        = null;                 //!< Handles communication with scintilla or npp.
         private IWin32 _win32Helper                                    = null;                 //!< Handles low level API calls.
-        private ISettings _settings                                    = null;                 //!< Reads or write plugin settings.
+        private ISettings _settings                                    = null;                 //!< Reads or write plug-in settings.
         private ReferenceRequestObserver _referenceRequestObserver     = null;                 //!< Handles reference requests triggers.
         private IEnumerable<string> _cachedContext                     = null;                 //!< Holds the last context used for reference lookup request.
-        private DelayedEventHandler<object> _referenceRequestDispatcher= null;                 //!< Debounces link reference requests and dispatches the reuqests to the backend.
-        private LinkTargetsResponse _cachedReferenceLinks              = null;                 //!< Holds a cache of reference links from a previous backend request.
+        private DelayedEventHandler<object> _referenceRequestDispatcher= null;                 //!< Debounces link reference requests and dispatches the requests to the back-end.
+        private LinkTargetsResponse _cachedReferenceLinks              = null;                 //!< Holds a cache of reference links from a previous back-end request.
         private ConnectorManager _cManager                             = null;                 //!< Instance of ConnectorManager instance.
         private Connector _connector                                   = null;                 //!< Connector which is relevant to the actual focused file.
         private KeyInterceptor _keyMonitor                             = new KeyInterceptor(); //!< Monitors key presses.
         private bool _isOnTop                                          = false;                //!< Indicates if the link reference window is on top of a token or not.
         private const int YPOSITION_OFFSET                             = 2;                    //!< Window needs to be placed with a Y offset, because otherwise the cursor might indicate a token between the gab of the current token and the window.
-        private DatagridScrollviewerTooltipOffsetCalculator _tpControl = null;                 //!< Control tooltip placement on right of the completion options.
+        private DatagridScrollviewerTooltipOffsetCalculator _tpControl = null;                 //!< Control tool-tip placement on right of the completion options.
         private ICollectionView _collectionView                        = null;                 //!< Collection view of reference links.
         #endregion
         
@@ -78,14 +78,14 @@ namespace RTextNppPlugin.WpfControls
         }
         #endregion
         
-        internal LinkTargetsWindow(INpp nppHelper, IWin32 win32Helper, ISettings settingsHelper, ConnectorManager cmanager, IStyleConfigurationObserver styleObserver)
+        internal LinkTargetsWindow(INpp nppHelper, IWin32 win32Helper, ISettings settingsHelper, ConnectorManager cmanager)
         {
             InitializeComponent();
             DataContext = new ReferenceLinkViewModel(settingsHelper);
             _nppHelper = nppHelper;
             _win32Helper = win32Helper;
             _settings = settingsHelper;
-            _referenceRequestObserver = new ReferenceRequestObserver(_nppHelper, _settings, _win32Helper, this, styleObserver);
+            _referenceRequestObserver = new ReferenceRequestObserver(_nppHelper, _settings, _win32Helper, this);
             _referenceRequestDispatcher = new DelayedEventHandler<object>(new ActionWrapper<object, Tokenizer.TokenTag>(TryHighlightItemUnderMouse, default(Tokenizer.TokenTag)), 500);
             _cManager = cmanager;
             _keyMonitor.KeyDown += OnKeyMonitorKeyDown;
@@ -110,7 +110,7 @@ namespace RTextNppPlugin.WpfControls
          *
          * \param   isActive    true if this LinkTargetsWindow is active.
          *
-         * \remark  If the keyboard shortcut is active the plugin will try to find the references,
+         * \remark  If the keyboard shortcut is active the plug-in will try to find the references,
          *          when the cursor is placed over a valid reference token, e.g. Identifier, reference etc.
          */        
         internal void IsKeyboardShortCutActive(bool isActive)
@@ -287,7 +287,7 @@ namespace RTextNppPlugin.WpfControls
         }
         #endregion
         
-        #region [Overriden Window Members]
+        #region [Overridden Window Members]
         
         /**
          * @fn  protected override void OnPreviewMouseLeftButtonDown(MouseButtonEventArgs e)
@@ -307,7 +307,7 @@ namespace RTextNppPlugin.WpfControls
             //Do the hittest to find the DataGridCell
             VisualTreeHelper.HitTest(LinkTargetDatagrid, null, (result) =>
             {
-                // Find the ancestor element form the hittested element
+                // Find the ancestor element form the tested element
                 // e.g., find the DataGridCell if we hittest on the inner TextBlock
                 System.Windows.Controls.DataGridRow aCcurrentRow = RTextNppPlugin.Utilities.VisualUtilities.FindVisualParent<System.Windows.Controls.DataGridRow>(result.VisualHit);
                 if (aCcurrentRow != null)
@@ -415,7 +415,7 @@ namespace RTextNppPlugin.WpfControls
                 };
                 if (aRequest.context.Count() == 0)
                 {
-                    //prevent backend from crashing due to a bug
+                    //prevent back-end from crashing due to a bug
                     return;
                 }
                 if (!contextEqualityTask.Result.Item1 || _cachedReferenceLinks == null || _cachedReferenceLinks.targets.Count == 0)
@@ -508,7 +508,7 @@ namespace RTextNppPlugin.WpfControls
         }
         
         /**
-         * @brief   File clicked. Occurs when a hyperlinked filepath is clicked.
+         * @brief   File clicked. Occurs when a hyper-linked filepath is clicked.
          *
          * @param   sender  Source of the event.
          * @param   e       Routed event information.
