@@ -88,7 +88,7 @@ namespace RTextNppPlugin.Scintilla.Annotations
             var docIndex  = _nppHelper.CurrentDocIndex(scintilla);
             if(docIndex != Constants.Scintilla.VIEW_NOT_ACTIVE && Utilities.FileUtilities.IsRTextFile(openFiles[docIndex], _settings, _nppHelper))
             {
-                if((Utilities.FileUtilities.FindWorkspaceRoot(openFiles[docIndex]) + Path.GetExtension(openFiles[docIndex])).Equals(_workspaceRoot))
+                if (IsWorkspaceFile(openFiles[docIndex]))
                 {
                     _nppHelper.ClearAllAnnotations(scintilla);
                     _nppHelper.SetAnnotationVisible(scintilla, Constants.Scintilla.HIDDEN_ANNOTATION_STYLE);

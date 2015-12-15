@@ -152,8 +152,7 @@ namespace RTextNppPlugin.Scintilla.Annotations
             if (viewIndex != Constants.Scintilla.VIEW_NOT_ACTIVE)
             {
                 var aTempFile = openedFiles[viewIndex];
-                var viewWorkspace = Utilities.FileUtilities.FindWorkspaceRoot(aTempFile) + Path.GetExtension(aTempFile);
-                if(viewWorkspace.Equals(_workspaceRoot))
+                if(IsWorkspaceFile(aTempFile))
                 {
                     return aTempFile;
                 }
@@ -245,18 +244,29 @@ namespace RTextNppPlugin.Scintilla.Annotations
             if (ErrorList != null)
             {
                 string previousAnnotatedMainFile = _lastMainViewAnnotatedFile;
-                string previousAnnotatedSubFile = _lastSubViewAnnotatedFile;
-                _lastMainViewAnnotatedFile = FindActiveFile(_nppHelper.MainScintilla);
-                _lastSubViewAnnotatedFile = FindActiveFile(_nppHelper.SecondaryScintilla);
+                string previousAnnotatedSubFile  = _lastSubViewAnnotatedFile;
+                _lastMainViewAnnotatedFile       = FindActiveFile(_nppHelper.MainScintilla);
+                _lastSubViewAnnotatedFile        = FindActiveFile(_nppHelper.SecondaryScintilla);
                 if (previousAnnotatedMainFile != _lastMainViewAnnotatedFile && !string.IsNullOrEmpty(_lastMainViewAnnotatedFile))
                 {
-                    Refresh(ref _lastMainViewAnnotatedFile, _nppHelper.MainScintilla);
+                    if (IsWorkspaceFile(_lastMainViewAnnotatedFile))
+                    {
+                        Refresh(ref _lastMainViewAnnotatedFile, _nppHelper.MainScintilla);
+                    }
                 }
                 if (previousAnnotatedSubFile != _lastSubViewAnnotatedFile && !string.IsNullOrEmpty(_lastSubViewAnnotatedFile))
                 {
-                    Refresh(ref _lastSubViewAnnotatedFile, _nppHelper.SecondaryScintilla);
+                    if (IsWorkspaceFile(_lastSubViewAnnotatedFile))
+                    {
+                        Refresh(ref _lastSubViewAnnotatedFile, _nppHelper.SecondaryScintilla);
+                    }
                 }
             }            
+        }
+
+        protected bool IsWorkspaceFile(string file)
+        {
+            return (Utilities.FileUtilities.FindWorkspaceRoot(file) + Path.GetExtension(file)).Equals(_workspaceRoot);
         }
         #endregion
     }

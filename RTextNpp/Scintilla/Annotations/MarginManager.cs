@@ -45,10 +45,12 @@ namespace RTextNppPlugin.Scintilla.Annotations
             _currentPixelFactorMainScintilla   = CalculatedPixels(_nppHelper.GetZoomLevel(_nppHelper.MainScintilla));
             _currentPixelFactorSecondScintilla = CalculatedPixels(_nppHelper.GetZoomLevel(_nppHelper.SecondaryScintilla));
 
-            //initialize painted event debouncer          
             NormalizeMarginsBackground();
 
             plugin.ScintillaUiPainted += OnScintillaUiPainted;
+
+            HideAnnotations(_nppHelper.MainScintilla);
+            HideAnnotations(_nppHelper.SecondaryScintilla);
         }
 
         void OnScintillaUiPainted()
@@ -133,7 +135,7 @@ namespace RTextNppPlugin.Scintilla.Annotations
         protected override object OnBufferActivated(string file)
         {
             PreProcessOnBufferActivatedEvent();
-            if (!Utilities.FileUtilities.IsRTextFile(file, _settings, _nppHelper))
+            if (!Utilities.FileUtilities.IsRTextFile(file, _settings, _nppHelper) || (ErrorList == null && IsWorkspaceFile(file)))
             {
                 //remove annotations from the view which this file belongs to
                 var scintilla = _nppHelper.FindScintillaFromFilepath(file);
@@ -165,7 +167,7 @@ namespace RTextNppPlugin.Scintilla.Annotations
             var docIndex  = _nppHelper.CurrentDocIndex(scintilla);
             if (docIndex != Constants.Scintilla.VIEW_NOT_ACTIVE && Utilities.FileUtilities.IsRTextFile(openFiles[docIndex], _settings, _nppHelper))
             {
-                if ((Utilities.FileUtilities.FindWorkspaceRoot(openFiles[docIndex]) + Path.GetExtension(openFiles[docIndex])).Equals(_workspaceRoot))
+                if (IsWorkspaceFile(openFiles[docIndex]))
                 {
                     _nppHelper.ClearAllTextMargins(scintilla);
                     _nppHelper.SetMarginWidthN(scintilla, ERROR_DESCRIPTION_MARGIN, 0);
