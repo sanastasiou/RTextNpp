@@ -1,6 +1,6 @@
 <NotepadPlus>
     <Languages>
-    <Language name="RTextNpp" ext="atm" commentStart="#" tabSettings="130" />
+        <Language name="RTextNpp" ext="atm" commentStart="#" tabSettings="130" />
     </Languages>
     <LexerStyles>
         <LexerType name="RTextNpp" desc="RText language file." ext="meta atm40" excluded="no">
@@ -19,18 +19,18 @@
             <WordsStyle name="SPACE" styleID="12" fgColor="3F3F3F" bgColor="000000" fontName="" fontStyle="0" fontSize="" />
             <WordsStyle name="OTHER" styleID="13" fgColor="FFFFFF" bgColor="000000" fontName="" fontStyle="0" fontSize="" />
             <WordsStyle name="ERROR" styleID="14" fgColor="FF0000" bgColor="FFFFFF" fontName="" fontStyle="7" fontSize="" />
-            <WordsStyle name="REFERENCE_LINK" styleID="15" fgColor="0000FF" bgColor="000000" fontName="" fontStyle="0" fontSize="" />
-            <WordsStyle name="ANNOTATION_DEBUG" styleID="16" fgColor="0000FF" bgColor="FFFFFF" fontName="" fontStyle="0" fontSize="" />
-            <WordsStyle name="ANNOTATION_INFO" styleID="17" fgColor="0000FF" bgColor="FFFFFF" fontName="" fontStyle="0" fontSize="" />
-            <WordsStyle name="ANNOTATION_WARNING" styleID="18" fgColor="0000FF" bgColor="FFFFFF" fontName="" fontStyle="0" fontSize="" />
-            <WordsStyle name="ANNOTATION_ERROR" styleID="19" fgColor="0000FF" bgColor="FFFFFF" fontName="" fontStyle="0" fontSize="" />
-            <WordsStyle name="ANNOTATION_FATAL_ERROR" styleID="20" fgColor="0000FF" bgColor="FFFFFF" fontName="" fontStyle="0" fontSize="" />
+            <WordsStyle name="REFERENCE_LINK" styleID="15" fgColor="FFFF80" bgColor="000000" fontName="" fontStyle="1" fontSize="" />
+            <WordsStyle name="ANNOTATION_DEBUG" styleID="16" fgColor="00FF40" bgColor="000000" fontName="" fontStyle="2" fontSize="" />
+            <WordsStyle name="ANNOTATION_INFO" styleID="17" fgColor="FFFFFF" bgColor="000000" fontName="" fontStyle="2" fontSize="" />
+            <WordsStyle name="ANNOTATION_WARNING" styleID="18" fgColor="FFFF80" bgColor="000000" fontName="" fontStyle="2" fontSize="" />
+            <WordsStyle name="ANNOTATION_ERROR" styleID="19" fgColor="FF0000" bgColor="000000" fontName="" fontStyle="3" fontSize="" />
+            <WordsStyle name="ANNOTATION_FATAL_ERROR" styleID="20" fgColor="FF0080" bgColor="000000" fontName="" fontStyle="3" fontSize="" />
             <WordsStyle name="ERROR_OVERVIEW" styleID="21" fgColor="000000" bgColor="FFFFFF" fontName="" fontStyle="0" fontSize="" />
-            <WordsStyle name="MARGIN_DEBUG" styleID="22" fgColor="0000FF" bgColor="FFFFFF" fontName="" fontStyle="0" fontSize="" />
-            <WordsStyle name="MARGIN_INFO" styleID="23" fgColor="0000FF" bgColor="FFFFFF" fontName="" fontStyle="0" fontSize="" />
-            <WordsStyle name="MARGIN_WARNING" styleID="24" fgColor="0000FF" bgColor="FFFFFF" fontName="" fontStyle="0" fontSize="" />
-            <WordsStyle name="MARGIN_ERROR" styleID="25" fgColor="0000FF" bgColor="FFFFFF" fontName="" fontStyle="0" fontSize="" />
-            <WordsStyle name="MARGIN_FATAL_ERROR" styleID="26" fgColor="0000FF" bgColor="FFFFFF" fontName="" fontStyle="0" fontSize="" />
+            <WordsStyle name="MARGIN_DEBUG" styleID="22" fgColor="80FFFF" bgColor="FFFFFF" fontName="" fontStyle="2" fontSize="" />
+            <WordsStyle name="MARGIN_INFO" styleID="23" fgColor="FFFFFF" bgColor="FFFFFF" fontName="" fontStyle="2" fontSize="" />
+            <WordsStyle name="MARGIN_WARNING" styleID="24" fgColor="FFFF80" bgColor="FFFFFF" fontName="" fontStyle="2" fontSize="" />
+            <WordsStyle name="MARGIN_ERROR" styleID="25" fgColor="FF0000" bgColor="FFFFFF" fontName="" fontStyle="3" fontSize="" />
+            <WordsStyle name="MARGIN_FATAL_ERROR" styleID="26" fgColor="FF00FF" bgColor="FFFFFF" fontName="" fontStyle="3" fontSize="" />
         </LexerType>
     </LexerStyles>
 </NotepadPlus>

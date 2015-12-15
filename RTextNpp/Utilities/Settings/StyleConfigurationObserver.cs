@@ -19,20 +19,13 @@ namespace RTextNppPlugin.Utilities.Settings
         bool IsUnderlined { get; }
         bool IsBold { get; }
         bool IsItalic { get; }
-        int FontSize { get; }
+        int FontSize { get; set; }
+        int FontStyle { get; set; }
+        int ExtractFontStyle();
     }
     internal interface IStyleConfigurationObserver
     {
         IWordsStyle GetStyle(Constants.StyleId styleId);
-
-        /**
-         * \brief   Updates the style background.
-         *
-         * \param   styleId     Identifier for the style.
-         * \param   background  The background.
-         * \remarks Used as a workaround, to update margin background so that it matches that of the line numbers background.
-         */
-        void SaveStyleBackground(Constants.StyleId styleId, int background);
 
         event EventHandler OnSettingsChanged;
     }
@@ -68,6 +61,7 @@ namespace RTextNppPlugin.Utilities.Settings
             private readonly bool _isBold;
             private readonly bool _isItalic;
             private int _fontSize;
+            private int _fontStyle;
             public WordsStyle(
                 string name,
                 int styleId,
@@ -77,7 +71,8 @@ namespace RTextNppPlugin.Utilities.Settings
                 bool isUnderlined,
                 bool isBold,
                 bool isItalic,
-                int fontSize
+                int fontSize,
+                int fontStyle
                 )
             {
                 _name         = name;
@@ -89,6 +84,7 @@ namespace RTextNppPlugin.Utilities.Settings
                 _isBold       = isBold;
                 _isItalic     = isItalic;
                 _fontSize     = fontSize;
+                _fontStyle    = fontStyle;
             }
 
             public string Name
@@ -137,8 +133,53 @@ namespace RTextNppPlugin.Utilities.Settings
             public int FontSize
             {
                 get { return _fontSize; }
-            }            
+                set { _fontSize = value; }
+            }
+
+            public int FontStyle
+            {
+                get { return _fontStyle; }
+                set { _fontStyle = value; }
+            }
+
+            public int ExtractFontStyle()
+            {
+                //convert font setting to scintilla font-style
+                if(IsBold && IsItalic && IsUnderlined)
+                {
+                    return (int)FondStyle.FondStyle_Bold_Underline_Italic;
+                }
+                else if(IsBold && !IsUnderlined && !IsItalic)
+                {
+                    return (int)FondStyle.FondStyle_Bold;
+                }
+                else if(!IsBold && IsUnderlined && !IsItalic)
+                {
+                    return (int)FondStyle.FondStyle_Underline;
+                }
+                else if(!IsBold && !IsUnderlined && IsItalic)
+                {
+                    return (int)FondStyle.FondStyle_Italic;
+                }
+                else if(IsBold && IsUnderlined && !IsItalic)
+                {
+                    return (int)FondStyle.FondStyle_Bold_Underline;
+                }
+                else if(IsBold && !IsUnderlined && IsItalic)
+                {
+                    return (int)FondStyle.FondStyle_Bold_Italic;
+                }
+                else if(!IsBold && IsUnderlined && IsItalic)
+                {
+                    return (int)FondStyle.FondStyle_Italic_Underline;
+                }
+                else
+                {
+                    return 0;
+                }
+            }
         }
+
         #endregion
         
         #region [Interface]
@@ -210,18 +251,10 @@ namespace RTextNppPlugin.Utilities.Settings
             return default(IWordsStyle);
         }
 
-        public void SaveStyleBackground(Constants.StyleId styleId, int background)
-        {
-            if (_styles.ContainsKey(styleId))
-            {
-                _styles[styleId].Background = ConvertRGBToColor(background.ToString("X"));
-                SaveStyles(_styles[styleId]);
-            }
-        }
         #endregion
         
         #region [Helpers]
-        
+
         private Color ConvertRGBToColor(string rgbString)
         {
             int rgb = int.Parse(rgbString, System.Globalization.NumberStyles.AllowHexSpecifier);
@@ -306,47 +339,13 @@ namespace RTextNppPlugin.Utilities.Settings
                         aIsUnderlined,
                         aIsBold,
                         aIsItalic,
-                        string.IsNullOrWhiteSpace(((string)style.Attribute(Constants.Wordstyles.STYLE_ATTRIBUTE_FONTSIZE))) ? 0 : (int)style.Attribute(Constants.Wordstyles.STYLE_ATTRIBUTE_FONTSIZE)                        
+                        string.IsNullOrWhiteSpace(((string)style.Attribute(Constants.Wordstyles.STYLE_ATTRIBUTE_FONTSIZE))) ? 0 : (int)style.Attribute(Constants.Wordstyles.STYLE_ATTRIBUTE_FONTSIZE),
+                        Int32.Parse(style.Attribute(Constants.Wordstyles.STYLE_ATTRIBUTE_FONTSTYLE).Value)
                         );
                 }
             }
         }
 
-        private void SaveStyles(IWordsStyle style)
-        {
-            string aSettingsFile = _nppHelper.GetConfigDir() + "\\" + STYLES_FILE;
-            if (File.Exists(aSettingsFile))
-            {
-                XDocument aColorFile = XDocument.Load(aSettingsFile);
-                var aStyleToModify = (from wordStyles in aColorFile.Root.Descendants(Constants.Wordstyles.WORDSTYLES_ELEMENT_NAME)
-                                     where Int32.Parse(wordStyles.Attribute(Constants.Wordstyles.STYLE_ATTRIBUTE_STYLEID).Value) == (int)style.StyleId
-                                     select wordStyles).First();
-
-                System.Diagnostics.Trace.WriteLine(style.Background);
-                //aStyleToModify.SetAttributeValue(Constants.Wordstyles.STYLE_ATTRIBUTE_BGCOLOR, style.Background);
-
-                //foreach (var style in aStyles)
-                //{
-                //    bool aIsUnderlined = false;
-                //    bool aIsItalic = false;
-                //    bool aIsBold = false;
-                //    AnalyzeStyle((FondStyle)(int)style.Attribute(Constants.Wordstyles.STYLE_ATTRIBUTE_FONTSTYLE), ref aIsBold, ref aIsItalic, ref aIsUnderlined);
-                //
-                //    _styles[(Constants.StyleId)Int32.Parse(style.Attribute(Constants.Wordstyles.STYLE_ATTRIBUTE_STYLEID).Value)] = new WordsStyle(
-                //        style.Attribute(Constants.Wordstyles.STYLE_ATTRIBUTE_NAME).Value,
-                //        Int32.Parse(style.Attribute(Constants.Wordstyles.STYLE_ATTRIBUTE_STYLEID).Value),
-                //        ConvertRGBToColor((string)style.Attribute(Constants.Wordstyles.STYLE_ATTRIBUTE_FGCOLOR)),
-                //        ConvertRGBToColor((string)style.Attribute(Constants.Wordstyles.STYLE_ATTRIBUTE_BGCOLOR)),
-                //        style.Attribute(Constants.Wordstyles.STYLE_ATTRIBUTE_FONTNAME).Value,
-                //        aIsUnderlined,
-                //        aIsBold,
-                //        aIsItalic,
-                //        string.IsNullOrWhiteSpace(((string)style.Attribute(Constants.Wordstyles.STYLE_ATTRIBUTE_FONTSIZE))) ? 0 : (int)style.Attribute(Constants.Wordstyles.STYLE_ATTRIBUTE_FONTSIZE)
-                //        );
-                //}
-                aColorFile.Save(aSettingsFile, SaveOptions.None);
-            }
-        }
         ~StyleConfigurationObserver()
         {
             // Finalizer calls Dispose(false)

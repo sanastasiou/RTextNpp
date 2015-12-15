@@ -24,9 +24,7 @@ namespace RTextNppPlugin.Scintilla.Annotations
         private const double ZOOM_LEVEL_OFFSET                      = 10.0;
         private int _maxCharLengthMainSci                           = 0;
         private int _maxCharLengthSubSci                            = 0;
-        private VoidDelayedEventHandler _paintedEventHandler        = null;
         private int _lineNumberStyleBackground                      = int.MinValue;
-        private IStyleConfigurationObserver _styleObserver          = null;
         #endregion
 
         #region [Interface]
@@ -47,10 +45,14 @@ namespace RTextNppPlugin.Scintilla.Annotations
             _currentPixelFactorMainScintilla   = CalculatedPixels(_nppHelper.GetZoomLevel(_nppHelper.MainScintilla));
             _currentPixelFactorSecondScintilla = CalculatedPixels(_nppHelper.GetZoomLevel(_nppHelper.SecondaryScintilla));
 
-            //initialize painted event debouncer
-            _paintedEventHandler                = new VoidDelayedEventHandler(UpdateBackgroundMargin, updateDelay);
-            //plugin.ScintillaUiPainted           += OnScintillaUiPainted;
-            _styleObserver = styleObserver;
+            //initialize painted event debouncer          
+            NormalizeMarginsBackground();
+
+            plugin.ScintillaUiPainted += OnScintillaUiPainted;
+        }
+
+        void OnScintillaUiPainted()
+        {
             NormalizeMarginsBackground();
         }
 
@@ -99,17 +101,6 @@ namespace RTextNppPlugin.Scintilla.Annotations
         #endregion
 
         #region [Event Handlers]
-
-        private void OnScintillaUiPainted()
-        {
-            int previousLineNumberStyleBackgroundMain      = _lineNumberStyleBackground;
-            int currentLineNumberStyleBackgroundMain       = _nppHelper.GetStyleBackground(_nppHelper.MainScintilla, (int)SciMsg.STYLE_LINENUMBER);
-
-            if (previousLineNumberStyleBackgroundMain != currentLineNumberStyleBackgroundMain)
-            {
-                _paintedEventHandler.TriggerHandler();
-            }
-        }
 
         void OnScintillaZoomChanged(IntPtr sciPtr, int newZoomLevel)
         {
@@ -247,21 +238,21 @@ namespace RTextNppPlugin.Scintilla.Annotations
             }
         }
 
-        private void UpdateBackgroundMargin()
-        {
-            //update 
-        }
-
         private void NormalizeMarginsBackground()
         {
             _lineNumberStyleBackground = _nppHelper.GetStyleBackground(_nppHelper.MainScintilla, (int)SciMsg.STYLE_LINENUMBER);
-            
+
             //initialize style backgrounds for all margin styles
             for (var i = Constants.StyleId.MARGIN_DEBUG; i < Constants.StyleId.MARGIN_FATAL_ERROR; ++i)
             {
-                _nppHelper.SetStyleBackground(_nppHelper.MainScintilla, (int)i, _lineNumberStyleBackground);
-                _nppHelper.SetStyleBackground(_nppHelper.SecondaryScintilla, (int)i, _lineNumberStyleBackground);
-                //_styleObserver.SaveStyleBackground(i, _lineNumberStyleBackground);
+                if (_nppHelper.GetStyleBackground(_nppHelper.MainScintilla, (int)i) != _lineNumberStyleBackground)
+                {
+                    _nppHelper.SetStyleBackground(_nppHelper.MainScintilla, (int)i, _lineNumberStyleBackground);
+                }
+                if (_nppHelper.GetStyleBackground(_nppHelper.SecondaryScintilla, (int)i) != _lineNumberStyleBackground)
+                {
+                    _nppHelper.SetStyleBackground(_nppHelper.SecondaryScintilla, (int)i, _lineNumberStyleBackground);
+                }
             }
         }
         #endregion

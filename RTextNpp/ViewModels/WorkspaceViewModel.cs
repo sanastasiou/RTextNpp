@@ -214,8 +214,8 @@ namespace RTextNppPlugin.ViewModels
         #endregion
 
         #region [Data Members]
-        private bool _isBusy                            = false;                //!< Indicates if backend is currently busy.
-        private bool _isActive                          = false;                //!< Indicates whether backend process is currently active.
+        private bool _isBusy                            = false;                //!< Indicates if back-end is currently busy.
+        private bool _isActive                          = false;                //!< Indicates whether back-end process is currently active.
         private double _percentage                      = 0.0;                  //!< The current command percentage.
         private bool _isLoading                         = false;                //!< Model loading status.
         private Connector _connector                    = null;                 //!< Associated connector instance.

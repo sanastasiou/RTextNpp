@@ -108,6 +108,7 @@
     <Compile Include="Utilities\BindingProxy.cs" />
     <Compile Include="Utilities\GlobalMouseHook.cs" />
     <Compile Include="Scintilla\INpp.cs" />
+    <Compile Include="Utilities\Settings\ColorExtensions.cs" />
     <Compile Include="Utilities\Settings\ISettings.cs" />
     <Compile Include="Utilities\MouseEventExtArgs.cs" />
     <Compile Include="Utilities\SplitEnumerator.cs" />
@@ -341,7 +342,7 @@
   <ItemGroup />
   <PropertyGroup>
     <PostBuildEvent>if $(ConfigurationName) == Debug copy /Y "$(ProjectDir)$(OutDir)$(TargetName).dll" "C:\Program Files (x86)\Notepad++\plugins"
-echo "if $(ConfigurationName) == Debug copy /Y "$(SolutionDir)RTextNpp.xml" "C:\Users\Stefanos\AppData\Roaming\Notepad++\plugins\config""</PostBuildEvent>
+if $(ConfigurationName) == Debug copy /Y "$(SolutionDir)RTextNpp.xml" "C:\Users\Stefanos\AppData\Roaming\Notepad++\plugins\config"</PostBuildEvent>
   </PropertyGroup>
   <UsingTask TaskName="CosturaCleanup" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v4.0.dll" TaskFactory="CodeTaskFactory">
     <ParameterGroup>
