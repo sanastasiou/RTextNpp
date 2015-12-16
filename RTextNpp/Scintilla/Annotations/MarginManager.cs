@@ -1,14 +1,9 @@
-﻿using RTextNppPlugin.Utilities.Settings;
+﻿using RTextNppPlugin.DllExport;
+using RTextNppPlugin.Utilities.Settings;
 using RTextNppPlugin.ViewModels;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.IO;
-using RTextNppPlugin.DllExport;
-using RTextNppPlugin.Utilities;
 
 namespace RTextNppPlugin.Scintilla.Annotations
 {
@@ -28,7 +23,7 @@ namespace RTextNppPlugin.Scintilla.Annotations
         #endregion
 
         #region [Interface]
-        internal MarginManager(ISettings settings, INpp nppHelper, Plugin plugin, string workspaceRoot, IStyleConfigurationObserver styleObserver, double updateDelay = Constants.Scintilla.ANNOTATIONS_UPDATE_DELAY) :
+        internal MarginManager(ISettings settings, INpp nppHelper, Plugin plugin, string workspaceRoot, double updateDelay = Constants.Scintilla.ANNOTATIONS_UPDATE_DELAY) :
             base(settings, nppHelper, plugin, workspaceRoot, updateDelay)
         {
             _areAnnotationEnabled = _settings.Get<bool>(Settings.RTextNppSettings.EnableErrorMarkers);
@@ -183,7 +178,7 @@ namespace RTextNppPlugin.Scintilla.Annotations
                 if (errors != null && GetMarginLength(sciPtr) != 0)
                 {
                     int maxCharLenghtForMargin = 0;
-                    var aErrorGroupByLines     = errors.ErrorList.GroupBy(y => y.Line).AsParallel();
+                    var aErrorGroupByLines = errors.ErrorList.GroupBy(y => y.Line);
                     foreach (var errorGroup in aErrorGroupByLines)
                     {
                         _nppHelper.SetMarginStyle(sciPtr, errorGroup.First().LineForScintilla, (int)ConvertSeverityToStyleId(errorGroup.First().Severity));

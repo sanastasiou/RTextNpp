@@ -22,7 +22,7 @@ namespace RTextNppPlugin.Forms
             _settings.Set(_excludeExtensionsTextBox.Text, Settings.RTextNppSettings.ExcludeExtensions);
             _settings.Set(_errorAnnotationCheckBox.Checked, Settings.RTextNppSettings.EnableErrorAnnotations);
             _settings.Set(_errorMarkersCheckBox.Checked, Settings.RTextNppSettings.EnableErrorMarkers);
-            _settings.Set(_errorSquiggyLinesCheckBox.Checked, Settings.RTextNppSettings.EnableErrorSquiggyLines);
+            _settings.Set(_errorSquiggyLinesCheckBox.Checked, Settings.RTextNppSettings.EnableErrorSquiggleLines);
         }
         internal void RestoreSettings()
         {
@@ -32,7 +32,7 @@ namespace RTextNppPlugin.Forms
             _excludeExtensionsTextBox.Text = _settings.Get(Settings.RTextNppSettings.ExcludeExtensions);
             EnableErrorAnnotations         = _settings.Get<bool>(Settings.RTextNppSettings.EnableErrorAnnotations);
             EnableErrorMarkers             = _settings.Get<bool>(Settings.RTextNppSettings.EnableErrorMarkers);
-            EnableErrorSquiggyLines        = _settings.Get<bool>(Settings.RTextNppSettings.EnableErrorSquiggyLines);            
+            EnableErrorSquiggyLines        = _settings.Get<bool>(Settings.RTextNppSettings.EnableErrorSquiggleLines);            
         }
 
         internal bool EnableErrorAnnotations

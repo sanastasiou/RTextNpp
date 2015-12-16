@@ -81,6 +81,14 @@ namespace RTextNppPlugin.RText.Parsing
             _nppHelper  = nppHelper;
             _lineText   = new StringBuilder(_nppHelper.GetLine(_lineNumber));
         }
+
+        internal Tokenizer(int line, string text, INpp nppHelper)
+        {
+            _lineNumber = line;
+            _nppHelper  = nppHelper;
+            _lineText   = new StringBuilder(text);
+        }
+
         internal IEnumerable<TokenTag> Tokenize(params RTextTokenTypes[] typesToKeep)
         {
             int aOffset = _nppHelper.GetLineStart(_lineNumber);

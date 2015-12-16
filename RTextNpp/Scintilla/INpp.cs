@@ -93,10 +93,10 @@ namespace RTextNppPlugin.Scintilla
          * \return  The line string.
          */
         string GetLine(int line);
-        
-        System.Text.StringBuilder GetLineAsStringBuilder(int line);
-        
-        int GetLineCount();
+
+        string GetLine(int line, IntPtr sciPtr);
+              
+        int GetLineCount(IntPtr sciPtr);
         
         int GetLineEnd(int position, int line);
         
@@ -144,7 +144,7 @@ namespace RTextNppPlugin.Scintilla
         
         void SetFirstVisibleLine(int line);
         
-        void SetIndicatorStyle(int indicator, SciMsg style, System.Drawing.Color color);
+        void SetIndicatorStyle(IntPtr sciPtr, int indicator, SciMsg style, System.Drawing.Color color);
         
         void SetSelection(int start, int end);
 
@@ -209,5 +209,11 @@ namespace RTextNppPlugin.Scintilla
         void SetStyleBackground(IntPtr sciPtr, int styleNumber, int background);
 
         int GetStyleForeground(IntPtr sciPtr, int styleNumber);
+
+        void ClearAllIndicators(IntPtr sciPtr, int indicator);
+
+        void SetCurrentIndicator(IntPtr sciPtr, int index);
+
+        void IndicatorFillRange(IntPtr sciPtr, int startPos, int length);
     }
 }

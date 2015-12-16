@@ -11,11 +11,12 @@ namespace RTextNppPlugin.ViewModels
     using RTextNppPlugin.Utilities;
     using RTextNppPlugin.Utilities.Settings;
     using System.Collections.Generic;
+    using System.Threading.Tasks;
     using System.Windows.Threading;
     class WorkspaceViewModel : WorkspaceViewModelBase, IConsoleViewModelBase, IDisposable
     {
         #region [Interface]
-        public WorkspaceViewModel(string workspace, ref Connector connector, ConsoleViewModel mainViewModel, INpp nppHelper, Dispatcher dispatcher, ISettings settings, IStyleConfigurationObserver styleObserver)
+        public WorkspaceViewModel(string workspace, ref Connector connector, ConsoleViewModel mainViewModel, INpp nppHelper, Dispatcher dispatcher, ISettings settings)
             : base(workspace)
         {
             _connector                   = connector;
@@ -24,8 +25,10 @@ namespace RTextNppPlugin.ViewModels
             _connector.OnProgressUpdated += OnConnectorProgressUpdated;
             _nppHelper                   = nppHelper;
             _dispatcher                  = dispatcher;
-            _annotationsManager          = new AnnotationManager(settings, nppHelper, Plugin.Instance, _connector.Workspace);
-            _marginsManager              = new MarginManager(settings, nppHelper, Plugin.Instance, _connector.Workspace, styleObserver);
+            _annotationsManagers         = new List<IError>(3);
+            _annotationsManagers.Add(new AnnotationManager(settings, nppHelper, Plugin.Instance, _connector.Workspace));
+            _annotationsManagers.Add(new MarginManager(settings, nppHelper, Plugin.Instance, _connector.Workspace));
+            _annotationsManagers.Add(new IndicatorManager(settings, nppHelper, Plugin.Instance, _connector.Workspace));
         }
         /**
          * \brief   Gets a value indicating whether this workspace is currently loading.
@@ -205,10 +208,12 @@ namespace RTextNppPlugin.ViewModels
 
                 }
             }
-            _annotationsManager.ErrorList = _errorList;
-            _marginsManager.ErrorList     = _errorList;
-            _annotationsManager.Refresh();
-            _marginsManager.Refresh();
+
+            Parallel.ForEach(_annotationsManagers, (manager) =>
+            {
+                manager.ErrorList = _errorList;
+                manager.Refresh();
+            });
         }
 
         #endregion
@@ -225,8 +230,7 @@ namespace RTextNppPlugin.ViewModels
         private INpp _nppHelper                         = null;                 //!< Npp helper instance.
         private static readonly object _lock            = new object();         //!< Mutex.
         private readonly Dispatcher _dispatcher         = null;                 //!< UI Dispatcher.
-        private IError _annotationsManager              = null;                 //!< Manages annotations display.
-        private IError _marginsManager                  = null;                 //!< Manages margins display.
+        private IList<IError> _annotationsManagers      = null;                 //!< Manages annotations display.
         #endregion
     }
 }

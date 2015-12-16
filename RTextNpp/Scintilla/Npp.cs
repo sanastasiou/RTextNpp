@@ -1,8 +1,3 @@
-/**
- * \file    Utilities\instancecs
- *
- * Taken as is fron CSScript plugin for notepad++.
- */
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -10,7 +5,6 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows.Forms;
-using System.Linq;
 
 namespace RTextNppPlugin.Scintilla
 {
@@ -249,10 +243,10 @@ namespace RTextNppPlugin.Scintilla
             _win32.ISendMessage(instance.NppHandle, NppMsg.NPPM_SAVECURRENTFILE, 0, 0);
         }
         
-        public void SetIndicatorStyle(int indicator, SciMsg style, Color color)
+        public void SetIndicatorStyle(IntPtr sciPtr, int indicator, SciMsg style, Color color)
         {
-            _win32.ISendMessage(CurrentScintilla, SciMsg.SCI_INDICSETSTYLE, indicator, (int)style);
-            _win32.ISendMessage(CurrentScintilla, SciMsg.SCI_INDICSETFORE, indicator, ColorTranslator.ToWin32(color));
+            _win32.ISendMessage(sciPtr, SciMsg.SCI_INDICSETSTYLE, indicator, (int)style);
+            _win32.ISendMessage(sciPtr, SciMsg.SCI_INDICSETFORE, indicator, ColorTranslator.ToWin32(color));
         }
         
         public void ClearIndicator(int indicator, int startPos, int endPos)
@@ -302,18 +296,14 @@ namespace RTextNppPlugin.Scintilla
         
         public string GetLine(int line)
         {
-            return GetLineAsStringBuilder(line).ToString();
+            return GetLineAsStringBuilder(line, CurrentScintilla).ToString();
         }
-        
-        public StringBuilder GetLineAsStringBuilder(int line)
+
+        public string GetLine(int line, IntPtr sciPtr)
         {
-            int length = (int)_win32.ISendMessage(CurrentScintilla, SciMsg.SCI_LINELENGTH, line, 0);
-            var buffer = new StringBuilder(length + 1);
-            _win32.ISendMessage(CurrentScintilla, SciMsg.SCI_GETLINE, line, buffer);
-            buffer.Length = length; //NPP may inject some rubbish at the end of the line
-            return buffer;
+            return GetLineAsStringBuilder(line, sciPtr).ToString();
         }
-        
+              
         /**
          * Gets line number.
          *
@@ -364,9 +354,9 @@ namespace RTextNppPlugin.Scintilla
             _win32.ISendMessage(CurrentScintilla, SciMsg.SCI_SETFIRSTVISIBLELINE, line, 0);
         }
         
-        public int GetLineCount()
+        public int GetLineCount(IntPtr sciPtr)
         {
-            return (int)_win32.ISendMessage(CurrentScintilla, SciMsg.SCI_GETLINECOUNT, 0, 0);
+            return (int)_win32.ISendMessage(sciPtr, SciMsg.SCI_GETLINECOUNT, 0, 0);
         }
         
         public string GetShortcutsFile()
@@ -926,5 +916,37 @@ namespace RTextNppPlugin.Scintilla
         {
             return (int)_win32.ISendMessage(sciPtr, SciMsg.SCI_STYLEGETFORE, styleNumber, 0);
         }
+
+        public void ClearAllIndicators(IntPtr sciPtr, int indicator)
+        {
+            _win32.ISendMessage(sciPtr, SciMsg.SCI_SETINDICATORCURRENT, indicator, 0);
+            //get final position in document
+            int endPos = (int)_win32.ISendMessage(sciPtr, SciMsg.SCI_GETLINEENDPOSITION, GetLineCount(sciPtr), 0);
+            //clear all indicators
+            _win32.ISendMessage(sciPtr, SciMsg.SCI_INDICATORCLEARRANGE, 0, endPos);
+        }
+
+        public void SetCurrentIndicator(IntPtr sciPtr, int index)
+        {
+            _win32.ISendMessage(sciPtr, SciMsg.SCI_SETINDICATORCURRENT, index, 0);
+        }
+
+        public void IndicatorFillRange(IntPtr sciPtr, int startPos, int length)
+        {
+            _win32.ISendMessage(sciPtr, SciMsg.SCI_INDICATORFILLRANGE, startPos, length);
+        }
+
+        #region [Helpers]
+
+        private StringBuilder GetLineAsStringBuilder(int line, IntPtr sciPtr)
+        {
+            int length    = (int)_win32.ISendMessage(CurrentScintilla, SciMsg.SCI_LINELENGTH, line, 0);
+            var buffer    = new StringBuilder(length + 1);
+            _win32.ISendMessage(sciPtr, SciMsg.SCI_GETLINE, line, buffer);
+            buffer.Length = length; //NPP may inject some rubbish at the end of the line
+            return buffer;
+        }
+
+        #endregion
     }
 }

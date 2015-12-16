@@ -27,11 +27,6 @@
         LeftAngleBrakcet,
         RightAngleBracket,
         Comma,
-        NewLine,
-        AnnotationDebug = 16,
-        AnnotationInfo,
-        AnnotationWarning,
-        AnnotationError,
-        AnnotationFatalError
+        NewLine
     }
 }

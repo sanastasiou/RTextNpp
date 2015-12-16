@@ -388,7 +388,7 @@ namespace RTextNppPlugin.RText
                 aProcessStartInfo.WorkingDirectory = _pInfo.WorkingDirectory;
                 _process = new System.Diagnostics.Process();
                 _process.StartInfo = aProcessStartInfo;
-                //add filewacthers for .rtext file and all associated extensions
+                //add filewatcher for .rtext file and all associated extensions
                 string aExtensions = _pInfo.ProcKey.Substring(_pInfo.RTextFilePath.Length, _pInfo.ProcKey.Length - _pInfo.RTextFilePath.Length);
                 Regex regexObj = new Regex(@"\.\w+");
                 Match matchResults = regexObj.Match(aExtensions);
@@ -465,7 +465,7 @@ namespace RTextNppPlugin.RText
             }
             catch (Exception ex)
             {
-                Logging.Logger.Instance.Append(Logging.Logger.MessageType.FatalError, _pInfo.ProcKey, "Exception caught while trying to start rtext service : {0}", ex.Message);
+                Logging.Logger.Instance.Append(Logging.Logger.MessageType.FatalError, _pInfo.ProcKey, "Exception caught while trying to start RText service : {0}", ex.Message);
                 OnProcessExited(null, EventArgs.Empty);
             }
         }
@@ -506,7 +506,7 @@ namespace RTextNppPlugin.RText
         
         /**
          *
-         * \brief   Reads a synchronous stream asynchornously. .NET bug workaround.
+         * \brief   Reads a synchronous stream asynchronously. .NET bug workaround.
          *
          * \param   stream  The stream.
          * \param   token   The cancellation token.

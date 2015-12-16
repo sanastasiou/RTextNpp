@@ -2,7 +2,6 @@
 using RTextNppPlugin.ViewModels;
 using System;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Text;
 
@@ -104,7 +103,7 @@ namespace RTextNppPlugin.Scintilla.Annotations
                 if (errors != null)
                 {
                     //concatenate error that share the same line with \n so that they appear in the same annotation box underneath the same line
-                    var aErrorGroupByLines = errors.ErrorList.GroupBy(y => y.Line).AsParallel();
+                    var aErrorGroupByLines = errors.ErrorList.GroupBy(y => y.Line);
                     foreach (var errorGroup in aErrorGroupByLines)
                     {
                         StringBuilder aErrorDescription = new StringBuilder(errorGroup.Count() * 50);

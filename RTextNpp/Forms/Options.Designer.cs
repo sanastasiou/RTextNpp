@@ -125,12 +125,11 @@
             // _errorSquiggyLinesCheckBox
             // 
             this._errorSquiggyLinesCheckBox.AutoSize = true;
-            this._errorSquiggyLinesCheckBox.Enabled = false;
             this._errorSquiggyLinesCheckBox.Location = new System.Drawing.Point(6, 65);
             this._errorSquiggyLinesCheckBox.Name = "_errorSquiggyLinesCheckBox";
-            this._errorSquiggyLinesCheckBox.Size = new System.Drawing.Size(153, 17);
+            this._errorSquiggyLinesCheckBox.Size = new System.Drawing.Size(156, 17);
             this._errorSquiggyLinesCheckBox.TabIndex = 2;
-            this._errorSquiggyLinesCheckBox.Text = "Enable Error Squiggy Lines";
+            this._errorSquiggyLinesCheckBox.Text = "Enable Error Squiggle Lines";
             this._errorSquiggyLinesCheckBox.UseVisualStyleBackColor = true;
             // 
             // _errorMarkersCheckBox

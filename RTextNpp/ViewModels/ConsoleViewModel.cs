@@ -111,7 +111,7 @@ namespace RTextNppPlugin.ViewModels
                     }
                     else
                     {
-                        _workspaceCollection.Add(new WorkspaceViewModel(workspace, ref connector, this, _nppHelper, _dispatcher, settings, _styleObserver));
+                        _workspaceCollection.Add(new WorkspaceViewModel(workspace, ref connector, this, _nppHelper, _dispatcher, settings));
                     }
                     Index = _workspaceCollection.IndexOf(_workspaceCollection.Last());
                 }
