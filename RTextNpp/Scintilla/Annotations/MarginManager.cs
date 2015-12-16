@@ -58,8 +58,8 @@ namespace RTextNppPlugin.Scintilla.Annotations
             if (e.Setting == SETTING)
             {
                 _areAnnotationEnabled = _settings.Get<bool>(Settings.RTextNppSettings.EnableErrorMarkers);
+                ProcessSettingChanged();
             }
-            ProcessSettingChanged();
         }
 
         protected override void Dispose(bool disposing)

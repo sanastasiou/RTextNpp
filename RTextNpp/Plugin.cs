@@ -129,6 +129,8 @@ namespace RTextNppPlugin
             Debugger.Launch();
             #endif
             _styleObserver.EnableStylesObservation();
+            //set up notifications
+            //_nppHelper.SetModEventMask((int)(SciMsg.SC_MOD_INSERTTEXT | SciMsg.SC_MOD_DELETETEXT));
         }
 
         public void LoadSettings()
@@ -629,6 +631,18 @@ namespace RTextNppPlugin
             {
                 ScintillaUiPainted();
             }
+        }
+
+        internal void OnScnModified(SCNotification nc)
+        {
+            Trace.WriteLine(String.Format("Text deleted : {0}", (nc.modificationType & (int)SciMsg.SC_MOD_DELETETEXT) != 0 ));
+            Trace.WriteLine(String.Format("Text added : {0}", (nc.modificationType & (int)SciMsg.SC_MOD_INSERTTEXT) != 0));
+            Trace.WriteLine(String.Format("Text position : {0}", nc.position));
+            Trace.WriteLine(String.Format("Text length : {0}", nc.length));
+
+            //if text is deleted, the position denotes the final position after the deletion and the length the deleted length
+
+            //if text is added, the position denotes the initial position and the length, the length of the added test
         }
 
         #endregion

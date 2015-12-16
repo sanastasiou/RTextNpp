@@ -241,17 +241,17 @@ namespace RTextNppPlugin.Scintilla
             _win32.ISendMessage(sciPtr, SciMsg.SCI_INDICSETSTYLE, indicator, (int)style);
             _win32.ISendMessage(sciPtr, SciMsg.SCI_INDICSETFORE, indicator, ColorTranslator.ToWin32(color));
         }
-        
-        public void ClearIndicator(int indicator, int startPos, int endPos)
+
+        public void ClearIndicator(IntPtr sciPtr, int indicator, int startPos, int length)
         {
-            _win32.ISendMessage(CurrentScintilla, SciMsg.SCI_SETINDICATORCURRENT, indicator, 0);
-            _win32.ISendMessage(CurrentScintilla, SciMsg.SCI_INDICATORCLEARRANGE, startPos, endPos - startPos);
+            _win32.ISendMessage(sciPtr, SciMsg.SCI_SETINDICATORCURRENT, indicator, 0);
+            _win32.ISendMessage(sciPtr, SciMsg.SCI_INDICATORCLEARRANGE, startPos, length);
         }
         
-        public void PlaceIndicator(int indicator, int startPos, int endPos)
+        public void PlaceIndicator(IntPtr sciPtr, int indicator, int startPos, int length)
         {
-            _win32.ISendMessage(CurrentScintilla, SciMsg.SCI_SETINDICATORCURRENT, indicator, 0);
-            _win32.ISendMessage(CurrentScintilla, SciMsg.SCI_INDICATORFILLRANGE, startPos, endPos - startPos);
+            _win32.ISendMessage(sciPtr, SciMsg.SCI_SETINDICATORCURRENT, indicator, 0);
+            _win32.ISendMessage(sciPtr, SciMsg.SCI_INDICATORFILLRANGE, startPos, length);
         }
         
         public string GetConfigDir()
@@ -910,23 +910,24 @@ namespace RTextNppPlugin.Scintilla
             return (int)_win32.ISendMessage(sciPtr, SciMsg.SCI_STYLEGETFORE, styleNumber, 0);
         }
 
-        public void ClearAllIndicators(IntPtr sciPtr, int indicator)
-        {
-            _win32.ISendMessage(sciPtr, SciMsg.SCI_SETINDICATORCURRENT, indicator, 0);
-            //get final position in document
-            int endPos = (int)_win32.ISendMessage(sciPtr, SciMsg.SCI_GETLINEENDPOSITION, GetLineCount(sciPtr), 0);
-            //clear all indicators
-            _win32.ISendMessage(sciPtr, SciMsg.SCI_INDICATORCLEARRANGE, 0, endPos);
-        }
-
         public void SetCurrentIndicator(IntPtr sciPtr, int index)
         {
             _win32.ISendMessage(sciPtr, SciMsg.SCI_SETINDICATORCURRENT, index, 0);
         }
 
-        public void IndicatorFillRange(IntPtr sciPtr, int startPos, int length)
+        public void SetModEventMask(int eventMask)
         {
-            _win32.ISendMessage(sciPtr, SciMsg.SCI_INDICATORFILLRANGE, startPos, length);
+            _win32.ISendMessage(MainScintilla, SciMsg.SCI_SETMODEVENTMASK, eventMask, 0);
+            _win32.ISendMessage(SecondaryScintilla, SciMsg.SCI_SETMODEVENTMASK, eventMask, 0);
+        }
+
+        public void ClearAllIndicators(IntPtr sciPtr, int currentIndicator)
+        {
+            _win32.ISendMessage(sciPtr, SciMsg.SCI_SETINDICATORCURRENT, currentIndicator, 0);
+            //int length = (int)_win32.ISendMessage(sciPtr, SciMsg.SCI_GETLENGTH, 0, 0);
+            int endPos = (int)_win32.ISendMessage(sciPtr, SciMsg.SCI_GETLINEENDPOSITION, GetLineCount(sciPtr), 0);
+
+            _win32.ISendMessage(sciPtr, SciMsg.SCI_INDICATORCLEARRANGE, 0, endPos);
         }
 
         #region [Helpers]

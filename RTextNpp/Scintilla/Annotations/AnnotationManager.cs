@@ -25,8 +25,8 @@ namespace RTextNppPlugin.Scintilla.Annotations
             if (e.Setting == SETTING)
             {
                 _areAnnotationEnabled = _settings.Get<bool>(Settings.RTextNppSettings.EnableErrorAnnotations);
+                ProcessSettingChanged();
             }
-            ProcessSettingChanged();
         }
 
         protected override Constants.StyleId ConvertSeverityToStyleId(ErrorItemViewModel.SeverityType severity)
@@ -89,8 +89,8 @@ namespace RTextNppPlugin.Scintilla.Annotations
             {
                 if (IsWorkspaceFile(openFiles[docIndex]))
                 {
-                    _nppHelper.ClearAllAnnotations(scintilla);
                     _nppHelper.SetAnnotationVisible(scintilla, Constants.Scintilla.HIDDEN_ANNOTATION_STYLE);
+                    _nppHelper.ClearAllAnnotations(scintilla);
                 }
             }
         }

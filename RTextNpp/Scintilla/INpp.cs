@@ -43,7 +43,7 @@ namespace RTextNppPlugin.Scintilla
 
         unsafe void AddText(string text);
         
-        void ClearIndicator(int indicator, int startPos, int endPos);
+        void ClearIndicator(IntPtr sciPtr, int indicator, int startPos, int length);
         
         void ClearSelection();
         
@@ -128,7 +128,7 @@ namespace RTextNppPlugin.Scintilla
         
         void OpenFile(string file);
         
-        void PlaceIndicator(int indicator, int startPos, int endPos);
+        void PlaceIndicator(IntPtr sciPtr, int indicator, int startPos, int length);
         
         unsafe void ReplaceWordFromToken(Tokenizer.TokenTag? token, string insertionText);
         
@@ -208,10 +208,10 @@ namespace RTextNppPlugin.Scintilla
 
         int GetStyleForeground(IntPtr sciPtr, int styleNumber);
 
-        void ClearAllIndicators(IntPtr sciPtr, int indicator);
-
         void SetCurrentIndicator(IntPtr sciPtr, int index);
 
-        void IndicatorFillRange(IntPtr sciPtr, int startPos, int length);
+        void SetModEventMask(int eventMask);
+
+        void ClearAllIndicators(IntPtr sciPtr, int currentIndicator);
     }
 }

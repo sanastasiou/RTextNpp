@@ -206,7 +206,7 @@ namespace RTextNppPlugin.Scintilla.Annotations
         protected void Refresh(ref string activeViewFile, IntPtr sciPtr)
         {
             //ensure model is loaded
-            if (_currentErrors != null && HasSciFocus(sciPtr))
+            if (_currentErrors != null && HasSciFocus(sciPtr) && _areAnnotationEnabled)
             {
                 ErrorListViewModel aErrors = null;
                 var aAction = ValidateErrorList(out aErrors, sciPtr, ref activeViewFile);

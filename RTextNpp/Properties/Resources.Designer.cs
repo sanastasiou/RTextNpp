@@ -101,7 +101,7 @@ namespace RTextNppPlugin.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Shot auto completion options....
+        ///   Looks up a localized string similar to Show auto completion options....
         /// </summary>
         internal static string AUTO_COMPLETION_DESC {
             get {
@@ -399,7 +399,7 @@ namespace RTextNppPlugin.Properties {
         ///        &lt;add key=&quot;ExcludeExtensions&quot; value=&quot;meta;&quot; /&gt;
         ///        &lt;add key=&quot;EnableErrorAnnotations&quot; value=&quot;True&quot; /&gt;
         ///        &lt;add key=&quot;EnableErrorMarkers&quot; value=&quot;True&quot; /&gt;
-        ///        &lt;add key=&quot;EnableErrorSquiggyLines&quot; value=&quot; [rest of string was truncated]&quot;;.
+        ///        &lt;add key=&quot;EnableErrorSquiggleLines&quot; value= [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string RTextNpp_dll {
             get {

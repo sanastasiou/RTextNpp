@@ -209,11 +209,11 @@ namespace RTextNppPlugin.ViewModels
                 }
             }
 
-            Parallel.ForEach(_annotationsManagers, (manager) =>
+            foreach(var manager in _annotationsManagers)
             {
                 manager.ErrorList = _errorList;
                 manager.Refresh();
-            });
+            }
         }
 
         #endregion

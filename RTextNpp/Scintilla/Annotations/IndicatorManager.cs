@@ -23,7 +23,6 @@ namespace RTextNppPlugin.Scintilla.Annotations
         private CancellationTokenSource _subSciCts           = null;
         private Task _mainSciDrawingTask                     = null;
         private Task _subSciDrawningTask                     = null;
-        private bool _isPainted                              = false;
         private readonly RTextTokenTypes[] ERROR_TOKEN_TYPES =  
         { 
             RTextTokenTypes.Boolean,
@@ -37,6 +36,8 @@ namespace RTextNppPlugin.Scintilla.Annotations
             RTextTokenTypes.Reference,
             RTextTokenTypes.Template
         };
+        //private ConcurrentBag<Tuple<int, int>> _indicatorRangesMain = null; //!< Holds last drawn indicator ranges for main view - used to speed up deletion of ranges, rather than deleting the whole document ( time consuming ).
+        //private ConcurrentBag<Tuple<int, int>> _indicatorRangesSub  = null; //!< Holds last drawn indicator ranges for sub view - used to speed up deletion of ranges, rather than deleting the whole document ( time consuming ).
         #endregion
 
         #region [Interface]
@@ -56,7 +57,6 @@ namespace RTextNppPlugin.Scintilla.Annotations
 
         void OnScintillaUiPainted()
         {
-            _isPainted = true;
         }
 
         public override void OnSettingChanged(object source, Utilities.Settings.Settings.SettingChangedEventArgs e)
@@ -64,8 +64,8 @@ namespace RTextNppPlugin.Scintilla.Annotations
             if (e.Setting == SETTING)
             {
                 _areAnnotationEnabled = _settings.Get<bool>(Settings.RTextNppSettings.EnableErrorSquiggleLines);
+                ProcessSettingChanged();
             }
-            ProcessSettingChanged();
         }
 
         protected override void Dispose(bool disposing)
@@ -90,7 +90,7 @@ namespace RTextNppPlugin.Scintilla.Annotations
 
         #endregion
 
-        #region [Event Handlers]       
+        #region [Event Handlers]
 
         #endregion
 
@@ -103,7 +103,10 @@ namespace RTextNppPlugin.Scintilla.Annotations
             {
                 //remove annotations from the view which this file belongs to
                 var scintilla = _nppHelper.FindScintillaFromFilepath(file);
+
+                //ClearIndicators(scintilla);
                 _nppHelper.ClearAllIndicators(scintilla, INDICATOR_INDEX);
+                
                 if (scintilla == _nppHelper.MainScintilla)
                 {
                     _lastMainViewAnnotatedFile = string.Empty;
@@ -118,13 +121,15 @@ namespace RTextNppPlugin.Scintilla.Annotations
 
         protected override void HideAnnotations(IntPtr scintilla)
         {
+            //takes too long for large files -> makes it async use same task as drawing
+
             var openFiles = _nppHelper.GetOpenFiles(scintilla);
             var docIndex  = _nppHelper.CurrentDocIndex(scintilla);
             if (docIndex != Constants.Scintilla.VIEW_NOT_ACTIVE && Utilities.FileUtilities.IsRTextFile(openFiles[docIndex], _settings, _nppHelper))
             {
                 if (IsWorkspaceFile(openFiles[docIndex]))
                 {
-                    _isPainted = false;
+                    //ClearIndicators(scintilla);
                     _nppHelper.ClearAllIndicators(scintilla, INDICATOR_INDEX);
                 }
             }
@@ -137,6 +142,7 @@ namespace RTextNppPlugin.Scintilla.Annotations
                 //cancel any pending task
                 var task = GetDrawingTask(sciPtr);
                 var cts  = GetCts(sciPtr);
+                //takes too long..
                 HideAnnotations(sciPtr);
                 if(task != null && !task.IsCompleted)
                 {
@@ -179,18 +185,16 @@ namespace RTextNppPlugin.Scintilla.Annotations
                             }
                         });
                     }
+                    //SetIndicatorsRanges(sciPtr, ref indicatorRanges);
                     return indicatorRanges;
                 }, newCts.Token);
-
-                //wait for a "painted" event here?? indicators not always being drawn...
-                //while (!_isPainted) ;
 
                 newTask.ContinueWith((x) => {
                     _nppHelper.SetIndicatorStyle(sciPtr, INDICATOR_INDEX, SciMsg.INDIC_SQUIGGLE, Color.Red);
                     _nppHelper.SetCurrentIndicator(sciPtr, INDICATOR_INDEX);
                     foreach(var range in x.Result)
                     {
-                        _nppHelper.IndicatorFillRange(sciPtr, range.Item1, range.Item2);
+                        _nppHelper.PlaceIndicator(sciPtr, INDICATOR_INDEX, range.Item1, range.Item2);
                     }
                 }, TaskContinuationOptions.OnlyOnRanToCompletion);
 
@@ -238,6 +242,38 @@ namespace RTextNppPlugin.Scintilla.Annotations
             }
             _subSciCts = cts;
         }
+
+        //private void SetIndicatorsRanges(IntPtr sciPtr, ref ConcurrentBag<Tuple<int, int>> bag)
+        //{
+        //    if (sciPtr == _nppHelper.MainScintilla)
+        //    {
+        //        _indicatorRangesMain = new ConcurrentBag<Tuple<int, int>>(bag);
+        //        return;
+        //    }
+        //    _indicatorRangesSub = new ConcurrentBag<Tuple<int, int>>(bag);
+        //}
+        //
+        //private ConcurrentBag<Tuple<int,int>> GetIndicatorRanges(IntPtr sciPtr)
+        //{
+        //    if (sciPtr == _nppHelper.MainScintilla)
+        //    {
+        //        return _indicatorRangesMain;
+        //    }
+        //    return _indicatorRangesSub;
+        //}
+        //
+        //private void ClearIndicators(IntPtr sciPtr)
+        //{
+        //    var ranges = GetIndicatorRanges(sciPtr);
+        //
+        //    if (ranges != null)
+        //    {
+        //        foreach (var range in ranges)
+        //        {
+        //            _nppHelper.ClearIndicator(sciPtr, INDICATOR_INDEX, range.Item1, range.Item2);
+        //        }
+        //    }
+        //}
 
         #endregion    
     }
