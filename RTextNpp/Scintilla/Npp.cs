@@ -230,14 +230,7 @@ namespace RTextNppPlugin.Scintilla
         {
             _win32.ISendMessage(instance.NppHandle, NppMsg.NPPM_SETMENUITEMCHECK, CmdId, isChecked ? 1 : 0);
         }
-        
-        public string GetCurrentFile()
-        {
-            var path = new StringBuilder(Win32.MAX_PATH);
-            _win32.ISendMessage(Plugin.Instance.NppData._nppHandle, NppMsg.NPPM_GETFULLCURRENTPATH, 0, path);
-            return path.ToString();
-        }
-        
+               
         public void SaveCurrentFile()
         {
             _win32.ISendMessage(instance.NppHandle, NppMsg.NPPM_SAVECURRENTFILE, 0, 0);

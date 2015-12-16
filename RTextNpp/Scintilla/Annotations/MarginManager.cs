@@ -10,16 +10,16 @@ namespace RTextNppPlugin.Scintilla.Annotations
     class MarginManager : ErrorBase, IError
     {
         #region [Data Members]
-        private const Settings.RTextNppSettings SETTING             = Settings.RTextNppSettings.EnableErrorMarkers;
-        private double _currentPixelFactorMainScintilla             = 0.0;
-        private double _currentPixelFactorSecondScintilla           = 0.0;
-        private const double PIXEL_ZOOM_FACTOR                      = 24.0;
-        private const int ERROR_DESCRIPTION_MARGIN                  = Constants.Scintilla.SC_MAX_MARGIN - 1;
-        private const double MAX_ZOOM_LEVEL                         = 30.0;
-        private const double ZOOM_LEVEL_OFFSET                      = 10.0;
-        private int _maxCharLengthMainSci                           = 0;
-        private int _maxCharLengthSubSci                            = 0;
-        private int _lineNumberStyleBackground                      = int.MinValue;
+        private const Settings.RTextNppSettings SETTING   = Settings.RTextNppSettings.EnableErrorMarkers;
+        private double _currentPixelFactorMainScintilla   = 0.0;
+        private double _currentPixelFactorSecondScintilla = 0.0;
+        private const double PIXEL_ZOOM_FACTOR            = 24.0;
+        private const int ERROR_DESCRIPTION_MARGIN        = Constants.Scintilla.SC_MAX_MARGIN - 1;
+        private const double MAX_ZOOM_LEVEL               = 30.0;
+        private const double ZOOM_LEVEL_OFFSET            = 10.0;
+        private int _maxCharLengthMainSci                 = 0;
+        private int _maxCharLengthSubSci                  = 0;
+        private int _lineNumberStyleBackground            = int.MinValue;
         #endregion
 
         #region [Interface]
@@ -104,20 +104,31 @@ namespace RTextNppPlugin.Scintilla.Annotations
             if (newZoomLevel > (-ZOOM_LEVEL_OFFSET))
             {
                 int previousMaxLength = GetMaxCharLength(sciPtr);
-                if (sciPtr == _nppHelper.MainScintilla)
+                var openedFiles       = _nppHelper.GetOpenFiles(sciPtr);
+                var currentFile       = _nppHelper.GetCurrentFilePath();
+                if (openedFiles.Contains(currentFile) && IsWorkspaceFile(currentFile))
                 {
-                    _currentPixelFactorMainScintilla = CalculatedPixels(newZoomLevel);
-                    if (_lastMainViewAnnotatedFile != string.Empty)
+                    if (sciPtr == _nppHelper.MainScintilla)
                     {
-                        _nppHelper.SetMarginWidthN(sciPtr, ERROR_DESCRIPTION_MARGIN, (int)Math.Ceiling(((double)previousMaxLength * _currentPixelFactorMainScintilla)));
+                        _currentPixelFactorMainScintilla = CalculatedPixels(newZoomLevel);
+                        if (_lastMainViewAnnotatedFile != string.Empty)
+                        {
+                            if (_areAnnotationEnabled)
+                            {
+                                _nppHelper.SetMarginWidthN(sciPtr, ERROR_DESCRIPTION_MARGIN, (int)Math.Ceiling(((double)previousMaxLength * _currentPixelFactorMainScintilla)));
+                            }
+                        }
                     }
-                }
-                else
-                {
-                    _currentPixelFactorSecondScintilla = CalculatedPixels(newZoomLevel);
-                    if (_lastSubViewAnnotatedFile != string.Empty)
+                    else
                     {
-                        _nppHelper.SetMarginWidthN(sciPtr, ERROR_DESCRIPTION_MARGIN, (int)Math.Ceiling(((double)previousMaxLength * _currentPixelFactorSecondScintilla)));
+                        _currentPixelFactorSecondScintilla = CalculatedPixels(newZoomLevel);
+                        if (_lastSubViewAnnotatedFile != string.Empty)
+                        {
+                            if (_areAnnotationEnabled)
+                            {
+                                _nppHelper.SetMarginWidthN(sciPtr, ERROR_DESCRIPTION_MARGIN, (int)Math.Ceiling(((double)previousMaxLength * _currentPixelFactorSecondScintilla)));
+                            }
+                        }
                     }
                 }
             }
@@ -164,8 +175,8 @@ namespace RTextNppPlugin.Scintilla.Annotations
             {
                 if (IsWorkspaceFile(openFiles[docIndex]))
                 {
-                    _nppHelper.ClearAllTextMargins(scintilla);
                     _nppHelper.SetMarginWidthN(scintilla, ERROR_DESCRIPTION_MARGIN, 0);
+                    _nppHelper.ClearAllTextMargins(scintilla);
                 }
             }
         }
@@ -175,7 +186,7 @@ namespace RTextNppPlugin.Scintilla.Annotations
             HideAnnotations(sciPtr);
             try
             {
-                if (errors != null && GetMarginLength(sciPtr) != 0)
+                if (errors != null && GetMarginLength(sciPtr) != 0 && _areAnnotationEnabled)
                 {
                     int maxCharLenghtForMargin = 0;
                     var aErrorGroupByLines = errors.ErrorList.GroupBy(y => y.Line);
@@ -237,18 +248,21 @@ namespace RTextNppPlugin.Scintilla.Annotations
 
         private void NormalizeMarginsBackground()
         {
-            _lineNumberStyleBackground = _nppHelper.GetStyleBackground(_nppHelper.MainScintilla, (int)SciMsg.STYLE_LINENUMBER);
-
-            //initialize style backgrounds for all margin styles
-            for (var i = Constants.StyleId.MARGIN_DEBUG; i < Constants.StyleId.MARGIN_FATAL_ERROR; ++i)
+            if (_areAnnotationEnabled)
             {
-                if (_nppHelper.GetStyleBackground(_nppHelper.MainScintilla, (int)i) != _lineNumberStyleBackground)
+                _lineNumberStyleBackground = _nppHelper.GetStyleBackground(_nppHelper.MainScintilla, (int)SciMsg.STYLE_LINENUMBER);
+
+                //initialize style backgrounds for all margin styles
+                for (var i = Constants.StyleId.MARGIN_DEBUG; i < Constants.StyleId.MARGIN_FATAL_ERROR; ++i)
                 {
-                    _nppHelper.SetStyleBackground(_nppHelper.MainScintilla, (int)i, _lineNumberStyleBackground);
-                }
-                if (_nppHelper.GetStyleBackground(_nppHelper.SecondaryScintilla, (int)i) != _lineNumberStyleBackground)
-                {
-                    _nppHelper.SetStyleBackground(_nppHelper.SecondaryScintilla, (int)i, _lineNumberStyleBackground);
+                    if (_nppHelper.GetStyleBackground(_nppHelper.MainScintilla, (int)i) != _lineNumberStyleBackground)
+                    {
+                        _nppHelper.SetStyleBackground(_nppHelper.MainScintilla, (int)i, _lineNumberStyleBackground);
+                    }
+                    if (_nppHelper.GetStyleBackground(_nppHelper.SecondaryScintilla, (int)i) != _lineNumberStyleBackground)
+                    {
+                        _nppHelper.SetStyleBackground(_nppHelper.SecondaryScintilla, (int)i, _lineNumberStyleBackground);
+                    }
                 }
             }
         }

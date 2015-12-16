@@ -55,7 +55,7 @@ namespace RTextNppPlugin
             public const int BOXED_ANNOTATION_STYLE = 2;                        //!< Indents and boxes annotations. (http://www.scintilla.org/ScintillaDoc.html#SCI_ANNOTATIONSETVISIBLE)
             public const int HIDDEN_ANNOTATION_STYLE = 0;                       //!< Hides annotations. (http://www.scintilla.org/ScintillaDoc.html#SCI_ANNOTATIONSETVISIBLE)
             public const string SHORTCUTS_FILE = "shortcuts.xml";               //!< Npp shortcuts file.
-            public const double ANNOTATIONS_UPDATE_DELAY = 100.0;               //!< Update delay when drawing new annotations from beginning from the time when a new buffer gets activated.
+            public const double ANNOTATIONS_UPDATE_DELAY = 10.0;                //!< Update delay when drawing new annotations from beginning from the time when a new buffer gets activated.
             public const int SC_MAX_MARGIN = 4;                                 //!< Maximum number of allowed margins in the editor.
         }
         #endregion

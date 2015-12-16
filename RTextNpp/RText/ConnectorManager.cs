@@ -149,7 +149,7 @@ namespace RTextNppPlugin.RText
         {
             get
             {
-                string aCurrentFile = Npp.Instance.GetCurrentFile();
+                string aCurrentFile = Npp.Instance.GetCurrentFilePath();
                 if (FileUtilities.IsRTextFile(aCurrentFile, _settings, _nppHelper))
                 {
                     //find root of file

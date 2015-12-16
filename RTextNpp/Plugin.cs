@@ -619,7 +619,7 @@ namespace RTextNppPlugin
         {
             if (PreviewFileClosed != null)
             {
-                PreviewFileClosed( typeof(Plugin), _nppHelper.GetCurrentFile());
+                PreviewFileClosed( typeof(Plugin), _nppHelper.GetCurrentFilePath());
             }
         }
 

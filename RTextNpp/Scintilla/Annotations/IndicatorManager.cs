@@ -183,7 +183,7 @@ namespace RTextNppPlugin.Scintilla.Annotations
                 }, newCts.Token);
 
                 //wait for a "painted" event here?? indicators not always being drawn...
-                while (!_isPainted) ;
+                //while (!_isPainted) ;
 
                 newTask.ContinueWith((x) => {
                     _nppHelper.SetIndicatorStyle(sciPtr, INDICATOR_INDEX, SciMsg.INDIC_SQUIGGLE, Color.Red);

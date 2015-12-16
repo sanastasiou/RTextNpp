@@ -79,12 +79,10 @@ namespace RTextNppPlugin.Scintilla
         
         string GetConfigDir();
         
-        string GetCurrentFile();
-        
         int GetFirstVisibleLine();
         
         int GetLengthToEndOfLine(int line, int position);
-               
+
         /**
          * \brief   Gets a line from a line number.
          *
