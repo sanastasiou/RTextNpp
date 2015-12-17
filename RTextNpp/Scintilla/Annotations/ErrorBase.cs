@@ -68,11 +68,6 @@ namespace RTextNppPlugin.Scintilla.Annotations
             _lineVisibilityObserver.OnVisibilityInfoUpdated += OnVisibilityInfoUpdated;
         }
 
-        void OnVisibilityInfoUpdated(VisibilityInfo info)
-        {
-            Trace.WriteLine(info);
-        }
-
         // Protected implementation of Dispose pattern.
         protected virtual void Dispose(bool disposing)
         {
@@ -127,6 +122,11 @@ namespace RTextNppPlugin.Scintilla.Annotations
         #endregion
 
         #region [Event Handlers]
+        private void OnVisibilityInfoUpdated(VisibilityInfo info)
+        {
+            //Trace.WriteLine(info);
+        }
+
         public void OnBufferActivated(object source, string file)
         {
             _bufferActivatedHandler.TriggerHandler(new ActionWrapper<object, string>(OnBufferActivated, file));

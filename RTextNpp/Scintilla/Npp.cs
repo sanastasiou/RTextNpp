@@ -12,6 +12,7 @@ namespace RTextNppPlugin.Scintilla
     using RTextNppPlugin.DllExport;
     using RTextNppPlugin.RText.Parsing;
     using RTextNppPlugin.Utilities;
+    using System.Diagnostics;
     public class Npp : INpp
     {
         #region [Singleton Data Members]
@@ -530,10 +531,13 @@ namespace RTextNppPlugin.Scintilla
         { 
             get
             {
-                //this is the first "visible" line on screen - it may differ from the actual doc line
                 int firstVisibleLine = (int)_win32.ISendMessage(CurrentScintilla, SciMsg.SCI_GETFIRSTVISIBLELINE, 0, 0);
-                int lastVisilbeLine  = firstVisibleLine + LinesOnScreen;
-                return (int)_win32.ISendMessage(CurrentScintilla, SciMsg.SCI_DOCLINEFROMVISIBLE, lastVisilbeLine, 0) + 1;
+                int firstLine        = (int)_win32.ISendMessage(CurrentScintilla, SciMsg.SCI_DOCLINEFROMVISIBLE, firstVisibleLine, 0);
+                int lastLine         = Math.Min(GetLineCount(CurrentScintilla), (int)_win32.ISendMessage(CurrentScintilla, SciMsg.SCI_DOCLINEFROMVISIBLE, firstVisibleLine + LinesOnScreen, 0));
+
+                Trace.WriteLine(String.Format("Last visible line : {0}", lastLine));
+
+                return (int)_win32.ISendMessage(CurrentScintilla, SciMsg.SCI_DOCLINEFROMVISIBLE, lastLine, 0) + 1;
             }
         }
 
