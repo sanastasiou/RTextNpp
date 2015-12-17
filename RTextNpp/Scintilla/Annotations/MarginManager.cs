@@ -23,6 +23,7 @@ namespace RTextNppPlugin.Scintilla.Annotations
         #endregion
 
         #region [Interface]
+
         internal MarginManager(ISettings settings, INpp nppHelper, Plugin plugin, string workspaceRoot, ILineVisibilityObserver lineVisibilityObserver, double updateDelay = Constants.Scintilla.ANNOTATIONS_UPDATE_DELAY) :
             base(settings, nppHelper, plugin, workspaceRoot, lineVisibilityObserver, updateDelay)
         {
@@ -93,6 +94,12 @@ namespace RTextNppPlugin.Scintilla.Annotations
                 default:
                     return Constants.StyleId.MARGIN_ERROR;
             }
+        }
+
+        protected override void OnVisibilityInfoUpdated(VisibilityInfo info)
+        {
+            _currentVisibilityInfo = info;
+            //update current annotations
         }
 
         #endregion

@@ -36,8 +36,8 @@ namespace RTextNppPlugin.Scintilla.Annotations
             RTextTokenTypes.Reference,
             RTextTokenTypes.Template
         };
-        //private ConcurrentBag<Tuple<int, int>> _indicatorRangesMain = null; //!< Holds last drawn indicator ranges for main view - used to speed up deletion of ranges, rather than deleting the whole document ( time consuming ).
-        //private ConcurrentBag<Tuple<int, int>> _indicatorRangesSub  = null; //!< Holds last drawn indicator ranges for sub view - used to speed up deletion of ranges, rather than deleting the whole document ( time consuming ).
+        private ConcurrentBag<Tuple<int, int, int>> _indicatorRangesMain = null; //!< Holds last drawn indicator ranges for main view - used to speed up deletion of ranges, rather than deleting the whole document ( time consuming ).
+        private ConcurrentBag<Tuple<int, int, int>> _indicatorRangesSub  = null; //!< Holds last drawn indicator ranges for sub view - used to speed up deletion of ranges, rather than deleting the whole document ( time consuming ).
         #endregion
 
         #region [Interface]
@@ -88,6 +88,16 @@ namespace RTextNppPlugin.Scintilla.Annotations
             return Constants.StyleId.DEFAULT;
         }
 
+        /*
+         * This event always occurs after SCN_UPDATEUI which is considered the best place to update the editor annotations.
+         */
+        protected override void OnVisibilityInfoUpdated(VisibilityInfo info)
+        {
+            _currentVisibilityInfo = info;
+            //update current annotations
+            PlaceIndicatorsRanges(info.ScintillaHandle);
+        }
+
         #endregion
 
         #region [Event Handlers]
@@ -104,7 +114,6 @@ namespace RTextNppPlugin.Scintilla.Annotations
                 //remove annotations from the view which this file belongs to
                 var scintilla = _nppHelper.FindScintillaFromFilepath(file);
 
-                //ClearIndicators(scintilla);
                 _nppHelper.ClearAllIndicators(scintilla, INDICATOR_INDEX);
                 
                 if (scintilla == _nppHelper.MainScintilla)
@@ -129,7 +138,6 @@ namespace RTextNppPlugin.Scintilla.Annotations
             {
                 if (IsWorkspaceFile(openFiles[docIndex]))
                 {
-                    //ClearIndicators(scintilla);
                     _nppHelper.ClearAllIndicators(scintilla, INDICATOR_INDEX);
                 }
             }
@@ -151,9 +159,9 @@ namespace RTextNppPlugin.Scintilla.Annotations
                 }
                 //start new task
                 var newCts = new CancellationTokenSource();
-                var newTask = Task<IEnumerable<Tuple<int,int>>>.Factory.StartNew( () =>
+                var newTask = Task<IEnumerable<Tuple<int,int,int>>>.Factory.StartNew( () =>
                 {
-                    ConcurrentBag<Tuple<int, int>> indicatorRanges = new ConcurrentBag<Tuple<int, int>>();
+                    ConcurrentBag<Tuple<int, int, int>> indicatorRanges = new ConcurrentBag<Tuple<int, int, int>>();
                     if (errors != null)
                     {
                         var aErrorGroupByLines = errors.ErrorList.GroupBy(y => y.Line).AsParallel();
@@ -175,7 +183,7 @@ namespace RTextNppPlugin.Scintilla.Annotations
                                               select m;
                                 if(matches.Count() > 0)
                                 {
-                                    indicatorRanges.Add(new Tuple<int, int>(t.BufferPosition, t.Context.Length));
+                                    indicatorRanges.Add(new Tuple<int, int, int>(t.BufferPosition, t.Context.Length, line));
                                     aIsAnyMatchFound = true;
                                 }
                             }
@@ -185,17 +193,12 @@ namespace RTextNppPlugin.Scintilla.Annotations
                             }
                         });
                     }
-                    //SetIndicatorsRanges(sciPtr, ref indicatorRanges);
+                    SetIndicatorsRanges(sciPtr, ref indicatorRanges);
                     return indicatorRanges;
                 }, newCts.Token);
 
                 newTask.ContinueWith((x) => {
-                    _nppHelper.SetIndicatorStyle(sciPtr, INDICATOR_INDEX, SciMsg.INDIC_SQUIGGLE, Color.Red);
-                    _nppHelper.SetCurrentIndicator(sciPtr, INDICATOR_INDEX);
-                    foreach(var range in x.Result)
-                    {
-                        _nppHelper.PlaceIndicator(sciPtr, INDICATOR_INDEX, range.Item1, range.Item2);
-                    }
+                    PlaceIndicatorsRanges(sciPtr);
                 }, TaskContinuationOptions.OnlyOnRanToCompletion);
 
                 SetCts(sciPtr, newCts);
@@ -243,24 +246,40 @@ namespace RTextNppPlugin.Scintilla.Annotations
             _subSciCts = cts;
         }
 
-        //private void SetIndicatorsRanges(IntPtr sciPtr, ref ConcurrentBag<Tuple<int, int>> bag)
-        //{
-        //    if (sciPtr == _nppHelper.MainScintilla)
-        //    {
-        //        _indicatorRangesMain = new ConcurrentBag<Tuple<int, int>>(bag);
-        //        return;
-        //    }
-        //    _indicatorRangesSub = new ConcurrentBag<Tuple<int, int>>(bag);
-        //}
-        //
-        //private ConcurrentBag<Tuple<int,int>> GetIndicatorRanges(IntPtr sciPtr)
-        //{
-        //    if (sciPtr == _nppHelper.MainScintilla)
-        //    {
-        //        return _indicatorRangesMain;
-        //    }
-        //    return _indicatorRangesSub;
-        //}
+        private void SetIndicatorsRanges(IntPtr sciPtr, ref ConcurrentBag<Tuple<int, int, int>> bag)
+        {
+            if (sciPtr == _nppHelper.MainScintilla)
+            {
+                _indicatorRangesMain = new ConcurrentBag<Tuple<int, int, int>>(bag);
+                return;
+            }
+            _indicatorRangesSub = new ConcurrentBag<Tuple<int, int, int>>(bag);
+        }
+
+        private ConcurrentBag<Tuple<int, int, int>> GetIndicatorRanges(IntPtr sciPtr)
+        {
+            if (sciPtr == _nppHelper.MainScintilla)
+            {
+                return _indicatorRangesMain;
+            }
+            return _indicatorRangesSub;
+        }
+
+        private void PlaceIndicatorsRanges(IntPtr sciPtr)
+        {
+            _nppHelper.SetIndicatorStyle(sciPtr, INDICATOR_INDEX, SciMsg.INDIC_SQUIGGLE, Color.Red);
+            _nppHelper.SetCurrentIndicator(sciPtr, INDICATOR_INDEX);
+            //get only ranges which belong to visible lines
+            var visibleRanges = from range in GetIndicatorRanges(sciPtr)
+                                where range.Item3 >= _currentVisibilityInfo.FirstLine && range.Item3 <= _currentVisibilityInfo.LastLine
+                                select range;
+
+            foreach (var range in visibleRanges)
+            {
+                _nppHelper.PlaceIndicator(sciPtr, INDICATOR_INDEX, range.Item1, range.Item2);
+            }
+        }
+
         //
         //private void ClearIndicators(IntPtr sciPtr)
         //{

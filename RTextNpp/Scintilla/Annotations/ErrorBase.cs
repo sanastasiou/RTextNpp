@@ -26,6 +26,7 @@ namespace RTextNppPlugin.Scintilla.Annotations
         private bool _hasMainScintillaFocus                         = true;
         private bool _hasSecondScintillaFocus                       = true;
         protected ILineVisibilityObserver _lineVisibilityObserver   = null;
+        protected VisibilityInfo _currentVisibilityInfo             = null;
 
         protected enum UpdateAction
         {
@@ -66,6 +67,7 @@ namespace RTextNppPlugin.Scintilla.Annotations
             plugin.ScintillaFocusChanged                    += OnScintillaFocusChanged;
             _lineVisibilityObserver                         = lineVisibilityObserver;
             _lineVisibilityObserver.OnVisibilityInfoUpdated += OnVisibilityInfoUpdated;
+            _currentVisibilityInfo                          = plugin.CurrentVisibilityInfo;
         }
 
         // Protected implementation of Dispose pattern.
@@ -122,10 +124,7 @@ namespace RTextNppPlugin.Scintilla.Annotations
         #endregion
 
         #region [Event Handlers]
-        private void OnVisibilityInfoUpdated(VisibilityInfo info)
-        {
-            //Trace.WriteLine(info);
-        }
+        protected abstract void OnVisibilityInfoUpdated(VisibilityInfo info);
 
         public void OnBufferActivated(object source, string file)
         {

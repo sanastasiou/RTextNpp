@@ -360,6 +360,14 @@ namespace RTextNppPlugin
             }
         }
 
+        public VisibilityInfo CurrentVisibilityInfo
+        {
+            get
+            {
+                return _linesVisibilityObserver.VisibilityInfo;
+            }
+        }
+
         #endregion
 
         #region [Event Handlers]

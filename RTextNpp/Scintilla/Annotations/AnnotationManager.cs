@@ -48,6 +48,12 @@ namespace RTextNppPlugin.Scintilla.Annotations
             }
         }
 
+        protected override void OnVisibilityInfoUpdated(VisibilityInfo info)
+        {
+            _currentVisibilityInfo = info;
+            //update current annotations
+        }
+
         #endregion
 
         #region [Helpers]
