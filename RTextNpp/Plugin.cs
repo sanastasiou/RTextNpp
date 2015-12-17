@@ -3,6 +3,7 @@ using RTextNppPlugin.Forms;
 using RTextNppPlugin.RText;
 using RTextNppPlugin.RText.Parsing;
 using RTextNppPlugin.Scintilla;
+using RTextNppPlugin.Scintilla.Annotations;
 using RTextNppPlugin.Utilities;
 using RTextNppPlugin.Utilities.Settings;
 using RTextNppPlugin.Utilities.WpfControlHost;
@@ -25,6 +26,7 @@ namespace RTextNppPlugin
         private static volatile Plugin instance                                                = null;
         private static object syncRoot                                                         = new Object();
         private INpp _nppHelper                                                                = Npp.Instance;
+        private ILineVisibilityObserver _linesVisibilityObserver                               = null;
         private IWin32 _win32                                                                  = new Win32();
         private ISettings _settings                                                            = null;
         private StyleConfigurationObserver _styleObserver                                      = null;
@@ -72,20 +74,24 @@ namespace RTextNppPlugin
 
         public delegate void UiPainted();
         public event UiPainted ScintillaUiPainted;
+
+        public delegate void UiUpdated(SCNotification notification);
+        public event UiUpdated ScintillaUiUpdated;
         #endregion
 
         #region [Startup/CleanUp]
 
         private Plugin()
         {
-            _settings           = new Settings(_nppHelper);
-            _styleObserver      = new StyleConfigurationObserver(_nppHelper);
-            _connectorManager   = new ConnectorManager(_settings, _nppHelper, this);
-            _consoleOutput      = new PersistentWpfControlHost<ConsoleOutputForm>(Settings.RTextNppSettings.ConsoleWindowActive, new ConsoleOutputForm(_connectorManager, _nppHelper, _styleObserver, _settings), _settings, _nppHelper);
-            _options            = new Options(_settings);
-            _fileObserver       = new FileModificationObserver(_settings, _nppHelper);
-            _autoCompletionForm = new AutoCompletionWindow(_connectorManager, _win32, _nppHelper);
-            _linkTargetsWindow  = new LinkTargetsWindow(_nppHelper, _win32, _settings, _connectorManager);
+            _linesVisibilityObserver = new LineVisibilityObserver(_nppHelper, this);
+            _settings                = new Settings(_nppHelper);
+            _styleObserver           = new StyleConfigurationObserver(_nppHelper);
+            _connectorManager        = new ConnectorManager(_settings, _nppHelper, this);
+            _consoleOutput = new PersistentWpfControlHost<ConsoleOutputForm>(Settings.RTextNppSettings.ConsoleWindowActive, new ConsoleOutputForm(_connectorManager, _nppHelper, _styleObserver, _settings, _linesVisibilityObserver), _settings, _nppHelper);
+            _options                 = new Options(_settings);
+            _fileObserver            = new FileModificationObserver(_settings, _nppHelper);
+            _autoCompletionForm      = new AutoCompletionWindow(_connectorManager, _win32, _nppHelper);
+            _linkTargetsWindow       = new LinkTargetsWindow(_nppHelper, _win32, _settings, _connectorManager);
         }
 
         public void PluginCleanUp()
@@ -645,9 +651,13 @@ namespace RTextNppPlugin
             //if text is added, the position denotes the initial position and the length, the length of the added test
         }
 
-        #endregion
-
-        #region [Helpers]
+        internal void OnScnUpdateUi(SCNotification notification)
+        {
+            if(ScintillaUiUpdated != null)
+            {
+                ScintillaUiUpdated(notification);
+            }
+        }
 
         private void OnKeyInterceptorKeyUp(Keys key, int repeatCount, ref bool handled)
         {
@@ -680,6 +690,10 @@ namespace RTextNppPlugin
                 }
             }
         }
+
+        #endregion
+
+        #region [Helpers]
 
         private void CommitAutoCompletion(bool replace)
         {

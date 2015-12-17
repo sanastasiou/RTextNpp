@@ -114,6 +114,9 @@ namespace RTextNppPlugin
                 case (uint)SciMsg.SCN_PAINTED:
                     Plugin.Instance.OnScnPainted();
                     break;
+                case (uint)SciMsg.SCN_UPDATEUI:
+                    Plugin.Instance.OnScnUpdateUi(nc);
+                    break;
                 case (uint)SciMsg.SCN_MODIFIED:
                     //Plugin.Instance.OnScnModified(nc);
                     break;

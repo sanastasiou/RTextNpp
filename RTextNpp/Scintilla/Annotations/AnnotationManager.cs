@@ -14,8 +14,8 @@ namespace RTextNppPlugin.Scintilla.Annotations
         #endregion
 
         #region [Interface]
-        internal AnnotationManager(ISettings settings, INpp nppHelper, Plugin plugin, string workspaceRoot, double updateDelay = Constants.Scintilla.ANNOTATIONS_UPDATE_DELAY) :
-            base(settings, nppHelper, plugin, workspaceRoot, updateDelay)
+        internal AnnotationManager(ISettings settings, INpp nppHelper, Plugin plugin, string workspaceRoot,  ILineVisibilityObserver lineVisibilityObserver, double updateDelay = Constants.Scintilla.ANNOTATIONS_UPDATE_DELAY) :
+            base(settings, nppHelper, plugin, workspaceRoot, lineVisibilityObserver, updateDelay)
         {
             _areAnnotationEnabled = _settings.Get<bool>(Settings.RTextNppSettings.EnableErrorAnnotations);
         }

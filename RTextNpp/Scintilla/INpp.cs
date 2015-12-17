@@ -79,8 +79,6 @@ namespace RTextNppPlugin.Scintilla
         
         string GetConfigDir();
         
-        int GetFirstVisibleLine();
-        
         int GetLengthToEndOfLine(int line, int position);
 
         /**

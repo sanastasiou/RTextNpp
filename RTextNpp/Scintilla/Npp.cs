@@ -337,11 +337,6 @@ namespace RTextNppPlugin.Scintilla
             return (int)_win32.ISendMessage(CurrentScintilla, SciMsg.SCI_POSITIONFROMLINE, line, 0);
         }
         
-        public int GetFirstVisibleLine()
-        {
-            return (int)_win32.ISendMessage(CurrentScintilla, SciMsg.SCI_GETFIRSTVISIBLELINE, 0, 0);
-        }
-        
         public void SetFirstVisibleLine(int line)
         {
             _win32.ISendMessage(CurrentScintilla, SciMsg.SCI_SETFIRSTVISIBLELINE, line, 0);
@@ -731,11 +726,6 @@ namespace RTextNppPlugin.Scintilla
             return buffer;
         }
 
-        private bool IsLineVisible(int firstLine, int lastLine, int line)
-        {
-            return (line >= firstLine && line <= lastLine);
-        }
-
         public int NumberOfOpenFiles 
         { 
             get
@@ -939,6 +929,11 @@ namespace RTextNppPlugin.Scintilla
             _win32.ISendMessage(sciPtr, SciMsg.SCI_GETLINE, line, buffer);
             buffer.Length = length; //NPP may inject some rubbish at the end of the line
             return buffer;
+        }
+
+        private bool IsLineVisible(int firstLine, int lastLine, int line)
+        {
+            return (line >= firstLine && line <= lastLine);
         }
 
         #endregion

@@ -16,7 +16,7 @@ namespace RTextNppPlugin.ViewModels
     class WorkspaceViewModel : WorkspaceViewModelBase, IConsoleViewModelBase, IDisposable
     {
         #region [Interface]
-        public WorkspaceViewModel(string workspace, ref Connector connector, ConsoleViewModel mainViewModel, INpp nppHelper, Dispatcher dispatcher, ISettings settings)
+        public WorkspaceViewModel(string workspace, ref Connector connector, ConsoleViewModel mainViewModel, INpp nppHelper, Dispatcher dispatcher, ISettings settings, ILineVisibilityObserver lineVisibilityObserver)
             : base(workspace)
         {
             _connector                   = connector;
@@ -26,9 +26,9 @@ namespace RTextNppPlugin.ViewModels
             _nppHelper                   = nppHelper;
             _dispatcher                  = dispatcher;
             _annotationsManagers         = new List<IError>(3);
-            _annotationsManagers.Add(new AnnotationManager(settings, nppHelper, Plugin.Instance, _connector.Workspace));
-            _annotationsManagers.Add(new MarginManager(settings, nppHelper, Plugin.Instance, _connector.Workspace));
-            _annotationsManagers.Add(new IndicatorManager(settings, nppHelper, Plugin.Instance, _connector.Workspace));
+            _annotationsManagers.Add(new AnnotationManager(settings, nppHelper, Plugin.Instance, _connector.Workspace, lineVisibilityObserver));
+            _annotationsManagers.Add(new MarginManager(settings, nppHelper, Plugin.Instance, _connector.Workspace, lineVisibilityObserver));
+            _annotationsManagers.Add(new IndicatorManager(settings, nppHelper, Plugin.Instance, _connector.Workspace, lineVisibilityObserver));
         }
         /**
          * \brief   Gets a value indicating whether this workspace is currently loading.

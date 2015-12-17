@@ -10,7 +10,6 @@ AUTOSAR {
       ApplicationError err1
     }
     
-    
     SenderReceiverInterface ISR1 {
       DataElementPrototype de1, type: /P1/UInt8
     }

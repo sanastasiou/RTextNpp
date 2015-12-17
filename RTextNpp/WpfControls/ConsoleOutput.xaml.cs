@@ -1,5 +1,6 @@
 ﻿using RTextNppPlugin.RText;
 using RTextNppPlugin.Scintilla;
+using RTextNppPlugin.Scintilla.Annotations;
 using RTextNppPlugin.Utilities;
 using RTextNppPlugin.Utilities.Settings;
 using RTextNppPlugin.ViewModels;
@@ -15,10 +16,10 @@ namespace RTextNppPlugin.WpfControls
     /// </summary>
     public partial class ConsoleOutput : UserControl
     {
-        internal ConsoleOutput(ConnectorManager cmanager, INpp nppHelper, IStyleConfigurationObserver styleObserver, ISettings settings)
+        internal ConsoleOutput(ConnectorManager cmanager, INpp nppHelper, IStyleConfigurationObserver styleObserver, ISettings settings, ILineVisibilityObserver lineVisibilityObserver)
         {
             InitializeComponent();            
-            var dataContext        = new ConsoleViewModel(cmanager, nppHelper, styleObserver, Dispatcher, settings);
+            var dataContext        = new ConsoleViewModel(cmanager, nppHelper, styleObserver, Dispatcher, settings, lineVisibilityObserver);
             dataContext.Dispatcher = Dispatcher;
             DataContext            = dataContext;
             _nppHelper             = nppHelper;

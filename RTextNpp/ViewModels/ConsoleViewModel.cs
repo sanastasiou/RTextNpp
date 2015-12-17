@@ -11,6 +11,7 @@ using System.Windows.Media;
 using RTextNppPlugin.Utilities.Settings;
 using System.Text;
 using RTextNppPlugin.Scintilla;
+using RTextNppPlugin.Scintilla.Annotations;
 
 
 namespace RTextNppPlugin.ViewModels
@@ -41,6 +42,7 @@ namespace RTextNppPlugin.ViewModels
         IStyleConfigurationObserver _styleObserver                                = null;
         private readonly Dispatcher _dispatcher                                   = null;
         private readonly ISettings _settings                                      = null;
+        private readonly ILineVisibilityObserver _lineVisibilityObserver          = null;
         #endregion
 
         #region [Event Handlers]
@@ -59,7 +61,7 @@ namespace RTextNppPlugin.ViewModels
          *
          * \param   workspace   The workspace.
          */
-        public ConsoleViewModel(ConnectorManager cmanager, INpp npphelper, IStyleConfigurationObserver styleObserver, Dispatcher dispatcher, ISettings settings)
+        public ConsoleViewModel(ConnectorManager cmanager, INpp npphelper, IStyleConfigurationObserver styleObserver, Dispatcher dispatcher, ISettings settings, ILineVisibilityObserver lineVisibilityObserver)
         {
             if(cmanager == null)
             {
@@ -73,7 +75,8 @@ namespace RTextNppPlugin.ViewModels
             {
                 throw new ArgumentNullException("styleObserver");
             }
-            _cmanager = cmanager;
+            _cmanager               = cmanager;
+            _lineVisibilityObserver = lineVisibilityObserver;
             #if DEBUG
             _workspaceCollection.Add(new WorkspaceViewModelBase(Constants.DEBUG_CHANNEL));
             #endif
@@ -96,7 +99,7 @@ namespace RTextNppPlugin.ViewModels
             //change to newly added workspace
             AddWorkspace(e.Workspace, _settings, e.Connector);
         }
-        
+
         public void AddWorkspace(string workspace, ISettings settings = null, Connector connector = null)
         {
             var workspaceModel = _workspaceCollection.FirstOrDefault(x => x.Workspace.Equals(workspace, StringComparison.InvariantCultureIgnoreCase));
@@ -111,7 +114,7 @@ namespace RTextNppPlugin.ViewModels
                     }
                     else
                     {
-                        _workspaceCollection.Add(new WorkspaceViewModel(workspace, ref connector, this, _nppHelper, _dispatcher, settings));
+                        _workspaceCollection.Add(new WorkspaceViewModel(workspace, ref connector, this, _nppHelper, _dispatcher, settings, _lineVisibilityObserver));
                     }
                     Index = _workspaceCollection.IndexOf(_workspaceCollection.Last());
                 }

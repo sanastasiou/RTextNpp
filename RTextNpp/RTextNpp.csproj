@@ -79,8 +79,10 @@
     <Compile Include="RText\StateEngine\ConnectorStates.cs" />
     <Compile Include="RText\StateEngine\IConnectorState.cs" />
     <Compile Include="RText\TokenEqualityComparer.cs" />
+    <Compile Include="Scintilla\Annotations\ILineVisibilityObserver.cs" />
     <Compile Include="Scintilla\Annotations\IndicatorManager.cs" />
     <Compile Include="Scintilla\Annotations\MarginManager.cs" />
+    <Compile Include="Scintilla\Annotations\LineVisibilityObserver.cs" />
     <Compile Include="Utilities\ActionWrapper\ActionWrapper.cs" />
     <Compile Include="Utilities\ActionWrapper\IActionWrapper.cs" />
     <Compile Include="Logging\ILoggingObserver.cs" />

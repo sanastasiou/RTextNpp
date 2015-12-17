@@ -4,6 +4,7 @@ using RTextNppPlugin.Utilities.Settings;
 using RTextNppPlugin.ViewModels;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 
@@ -24,6 +25,7 @@ namespace RTextNppPlugin.Scintilla.Annotations
         private DelayedEventHandler<object> _bufferActivatedHandler = null;
         private bool _hasMainScintillaFocus                         = true;
         private bool _hasSecondScintillaFocus                       = true;
+        protected ILineVisibilityObserver _lineVisibilityObserver   = null;
 
         protected enum UpdateAction
         {
@@ -51,17 +53,24 @@ namespace RTextNppPlugin.Scintilla.Annotations
         #endregion
 
         #region [Interface]
-        protected ErrorBase(ISettings settings, INpp nppHelper, Plugin plugin, string workspaceRoot, double bufferActivationDelay)
+        protected ErrorBase(ISettings settings, INpp nppHelper, Plugin plugin, string workspaceRoot, ILineVisibilityObserver lineVisibilityObserver, double bufferActivationDelay)
         {
-            _settings                    = settings;
-            _nppHelper                   = nppHelper;
-            _settings.OnSettingChanged   += OnSettingChanged;
-            _nppData                     = plugin.NppData;
-            _areAnnotationEnabled        = _settings.Get<bool>(Settings.RTextNppSettings.EnableErrorAnnotations);
-            _workspaceRoot               = workspaceRoot;
-            plugin.BufferActivated       += OnBufferActivated;
-            _bufferActivatedHandler      = new DelayedEventHandler<object>(null, bufferActivationDelay);
-            plugin.ScintillaFocusChanged += OnScintillaFocusChanged;
+            _settings                                       = settings;
+            _nppHelper                                      = nppHelper;
+            _settings.OnSettingChanged                      += OnSettingChanged;
+            _nppData                                        = plugin.NppData;
+            _areAnnotationEnabled                           = _settings.Get<bool>(Settings.RTextNppSettings.EnableErrorAnnotations);
+            _workspaceRoot                                  = workspaceRoot;
+            plugin.BufferActivated                          += OnBufferActivated;
+            _bufferActivatedHandler                         = new DelayedEventHandler<object>(null, bufferActivationDelay);
+            plugin.ScintillaFocusChanged                    += OnScintillaFocusChanged;
+            _lineVisibilityObserver                         = lineVisibilityObserver;
+            _lineVisibilityObserver.OnVisibilityInfoUpdated += OnVisibilityInfoUpdated;
+        }
+
+        void OnVisibilityInfoUpdated(VisibilityInfo info)
+        {
+            Trace.WriteLine(info);
         }
 
         // Protected implementation of Dispose pattern.
@@ -73,9 +82,10 @@ namespace RTextNppPlugin.Scintilla.Annotations
             }
             if (disposing)
             {
-                _settings.OnSettingChanged            -= OnSettingChanged;
-                Plugin.Instance.BufferActivated       -= OnBufferActivated;
-                Plugin.Instance.ScintillaFocusChanged -= OnScintillaFocusChanged;
+                _settings.OnSettingChanged                      -= OnSettingChanged;
+                Plugin.Instance.BufferActivated                 -= OnBufferActivated;
+                Plugin.Instance.ScintillaFocusChanged           -= OnScintillaFocusChanged;
+                _lineVisibilityObserver.OnVisibilityInfoUpdated -= OnVisibilityInfoUpdated;
             }
             _disposed = true;
         }
