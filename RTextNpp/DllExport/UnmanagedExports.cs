@@ -4,6 +4,7 @@ using System.Text;
 using RGiesecke.DllExport;
 using RTextNppPlugin.DllExport;
 using RTextNppPlugin.Utilities;
+using System.Diagnostics;
 namespace RTextNppPlugin
 {
     class UnmanagedExports

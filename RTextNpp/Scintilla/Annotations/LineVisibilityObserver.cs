@@ -19,8 +19,6 @@ namespace RTextNppPlugin.Scintilla.Annotations
         #region [Data Members]
         private INpp _nppHelper                       = null;
         private bool _disposed                        = false;
-        private IntPtr _focusedEditor                 = IntPtr.Zero;
-        private string _activeFile                    = string.Empty;
         private VisibilityInfo _currentVisibilityInfo = null;
         #endregion
 
@@ -35,20 +33,6 @@ namespace RTextNppPlugin.Scintilla.Annotations
             plugin.BufferActivated       += OnBufferActivated;
             plugin.ScintillaFocusChanged += OnScintillaFocusChanged;
             plugin.ScintillaUiUpdated    += OnScintillaUiUpdated;
-        }
-
-        void OnScintillaUiUpdated(SCNotification notification)
-        {
-            if(notification.updated == (int)SciMsg.SC_UPDATE_V_SCROLL)
-            {
-                VisibilityInfo = new VisibilityInfo
-                {
-                    File            = _activeFile,
-                    ScintillaHandle = _focusedEditor,
-                    FirstLine       = _nppHelper.FirstVisibleLine,
-                    LastLine        = _nppHelper.LastVisibleLine
-                };
-            }
         }
 
         #region [ILineVisibilityObserver Members]
@@ -101,16 +85,29 @@ namespace RTextNppPlugin.Scintilla.Annotations
 
         #region [Event Handlers]
 
-        void OnBufferActivated(object source, string file)
+        void OnScintillaUiUpdated(SCNotification notification)
         {
-            _focusedEditor = _nppHelper.FindScintillaFromFilepath(file);
-            _activeFile    = file;
+            //find activated buffer
+
+
             VisibilityInfo = new VisibilityInfo
             {
-                File            = _activeFile,
-                ScintillaHandle = _focusedEditor,
-                FirstLine       = _nppHelper.FirstVisibleLine,
-                LastLine        = _nppHelper.LastVisibleLine
+                File            = _nppHelper.GetActiveFile(notification.nmhdr.hwndFrom),
+                ScintillaHandle = notification.nmhdr.hwndFrom,
+                FirstLine       = _nppHelper.GetFirstVisibleLine(notification.nmhdr.hwndFrom),
+                LastLine        = _nppHelper.GetLastVisibleLine(notification.nmhdr.hwndFrom)
+            };
+        }
+
+        void OnBufferActivated(object source, string file)
+        {
+            var sciPtr = _nppHelper.FindScintillaFromFilepath(file);
+            VisibilityInfo = new VisibilityInfo
+            {
+                File            = file,
+                ScintillaHandle = sciPtr,
+                FirstLine       = _nppHelper.GetFirstVisibleLine(sciPtr),
+                LastLine        = _nppHelper.GetLastVisibleLine(sciPtr)
             };
         }
 

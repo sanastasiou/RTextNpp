@@ -517,39 +517,29 @@ namespace RTextNppPlugin.Scintilla
             _win32.ISendMessage(sci, NppMsg.NPPM_DOOPEN, 0, file);
         }
 
-        public int FirstVisibleLine
+        public int GetFirstVisibleLine(IntPtr sciPtr)
         {
-            get
-            {
-                //this is the first "visible" line on screen - it may differ from the actual doc line
-                int firstVisibleLine = (int)_win32.ISendMessage(CurrentScintilla, SciMsg.SCI_GETFIRSTVISIBLELINE, 0, 0);
-                return (int)_win32.ISendMessage(CurrentScintilla, SciMsg.SCI_DOCLINEFROMVISIBLE, firstVisibleLine, 0) + 1;
-            }
+            //this is the first "visible" line on screen - it may differ from the actual doc line
+            int firstVisibleLine = (int)_win32.ISendMessage(sciPtr, SciMsg.SCI_GETFIRSTVISIBLELINE, 0, 0);
+            return (int)_win32.ISendMessage(sciPtr, SciMsg.SCI_DOCLINEFROMVISIBLE, firstVisibleLine, 0) + 1;
         }
 
-        public int LastVisibleLine
+        public int GetLastVisibleLine(IntPtr sciPtr)
         { 
-            get
-            {
-                int firstVisibleLine = (int)_win32.ISendMessage(CurrentScintilla, SciMsg.SCI_GETFIRSTVISIBLELINE, 0, 0);
-                int firstLine        = (int)_win32.ISendMessage(CurrentScintilla, SciMsg.SCI_DOCLINEFROMVISIBLE, firstVisibleLine, 0);
-                int lastLine         = Math.Min(GetLineCount(CurrentScintilla), (int)_win32.ISendMessage(CurrentScintilla, SciMsg.SCI_DOCLINEFROMVISIBLE, firstVisibleLine + LinesOnScreen, 0));
-                return (int)_win32.ISendMessage(CurrentScintilla, SciMsg.SCI_DOCLINEFROMVISIBLE, lastLine, 0) + 1;
-            }
+            int firstVisibleLine = (int)_win32.ISendMessage(sciPtr, SciMsg.SCI_GETFIRSTVISIBLELINE, 0, 0);
+            int firstLine        = (int)_win32.ISendMessage(sciPtr, SciMsg.SCI_DOCLINEFROMVISIBLE, firstVisibleLine, 0);
+            return firstLine + GetLinesOnScreen(sciPtr);
         }
 
-        public int LinesOnScreen
-        { 
-            get
-            {
-                return (int)_win32.ISendMessage(CurrentScintilla, SciMsg.SCI_LINESONSCREEN, 0, 0);
-            }
+        public int GetLinesOnScreen(IntPtr sciPtr)
+        {
+            return (int)_win32.ISendMessage(sciPtr, SciMsg.SCI_LINESONSCREEN, 0, 0);
         }
 
         public void GoToLine(int line)
         {
-            int firstVisibleDocLine = FirstVisibleLine;
-            int lastVisibleDocLine  = LastVisibleLine;
+            int firstVisibleDocLine = GetFirstVisibleLine(CurrentScintilla);
+            int lastVisibleDocLine  = GetLastVisibleLine(CurrentScintilla);
             if(IsLineVisible(firstVisibleDocLine, lastVisibleDocLine, line))
             {
                 //just move cursor, line is already visible
@@ -560,7 +550,7 @@ namespace RTextNppPlugin.Scintilla
                 //line is not visible
                 //move line in the middle of the screen
                 int linesOnScreen = (int)_win32.ISendMessage(CurrentScintilla, SciMsg.SCI_LINESONSCREEN, 0, 0);
-                int offset = linesOnScreen >> 1;
+                int offset        = linesOnScreen >> 1;
                 //check if we are behind new line, or after new line
                 int currentLine = GetLineNumber();
                 if(currentLine > line)
@@ -919,6 +909,11 @@ namespace RTextNppPlugin.Scintilla
             int endPos = (int)_win32.ISendMessage(sciPtr, SciMsg.SCI_GETLINEENDPOSITION, GetLineCount(sciPtr), 0);
 
             _win32.ISendMessage(sciPtr, SciMsg.SCI_INDICATORCLEARRANGE, 0, endPos);
+        }
+
+        public string GetActiveFile(IntPtr sciPtr)
+        {
+            return GetOpenFiles(sciPtr)[CurrentDocIndex(sciPtr)];
         }
 
         #region [Helpers]

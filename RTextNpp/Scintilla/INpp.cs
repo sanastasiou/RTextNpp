@@ -160,11 +160,11 @@ namespace RTextNppPlugin.Scintilla
 
         Encoding Encoding { get; }
 
-        int FirstVisibleLine { get; }
+        int GetFirstVisibleLine(IntPtr sciPtr);
 
-        int LastVisibleLine { get; }
+        int GetLastVisibleLine(IntPtr sciPtr);
 
-        int LinesOnScreen { get; }
+        int GetLinesOnScreen(IntPtr sciPtr);
 
         int NumberOfOpenFiles { get; }
 
@@ -211,5 +211,7 @@ namespace RTextNppPlugin.Scintilla
         void SetModEventMask(int eventMask);
 
         void ClearAllIndicators(IntPtr sciPtr, int currentIndicator);
+
+        string GetActiveFile(IntPtr sciPtr);
     }
 }

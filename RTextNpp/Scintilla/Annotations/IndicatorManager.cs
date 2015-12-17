@@ -94,8 +94,11 @@ namespace RTextNppPlugin.Scintilla.Annotations
         protected override void OnVisibilityInfoUpdated(VisibilityInfo info)
         {
             _currentVisibilityInfo = info;
-            //update current annotations
-            PlaceIndicatorsRanges(info.ScintillaHandle);
+            if (IsWorkspaceFile(info.File))// && _nppHelper.FindScintillaFromFilepath(info.File) == info.ScintillaHandle)
+            {
+                //update current annotations - if current file belongs in workspace and editor is focused
+                PlaceIndicatorsRanges(info.ScintillaHandle);
+            }
         }
 
         #endregion
@@ -267,16 +270,20 @@ namespace RTextNppPlugin.Scintilla.Annotations
 
         private void PlaceIndicatorsRanges(IntPtr sciPtr)
         {
-            _nppHelper.SetIndicatorStyle(sciPtr, INDICATOR_INDEX, SciMsg.INDIC_SQUIGGLE, Color.Red);
-            _nppHelper.SetCurrentIndicator(sciPtr, INDICATOR_INDEX);
-            //get only ranges which belong to visible lines
-            var visibleRanges = from range in GetIndicatorRanges(sciPtr)
-                                where range.Item3 >= _currentVisibilityInfo.FirstLine && range.Item3 <= _currentVisibilityInfo.LastLine
-                                select range;
-
-            foreach (var range in visibleRanges)
+            var aIndicatorRanges = GetIndicatorRanges(sciPtr);
+            if (aIndicatorRanges != null)
             {
-                _nppHelper.PlaceIndicator(sciPtr, INDICATOR_INDEX, range.Item1, range.Item2);
+                _nppHelper.SetIndicatorStyle(sciPtr, INDICATOR_INDEX, SciMsg.INDIC_SQUIGGLE, Color.Red);
+                _nppHelper.SetCurrentIndicator(sciPtr, INDICATOR_INDEX);
+                //get only ranges which belong to visible lines
+                var visibleRanges = from range in aIndicatorRanges
+                                    where range.Item3 >= _currentVisibilityInfo.FirstLine && range.Item3 <= _currentVisibilityInfo.LastLine
+                                    select range;
+
+                foreach (var range in visibleRanges)
+                {
+                    _nppHelper.PlaceIndicator(sciPtr, INDICATOR_INDEX, range.Item1, range.Item2);
+                }
             }
         }
 
