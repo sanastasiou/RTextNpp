@@ -154,7 +154,7 @@ namespace RTextNppPlugin.Scintilla
 
         void SetAnnotationStyle(int line, int annotationStyle);
 
-        void SetAnnotationStyles(int line, System.Text.StringBuilder stylesDescription);
+        void SetAnnotationStyles(int line, byte[] styleDescriptions);
 
         int GetCodepage();
 

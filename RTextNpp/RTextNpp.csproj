@@ -111,6 +111,7 @@
     <Compile Include="Utilities\BindingProxy.cs" />
     <Compile Include="Utilities\GlobalMouseHook.cs" />
     <Compile Include="Scintilla\INpp.cs" />
+    <Compile Include="Utilities\NativeHelpers.cs" />
     <Compile Include="Utilities\Settings\ColorExtensions.cs" />
     <Compile Include="Utilities\Settings\ISettings.cs" />
     <Compile Include="Utilities\MouseEventExtArgs.cs" />

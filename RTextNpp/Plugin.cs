@@ -112,6 +112,7 @@ namespace RTextNppPlugin
         public void CommandMenuInit()
         {
             CSScriptIntellisense.KeyInterceptor.Instance.Install();
+            _nppHelper.InitializeNativePointers();
             SetCommand((int)Constants.NppMenuCommands.ConsoleWindow, Properties.Resources.RTEXT_SHOW_OUTPUT_WINDOW, ShowConsoleOutput, new ShortcutKey(false, true, true, Keys.R));
             SetCommand((int)Constants.NppMenuCommands.Options, Properties.Resources.RTEXT_SHOW_OPTIONS_WINDOW, ModifyOptions, new ShortcutKey(true, false, true, Keys.R));
             SetCommand((int)Constants.NppMenuCommands.AutoCompletion, Properties.Resources.AUTO_COMPLETION_DESC, StartAutoCompleteSession, Properties.Resources.AUTO_COMPLETION_SHORTCUT);
@@ -135,7 +136,6 @@ namespace RTextNppPlugin
             Debugger.Launch();
             #endif
             _styleObserver.EnableStylesObservation();
-            _nppHelper.InitializeNativePointers();
             //set up notifications
             //_nppHelper.SetModEventMask((int)(SciMsg.SC_MOD_INSERTTEXT | SciMsg.SC_MOD_DELETETEXT));
         }

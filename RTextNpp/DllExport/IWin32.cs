@@ -16,7 +16,6 @@ namespace RTextNppPlugin.DllExport
         IntPtr ISendMessage(IntPtr hWnd, NppMsg Msg, int wParam, int lParam);
         IntPtr ISendMessage(IntPtr hWnd, NppMsg Msg, int wParam, IntPtr lParam);
         IntPtr ISendMessage(IntPtr hWnd, NppMsg Msg, int wParam, string lParam);
-        IntPtr ISendMessage(IntPtr hWnd, NppMsg Msg, int wParam, StringBuilder lParam);
         IntPtr ISendMessage(IntPtr hWnd, NppMsg Msg, IntPtr wParam, int lParam);
         IntPtr ISendMessage(IntPtr hWnd, NppMsg Msg, IntPtr wParam, string lParam);
         IntPtr ISendMessage(IntPtr hWnd, SciMsg Msg, int wParam, int lParam);
