@@ -213,5 +213,7 @@ namespace RTextNppPlugin.Scintilla
         void ClearAllIndicators(IntPtr sciPtr, int currentIndicator);
 
         string GetActiveFile(IntPtr sciPtr);
+
+        void InitializeNativePointers();
     }
 }

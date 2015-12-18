@@ -16,12 +16,17 @@ namespace RTextNppPlugin.Scintilla
     public class Npp : INpp
     {
         #region [Singleton Data Members]
-        private static volatile Npp instance;
-        private static object syncRoot = new Object();
-        private static IWin32 _win32 = new Win32();
+        private static volatile Npp instance                    = null;
+        private static object syncRoot                          = new Object();
+        private static IWin32 _win32                            = new Win32();
+        private IntPtr _scintillaMainNativePtr                  = IntPtr.Zero;
+        private IntPtr _scintillaSubNativePtr                   = IntPtr.Zero;
+        private static Scintilla_DirectFunction _directFunction = null;
         #endregion
         
-        private Npp() { }
+        private Npp()
+        {
+        }
         
         static public Npp Instance
         {
@@ -32,11 +37,21 @@ namespace RTextNppPlugin.Scintilla
                     lock (syncRoot)
                     {
                         if (instance == null)
+                        {
                             instance = new Npp();
+                        }
                     }
                 }
                 return instance;
             }
+        }
+
+        public void InitializeNativePointers()
+        {
+            _scintillaMainNativePtr      = _win32.ISendMessage(MainScintilla, SciMsg.SCI_GETDIRECTPOINTER, IntPtr.Zero, IntPtr.Zero);
+            _scintillaSubNativePtr       = _win32.ISendMessage(SecondaryScintilla, SciMsg.SCI_GETDIRECTPOINTER, IntPtr.Zero, IntPtr.Zero);
+            IntPtr directFunctionPointer = _win32.ISendMessage(MainScintilla, SciMsg.SCI_GETDIRECTFUNCTION, IntPtr.Zero, IntPtr.Zero);
+            _directFunction              = (Scintilla_DirectFunction)Marshal.GetDelegateForFunctionPointer(directFunctionPointer,typeof(Scintilla_DirectFunction));
         }
 
         public void AddAnnotation(int line, System.Text.StringBuilder errorDescription)

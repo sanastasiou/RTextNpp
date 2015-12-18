@@ -135,6 +135,7 @@ namespace RTextNppPlugin
             Debugger.Launch();
             #endif
             _styleObserver.EnableStylesObservation();
+            _nppHelper.InitializeNativePointers();
             //set up notifications
             //_nppHelper.SetModEventMask((int)(SciMsg.SC_MOD_INSERTTEXT | SciMsg.SC_MOD_DELETETEXT));
         }
