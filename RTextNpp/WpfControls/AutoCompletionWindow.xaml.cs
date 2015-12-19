@@ -25,13 +25,14 @@ namespace RTextNppPlugin.WpfControls
         bool _isOnTop                                          = false;                //!< Indicates if window is on top of a token.
         INpp _nppHelper                                        = null;                 //!< Allows access to Notepad++ functions.
         DatagridScrollviewerTooltipOffsetCalculator _tpControl = null;                 //!< Control tooltip placement on right of the completion options.
+        INativeHelpers _nativeHelpers                          = null;
         #endregion
         
         #region [Interface]
-        internal AutoCompletionWindow(ConnectorManager cmanager, IWin32 win32Helper, INpp nppHelper)
+        internal AutoCompletionWindow(ConnectorManager cmanager, INpp nppHelper, INativeHelpers nativeHelpers)
         {
             InitializeComponent();
-            _autoCompletionMouseMonitor = new GlobalClickInterceptor(win32Helper);
+            _autoCompletionMouseMonitor = new GlobalClickInterceptor(nativeHelpers);
             DataContext                 = new ViewModels.AutoCompletionViewModel(cmanager);
             _keyMonitor.KeyDown         += OnKeyMonitorKeyDown;
             _delayedFilterEventHandler  = new VoidDelayedEventHandler(new Action(PostProcessKeyPressed), 150);
@@ -44,11 +45,12 @@ namespace RTextNppPlugin.WpfControls
             _keyMonitor.KeysToIntercept.Add((int)System.Windows.Forms.Keys.Up);
             _keyMonitor.KeysToIntercept.Add((int)System.Windows.Forms.Keys.PageUp);
             _keyMonitor.KeysToIntercept.Add((int)System.Windows.Forms.Keys.PageDown);
+            _nativeHelpers              = nativeHelpers;
         }
         
         public bool IsEdgeOfScreenReached(double offset)
         {
-            return ((Left + Width + offset) > _nppHelper.GetClientRectFromPoint(new System.Drawing.Point((int)Left, (int)Top)).Right);
+            return ((Left + Width + offset) > _nativeHelpers.GetClientRectFromPoint(new System.Drawing.Point((int)Left, (int)Top)).Right);
         }
                
         internal new void Hide()
@@ -170,7 +172,7 @@ namespace RTextNppPlugin.WpfControls
             if (IsVisible)
             {
                 _delayedFilterEventHandler.Cancel();
-                //reparse line and find new trigger token
+                //re-parse line and find new trigger token
                 GetModel().OnKeyPressed(c);
                 TriggerPoint = GetModel().TriggerPoint;
                 CharProcessAction = GetModel().CharProcessAction;

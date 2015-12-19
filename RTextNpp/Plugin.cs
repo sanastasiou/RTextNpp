@@ -27,7 +27,6 @@ namespace RTextNppPlugin
         private static object syncRoot                                                         = new Object();
         private INpp _nppHelper                                                                = Npp.Instance;
         private ILineVisibilityObserver _linesVisibilityObserver                               = null;
-        private IWin32 _win32                                                                  = new Win32();
         private ISettings _settings                                                            = null;
         private StyleConfigurationObserver _styleObserver                                      = null;
         private ConnectorManager _connectorManager                                             = null;
@@ -53,6 +52,7 @@ namespace RTextNppPlugin
         private Utilities.DelayedEventHandler<object> _actionAfterUiUpdateHandler              = new DelayedEventHandler<object>(null, 100);
         private NppData _nppData                                                               = default(NppData);
         private FuncItems _funcItems                                                           = new FuncItems();
+        private INativeHelpers _nativeHelpers                                                  = new NativeHelpers();
 
         private enum ShortcutType
         {
@@ -90,8 +90,8 @@ namespace RTextNppPlugin
             _consoleOutput = new PersistentWpfControlHost<ConsoleOutputForm>(Settings.RTextNppSettings.ConsoleWindowActive, new ConsoleOutputForm(_connectorManager, _nppHelper, _styleObserver, _settings, _linesVisibilityObserver), _settings, _nppHelper);
             _options                 = new Options(_settings);
             _fileObserver            = new FileModificationObserver(_settings, _nppHelper);
-            _autoCompletionForm      = new AutoCompletionWindow(_connectorManager, _win32, _nppHelper);
-            _linkTargetsWindow       = new LinkTargetsWindow(_nppHelper, _win32, _settings, _connectorManager);
+            _autoCompletionForm      = new AutoCompletionWindow(_connectorManager, _nppHelper, _nativeHelpers);
+            _linkTargetsWindow       = new LinkTargetsWindow(_nppHelper, _settings, _connectorManager);
         }
 
         public void PluginCleanUp()
@@ -145,7 +145,7 @@ namespace RTextNppPlugin
             if (_settings.Get<bool>(Settings.RTextNppSettings.ConsoleWindowActive))
             {
                 ShowConsoleOutput();
-                _win32.ISendMessage(_nppData._nppHandle, NppMsg.NPPM_SETMENUITEMCHECK, _funcItems.Items[0]._cmdID, 1);
+                _nppHelper.SendMessage(_nppData._nppHandle, NppMsg.NPPM_SETMENUITEMCHECK, new IntPtr(_funcItems.Items[0]._cmdID), new IntPtr(1));
             }
 
             _nppMsgInterceptpr                                   = new NotepadMessageInterceptor(_nppData._nppHandle);
@@ -224,7 +224,7 @@ namespace RTextNppPlugin
                 }
                 else
                 {
-                    _win32.ISendMessage(_nppData._nppHandle, (NppMsg)WinMsg.WM_COMMAND, (int)NppMenuCmd.IDM_EDIT_AUTOCOMPLETE, 0);
+                    _nppHelper.SendMessage(_nppData._nppHandle, (NppMsg)WinMsg.WM_COMMAND, new IntPtr((int)NppMenuCmd.IDM_EDIT_AUTOCOMPLETE));
                 }
             });
         }
@@ -234,7 +234,7 @@ namespace RTextNppPlugin
          */
         void ModifyOptions()
         {
-            _win32.ISendMessage(_nppData._nppHandle, NppMsg.NPPM_MODELESSDIALOG, (int)NppMsg.MODELESSDIALOGADD, _options.Handle.ToInt32());
+            _nppHelper.SendMessage(_nppData._nppHandle, NppMsg.NPPM_MODELESSDIALOG, new IntPtr((int)NppMsg.MODELESSDIALOGADD), _options.Handle);
             if (_options.ShowDialog(Control.FromHandle(_nppData._nppHandle)) == DialogResult.OK)
             {
                 _options.SaveSettings();
@@ -243,7 +243,7 @@ namespace RTextNppPlugin
             {
                 _options.RestoreSettings();
             }
-            _win32.ISendMessage(_nppData._nppHandle, NppMsg.NPPM_MODELESSDIALOG, (int)NppMsg.MODELESSDIALOGREMOVE, _options.Handle.ToInt32());
+            _nppHelper.SendMessage(_nppData._nppHandle, NppMsg.NPPM_MODELESSDIALOG, new IntPtr((int)NppMsg.MODELESSDIALOGREMOVE), _options.Handle);
         }
         
         void ShowConsoleOutput()
@@ -274,18 +274,18 @@ namespace RTextNppPlugin
                 IntPtr _ptrNppTbData = Marshal.AllocHGlobal(Marshal.SizeOf(_nppTbData));
                 Marshal.StructureToPtr(_nppTbData, _ptrNppTbData, false);
                 _consoleOutput.CmdId = _funcItems.Items[(int)Constants.NppMenuCommands.ConsoleWindow]._cmdID;
-                _win32.ISendMessage(_nppData._nppHandle, NppMsg.NPPM_DMMREGASDCKDLG, 0, _ptrNppTbData);
-                _win32.ISendMessage(_nppData._nppHandle, NppMsg.NPPM_SETMENUITEMCHECK, _funcItems.Items[0]._cmdID, 1);
+                _nppHelper.SendMessage(_nppData._nppHandle, NppMsg.NPPM_DMMREGASDCKDLG, IntPtr.Zero, _ptrNppTbData);
+                _nppHelper.SendMessage(_nppData._nppHandle, NppMsg.NPPM_SETMENUITEMCHECK, new IntPtr(_funcItems.Items[0]._cmdID), new IntPtr(1));
             }
             else
             {
                 if (!_consoleOutput.Visible)
                 {
-                    _win32.ISendMessage(_nppData._nppHandle, NppMsg.NPPM_DMMSHOW, 0, _consoleOutput.Handle);
+                    _nppHelper.SendMessage(_nppData._nppHandle, NppMsg.NPPM_DMMSHOW, IntPtr.Zero, _consoleOutput.Handle);
                 }
                 else
                 {
-                    _win32.ISendMessage(_nppData._nppHandle, NppMsg.NPPM_DMMHIDE, 0, _consoleOutput.Handle);
+                    _nppHelper.SendMessage(_nppData._nppHandle, NppMsg.NPPM_DMMHIDE, IntPtr.Zero, _consoleOutput.Handle);
                 }
             }
             _consoleOutput.Focus();
@@ -495,7 +495,7 @@ namespace RTextNppPlugin
                         break;
                     default:
                         //convert virtual key to w/e it has to be converted to
-                        var mappedChar = Npp.GetCharsFromKeys(key, modifiers.IsShift || modifiers.IsCapsLock, modifiers.IsAlt && modifiers.IsCtrl);
+                        var mappedChar = _nativeHelpers.GetCharsFromKeys(key, modifiers.IsShift || modifiers.IsCapsLock, modifiers.IsAlt && modifiers.IsCtrl);
                         //only handle letters and whitespace chars
                         if (mappedChar != string.Empty)
                         {
@@ -593,7 +593,7 @@ namespace RTextNppPlugin
             tbIcons.hToolbarBmp = tbBmp.GetHbitmap();
             IntPtr pTbIcons = Marshal.AllocHGlobal(Marshal.SizeOf(tbIcons));
             Marshal.StructureToPtr(tbIcons, pTbIcons, false);
-            _win32.ISendMessage(_nppData._nppHandle, NppMsg.NPPM_ADDTOOLBARICON, _funcItems.Items[(int)Constants.NppMenuCommands.ConsoleWindow]._cmdID, pTbIcons);
+            _nppHelper.SendMessage(_nppData._nppHandle, NppMsg.NPPM_ADDTOOLBARICON, new IntPtr(_funcItems.Items[(int)Constants.NppMenuCommands.ConsoleWindow]._cmdID), pTbIcons);
             Marshal.FreeHGlobal(pTbIcons);
         }
         

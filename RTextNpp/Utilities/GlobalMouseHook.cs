@@ -8,19 +8,23 @@ using RTextNppPlugin.DllExport;
 using CSScriptIntellisense;
 namespace RTextNppPlugin.Utilities
 {
-    abstract class GlobalMouseHook
+    internal abstract class GlobalMouseHook
     {
         #region Mouse events
-        protected IntPtr _MouseHookHandle;
-        protected Win32.HookProc _MouseDelegate;
-        protected IWin32 _win32Helper;
+        protected IntPtr _MouseHookHandle               = IntPtr.Zero;
+        protected NativeHelpers.HookProc _MouseDelegate = null;
+        protected INativeHelpers _nativeHelpers         = null;
         #endregion
+        
         #region Helpers
-        internal GlobalMouseHook(IWin32 win32Helper)
+
+        protected GlobalMouseHook(INativeHelpers nativeHelpers)
         {
-            _win32Helper = win32Helper;
+            _nativeHelpers = nativeHelpers;
         }
+
         abstract internal int MouseHookProc(int nCode, UIntPtr wParam, IntPtr lParam);
+        
         protected void EnsureSubscribedToGlobalMouseEvents()
         {
             // install Mouse hook only if it is not installed and must be installed
@@ -29,7 +33,7 @@ namespace RTextNppPlugin.Utilities
                 //See comment of this field. To avoid GC to clean it up.
                 _MouseDelegate = MouseHookProc;
                 //install hook
-                _MouseHookHandle = _win32Helper.ISetWindowsHookEx(VisualUtilities.HookType.WH_MOUSE_LL, _MouseDelegate, Marshal.GetHINSTANCE(Assembly.GetExecutingAssembly().GetModules()[0]), 0);
+                _MouseHookHandle = _nativeHelpers.ISetWindowsHookEx(VisualUtilities.HookType.WH_MOUSE_LL, _MouseDelegate, Marshal.GetHINSTANCE(Assembly.GetExecutingAssembly().GetModules()[0]), 0);
                 //If SetWindowsHookEx fails.
                 if (_MouseHookHandle == IntPtr.Zero)
                 {
@@ -39,13 +43,15 @@ namespace RTextNppPlugin.Utilities
                 }
             }
         }
+        
         abstract protected void TryUnsubscribeFromGlobalMouseEvents();
+        
         protected void ForceUnsunscribeFromGlobalMouseEvents()
         {
             if (_MouseHookHandle != IntPtr.Zero)
             {
                 //uninstall hook
-                int result = _win32Helper.IUnhookWindowsHookEx(_MouseHookHandle);
+                int result = _nativeHelpers.IUnhookWindowsHookEx(_MouseHookHandle);
                 //reset invalid handle
                 _MouseHookHandle = IntPtr.Zero;
                 //Free up for GC
@@ -60,11 +66,13 @@ namespace RTextNppPlugin.Utilities
                 }
             }
         }
+        
         #endregion
     }
-    class GlobalClickInterceptor : GlobalMouseHook
+    internal class GlobalClickInterceptor : GlobalMouseHook
     {
         private event EventHandler<MouseEventExtArgs> _MouseClick;
+
         internal event EventHandler<MouseEventExtArgs> MouseClick
         {
             add
@@ -84,10 +92,11 @@ namespace RTextNppPlugin.Utilities
                 }
             }
         }
-        internal GlobalClickInterceptor(IWin32 _win32Helper)
-            : base(_win32Helper)
+
+        internal GlobalClickInterceptor(INativeHelpers nativeHelpers) : base(nativeHelpers)
         {
         }
+
         internal override int MouseHookProc(int nCode, UIntPtr wParam, IntPtr lParam)
         {
             if (nCode >= 0)
@@ -121,7 +130,7 @@ namespace RTextNppPlugin.Utilities
                         button = System.Windows.Forms.MouseButtons.Left;
                         break;
                     default:
-                        return _win32Helper.ICallNextHookEx(_MouseHookHandle, nCode, wParam, lParam);
+                        return _nativeHelpers.ICallNextHookEx(_MouseHookHandle, nCode, wParam, lParam);
                 }
                 //generate event
                 MouseEventExtArgs e = new MouseEventExtArgs(button, 1, mouseHookStruct.Point.X, mouseHookStruct.Point.Y, 0);
@@ -135,11 +144,11 @@ namespace RTextNppPlugin.Utilities
                 }
             }
             //call next hook
-            return _win32Helper.ICallNextHookEx(_MouseHookHandle, nCode, wParam, lParam);
+            return _nativeHelpers.ICallNextHookEx(_MouseHookHandle, nCode, wParam, lParam);
         }
         override protected void TryUnsubscribeFromGlobalMouseEvents()
         {
-            //if no subsribers are registered unsubsribe from hook
+            //if no subscribers are registered unsubscribe from hook
             if (_MouseClick == null)
             {
                 ForceUnsunscribeFromGlobalMouseEvents();

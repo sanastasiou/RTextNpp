@@ -54,7 +54,7 @@ namespace CSScriptIntellisense
                     return 1;
                 }
             }
-            return base.ICallNextHookEx(m_hhook, code, wParam, lParam);
+            return NativeHelpers.CallNextHookEx(m_hhook, code, wParam, lParam);
         }
         virtual protected bool HandleHookEvent(UIntPtr wParam, IntPtr lParam)
         {

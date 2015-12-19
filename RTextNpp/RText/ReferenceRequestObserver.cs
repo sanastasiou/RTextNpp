@@ -21,7 +21,6 @@ namespace RTextNppPlugin.RText
         private Tokenizer.TokenTag _previousReferenceToken           = default(Tokenizer.TokenTag); //!< Holds previous highlighted reference token.
         private bool _isKeyboardShortCutActive                       = false;                       //!< Indicates if reference show shortcut key is active.
         private bool _highLightToken                                 = false;                       //!< Whether a reference token is highlighted.
-        private readonly IWin32 _win32Helper                         = null;                        //!< Handle to win32 helper instance.
         private readonly ILinkTargetsWindow _refWindow               = null;                        //!< Handle to reference window.
         private readonly VoidDelayedEventHandler _mouseMoveDebouncer = null;                        //!< Debounces mouse movement for a short period of time so that CPU is not taxed.
         private System.Drawing.Point _previousMousePosition          = new System.Drawing.Point(System.Windows.Forms.Cursor.Position.X, System.Windows.Forms.Cursor.Position.Y);
@@ -32,7 +31,7 @@ namespace RTextNppPlugin.RText
         #endregion
         
         #region [Interface]
-        internal ReferenceRequestObserver(INpp nppHelper, ISettings settings, IWin32 win32helper, ILinkTargetsWindow refWindow)
+        internal ReferenceRequestObserver(INpp nppHelper, ISettings settings, ILinkTargetsWindow refWindow)
         {
             if(nppHelper == null)
             {
@@ -42,10 +41,6 @@ namespace RTextNppPlugin.RText
             {
                 throw new ArgumentNullException("settings");
             }
-            if(win32helper == null)
-            {
-                throw new ArgumentNullException("win32helper");
-            }
             if(refWindow == null)
             {
                 throw new ArgumentNullException("refWindow");
@@ -53,7 +48,6 @@ namespace RTextNppPlugin.RText
 
             _nppHelper                       = nppHelper;
             _settings                        = settings;
-            _win32Helper                     = win32helper;
             _mouseMovementObserver.MouseMove += OnMouseMovementObserverMouseMove;
             IsKeyboardShortCutActive         = false;
             _refWindow                       = refWindow;
@@ -102,13 +96,13 @@ namespace RTextNppPlugin.RText
         internal void UnderlineToken()
         {
             _editorWithActiveHotspot = _nppHelper.CurrentScintilla;
-            _win32Helper.ISendMessage(_editorWithActiveHotspot, SciMsg.SCI_STYLESETHOTSPOT, (int)_previousReferenceToken.Type, 1);
-            _win32Helper.ISendMessage(_editorWithActiveHotspot, SciMsg.SCI_SETHOTSPOTACTIVEUNDERLINE, 1, 0);
-            _win32Helper.ISendMessage(_editorWithActiveHotspot, SciMsg.SCI_SETHOTSPOTSINGLELINE, 1, 0);
-            _win32Helper.ISendMessage(_editorWithActiveHotspot, SciMsg.SCI_SETHOTSPOTACTIVEFORE, 1, _nppHelper.GetStyleForeground(_editorWithActiveHotspot, (int)Constants.StyleId.REFERENCE_LINK));
-            _win32Helper.ISendMessage(_editorWithActiveHotspot, SciMsg.SCI_SETHOTSPOTACTIVEBACK, 1, _nppHelper.GetStyleBackground(_editorWithActiveHotspot, (int)Constants.StyleId.REFERENCE_LINK));
-            _win32Helper.ISendMessage(_editorWithActiveHotspot, SciMsg.SCI_STARTSTYLING, _previousReferenceToken.BufferPosition, 0);
-            _win32Helper.ISendMessage(_editorWithActiveHotspot, SciMsg.SCI_SETSTYLING, _previousReferenceToken.EndColumn - _previousReferenceToken.StartColumn, (int)_previousReferenceToken.Type);
+            _nppHelper.SendMessage(_editorWithActiveHotspot, SciMsg.SCI_STYLESETHOTSPOT, new IntPtr((int)_previousReferenceToken.Type), new IntPtr(1));
+            _nppHelper.SendMessage(_editorWithActiveHotspot, SciMsg.SCI_SETHOTSPOTACTIVEUNDERLINE, new IntPtr(1));
+            _nppHelper.SendMessage(_editorWithActiveHotspot, SciMsg.SCI_SETHOTSPOTSINGLELINE, new IntPtr(1));
+            _nppHelper.SendMessage(_editorWithActiveHotspot, SciMsg.SCI_SETHOTSPOTACTIVEFORE, new IntPtr(1), new IntPtr(_nppHelper.GetStyleForeground(_editorWithActiveHotspot, (int)Constants.StyleId.REFERENCE_LINK)));
+            _nppHelper.SendMessage(_editorWithActiveHotspot, SciMsg.SCI_SETHOTSPOTACTIVEBACK, new IntPtr(1), new IntPtr(_nppHelper.GetStyleBackground(_editorWithActiveHotspot, (int)Constants.StyleId.REFERENCE_LINK)));
+            _nppHelper.SendMessage(_editorWithActiveHotspot, SciMsg.SCI_STARTSTYLING, new IntPtr(_previousReferenceToken.BufferPosition));
+            _nppHelper.SendMessage(_editorWithActiveHotspot, SciMsg.SCI_SETSTYLING, new IntPtr(_previousReferenceToken.EndColumn - _previousReferenceToken.StartColumn), new IntPtr((int)_previousReferenceToken.Type));
             //fix bug which prevents hotspot to be activated when the mouse hasn't been moved
             System.Windows.Forms.Cursor.Position = new System.Drawing.Point(System.Windows.Forms.Cursor.Position.X + 1, System.Windows.Forms.Cursor.Position.Y);
             _highLightToken = true;
@@ -117,10 +111,10 @@ namespace RTextNppPlugin.RText
         {
             if (_highLightToken)
             {
-                _win32Helper.ISendMessage(_editorWithActiveHotspot, SciMsg.SCI_STYLESETHOTSPOT, (int)_previousReferenceToken.Type, 0);
-                _win32Helper.ISendMessage(_editorWithActiveHotspot, SciMsg.SCI_STYLESETHOTSPOT, (int)_previousReferenceToken.Type, 0);
-                _win32Helper.ISendMessage(_editorWithActiveHotspot, SciMsg.SCI_STARTSTYLING, _previousReferenceToken.BufferPosition, 0);
-                _win32Helper.ISendMessage(_editorWithActiveHotspot, SciMsg.SCI_SETSTYLING, _previousReferenceToken.EndColumn - _previousReferenceToken.StartColumn, (int)_previousReferenceToken.Type);
+                _nppHelper.SendMessage(_editorWithActiveHotspot, SciMsg.SCI_STYLESETHOTSPOT, new IntPtr((int)_previousReferenceToken.Type));
+                _nppHelper.SendMessage(_editorWithActiveHotspot, SciMsg.SCI_STYLESETHOTSPOT, new IntPtr((int)_previousReferenceToken.Type));
+                _nppHelper.SendMessage(_editorWithActiveHotspot, SciMsg.SCI_STARTSTYLING, new IntPtr(_previousReferenceToken.BufferPosition));
+                _nppHelper.SendMessage(_editorWithActiveHotspot, SciMsg.SCI_SETSTYLING, new IntPtr(_previousReferenceToken.EndColumn - _previousReferenceToken.StartColumn), new IntPtr((int)_previousReferenceToken.Type));
                 //fix bug which prevents hotspot to be activated when the mouse hasn't been moved
                 System.Windows.Forms.Cursor.Position = new System.Drawing.Point(System.Windows.Forms.Cursor.Position.X - 1, System.Windows.Forms.Cursor.Position.Y);
                 _highLightToken = false;

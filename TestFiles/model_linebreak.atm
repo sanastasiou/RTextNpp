@@ -8,9 +8,8 @@ AUTOSAR {
     ClientServerInterface ICS1 {
       OperationPrototype op1, possibleError: err1
       ApplicationError err1
-
-    ssss
-      
+    }
+    
     SenderReceiverInterface ISR1 {
       DataElementPrototype de1, type: /P1/UInt8
     }
@@ -158,6 +157,7 @@ AUTOSAR {
         requiredInterface: /P1/ISR1
       ComponentPrototype cp3, type: /P1/SWC1
     }
+    
     ServiceComponentType ServSWC1 {
       PPortPrototype pport,
         providedInterface: /P1/ISR1

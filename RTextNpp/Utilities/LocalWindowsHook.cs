@@ -64,6 +64,7 @@ namespace CSScriptIntellisense
         public UIntPtr dwExtraInfo;
     }
     #endregion
+    
     #region Class HookEventArgs
     public class HookEventArgs : EventArgs
     {
@@ -72,6 +73,7 @@ namespace CSScriptIntellisense
         public IntPtr lParam;   // LPARAM argument
     }
     #endregion
+    
     [StructLayout(LayoutKind.Sequential)]
     struct MouseLLHookStruct
     {
@@ -108,14 +110,15 @@ namespace CSScriptIntellisense
         /// </summary>
         public int ExtraInfo;
     }
+    
     #region Class LocalWindowsHook
-    public class LocalWindowsHook : Win32
+    internal class LocalWindowsHook : NativeHelpers
     {
         // ************************************************************************
         // Internal properties
-        protected IntPtr m_hhook = IntPtr.Zero;
-        protected HookProc m_filterFunc = null;
-        protected VisualUtilities.HookType m_hookType;
+        protected IntPtr m_hhook                      = IntPtr.Zero;
+        protected NativeHelpers.HookProc m_filterFunc = null;
+        protected VisualUtilities.HookType m_hookType = default(VisualUtilities.HookType);
         // ************************************************************************
         // ************************************************************************
         // Event delegate
@@ -132,12 +135,12 @@ namespace CSScriptIntellisense
         // ************************************************************************
         // ************************************************************************
         // Class constructor(s)
-        public LocalWindowsHook(VisualUtilities.HookType hook)
+        protected LocalWindowsHook(VisualUtilities.HookType hook)
         {
             m_hookType = hook;
-            m_filterFunc = new HookProc(CoreHookProc);
+            m_filterFunc = new NativeHelpers.HookProc(CoreHookProc);
         }
-        public LocalWindowsHook(VisualUtilities.HookType hook, HookProc func)
+        protected LocalWindowsHook(VisualUtilities.HookType hook, NativeHelpers.HookProc func)
         {
             m_hookType = hook;
             m_filterFunc = func;
@@ -148,7 +151,9 @@ namespace CSScriptIntellisense
         protected int CoreHookProc(int code, UIntPtr wParam, IntPtr lParam)
         {
             if (code < 0)
-                return base.ICallNextHookEx(m_hhook, code, wParam, lParam);
+            {
+                return NativeHelpers.CallNextHookEx(m_hhook, code, wParam, lParam);
+            }
             // Let clients determine what to do
             HookEventArgs e = new HookEventArgs();
             e.HookCode = code;
@@ -157,7 +162,7 @@ namespace CSScriptIntellisense
             OnHookInvoked(e);
             System.Diagnostics.Trace.WriteLine(String.Format("Hook called : code {0}", e.HookCode));
             // Yield to the next hook in the chain
-            return base.ICallNextHookEx(m_hhook, code, wParam, lParam);
+            return NativeHelpers.CallNextHookEx(m_hhook, code, wParam, lParam);
         }
         // ************************************************************************
         // ************************************************************************
@@ -166,7 +171,7 @@ namespace CSScriptIntellisense
         {
             if (!IsInstalled)
             {
-                m_hhook = base.ISetWindowsHookEx(
+                m_hhook = NativeHelpers.SetWindowsHookEx(
                     m_hookType,
                     m_filterFunc,
                     IntPtr.Zero,
@@ -180,7 +185,7 @@ namespace CSScriptIntellisense
         {
             if (IsInstalled)
             {
-                base.IUnhookWindowsHookEx(m_hhook);
+                NativeHelpers.UnhookWindowsHookEx(m_hhook);
                 m_hhook = IntPtr.Zero;
             }
         }

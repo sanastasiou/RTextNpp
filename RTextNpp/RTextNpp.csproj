@@ -52,7 +52,6 @@
   </Target>
   -->
   <ItemGroup>
-    <Compile Include="DllExport\IWin32.cs" />
     <Compile Include="DllExport\NppPluginNETHelper.cs" />
     <Compile Include="DllExport\UnmanagedExports.cs" />
     <Compile Include="RText\Connector.cs" />
@@ -111,6 +110,7 @@
     <Compile Include="Utilities\BindingProxy.cs" />
     <Compile Include="Utilities\GlobalMouseHook.cs" />
     <Compile Include="Scintilla\INpp.cs" />
+    <Compile Include="Utilities\INativeHelpers.cs" />
     <Compile Include="Utilities\NativeHelpers.cs" />
     <Compile Include="Utilities\Settings\ColorExtensions.cs" />
     <Compile Include="Utilities\Settings\ISettings.cs" />

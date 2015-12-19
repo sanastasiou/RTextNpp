@@ -12,15 +12,16 @@ namespace Tests.Utilities
     {
         #region [Data Members]
         int _clickCount;
-        IWin32 _win32Helper;
-        Mock<IWin32> _win32Mock;
+        INativeHelpers _win32Helper;
+        Mock<INativeHelpers> _win32Mock;
         MouseLLHookStruct _wheelStruct = new MouseLLHookStruct();
         IntPtr _wheelStructPtr = IntPtr.Zero;
         #endregion
+        
         [SetUp]
         public void Init()
         {
-            _win32Mock = new Mock<IWin32>();
+            _win32Mock = new Mock<INativeHelpers>();
             _win32Helper = _win32Mock.Object;
             _clickCount = 0;
             _wheelStructPtr = Marshal.AllocHGlobal(Marshal.SizeOf(_wheelStruct));
@@ -42,7 +43,7 @@ namespace Tests.Utilities
         {
             GlobalClickInterceptor monitor = new GlobalClickInterceptor(_win32Helper);
             monitor.MouseClick += monitor_MouseClick;
-            //second subscriber ignroed
+            //second subscriber ignored
             monitor.MouseClick += monitor_MouseClick2;
             monitor.MouseHookProc(1, (UIntPtr)Convert.ToInt32(VisualUtilities.MouseMessages.WM_LBUTTONDOWN), _wheelStructPtr);
             monitor.MouseHookProc(1, (UIntPtr)Convert.ToInt32(VisualUtilities.MouseMessages.WM_NCRBUTTONDBLCLK), _wheelStructPtr);
@@ -61,7 +62,7 @@ namespace Tests.Utilities
         {
             GlobalClickInterceptor monitor = new GlobalClickInterceptor(_win32Helper);
             monitor.MouseClick += monitor_MouseClick;
-            //second subscriber ignroed
+            //second subscriber ignored
             monitor.MouseClick += monitor_MouseClick2;
             monitor.MouseHookProc(1, (UIntPtr)Convert.ToInt32(mouseMessage), _wheelStructPtr);
             Assert.AreEqual(1, _clickCount);
@@ -88,7 +89,7 @@ namespace Tests.Utilities
         {
             GlobalClickInterceptor monitor = new GlobalClickInterceptor(_win32Helper);
             monitor.MouseClick += monitor_MouseClick;
-            //second subscriber ignroed
+            //second subscriber ignored
             monitor.MouseClick += monitor_MouseClick2;
             monitor.MouseHookProc(1, (UIntPtr)Convert.ToInt32(mouseMessage), _wheelStructPtr);
             Assert.AreEqual(0, _clickCount);
@@ -114,7 +115,7 @@ namespace Tests.Utilities
         public void UnsubscribeTest()
         {
             GlobalClickInterceptor monitor = new GlobalClickInterceptor(_win32Helper);
-            _win32Mock.Setup<IntPtr>(x => x.ISetWindowsHookEx(It.IsAny<VisualUtilities.HookType>(), It.IsAny<Win32.HookProc>(), It.IsAny<IntPtr>(), It.IsAny<int>())).Returns(_wheelStructPtr);
+            _win32Mock.Setup<IntPtr>(x => x.ISetWindowsHookEx(It.IsAny<VisualUtilities.HookType>(), It.IsAny<NativeHelpers.HookProc>(), It.IsAny<IntPtr>(), It.IsAny<int>())).Returns(_wheelStructPtr);
             monitor.MouseClick += monitor_MouseClick2;
             monitor.MouseHookProc(1, (UIntPtr)Convert.ToInt32(VisualUtilities.MouseMessages.WM_LBUTTONDOWN), _wheelStructPtr);
             monitor.MouseClick -= monitor_MouseClick2;

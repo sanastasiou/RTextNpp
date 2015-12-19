@@ -66,13 +66,7 @@ namespace RTextNppPlugin.Scintilla
         System.Drawing.Point GetCaretScreenLocationForFormAboveWord(int position);
         
         System.Drawing.Point GetCaretScreenLocationRelativeToPosition(int position);
-        
-        System.Drawing.Rectangle GetClientRect();
-        
-        System.Drawing.Rectangle GetClientRectFromControl(IntPtr hwnd);
-        
-        System.Drawing.Rectangle GetClientRectFromPoint(System.Drawing.Point p);
-        
+               
         int GetColumn(int position);
         
         int GetColumn();
@@ -215,5 +209,9 @@ namespace RTextNppPlugin.Scintilla
         string GetActiveFile(IntPtr sciPtr);
 
         void InitializeNativePointers();
+
+        IntPtr SendMessage(IntPtr hWnd, SciMsg msg, IntPtr wParam = default(IntPtr), IntPtr lParam = default(IntPtr));
+
+        IntPtr SendMessage(IntPtr hWnd, NppMsg msg, IntPtr wParam = default(IntPtr), IntPtr lParam = default(IntPtr));
     }
 }

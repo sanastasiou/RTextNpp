@@ -15,6 +15,8 @@ namespace RTextNppPlugin.Utilities
     }
     public class VisualUtilities
     {
+        static readonly INativeHelpers _nativeHelpers = new NativeHelpers();
+
         public enum WM_ACTIVATE_WPARAM : int
         {
             WA_INACTIVE,
@@ -442,10 +444,10 @@ namespace RTextNppPlugin.Utilities
             }
             else
             {
-                if (!((e.NewSize.Height + w.Top) <= nppHelper.GetClientRectFromControl(nppHelper.NppHandle).Bottom))
+                if (!((e.NewSize.Height + w.Top) <= _nativeHelpers.GetClientRectFromControl(nppHelper.NppHandle).Bottom))
                 {
                     newTop = wordY - (e.NewSize.Height - offset);
-                    if (newTop >= nppHelper.GetClientRectFromControl(nppHelper.NppHandle).Top)
+                    if (newTop >= _nativeHelpers.GetClientRectFromControl(nppHelper.NppHandle).Top)
                     {
                         isOnTop = true;
                         isTopChanged = true;
@@ -453,7 +455,7 @@ namespace RTextNppPlugin.Utilities
                 }
             }
             //position list in such a way that it doesn't get split into two monitors
-            var rectFromPoint = nppHelper.GetClientRectFromPoint(new System.Drawing.Point((int)w.Left, (int)w.Top));
+            var rectFromPoint = _nativeHelpers.GetClientRectFromPoint(new System.Drawing.Point((int)w.Left, (int)w.Top));
             //if the width of the auto completion window overlaps the right edge of the screen, then move the window at the left until no overlap is present
             if (rectFromPoint.Right < w.Left + e.NewSize.Width)
             {

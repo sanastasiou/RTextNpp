@@ -33,7 +33,6 @@ namespace RTextNppPlugin.WpfControls
     {
         #region [Data Members]
         private INpp _nppHelper                                        = null;                 //!< Handles communication with scintilla or npp.
-        private IWin32 _win32Helper                                    = null;                 //!< Handles low level API calls.
         private ISettings _settings                                    = null;                 //!< Reads or write plug-in settings.
         private ReferenceRequestObserver _referenceRequestObserver     = null;                 //!< Handles reference requests triggers.
         private IEnumerable<string> _cachedContext                     = null;                 //!< Holds the last context used for reference lookup request.
@@ -46,6 +45,7 @@ namespace RTextNppPlugin.WpfControls
         private const int YPOSITION_OFFSET                             = 2;                    //!< Window needs to be placed with a Y offset, because otherwise the cursor might indicate a token between the gab of the current token and the window.
         private DatagridScrollviewerTooltipOffsetCalculator _tpControl = null;                 //!< Control tool-tip placement on right of the completion options.
         private ICollectionView _collectionView                        = null;                 //!< Collection view of reference links.
+        private INativeHelpers _nativeHelpers                          = new NativeHelpers();
         #endregion
         
         #region [Interface]
@@ -78,14 +78,13 @@ namespace RTextNppPlugin.WpfControls
         }
         #endregion
         
-        internal LinkTargetsWindow(INpp nppHelper, IWin32 win32Helper, ISettings settingsHelper, ConnectorManager cmanager)
+        internal LinkTargetsWindow(INpp nppHelper, ISettings settingsHelper, ConnectorManager cmanager)
         {
             InitializeComponent();
             DataContext = new ReferenceLinkViewModel(settingsHelper);
             _nppHelper = nppHelper;
-            _win32Helper = win32Helper;
             _settings = settingsHelper;
-            _referenceRequestObserver = new ReferenceRequestObserver(_nppHelper, _settings, _win32Helper, this);
+            _referenceRequestObserver = new ReferenceRequestObserver(_nppHelper, _settings, this);
             _referenceRequestDispatcher = new DelayedEventHandler<object>(new ActionWrapper<object, Tokenizer.TokenTag>(TryHighlightItemUnderMouse, default(Tokenizer.TokenTag)), 500);
             _cManager = cmanager;
             _keyMonitor.KeyDown += OnKeyMonitorKeyDown;
@@ -530,7 +529,7 @@ namespace RTextNppPlugin.WpfControls
         #region IWindowPosition Members
         public bool IsEdgeOfScreenReached(double offset)
         {
-            return ((Left + Width + offset) > _nppHelper.GetClientRectFromPoint(new System.Drawing.Point((int)Left, (int)Top)).Right);
+            return ((Left + Width + offset) > _nativeHelpers.GetClientRectFromPoint(new System.Drawing.Point((int)Left, (int)Top)).Right);
         }
         #endregion
     }
