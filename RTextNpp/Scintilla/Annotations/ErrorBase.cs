@@ -22,7 +22,6 @@ namespace RTextNppPlugin.Scintilla.Annotations
         private readonly NppData _nppData                           = default(NppData);
         protected IList<ErrorListViewModel> _currentErrors          = null;
         protected string _workspaceRoot                             = string.Empty;
-        private DelayedEventHandler<object> _bufferActivatedHandler = null;
         private bool _hasMainScintillaFocus                         = true;
         private bool _hasSecondScintillaFocus                       = true;
         protected ILineVisibilityObserver _lineVisibilityObserver   = null;
@@ -37,6 +36,7 @@ namespace RTextNppPlugin.Scintilla.Annotations
         #endregion
 
         #region [Properties]
+
         public IList<ErrorListViewModel> ErrorList
         { 
             get
@@ -51,10 +51,11 @@ namespace RTextNppPlugin.Scintilla.Annotations
                 }
             }
         }
+
         #endregion
 
         #region [Interface]
-        protected ErrorBase(ISettings settings, INpp nppHelper, Plugin plugin, string workspaceRoot, ILineVisibilityObserver lineVisibilityObserver, double bufferActivationDelay)
+        protected ErrorBase(ISettings settings, INpp nppHelper, Plugin plugin, string workspaceRoot, ILineVisibilityObserver lineVisibilityObserver)
         {
             _settings                                       = settings;
             _nppHelper                                      = nppHelper;
@@ -63,7 +64,6 @@ namespace RTextNppPlugin.Scintilla.Annotations
             _areAnnotationEnabled                           = _settings.Get<bool>(Settings.RTextNppSettings.EnableErrorAnnotations);
             _workspaceRoot                                  = workspaceRoot;
             plugin.BufferActivated                          += OnBufferActivated;
-            _bufferActivatedHandler                         = new DelayedEventHandler<object>(null, bufferActivationDelay);
             plugin.ScintillaFocusChanged                    += OnScintillaFocusChanged;
             _lineVisibilityObserver                         = lineVisibilityObserver;
             _lineVisibilityObserver.OnVisibilityInfoUpdated += OnVisibilityInfoUpdated;
@@ -118,7 +118,6 @@ namespace RTextNppPlugin.Scintilla.Annotations
 
         protected abstract void HideAnnotations(IntPtr scintilla);
 
-        protected abstract object OnBufferActivated(string file);
         #endregion
 
         #endregion
@@ -126,10 +125,7 @@ namespace RTextNppPlugin.Scintilla.Annotations
         #region [Event Handlers]
         protected abstract void OnVisibilityInfoUpdated(VisibilityInfo info);
 
-        public void OnBufferActivated(object source, string file)
-        {
-            _bufferActivatedHandler.TriggerHandler(new ActionWrapper<object, string>(OnBufferActivated, file));
-        }
+        protected abstract void OnBufferActivated(object source, string file);
 
         private void OnScintillaFocusChanged(IntPtr sciPtr, bool hasFocus)
         {

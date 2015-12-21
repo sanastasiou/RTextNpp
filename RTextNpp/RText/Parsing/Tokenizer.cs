@@ -64,7 +64,7 @@ namespace RTextNppPlugin.RText.Parsing
             if (aBufferPosition != -1)
             {
                 int aCurrentLine = nppHelper.GetLineNumber(aBufferPosition);
-                Tokenizer aTokenizer = new Tokenizer(aCurrentLine, nppHelper);
+                Tokenizer aTokenizer = new Tokenizer(aCurrentLine, nppHelper.GetLineStart(aCurrentLine), nppHelper);
                 foreach (var t in aTokenizer.Tokenize())
                 {
                     if (t.BufferPosition <= aBufferPosition && t.EndPosition >= aBufferPosition)
@@ -75,25 +75,26 @@ namespace RTextNppPlugin.RText.Parsing
             }
             return default(Tokenizer.TokenTag);
         }
-        internal Tokenizer(int line, INpp nppHelper)
+        internal Tokenizer(int line, int startPosition, INpp nppHelper)
         {
-            _lineNumber = line;
-            _nppHelper  = nppHelper;
-            _lineText   = new StringBuilder(_nppHelper.GetLine(_lineNumber));
+            _lineNumber    = line;
+            _nppHelper     = nppHelper;
+            _lineText      = new StringBuilder(_nppHelper.GetLine(_lineNumber));
+            _startPosition = startPosition;
         }
 
-        internal Tokenizer(int line, string text, INpp nppHelper)
+        internal Tokenizer(int line, int startPosition, string text, INpp nppHelper)
         {
-            _lineNumber = line;
-            _nppHelper  = nppHelper;
-            _lineText   = new StringBuilder(text);
+            _lineNumber    = line;
+            _nppHelper     = nppHelper;
+            _lineText      = new StringBuilder(text);
+            _startPosition = startPosition;
         }
 
         internal IEnumerable<TokenTag> Tokenize(params RTextTokenTypes[] typesToKeep)
         {
-            int aOffset = _nppHelper.GetLineStart(_lineNumber);
             bool aFirstToken = true;
-            //column in rtext protocol starts at 1
+            //column in RText protocol starts at 1
             int aColumn = 0;
             while (_lineText.Length > 0)
             {
@@ -110,7 +111,7 @@ namespace RTextNppPlugin.RText.Parsing
                                 Context        = aMatch.Value,
                                 StartColumn    = aColumn + aMatch.Index,
                                 EndColumn      = aColumn + aMatch.Length,
-                                BufferPosition = aOffset + aColumn,
+                                BufferPosition = _startPosition + aColumn,
                                 Type           = type
                             };
                             //special case for identifier
@@ -147,7 +148,7 @@ namespace RTextNppPlugin.RText.Parsing
             }
             else
             {
-                //get previous line
+                //get previous line - if Scintilla loses focus we have an endless loop -> stack overflow think of a way to fix this...
                 string aline = _nppHelper.GetLine(--currentLine);
                 if (String.IsNullOrWhiteSpace(aline))
                 {
@@ -163,9 +164,10 @@ namespace RTextNppPlugin.RText.Parsing
         #endregion
 
         #region[Data Members]
-        StringBuilder _lineText          = null; //!< Line to tokenize.
-        readonly int _lineNumber         = 0;    //!< Line number.
-        readonly private INpp _nppHelper = null; //!< Npp helper.
+        private StringBuilder _lineText     = null; //!< Line to tokenize.
+        private readonly int _lineNumber    = 0;    //!< Line number.
+        private readonly INpp _nppHelper    = null; //!< Npp helper.
+        private readonly int _startPosition = 0;    //!< Starting position.
         #endregion
     }
 }

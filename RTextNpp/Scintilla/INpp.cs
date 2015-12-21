@@ -53,7 +53,7 @@ namespace RTextNppPlugin.Scintilla
         
         void DeleteRange(int position, int length);
 
-        System.Drawing.Point[] FindIndicatorRanges(int indicator);
+        IList<Tuple<int, int>> FindIndicatorRanges(int indicator, IntPtr sciPtr);
        
         int GetCaretLineNumber();
         
@@ -120,7 +120,7 @@ namespace RTextNppPlugin.Scintilla
         
         void OpenFile(string file);
         
-        void PlaceIndicator(IntPtr sciPtr, int indicator, int startPos, int length);
+        void PlaceIndicator(IntPtr sciPtr, int startPos, int length);
         
         unsafe void ReplaceWordFromToken(Tokenizer.TokenTag? token, string insertionText);
         
@@ -213,5 +213,9 @@ namespace RTextNppPlugin.Scintilla
         IntPtr SendMessage(IntPtr hWnd, SciMsg msg, IntPtr wParam = default(IntPtr), IntPtr lParam = default(IntPtr));
 
         IntPtr SendMessage(IntPtr hWnd, NppMsg msg, IntPtr wParam = default(IntPtr), IntPtr lParam = default(IntPtr));
+
+        int IndicatorStart(IntPtr sciPtr, int indicator, int testPosition);
+
+        int IndicatorEnd(IntPtr sciPtr, int indicator, int testPosition);
     }
 }

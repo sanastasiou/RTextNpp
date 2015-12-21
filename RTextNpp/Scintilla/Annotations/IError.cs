@@ -12,8 +12,6 @@ namespace RTextNppPlugin.Scintilla.Annotations
     {
         void OnSettingChanged(object source, Settings.SettingChangedEventArgs e);
 
-        void OnBufferActivated(object source, string file);
-
         void Refresh();
 
         IList<ErrorListViewModel> ErrorList { get; set; }

@@ -5,7 +5,7 @@ namespace RTextNppPlugin.RText.Parsing
     using RTextNppPlugin.Scintilla;
     using Utilities;
     /**
-     * \brief   An automatic completion tokenizer. This class finds the token for which autocompletion is invoked.
+     * \brief   An automatic completion tokenizer. This class finds the token for which auto-completion is invoked.
      */
     internal class AutoCompletionTokenizer : Tokenizer
     {
@@ -16,8 +16,8 @@ namespace RTextNppPlugin.RText.Parsing
          * \param   currentCaretPosition    The current caret position.
          * \param   nppHelper               The npp helper which provides access to npp buffer information.
          */
-        internal AutoCompletionTokenizer(int line, int currentCaretPosition, INpp nppHelper)
-            : base(line, nppHelper)
+        internal AutoCompletionTokenizer(int line, int currentCaretPosition, int startPosition, INpp nppHelper)
+            : base(line, startPosition, nppHelper)
         {
             _nppHelper      = nppHelper;
             _currentPos     = currentCaretPosition;
@@ -36,7 +36,7 @@ namespace RTextNppPlugin.RText.Parsing
             }
         }
         /**
-         * Gets the line tokens exluding the trigger point token.
+         * Gets the line tokens excluding the trigger point token.
          *
          * \return  The line tokens except the token of the trigger point.
          */

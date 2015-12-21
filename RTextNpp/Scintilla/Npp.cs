@@ -296,10 +296,9 @@ namespace RTextNppPlugin.Scintilla
             SendMessage(sciPtr, SciMsg.SCI_INDICATORCLEARRANGE,  new IntPtr(startPos),  new IntPtr(length));
         }
         
-        public void PlaceIndicator(IntPtr sciPtr, int indicator, int startPos, int length)
+        public void PlaceIndicator(IntPtr sciPtr, int startPos, int length)
         {
-            SendMessage(sciPtr, SciMsg.SCI_SETINDICATORCURRENT,  new IntPtr(indicator));
-            SendMessage(sciPtr, SciMsg.SCI_INDICATORFILLRANGE,  new IntPtr(startPos),  new IntPtr(length));
+            SendMessage(sciPtr, SciMsg.SCI_INDICATORFILLRANGE, new IntPtr(startPos), new IntPtr(length));
         }
         
         public string GetConfigDir()
@@ -309,10 +308,9 @@ namespace RTextNppPlugin.Scintilla
             return buffer.ToString();
         }
         
-        public Point[] FindIndicatorRanges(int indicator)
+        public IList<Tuple<int, int>> FindIndicatorRanges(int indicator, IntPtr sciPtr)
         {
-            var ranges       = new List<Point>();
-            IntPtr sci       = CurrentScintilla;
+            var ranges       = new List<Tuple<int, int>>();
             int testPosition = 0;
             while (true)
             {
@@ -323,12 +321,12 @@ namespace RTextNppPlugin.Scintilla
                 //probe for 0 : 0..4
                 //probe for 4 : 4..6
                 //probe for 6 : 4..10
-                int rangeStart = SendMessage(sci, SciMsg.SCI_INDICATORSTART, new IntPtr(indicator), new IntPtr(testPosition)).ToInt32();
-                int rangeEnd   = SendMessage(sci, SciMsg.SCI_INDICATOREND, new IntPtr(indicator), new IntPtr(testPosition)).ToInt32();
-                int value      = SendMessage(sci, SciMsg.SCI_INDICATORVALUEAT, new IntPtr(indicator), new IntPtr(testPosition)).ToInt32();
+                int rangeStart = SendMessage(sciPtr, SciMsg.SCI_INDICATORSTART, new IntPtr(indicator), new IntPtr(testPosition)).ToInt32();
+                int rangeEnd   = SendMessage(sciPtr, SciMsg.SCI_INDICATOREND, new IntPtr(indicator), new IntPtr(testPosition)).ToInt32();
+                int value      = SendMessage(sciPtr, SciMsg.SCI_INDICATORVALUEAT, new IntPtr(indicator), new IntPtr(testPosition)).ToInt32();
                 if (value == 1) //indicator is present
                 {
-                    ranges.Add(new Point(rangeStart, rangeEnd));
+                    ranges.Add(new Tuple<int, int>(rangeStart, rangeEnd));
                 }
                 if (testPosition == rangeEnd)
                 {
@@ -336,7 +334,18 @@ namespace RTextNppPlugin.Scintilla
                 }
                 testPosition = rangeEnd;
             }
-            return ranges.ToArray();
+            return ranges;
+        }
+
+        public int IndicatorStart(IntPtr sciPtr, int indicator, int testPosition)
+        {
+            return SendMessage(sciPtr, SciMsg.SCI_INDICATORSTART, new IntPtr(indicator), new IntPtr(testPosition)).ToInt32();
+            
+        }
+
+        public int IndicatorEnd(IntPtr sciPtr, int indicator, int testPosition)
+        {
+            return SendMessage(sciPtr, SciMsg.SCI_INDICATOREND, new IntPtr(indicator), new IntPtr(testPosition)).ToInt32();
         }
         
         public string GetLine(int line)
@@ -856,8 +865,8 @@ namespace RTextNppPlugin.Scintilla
         public IntPtr SendMessage(IntPtr hWnd, SciMsg msg, IntPtr wParam = default(IntPtr), IntPtr lParam = default(IntPtr))
         {
             //get native pointer
-            IntPtr nativePtr = (hWnd == MainScintilla) ? _scintillaMainNativePtr : _scintillaSubNativePtr;
-            return _directFunction(nativePtr, (int)msg, wParam, lParam);
+            //IntPtr nativePtr = (hWnd == MainScintilla) ? _scintillaMainNativePtr : _scintillaSubNativePtr;
+            return _nativeHelpers.ISendMessage(hWnd, (int)msg, wParam, lParam);
         }
 
         public IntPtr SendMessage(IntPtr hWnd, NppMsg msg, IntPtr wParam = default(IntPtr), IntPtr lParam = default(IntPtr))

@@ -15,7 +15,7 @@ namespace RTextNppPlugin.Scintilla.Annotations
 
         #region [Interface]
         internal AnnotationManager(ISettings settings, INpp nppHelper, Plugin plugin, string workspaceRoot,  ILineVisibilityObserver lineVisibilityObserver, double updateDelay = Constants.Scintilla.ANNOTATIONS_UPDATE_DELAY) :
-            base(settings, nppHelper, plugin, workspaceRoot, lineVisibilityObserver, updateDelay)
+            base(settings, nppHelper, plugin, workspaceRoot, lineVisibilityObserver)
         {
             _areAnnotationEnabled = _settings.Get<bool>(Settings.RTextNppSettings.EnableErrorAnnotations);
         }
@@ -58,7 +58,7 @@ namespace RTextNppPlugin.Scintilla.Annotations
 
         #region [Helpers]
 
-        protected override object OnBufferActivated(string file)
+        protected override void OnBufferActivated(object source, string file)
         {
             PreProcessOnBufferActivatedEvent();
             if(!Utilities.FileUtilities.IsRTextFile(file, _settings, _nppHelper))
@@ -76,7 +76,6 @@ namespace RTextNppPlugin.Scintilla.Annotations
                     _lastSubViewAnnotatedFile = string.Empty;
                 }
             }
-            return null;
         }
 
         private void ShowAnnotations(IntPtr scintilla)

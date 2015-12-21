@@ -525,6 +525,7 @@ namespace RTextNppPlugin.ViewModels
         {
             int aCurrentPosition = Npp.Instance.GetCaretPosition();
             int aLineNumber      = Npp.Instance.GetLineNumber();
+            int startPos         = Npp.Instance.GetLineStart(aLineNumber);
             if(!_triggerToken.HasValue)
             {
                 CharProcessAction = CharProcessResult.ForceClose;
@@ -536,7 +537,7 @@ namespace RTextNppPlugin.ViewModels
             if (char.IsWhiteSpace(c) && (wasEmpty || t.Type == RTextTokenTypes.Comma ))
             {
                 CharProcessAction = CharProcessResult.MoveToRight;
-                AutoCompletionTokenizer aTokenizer = new AutoCompletionTokenizer(aLineNumber, aCurrentPosition, Npp.Instance);
+                AutoCompletionTokenizer aTokenizer = new AutoCompletionTokenizer(aLineNumber, startPos, aCurrentPosition, Npp.Instance);
                 TriggerPoint = aTokenizer.TriggerToken;
                 return;
             }
@@ -547,7 +548,7 @@ namespace RTextNppPlugin.ViewModels
             }
             if (aCurrentPosition >= 0)
             {
-                AutoCompletionTokenizer aTokenizer = new AutoCompletionTokenizer(aLineNumber, aCurrentPosition, Npp.Instance);
+                AutoCompletionTokenizer aTokenizer = new AutoCompletionTokenizer(aLineNumber, startPos, aCurrentPosition, Npp.Instance);
                 TriggerPoint = aTokenizer.TriggerToken;
                 if (!TriggerPoint.HasValue)
                 {

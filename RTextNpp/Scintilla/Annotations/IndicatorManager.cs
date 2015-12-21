@@ -42,7 +42,7 @@ namespace RTextNppPlugin.Scintilla.Annotations
 
         #region [Interface]
         internal IndicatorManager(ISettings settings, INpp nppHelper, Plugin plugin, string workspaceRoot, ILineVisibilityObserver lineVisibilityObserver, double updateDelay = Constants.Scintilla.ANNOTATIONS_UPDATE_DELAY) :
-            base(settings, nppHelper, plugin, workspaceRoot, lineVisibilityObserver, updateDelay)
+            base(settings, nppHelper, plugin, workspaceRoot, lineVisibilityObserver)
         {
             _areAnnotationEnabled = _settings.Get<bool>(Settings.RTextNppSettings.EnableErrorSquiggleLines);
 
@@ -52,11 +52,12 @@ namespace RTextNppPlugin.Scintilla.Annotations
             _nppHelper.SetIndicatorStyle(_nppHelper.MainScintilla, INDICATOR_INDEX, SciMsg.INDIC_SQUIGGLE, Color.Red);
             _nppHelper.SetIndicatorStyle(_nppHelper.SecondaryScintilla, INDICATOR_INDEX, SciMsg.INDIC_SQUIGGLE, Color.Red);
 
-            plugin.ScintillaUiPainted += OnScintillaUiPainted;
+            plugin.ScintillaUiUpdated += OnScintillaUiUpdated;
         }
 
-        void OnScintillaUiPainted()
+        private void OnScintillaUiUpdated(SCNotification notification)
         {
+
         }
 
         public override void OnSettingChanged(object source, Utilities.Settings.Settings.SettingChangedEventArgs e)
@@ -76,7 +77,7 @@ namespace RTextNppPlugin.Scintilla.Annotations
             }
             if(disposing)
             {
-                Plugin.Instance.ScintillaUiPainted -= OnScintillaUiPainted;
+                Plugin.Instance.ScintillaUiUpdated -= OnScintillaUiUpdated;
             }
             base.Dispose(disposing);
 
@@ -94,12 +95,41 @@ namespace RTextNppPlugin.Scintilla.Annotations
         protected override void OnVisibilityInfoUpdated(VisibilityInfo info)
         {
             _currentVisibilityInfo = info;
-            if (IsWorkspaceFile(info.File))// && _nppHelper.FindScintillaFromFilepath(info.File) == info.ScintillaHandle)
+            if (IsWorkspaceFile(info.File) && _nppHelper.FindScintillaFromFilepath(info.File) == info.ScintillaHandle)
             {
+                //stop any running task
                 //update current annotations - if current file belongs in workspace and editor is focused
                 PlaceIndicatorsRanges(info.ScintillaHandle);
             }
         }
+
+        #region [Properties]
+
+        /**
+         * \brief   Gets or sets a list of errors.
+         *
+         * \return  A List of errors.
+         * \remarks Override this property. Error matching should not run again if errors aren't updated.
+         */
+
+        new public IList<ErrorListViewModel> ErrorList
+        {
+            get
+            {
+                return _currentErrors;
+            }
+            set
+            {
+                if (value != null)
+                {
+                    _currentErrors       = new List<ErrorListViewModel>(value);
+                    _indicatorRangesMain = null;
+                    _indicatorRangesSub  = null;
+                }
+            }
+        }
+        #endregion
+
 
         #endregion
 
@@ -109,7 +139,7 @@ namespace RTextNppPlugin.Scintilla.Annotations
 
         #region [Helpers]
 
-        protected override object OnBufferActivated(string file)
+        protected override void OnBufferActivated(object source, string file)
         {
             PreProcessOnBufferActivatedEvent();
             if (!Utilities.FileUtilities.IsRTextFile(file, _settings, _nppHelper) || (ErrorList == null && IsWorkspaceFile(file)))
@@ -128,7 +158,6 @@ namespace RTextNppPlugin.Scintilla.Annotations
                     _lastSubViewAnnotatedFile = string.Empty;
                 }
             }
-            return null;
         }
 
         protected override void HideAnnotations(IntPtr scintilla)
@@ -141,6 +170,7 @@ namespace RTextNppPlugin.Scintilla.Annotations
             {
                 if (IsWorkspaceFile(openFiles[docIndex]))
                 {
+                    //needs massive optimization
                     _nppHelper.ClearAllIndicators(scintilla, INDICATOR_INDEX);
                 }
             }
@@ -153,59 +183,68 @@ namespace RTextNppPlugin.Scintilla.Annotations
                 //cancel any pending task
                 var task = GetDrawingTask(sciPtr);
                 var cts  = GetCts(sciPtr);
-                //takes too long..
-                HideAnnotations(sciPtr);
-                if(task != null && !task.IsCompleted)
+                if(task != null && !task.IsCanceled)
                 {
                     cts.Cancel();
                     task.Wait();
                 }
+                HideAnnotations(sciPtr);
                 //start new task
                 var newCts = new CancellationTokenSource();
                 var newTask = Task<IEnumerable<Tuple<int,int,int>>>.Factory.StartNew( () =>
                 {
-                    ConcurrentBag<Tuple<int, int, int>> indicatorRanges = new ConcurrentBag<Tuple<int, int, int>>();
+                    ConcurrentBag<Tuple<int, int, int>> indicatorRanges = GetIndicatorRanges(sciPtr);
                     if (errors != null)
                     {
-                        var aErrorGroupByLines = errors.ErrorList.GroupBy(y => y.Line).AsParallel();
-                        Parallel.ForEach(aErrorGroupByLines, (aErrorGroup) =>
+                        if (GetIndicatorRanges(sciPtr) == null)
                         {
-                            if(newCts.Token.IsCancellationRequested)
+                            indicatorRanges = new ConcurrentBag<Tuple<int, int, int>>();
+                            var aErrorGroupByLines = errors.ErrorList.GroupBy(y => y.Line).AsParallel();
+                            Parallel.ForEach(aErrorGroupByLines, new ParallelOptions { MaxDegreeOfParallelism = 4}, (aErrorGroup) =>
                             {
-                                return;
-                            }
-                            //do the heavy work here, tokenize line and try to find perfect matches in the errors - if no perfect match can be found highlight whole line
-                            var line              = aErrorGroup.First().Line - 1;
-                            Tokenizer tokenizer   = new Tokenizer(line, _nppHelper.GetLine(line, sciPtr), _nppHelper);
-                            bool aIsAnyMatchFound = false;
-                            foreach (var t in tokenizer.Tokenize(ERROR_TOKEN_TYPES))
-                            {
-                                //if t is contained exactly in any of the errors, mark it as indicator
-                                var matches = from m in aErrorGroup
-                                              where m.Message.Contains(t.Context)
-                                              select m;
-                                if(matches.Count() > 0)
+                                if (newCts.Token.IsCancellationRequested)
                                 {
-                                    indicatorRanges.Add(new Tuple<int, int, int>(t.BufferPosition, t.Context.Length, line));
-                                    aIsAnyMatchFound = true;
+                                    return;
                                 }
-                            }
-                            if(!aIsAnyMatchFound)
-                            {
-                                //highlight whole line
-                            }
-                        });
+                                //do the heavy work here, tokenize line and try to find perfect matches in the errors - if no perfect match can be found highlight whole line
+                                var line = aErrorGroup.First().Line - 1;
+                                Tokenizer tokenizer = new Tokenizer(line, _nppHelper.GetLineStart(line), _nppHelper.GetLine(line, sciPtr), _nppHelper);
+                                bool aIsAnyMatchFound = false;
+                                foreach (var t in tokenizer.Tokenize(ERROR_TOKEN_TYPES))
+                                {
+                                    if (newCts.Token.IsCancellationRequested)
+                                    {
+                                        return;
+                                    }
+                                    //if t is contained exactly in any of the errors, mark it as indicator
+                                    var matches = from m in aErrorGroup
+                                                  where m.Message.Contains(t.Context)
+                                                  select m;
+                                    if (matches.Count() > 0)
+                                    {
+                                        indicatorRanges.Add(new Tuple<int, int, int>(t.BufferPosition, t.Context.Length, line));
+                                        aIsAnyMatchFound = true;
+                                    }
+                                }
+                                if (!aIsAnyMatchFound)
+                                {
+                                    //highlight whole line
+                                }
+                            });
+                        }
                     }
-                    SetIndicatorsRanges(sciPtr, ref indicatorRanges);
+                    SetIndicatorsRanges(sciPtr, indicatorRanges);
+                    //set a flag so that this step is not performed again if error list isn't updated
                     return indicatorRanges;
                 }, newCts.Token);
 
-                newTask.ContinueWith((x) => {
-                    PlaceIndicatorsRanges(sciPtr);
-                }, TaskContinuationOptions.OnlyOnRanToCompletion);
-
                 SetCts(sciPtr, newCts);
-                SetDrawingTask(sciPtr, newTask);
+
+                SetDrawingTask(sciPtr, newTask.ContinueWith((x) =>
+                {
+                    PlaceIndicatorsRanges(sciPtr);
+                }, newCts.Token, TaskContinuationOptions.OnlyOnRanToCompletion, TaskScheduler.Current));
+
             }
             catch (Exception)
             {
@@ -249,14 +288,14 @@ namespace RTextNppPlugin.Scintilla.Annotations
             _subSciCts = cts;
         }
 
-        private void SetIndicatorsRanges(IntPtr sciPtr, ref ConcurrentBag<Tuple<int, int, int>> bag)
+        private void SetIndicatorsRanges(IntPtr sciPtr, ConcurrentBag<Tuple<int, int, int>> bag)
         {
             if (sciPtr == _nppHelper.MainScintilla)
             {
-                _indicatorRangesMain = new ConcurrentBag<Tuple<int, int, int>>(bag);
+                _indicatorRangesMain = (bag == null) ? null : new ConcurrentBag<Tuple<int, int, int>>(bag);
                 return;
             }
-            _indicatorRangesSub = new ConcurrentBag<Tuple<int, int, int>>(bag);
+            _indicatorRangesSub = (bag == null) ? null : new ConcurrentBag<Tuple<int, int, int>>(bag);
         }
 
         private ConcurrentBag<Tuple<int, int, int>> GetIndicatorRanges(IntPtr sciPtr)
@@ -280,26 +319,23 @@ namespace RTextNppPlugin.Scintilla.Annotations
                                     where range.Item3 >= _currentVisibilityInfo.FirstLine && range.Item3 <= _currentVisibilityInfo.LastLine
                                     select range;
 
-                foreach (var range in visibleRanges)
+                var ranges = visibleRanges.OrderBy(x => x.Item3).ToArray();
+                
+                for (int i = 0; i < ranges.Count(); ++i)
                 {
-                    _nppHelper.PlaceIndicator(sciPtr, INDICATOR_INDEX, range.Item1, range.Item2);
+                    _nppHelper.SetCurrentIndicator(sciPtr, INDICATOR_INDEX);
+                    _nppHelper.PlaceIndicator(sciPtr, ranges[i].Item1, ranges[i].Item2);
+                    //ensure indicator is placed by reading it - if not stay on same indicator
+                    int indicatorRangeStart = _nppHelper.IndicatorStart(sciPtr, INDICATOR_INDEX, ranges[i].Item1);
+                    int indicatorRangeEnd   = _nppHelper.IndicatorEnd(sciPtr, INDICATOR_INDEX, ranges[i].Item1);
+
+                    if(ranges[i].Item1 != indicatorRangeStart || indicatorRangeEnd != (ranges[i].Item1 + ranges[i].Item2))
+                    {
+                        --i;
+                    }
                 }
             }
         }
-
-        //
-        //private void ClearIndicators(IntPtr sciPtr)
-        //{
-        //    var ranges = GetIndicatorRanges(sciPtr);
-        //
-        //    if (ranges != null)
-        //    {
-        //        foreach (var range in ranges)
-        //        {
-        //            _nppHelper.ClearIndicator(sciPtr, INDICATOR_INDEX, range.Item1, range.Item2);
-        //        }
-        //    }
-        //}
 
         #endregion    
     }
