@@ -63,6 +63,7 @@ namespace RTextNppPlugin.Scintilla.Annotations
             {
                 cts.Cancel();
                 SetIndicatorsRanges(sciPtr, null);
+                ResetLastAnnotatedFile(sciPtr);
             }
         }
 
@@ -166,15 +167,12 @@ namespace RTextNppPlugin.Scintilla.Annotations
 
         protected override void HideAnnotations(IntPtr scintilla)
         {
-            //takes too long for large files -> makes it async use same task as drawing
-
             var openFiles = _nppHelper.GetOpenFiles(scintilla);
             var docIndex  = _nppHelper.CurrentDocIndex(scintilla);
             if (docIndex != Constants.Scintilla.VIEW_NOT_ACTIVE && Utilities.FileUtilities.IsRTextFile(openFiles[docIndex], _settings, _nppHelper))
             {
                 if (IsWorkspaceFile(openFiles[docIndex]))
                 {
-                    //needs massive optimization
                     _nppHelper.ClearAllIndicators(scintilla, INDICATOR_INDEX);
                 }
             }
@@ -191,6 +189,7 @@ namespace RTextNppPlugin.Scintilla.Annotations
                 {
                     cts.Cancel();
                     SetIndicatorsRanges(sciPtr, null);
+                    ResetLastAnnotatedFile(sciPtr);
                 }
                 HideAnnotations(sciPtr);
                 //only grab focus - if this sciPtr has currently focus
@@ -214,6 +213,7 @@ namespace RTextNppPlugin.Scintilla.Annotations
                                 if (newCts.Token.IsCancellationRequested || !HasFocus(sciPtr))
                                 {
                                     indicatorRanges = null;
+                                    ResetLastAnnotatedFile(sciPtr);
                                     return;
                                 }
                                 //do the heavy work here, tokenize line and try to find perfect matches in the errors - if no perfect match can be found highlight whole line
@@ -228,6 +228,7 @@ namespace RTextNppPlugin.Scintilla.Annotations
                                     if (newCts.Token.IsCancellationRequested || !HasFocus(sciPtr))
                                     {
                                         indicatorRanges = null;
+                                        ResetLastAnnotatedFile(sciPtr);
                                         return;
                                     }
                                     //if t is contained exactly in any of the errors, mark it as indicator
@@ -360,6 +361,16 @@ namespace RTextNppPlugin.Scintilla.Annotations
                 return Plugin.Instance.HasMainSciFocus;
             }
             return Plugin.Instance.HasSecondSciFocus;
+        }
+
+        private void ResetLastAnnotatedFile(IntPtr sciPtr)
+        {
+            if(sciPtr == _nppHelper.MainScintilla)
+            {
+                _lastMainViewAnnotatedFile = string.Empty;
+                return;
+            }
+            _lastSubViewAnnotatedFile = string.Empty;
         }
 
         #endregion    
