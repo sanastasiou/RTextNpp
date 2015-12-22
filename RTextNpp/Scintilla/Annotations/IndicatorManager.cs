@@ -73,6 +73,12 @@ namespace RTextNppPlugin.Scintilla.Annotations
             {
                 _areAnnotationEnabled = _settings.Get<bool>(Settings.RTextNppSettings.EnableErrorSquiggleLines);
                 ProcessSettingChanged();
+                if(!_areAnnotationEnabled)
+                {
+                    //clear cache
+                    _indicatorRangesMain = null;
+                    _indicatorRangesSub  = null;
+                }
             }
         }
 
@@ -132,7 +138,9 @@ namespace RTextNppPlugin.Scintilla.Annotations
          */
         protected override void OnVisibilityInfoUpdated(VisibilityInfo info)
         {
-            _currentVisibilityInfo = info;
+            info.LastLine += 1;
+            info.FirstLine = info.FirstLine > 0 ? --info.FirstLine : info.FirstLine;
+            SetVisibilityInfo(info);
             if (IsWorkspaceFile(info.File) && _nppHelper.FindScintillaFromFilepath(info.File) == info.ScintillaHandle)
             {
                 //stop any running task
@@ -322,13 +330,14 @@ namespace RTextNppPlugin.Scintilla.Annotations
         private void PlaceIndicatorsRanges(IntPtr sciPtr)
         {
             var aIndicatorRanges = GetIndicatorRanges(sciPtr);
+            var aVisibilityInfo  = GetVisibilityInfo(sciPtr);
             if (aIndicatorRanges != null)
             {
                 _nppHelper.SetIndicatorStyle(sciPtr, INDICATOR_INDEX, SciMsg.INDIC_SQUIGGLE, Color.Red);
                 _nppHelper.SetCurrentIndicator(sciPtr, INDICATOR_INDEX);
                 //get only ranges which belong to visible lines
                 var visibleRanges = from range in aIndicatorRanges
-                                    where range.Item3 >= _currentVisibilityInfo.FirstLine && range.Item3 <= _currentVisibilityInfo.LastLine
+                                    where range.Item3 >= aVisibilityInfo.FirstLine && range.Item3 <= aVisibilityInfo.LastLine
                                     select range;
 
                 var ranges = visibleRanges.OrderBy(x => x.Item3).ToArray();

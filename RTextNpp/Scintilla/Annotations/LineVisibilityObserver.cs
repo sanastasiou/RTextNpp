@@ -17,9 +17,10 @@ namespace RTextNppPlugin.Scintilla.Annotations
     internal class LineVisibilityObserver : IDisposable, ILineVisibilityObserver
     {
         #region [Data Members]
-        private INpp _nppHelper                       = null;
-        private bool _disposed                        = false;
-        private VisibilityInfo _currentVisibilityInfo = null;
+        private INpp _nppHelper                    = null;
+        private bool _disposed                     = false;
+        private VisibilityInfo _mainVisibilityInfo = null;
+        private VisibilityInfo _subVisibilityInfo  = null;
         #endregion
 
         #region [Events]
@@ -29,24 +30,42 @@ namespace RTextNppPlugin.Scintilla.Annotations
         #region [Interface]
         internal LineVisibilityObserver(INpp nppHelper, Plugin plugin)
         {
-            _nppHelper                   = nppHelper;
-            plugin.BufferActivated       += OnBufferActivated;
-            plugin.ScintillaFocusChanged += OnScintillaFocusChanged;
-            plugin.ScintillaUiUpdated    += OnScintillaUiUpdated;
+            _nppHelper                = nppHelper;
+            plugin.BufferActivated    += OnBufferActivated;
+            plugin.ScintillaUiUpdated += OnScintillaUiUpdated;
         }
 
         #region [ILineVisibilityObserver Members]
-        public VisibilityInfo VisibilityInfo
+        public VisibilityInfo MainVisibilityInfo
         {
             get
             {
-                return _currentVisibilityInfo;
+                return _mainVisibilityInfo;
             }
             private set
             {
-                if (value != _currentVisibilityInfo)
+                if (value != _mainVisibilityInfo)
                 {
-                    _currentVisibilityInfo = value;
+                    _mainVisibilityInfo = value;
+                    if (OnVisibilityInfoUpdated != null)
+                    {
+                        OnVisibilityInfoUpdated(value);
+                    }
+                }
+            }
+        }
+
+        public VisibilityInfo SubVisibilityInfo
+        {
+            get
+            {
+                return _subVisibilityInfo;
+            }
+            private set
+            {
+                if (value != _subVisibilityInfo)
+                {
+                    _subVisibilityInfo = value;
                     if (OnVisibilityInfoUpdated != null)
                     {
                         OnVisibilityInfoUpdated(value);
@@ -66,9 +85,8 @@ namespace RTextNppPlugin.Scintilla.Annotations
             }
             if (disposing)
             {
-                Plugin.Instance.BufferActivated       -= OnBufferActivated;
-                Plugin.Instance.ScintillaFocusChanged -= OnScintillaFocusChanged;
-                Plugin.Instance.ScintillaUiUpdated    -= OnScintillaUiUpdated;
+                Plugin.Instance.BufferActivated    -= OnBufferActivated;
+                Plugin.Instance.ScintillaUiUpdated -= OnScintillaUiUpdated;
             }
             _disposed = true;
         }
@@ -90,39 +108,41 @@ namespace RTextNppPlugin.Scintilla.Annotations
             //find activated buffer
 
 
-            VisibilityInfo = new VisibilityInfo
+            UpdateVisibilityInfo(new VisibilityInfo
             {
                 File            = _nppHelper.GetActiveFile(notification.nmhdr.hwndFrom),
                 ScintillaHandle = notification.nmhdr.hwndFrom,
                 FirstLine       = _nppHelper.GetFirstVisibleLine(notification.nmhdr.hwndFrom),
                 LastLine        = _nppHelper.GetLastVisibleLine(notification.nmhdr.hwndFrom)
-            };
+            });
         }
 
         void OnBufferActivated(object source, string file)
         {
             var sciPtr = _nppHelper.FindScintillaFromFilepath(file);
-            VisibilityInfo = new VisibilityInfo
+            UpdateVisibilityInfo( new VisibilityInfo
             {
                 File            = file,
                 ScintillaHandle = sciPtr,
                 FirstLine       = _nppHelper.GetFirstVisibleLine(sciPtr),
                 LastLine        = _nppHelper.GetLastVisibleLine(sciPtr)
-            };
-        }
-
-        void OnScintillaFocusChanged(IntPtr sciPtr, bool hasFocus)
-        {
-            //if(hasFocus)
-            //{
-            //    _focusedEditor = sciPtr;
-            //}
+            });
         }
 
         #endregion
 
         #region [Helpers]
-
+        void UpdateVisibilityInfo(VisibilityInfo info)
+        {
+            if(info.ScintillaHandle == _nppHelper.MainScintilla)
+            {
+                MainVisibilityInfo = info;
+            }
+            else
+            {
+                SubVisibilityInfo = info;
+            }
+        }
         #endregion
     }
 }

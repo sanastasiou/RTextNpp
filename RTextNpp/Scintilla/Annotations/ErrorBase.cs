@@ -25,7 +25,8 @@ namespace RTextNppPlugin.Scintilla.Annotations
         private bool _hasMainScintillaFocus                         = true;
         private bool _hasSecondScintillaFocus                       = true;
         protected ILineVisibilityObserver _lineVisibilityObserver   = null;
-        protected VisibilityInfo _currentVisibilityInfo             = null;
+        protected VisibilityInfo _mainVisibilityInfo                = null;
+        protected VisibilityInfo _subVisibilityInfo                 = null;
 
         protected enum UpdateAction
         {
@@ -67,7 +68,8 @@ namespace RTextNppPlugin.Scintilla.Annotations
             plugin.ScintillaFocusChanged                    += OnScintillaFocusChanged;
             _lineVisibilityObserver                         = lineVisibilityObserver;
             _lineVisibilityObserver.OnVisibilityInfoUpdated += OnVisibilityInfoUpdated;
-            _currentVisibilityInfo                          = plugin.CurrentVisibilityInfo;
+            _mainVisibilityInfo                             = plugin.MainVisibilityInfo;
+            _subVisibilityInfo                              = plugin.SubVisibilityInfo;
         }
 
         // Protected implementation of Dispose pattern.
@@ -270,6 +272,25 @@ namespace RTextNppPlugin.Scintilla.Annotations
         protected bool IsWorkspaceFile(string file)
         {
             return (Utilities.FileUtilities.FindWorkspaceRoot(file) + Path.GetExtension(file)).Equals(_workspaceRoot);
+        }
+
+        protected VisibilityInfo GetVisibilityInfo(IntPtr sciPtr)
+        {
+            if(sciPtr == _nppHelper.MainScintilla)
+            {
+                return _mainVisibilityInfo;
+            }
+            return _subVisibilityInfo;
+        }
+
+        protected void SetVisibilityInfo(VisibilityInfo info)
+        {
+            if(info.ScintillaHandle == _nppHelper.MainScintilla)
+            {
+                _mainVisibilityInfo = info;
+                return;
+            }
+            _subVisibilityInfo = info;
         }
         #endregion
     }

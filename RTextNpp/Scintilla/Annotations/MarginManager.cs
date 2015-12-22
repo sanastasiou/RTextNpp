@@ -98,8 +98,9 @@ namespace RTextNppPlugin.Scintilla.Annotations
 
         protected override void OnVisibilityInfoUpdated(VisibilityInfo info)
         {
-            _currentVisibilityInfo = info;
+            SetVisibilityInfo(info);
             //update current annotations
+            
         }
 
         #endregion
@@ -192,23 +193,7 @@ namespace RTextNppPlugin.Scintilla.Annotations
             HideAnnotations(sciPtr);
             try
             {
-                if (errors != null && GetMarginLength(sciPtr) != 0 && _areAnnotationEnabled)
-                {
-                    int maxCharLenghtForMargin = 0;
-                    var aErrorGroupByLines = errors.ErrorList.GroupBy(y => y.Line);
-                    foreach (var errorGroup in aErrorGroupByLines)
-                    {
-                        _nppHelper.SetMarginStyle(sciPtr, errorGroup.First().LineForScintilla, (int)ConvertSeverityToStyleId(errorGroup.First().Severity));
-                        _nppHelper.SetMarginText(sciPtr, errorGroup.First().LineForScintilla, errorGroup.First().Severity.ToString());
-                        int aDescriptionLength = errorGroup.First().Severity.ToString().Length;
-                        if(aDescriptionLength > maxCharLenghtForMargin)
-                        {
-                            maxCharLenghtForMargin = aDescriptionLength;
-                        }
-                    }
-                    SetMaxCharLength(sciPtr, maxCharLenghtForMargin);
-                    ShowAnnotations(sciPtr, maxCharLenghtForMargin);
-                }
+                PlaceIndicatorsRanges(sciPtr);
             }
             catch (Exception)
             {
@@ -269,6 +254,40 @@ namespace RTextNppPlugin.Scintilla.Annotations
                     {
                         _nppHelper.SetStyleBackground(_nppHelper.SecondaryScintilla, (int)i, _lineNumberStyleBackground);
                     }
+                }
+            }
+        }
+
+        private void PlaceIndicatorsRanges(IntPtr sciPtr)
+        {
+            var aActiveFile     = _nppHelper.GetActiveFile(sciPtr).Replace("\\\\", "/");
+            var aVisibilityInfo = GetVisibilityInfo(sciPtr);
+            if (ErrorList != null && ErrorList.Count != 0)
+            {
+                var aFileErrorList = (from lists in ErrorList
+                                     where lists.FilePath.Equals(aActiveFile, StringComparison.InvariantCultureIgnoreCase)
+                                     select lists).FirstOrDefault();
+                if (aFileErrorList != null)
+                {
+                    //get only error margins which belong to visible lines
+                    var aVisibleMargins = from error in aFileErrorList.ErrorList
+                                         where error.Line >= aVisibilityInfo.FirstLine && error.Line <= aVisibilityInfo.LastLine
+                                         select error;
+
+                    var aRanges = aVisibleMargins.OrderBy(x => x.Line).GroupBy( x=> x.Line).ToArray();
+                    int maxCharLenghtForMargin = 0;
+                    for (int i = 0; i < aRanges.Count(); ++i)
+                    {
+                        _nppHelper.SetMarginStyle(sciPtr, aRanges[i].First().LineForScintilla, (int)ConvertSeverityToStyleId(aRanges[i].First().Severity));
+                        _nppHelper.SetMarginText(sciPtr, aRanges[i].First().LineForScintilla, aRanges[i].First().Severity.ToString());
+                        int aDescriptionLength = aRanges[i].First().Severity.ToString().Length;
+                        if(aDescriptionLength > maxCharLenghtForMargin)
+                        {
+                            maxCharLenghtForMargin = aDescriptionLength;
+                        }
+                    }
+                    SetMaxCharLength(sciPtr, maxCharLenghtForMargin);
+                    ShowAnnotations(sciPtr, maxCharLenghtForMargin);
                 }
             }
         }

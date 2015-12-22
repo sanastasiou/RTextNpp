@@ -75,7 +75,9 @@ namespace RTextNppPlugin.Scintilla.Annotations
 
     interface ILineVisibilityObserver
     {
-        VisibilityInfo VisibilityInfo { get; }
+        VisibilityInfo MainVisibilityInfo { get; }
+
+        VisibilityInfo SubVisibilityInfo { get; }
 
         event VisibilityInfoUpdated OnVisibilityInfoUpdated;
     }

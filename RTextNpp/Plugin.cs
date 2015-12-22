@@ -366,11 +366,19 @@ namespace RTextNppPlugin
             }
         }
 
-        public VisibilityInfo CurrentVisibilityInfo
+        public VisibilityInfo MainVisibilityInfo
         {
             get
             {
-                return _linesVisibilityObserver.VisibilityInfo;
+                return _linesVisibilityObserver.MainVisibilityInfo;
+            }
+        }
+
+        public VisibilityInfo SubVisibilityInfo
+        {
+            get
+            {
+                return _linesVisibilityObserver.SubVisibilityInfo;
             }
         }
 
