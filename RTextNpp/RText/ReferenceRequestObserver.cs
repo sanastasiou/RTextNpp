@@ -68,7 +68,8 @@ namespace RTextNppPlugin.RText
                     }
                     else
                     {
-                        _refWindow.IssueReferenceLinkRequestCommand(Tokenizer.FindTokenUnderCursor(_nppHelper));
+
+                        _refWindow.IssueReferenceLinkRequestCommand(Tokenizer.FindTokenUnderCursor(_nppHelper, _nppHelper.CurrentScintilla));
                     }
                     Enable(value);
                 }
@@ -158,7 +159,7 @@ namespace RTextNppPlugin.RText
             {
                 if (!_refWindow.IsMouseInsidedWindow())
                 {
-                    var aRefToken = Tokenizer.FindTokenUnderCursor(_nppHelper);
+                    var aRefToken = Tokenizer.FindTokenUnderCursor(_nppHelper, _nppHelper.CurrentScintilla);
                     if (aRefToken.CanTokenHaveReference() && !aRefToken.Equals(_previousReferenceToken))
                     {
                         _refWindow.IssueReferenceLinkRequestCommand(aRefToken);

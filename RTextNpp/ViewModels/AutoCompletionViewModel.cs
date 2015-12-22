@@ -537,7 +537,7 @@ namespace RTextNppPlugin.ViewModels
             if (char.IsWhiteSpace(c) && (wasEmpty || t.Type == RTextTokenTypes.Comma ))
             {
                 CharProcessAction = CharProcessResult.MoveToRight;
-                AutoCompletionTokenizer aTokenizer = new AutoCompletionTokenizer(aLineNumber, startPos, aCurrentPosition, Npp.Instance);
+                AutoCompletionTokenizer aTokenizer = new AutoCompletionTokenizer(aLineNumber, startPos, aCurrentPosition, Npp.Instance, Npp.Instance.CurrentScintilla);
                 TriggerPoint = aTokenizer.TriggerToken;
                 return;
             }
@@ -548,7 +548,7 @@ namespace RTextNppPlugin.ViewModels
             }
             if (aCurrentPosition >= 0)
             {
-                AutoCompletionTokenizer aTokenizer = new AutoCompletionTokenizer(aLineNumber, startPos, aCurrentPosition, Npp.Instance);
+                AutoCompletionTokenizer aTokenizer = new AutoCompletionTokenizer(aLineNumber, startPos, aCurrentPosition, Npp.Instance, Npp.Instance.CurrentScintilla);
                 TriggerPoint = aTokenizer.TriggerToken;
                 if (!TriggerPoint.HasValue)
                 {
@@ -605,7 +605,7 @@ namespace RTextNppPlugin.ViewModels
         private bool _isFiltering                                                  = false;                                      //!< Indicates if filtering function is currently active.
         private IEnumerable<string> _cachedContext                                 = null;                                       //!< Holds the last context used for an auto completion request.
         private Connector _connector                                               = null;                                       //!< Connector for this auto completion session.
-        private TokenEqualityComparer _equalityComparer                            = new TokenEqualityComparer();                //!< Compares two tokens list for similiary.        
+        private TokenEqualityComparer _equalityComparer                            = new TokenEqualityComparer();                //!< Compares two tokens list for similarity.
         private readonly FuzzyStringComparisonOptions[] APPROXIMATION_CRITERIA     = new FuzzyStringComparisonOptions[]          //!< Used for fuzzy matching of auto completion options.
         {
             FuzzyStringComparisonOptions.UseHammingDistance,

@@ -24,5 +24,7 @@ namespace RTextNppPlugin.Utilities
         Rectangle GetClientRectFromControl(IntPtr hwnd);
 
         Rectangle GetClientRectFromPoint(Point p);
+
+        IntPtr IGetFocus();
     }
 }

@@ -132,6 +132,8 @@ namespace RTextNppPlugin
             _autoCompletionForm.OnZoomLevelChanged(_currentZoomLevel);
             _linkTargetsWindow.OnZoomLevelChanged(_currentZoomLevel);
             _linkTargetsWindow.IsVisibleChanged += OnLinkTargetsWindowIsVisibleChanged;
+            _hasMainScintillaFocus              = _nativeHelpers.IGetFocus() == _nppHelper.MainScintilla;
+            _hasSecondScintillaFocus            = _nativeHelpers.IGetFocus() == _nppHelper.SecondaryScintilla;
             #if DEBUG
             Debugger.Launch();
             #endif
@@ -189,8 +191,11 @@ namespace RTextNppPlugin
                             //get text from start till current line end
                             string aContextBlock               = Npp.Instance.GetTextBetween(0, _nppHelper.GetLineEnd(_nppHelper.GetCaretPosition(), aLineNumber));
                             ContextExtractor aExtractor        = new ContextExtractor(aContextBlock, _nppHelper.GetLengthToEndOfLine(aLineNumber, _nppHelper.GetCaretPosition()));
+
+
+
                             //if auto completion is inside comment, notation, name, string just return
-                            AutoCompletionTokenizer aTokenizer = new AutoCompletionTokenizer(aLineNumber, aCurrentPosition, aStartPos, Npp.Instance);
+                            AutoCompletionTokenizer aTokenizer = new AutoCompletionTokenizer(aLineNumber, aCurrentPosition, aStartPos, Npp.Instance, _nppHelper.CurrentScintilla);
                             //if a token is found then the window should appear at the start of it, else it should appear at the caret
                             Point aCaretPoint = Npp.Instance.GetCaretScreenLocationForForm();
                             if (aTokenizer.TriggerToken.HasValue &&

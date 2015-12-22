@@ -14,12 +14,14 @@ namespace RTextNppPlugin.RText.Parsing
          *
          * \param   line                    The line.
          * \param   currentCaretPosition    The current caret position.
-         * \param   nppHelper               The npp helper which provides access to npp buffer information.
+         * \param   startPosition           The start position.
+         * \param   nppHelper               The npp helper which provides access to npp buffer
+         *                                  information.
+         * \param   sciPtr                  The sci pointer.
          */
-        internal AutoCompletionTokenizer(int line, int currentCaretPosition, int startPosition, INpp nppHelper)
-            : base(line, startPosition, nppHelper)
+        internal AutoCompletionTokenizer(int line, int currentCaretPosition, int startPosition, INpp nppHelper, IntPtr sciPtr)
+            : base(line, startPosition, nppHelper, sciPtr, Tokenizer.IsLineExtended(line, nppHelper, sciPtr))
         {
-            _nppHelper      = nppHelper;
             _currentPos     = currentCaretPosition;
             FindTriggerToken();
         }
@@ -93,7 +95,6 @@ namespace RTextNppPlugin.RText.Parsing
         #region [Data Members]
         private readonly int _currentPos  = 0;
         private TokenTag? _triggerToken   = null;
-        private readonly INpp _nppHelper  = null;
         private List<TokenTag> _tokenList = new List<TokenTag>(50);
         #endregion
     }

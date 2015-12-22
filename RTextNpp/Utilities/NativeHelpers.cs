@@ -14,25 +14,25 @@ namespace RTextNppPlugin.Utilities
         public delegate int HookProc(int code, UIntPtr wParam, IntPtr lParam);
 
         #region [Dll Imports]
-        [DllImport("user32", CharSet = CharSet.Auto)]
+        [DllImport("user32.dll", CharSet = CharSet.Auto, CallingConvention = CallingConvention.StdCall, SetLastError = true)]
         protected static extern int SendMessage(IntPtr hWnd, int msg, IntPtr[] wParam, int lParam);
 
-        [DllImport("user32")]
+        [DllImport("user32.dll", CharSet = CharSet.Auto, CallingConvention = CallingConvention.StdCall, SetLastError = true)]
         protected static extern IntPtr SendMessage(IntPtr hWnd, int msg, IntPtr wParam, IntPtr lParam);
 
-        [DllImport("user32")]
+        [DllImport("user32.dll", CharSet = CharSet.Auto, CallingConvention = CallingConvention.StdCall, SetLastError = true)]
         protected static extern IntPtr SendMessage(IntPtr hWnd, int msg, int wParam, out int lParam);
 
-        [DllImport("user32")]
+        [DllImport("user32.dll", CharSet = CharSet.Auto, CallingConvention = CallingConvention.StdCall, SetLastError = true)]
         protected static extern IntPtr SendMessage(IntPtr hWnd, int msg, int wParam, [MarshalAs(UnmanagedType.LPWStr)] StringBuilder lParam);
 
-        [DllImport("user32")]
+        [DllImport("user32.dll", CharSet = CharSet.Auto, CallingConvention = CallingConvention.StdCall, SetLastError = true)]
         protected static extern bool ClientToScreen(IntPtr hWnd, ref Point lpPoint);
 
-        [DllImport("user32")]
+        [DllImport("user32.dll", CharSet = CharSet.Auto, CallingConvention = CallingConvention.StdCall, SetLastError = true)]
         protected static extern bool ScreenToClient(IntPtr hWnd, ref Point lpPoint);
 
-        [DllImport("user32.dll")]
+        [DllImport("user32.dll", CharSet = CharSet.Auto, CallingConvention = CallingConvention.StdCall, SetLastError = true)]
         protected static extern long GetWindowRect(IntPtr hWnd, ref Rectangle lpRect);
 
         [DllImport("user32.dll", CharSet = CharSet.Auto, CallingConvention = CallingConvention.StdCall, SetLastError = true)]
@@ -41,13 +41,13 @@ namespace RTextNppPlugin.Utilities
         [DllImport("user32.dll", CharSet = CharSet.Auto, CallingConvention = CallingConvention.StdCall, SetLastError = true)]
         protected static extern int UnhookWindowsHookEx(IntPtr hhook);
 
-        [DllImport("user32.dll")]
+        [DllImport("user32.dll", CharSet = CharSet.Auto, CallingConvention = CallingConvention.StdCall, SetLastError = true)]
         protected static extern int MapVirtualKey(uint uCode, uint uMapType);
 
-        [DllImport("user32.dll")]
+        [DllImport("user32.dll", CharSet = CharSet.Auto, CallingConvention = CallingConvention.StdCall, SetLastError = true)]
         protected static extern uint MapVirtualKeyEx(uint uCode, MapVirtualKeyMapTypes uMapType, IntPtr dwhkl);
 
-        [DllImportAttribute("user32.dll")]
+        [DllImport("user32.dll", CharSet = CharSet.Auto, CallingConvention = CallingConvention.StdCall, SetLastError = true)]
         protected static extern int GetKeyboardState(byte[] pbKeyState);
 
         [DllImport("user32.dll")]
@@ -55,6 +55,9 @@ namespace RTextNppPlugin.Utilities
 
         [DllImport("user32.dll", CharSet = CharSet.Auto, CallingConvention = CallingConvention.StdCall)]
         protected static extern int CallNextHookEx(IntPtr hhook, int code, UIntPtr wParam, IntPtr lParam);
+
+        [DllImport("user32.dll", CharSet = CharSet.Auto, CallingConvention = CallingConvention.StdCall, SetLastError = true)]
+        protected static extern IntPtr GetFocus();
         #endregion        
 
         public Rectangle GetClientRectFromControl(IntPtr hwnd)
@@ -123,8 +126,7 @@ namespace RTextNppPlugin.Utilities
         {
             return SendMessage(hWnd, msg, wParam, out lParam);
         }
-
-        
+       
         public IntPtr ISendMessage(IntPtr hWnd, int msg, int wParam, [MarshalAs(UnmanagedType.LPWStr)] StringBuilder lParam)
         {
             return SendMessage(hWnd, msg, wParam, lParam);
@@ -188,15 +190,20 @@ namespace RTextNppPlugin.Utilities
             var keyboardState = new byte[256];
             if (shift)
             {
-                keyboardState[(int)Keys.ShiftKey] = 0xff;
+                keyboardState[(int)Keys.ShiftKey]   = 0xff;
             }
             if (altGr)
             {
                 keyboardState[(int)Keys.ControlKey] = 0xff;
-                keyboardState[(int)Keys.Menu] = 0xff;
+                keyboardState[(int)Keys.Menu]       = 0xff;
             }
             ToUnicode((uint)key, 0, keyboardState, buf, 256, 0);
             return buf.ToString();
+        }
+
+        public IntPtr IGetFocus()
+        {
+            return GetFocus();
         }
     }
 }

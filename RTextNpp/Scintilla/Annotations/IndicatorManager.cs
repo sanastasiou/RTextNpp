@@ -52,12 +52,18 @@ namespace RTextNppPlugin.Scintilla.Annotations
             _nppHelper.SetIndicatorStyle(_nppHelper.MainScintilla, INDICATOR_INDEX, SciMsg.INDIC_SQUIGGLE, Color.Red);
             _nppHelper.SetIndicatorStyle(_nppHelper.SecondaryScintilla, INDICATOR_INDEX, SciMsg.INDIC_SQUIGGLE, Color.Red);
 
-            plugin.ScintillaUiUpdated += OnScintillaUiUpdated;
+            plugin.ScintillaFocusChanged += OnScintillaFocusChanged;
         }
 
-        private void OnScintillaUiUpdated(SCNotification notification)
+        void OnScintillaFocusChanged(IntPtr sciPtr, bool hasFocus)
         {
-
+            var task = GetDrawingTask(sciPtr);
+            var cts  = GetCts(sciPtr);
+            if (!hasFocus &&( task != null && !(task.IsCanceled || task.IsCompleted)))
+            {
+                cts.Cancel();
+                SetIndicatorsRanges(sciPtr, null);
+            }
         }
 
         public override void OnSettingChanged(object source, Utilities.Settings.Settings.SettingChangedEventArgs e)
@@ -77,7 +83,7 @@ namespace RTextNppPlugin.Scintilla.Annotations
             }
             if(disposing)
             {
-                Plugin.Instance.ScintillaUiUpdated -= OnScintillaUiUpdated;
+                Plugin.Instance.ScintillaFocusChanged -= OnScintillaFocusChanged;
             }
             base.Dispose(disposing);
 
@@ -87,20 +93,6 @@ namespace RTextNppPlugin.Scintilla.Annotations
         {
             //not needed here
             return Constants.StyleId.DEFAULT;
-        }
-
-        /*
-         * This event always occurs after SCN_UPDATEUI which is considered the best place to update the editor annotations.
-         */
-        protected override void OnVisibilityInfoUpdated(VisibilityInfo info)
-        {
-            _currentVisibilityInfo = info;
-            if (IsWorkspaceFile(info.File) && _nppHelper.FindScintillaFromFilepath(info.File) == info.ScintillaHandle)
-            {
-                //stop any running task
-                //update current annotations - if current file belongs in workspace and editor is focused
-                PlaceIndicatorsRanges(info.ScintillaHandle);
-            }
         }
 
         #region [Properties]
@@ -134,7 +126,19 @@ namespace RTextNppPlugin.Scintilla.Annotations
         #endregion
 
         #region [Event Handlers]
-
+        /*
+         * This event always occurs after SCN_UPDATEUI which is considered the best place to update the editor annotations.
+         */
+        protected override void OnVisibilityInfoUpdated(VisibilityInfo info)
+        {
+            _currentVisibilityInfo = info;
+            if (IsWorkspaceFile(info.File) && _nppHelper.FindScintillaFromFilepath(info.File) == info.ScintillaHandle)
+            {
+                //stop any running task
+                //update current annotations - if current file belongs in workspace and editor is focused
+                PlaceIndicatorsRanges(info.ScintillaHandle);
+            }
+        }
         #endregion
 
         #region [Helpers]
@@ -182,16 +186,21 @@ namespace RTextNppPlugin.Scintilla.Annotations
             {
                 //cancel any pending task
                 var task = GetDrawingTask(sciPtr);
-                var cts  = GetCts(sciPtr);
-                if(task != null && !task.IsCanceled)
+                var cts = GetCts(sciPtr);
+                if (task != null && !(task.IsCanceled || task.IsCompleted))
                 {
                     cts.Cancel();
-                    task.Wait();
+                    SetIndicatorsRanges(sciPtr, null);
                 }
                 HideAnnotations(sciPtr);
+                //only grab focus - if this sciPtr has currently focus
+                if (_nppHelper.GetCurrentFilePath() == FindActiveFile(sciPtr))
+                {
+                    _nppHelper.GrabFocus(sciPtr);
+                }
                 //start new task
                 var newCts = new CancellationTokenSource();
-                var newTask = Task<IEnumerable<Tuple<int,int,int>>>.Factory.StartNew( () =>
+                var newTask = Task.Factory.StartNew(() =>
                 {
                     ConcurrentBag<Tuple<int, int, int>> indicatorRanges = GetIndicatorRanges(sciPtr);
                     if (errors != null)
@@ -200,20 +209,25 @@ namespace RTextNppPlugin.Scintilla.Annotations
                         {
                             indicatorRanges = new ConcurrentBag<Tuple<int, int, int>>();
                             var aErrorGroupByLines = errors.ErrorList.GroupBy(y => y.Line).AsParallel();
-                            Parallel.ForEach(aErrorGroupByLines, new ParallelOptions { MaxDegreeOfParallelism = 4}, (aErrorGroup) =>
+                            Parallel.ForEach(aErrorGroupByLines, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount }, (aErrorGroup) =>
                             {
-                                if (newCts.Token.IsCancellationRequested)
+                                if (newCts.Token.IsCancellationRequested || !HasFocus(sciPtr))
                                 {
+                                    indicatorRanges = null;
                                     return;
                                 }
                                 //do the heavy work here, tokenize line and try to find perfect matches in the errors - if no perfect match can be found highlight whole line
-                                var line = aErrorGroup.First().Line - 1;
-                                Tokenizer tokenizer = new Tokenizer(line, _nppHelper.GetLineStart(line), _nppHelper.GetLine(line, sciPtr), _nppHelper);
+                                var aLineNumber          = aErrorGroup.First().Line - 1;
+                                var aPositionAtLineStart = _nppHelper.GetLineStart(aLineNumber);
+                                var aLineText            = _nppHelper.GetLine(aLineNumber, sciPtr);
+
+                                Tokenizer tokenizer = new Tokenizer(aLineNumber, aPositionAtLineStart, aLineText);
                                 bool aIsAnyMatchFound = false;
                                 foreach (var t in tokenizer.Tokenize(ERROR_TOKEN_TYPES))
                                 {
-                                    if (newCts.Token.IsCancellationRequested)
+                                    if (newCts.Token.IsCancellationRequested || !HasFocus(sciPtr))
                                     {
+                                        indicatorRanges = null;
                                         return;
                                     }
                                     //if t is contained exactly in any of the errors, mark it as indicator
@@ -222,28 +236,25 @@ namespace RTextNppPlugin.Scintilla.Annotations
                                                   select m;
                                     if (matches.Count() > 0)
                                     {
-                                        indicatorRanges.Add(new Tuple<int, int, int>(t.BufferPosition, t.Context.Length, line));
+                                        indicatorRanges.Add(new Tuple<int, int, int>(t.BufferPosition, t.Context.Length, aLineNumber));
                                         aIsAnyMatchFound = true;
                                     }
                                 }
                                 if (!aIsAnyMatchFound)
                                 {
                                     //highlight whole line
+                                    indicatorRanges.Add(new Tuple<int, int, int>(aPositionAtLineStart, aLineText.Length, aLineNumber));
                                 }
                             });
                         }
                     }
                     SetIndicatorsRanges(sciPtr, indicatorRanges);
-                    //set a flag so that this step is not performed again if error list isn't updated
-                    return indicatorRanges;
-                }, newCts.Token);
-
-                SetCts(sciPtr, newCts);
-
-                SetDrawingTask(sciPtr, newTask.ContinueWith((x) =>
+                }, newCts.Token).ContinueWith((x) =>
                 {
                     PlaceIndicatorsRanges(sciPtr);
-                }, newCts.Token, TaskContinuationOptions.OnlyOnRanToCompletion, TaskScheduler.Current));
+                }, newCts.Token, TaskContinuationOptions.OnlyOnRanToCompletion, TaskScheduler.Default);
+                SetCts(sciPtr, newCts);
+                SetDrawingTask(sciPtr, newTask);
 
             }
             catch (Exception)
@@ -323,6 +334,11 @@ namespace RTextNppPlugin.Scintilla.Annotations
                 
                 for (int i = 0; i < ranges.Count(); ++i)
                 {
+                    if(!HasFocus(sciPtr))
+                    {
+                        //critical point - avoid endless loop
+                        return;
+                    }
                     _nppHelper.SetCurrentIndicator(sciPtr, INDICATOR_INDEX);
                     _nppHelper.PlaceIndicator(sciPtr, ranges[i].Item1, ranges[i].Item2);
                     //ensure indicator is placed by reading it - if not stay on same indicator
@@ -335,6 +351,15 @@ namespace RTextNppPlugin.Scintilla.Annotations
                     }
                 }
             }
+        }
+
+        private bool HasFocus(IntPtr sci)
+        {
+            if(_nppHelper.MainScintilla == sci)
+            {
+                return Plugin.Instance.HasMainSciFocus;
+            }
+            return Plugin.Instance.HasSecondSciFocus;
         }
 
         #endregion    

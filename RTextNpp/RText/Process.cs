@@ -440,7 +440,7 @@ namespace RTextNppPlugin.RText
                     t.Execute();
                     if (!t.IsCancelled)
                     {
-                        //port could be retrieved - backend is running
+                        //port could be retrieved - back-end is running
                         if (t.Result != -1)
                         {
                             _pInfo.Port = t.Result;

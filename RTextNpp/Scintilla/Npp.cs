@@ -348,11 +348,6 @@ namespace RTextNppPlugin.Scintilla
             return SendMessage(sciPtr, SciMsg.SCI_INDICATOREND, new IntPtr(indicator), new IntPtr(testPosition)).ToInt32();
         }
         
-        public string GetLine(int line)
-        {
-            return GetLine(line, CurrentScintilla);
-        }
-
         public unsafe string GetLine(int line, IntPtr sciPtr)
         {
             int length = SendMessage(sciPtr, SciMsg.SCI_LINELENGTH, new IntPtr(line)).ToInt32();

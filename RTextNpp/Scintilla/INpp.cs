@@ -75,15 +75,6 @@ namespace RTextNppPlugin.Scintilla
         
         int GetLengthToEndOfLine(int line, int position);
 
-        /**
-         * \brief   Gets a line from a line number.
-         *
-         * \param   line    The line number.
-         *
-         * \return  The line string.
-         */
-        string GetLine(int line);
-
         string GetLine(int line, IntPtr sciPtr);
               
         int GetLineCount(IntPtr sciPtr);

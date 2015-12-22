@@ -184,7 +184,7 @@ namespace RTextNppPlugin.WpfControls
         private void OnLinkTargetsWindowMouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
         {
             //only hide the window if the mouse has also left the actual underlined token
-            var aTokenUnderCursor = Tokenizer.FindTokenUnderCursor(_nppHelper);
+            var aTokenUnderCursor = Tokenizer.FindTokenUnderCursor(_nppHelper, _nppHelper.CurrentScintilla);
             if (!aTokenUnderCursor.Equals(_referenceRequestObserver.UnderlinedToken))
             {
                 Hide();

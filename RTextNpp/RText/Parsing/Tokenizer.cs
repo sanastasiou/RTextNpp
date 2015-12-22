@@ -58,13 +58,14 @@ namespace RTextNppPlugin.RText.Parsing
             #endregion
         }
         #region[Interface]
-        internal static Tokenizer.TokenTag FindTokenUnderCursor(INpp nppHelper)
+        internal static Tokenizer.TokenTag FindTokenUnderCursor(INpp nppHelper, IntPtr sciPtr)
         {
             int aBufferPosition = nppHelper.GetPositionFromMouseLocation();
             if (aBufferPosition != -1)
             {
-                int aCurrentLine = nppHelper.GetLineNumber(aBufferPosition);
-                Tokenizer aTokenizer = new Tokenizer(aCurrentLine, nppHelper.GetLineStart(aCurrentLine), nppHelper);
+                int aCurrentLine  = nppHelper.GetLineNumber(aBufferPosition);
+                bool aIsExtended  = IsLineExtended(aCurrentLine, nppHelper, sciPtr);
+                Tokenizer aTokenizer = new Tokenizer(aCurrentLine, nppHelper.GetLineStart(aCurrentLine), nppHelper, sciPtr, aIsExtended);
                 foreach (var t in aTokenizer.Tokenize())
                 {
                     if (t.BufferPosition <= aBufferPosition && t.EndPosition >= aBufferPosition)
@@ -75,20 +76,43 @@ namespace RTextNppPlugin.RText.Parsing
             }
             return default(Tokenizer.TokenTag);
         }
-        internal Tokenizer(int line, int startPosition, INpp nppHelper)
+
+        internal static bool IsLineExtended(int currentLine, INpp nppHelper, IntPtr sciPtr)
         {
-            _lineNumber    = line;
-            _nppHelper     = nppHelper;
-            _lineText      = new StringBuilder(_nppHelper.GetLine(_lineNumber));
-            _startPosition = startPosition;
+            if (currentLine <= 0)
+            {
+                return false;
+            }
+            else
+            {
+                //get previous line - if Scintilla loses focus we have an endless loop -> stack overflow think of a way to fix this...
+                string aline = nppHelper.GetLine(--currentLine, sciPtr);
+                if (String.IsNullOrWhiteSpace(aline))
+                {
+                    return (IsLineExtended(currentLine, nppHelper, sciPtr));
+                }
+                else
+                {
+                    char c = aline.TrimEnd().Last();
+                    return (c == ',' || c == '[' || c == '\\');
+                }
+            }
         }
 
-        internal Tokenizer(int line, int startPosition, string text, INpp nppHelper)
+        internal Tokenizer(int line, int startPosition, INpp nppHelper, IntPtr sciPtr, bool isExtended = false)
         {
-            _lineNumber    = line;
-            _nppHelper     = nppHelper;
-            _lineText      = new StringBuilder(text);
-            _startPosition = startPosition;
+            _lineNumber     = line;
+            _lineText       = new StringBuilder(nppHelper.GetLine(_lineNumber, sciPtr));
+            _startPosition  = startPosition;
+            _isLineExtended = isExtended;
+        }
+
+        internal Tokenizer(int line, int startPosition, string text, bool isExtended = false)
+        {
+            _lineNumber     = line;
+            _lineText       = new StringBuilder(text);
+            _startPosition  = startPosition;
+            _isLineExtended = isExtended;
         }
 
         internal IEnumerable<TokenTag> Tokenize(params RTextTokenTypes[] typesToKeep)
@@ -121,7 +145,7 @@ namespace RTextNppPlugin.RText.Parsing
                             }
                             else if (type == RTextTokenTypes.Identifier)
                             {
-                                if (aFirstToken && !IsLineExtended(_lineNumber))
+                                if (aFirstToken && !_isLineExtended)
                                 {
                                     aCurrentTag.Type = RTextTokenTypes.Command;
                                     aFirstToken = false;
@@ -139,35 +163,11 @@ namespace RTextNppPlugin.RText.Parsing
         }
         #endregion
 
-        #region[Helpers]
-        private bool IsLineExtended(int currentLine)
-        {
-            if (currentLine <= 0)
-            {
-                return false;
-            }
-            else
-            {
-                //get previous line - if Scintilla loses focus we have an endless loop -> stack overflow think of a way to fix this...
-                string aline = _nppHelper.GetLine(--currentLine);
-                if (String.IsNullOrWhiteSpace(aline))
-                {
-                    return (IsLineExtended(currentLine));
-                }
-                else
-                {
-                    char c = aline.TrimEnd().Last();
-                    return (c == ',' || c == '[' || c == '\\');
-                }
-            }
-        }
-        #endregion
-
         #region[Data Members]
-        private StringBuilder _lineText     = null; //!< Line to tokenize.
-        private readonly int _lineNumber    = 0;    //!< Line number.
-        private readonly INpp _nppHelper    = null; //!< Npp helper.
-        private readonly int _startPosition = 0;    //!< Starting position.
+        private StringBuilder _lineText     = null;    //!< Line to tokenize.
+        private readonly int _lineNumber    = 0;       //!< Line number.
+        private readonly int _startPosition = 0;       //!< Starting position.
+        private readonly bool _isLineExtended = false; //!< Indicates if the line to be tokenized is an extended line.
         #endregion
     }
 }
