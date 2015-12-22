@@ -1,4 +1,5 @@
 ﻿using RTextNppPlugin.DllExport;
+using RTextNppPlugin.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -17,10 +18,12 @@ namespace RTextNppPlugin.Scintilla.Annotations
     internal class LineVisibilityObserver : IDisposable, ILineVisibilityObserver
     {
         #region [Data Members]
-        private INpp _nppHelper                    = null;
-        private bool _disposed                     = false;
-        private VisibilityInfo _mainVisibilityInfo = null;
-        private VisibilityInfo _subVisibilityInfo  = null;
+        private INpp _nppHelper                                         = null;
+        private bool _disposed                                          = false;
+        private VisibilityInfo _mainVisibilityInfo                      = null;
+        private VisibilityInfo _subVisibilityInfo                       = null;
+        private DelayedEventHandler<object> _visibilityChangedDebouncer = null;
+        private const double DEBOUNCE                                   = 500.0;
         #endregion
 
         #region [Events]
@@ -30,9 +33,10 @@ namespace RTextNppPlugin.Scintilla.Annotations
         #region [Interface]
         internal LineVisibilityObserver(INpp nppHelper, Plugin plugin)
         {
-            _nppHelper                = nppHelper;
-            plugin.BufferActivated    += OnBufferActivated;
-            plugin.ScintillaUiUpdated += OnScintillaUiUpdated;
+            _nppHelper                  = nppHelper;
+            plugin.BufferActivated      += OnBufferActivated;
+            plugin.ScintillaUiUpdated   += OnScintillaUiUpdated;
+            _visibilityChangedDebouncer = new Utilities.DelayedEventHandler<object>(null, DEBOUNCE);
         }
 
         #region [ILineVisibilityObserver Members]
@@ -47,10 +51,7 @@ namespace RTextNppPlugin.Scintilla.Annotations
                 if (value != _mainVisibilityInfo)
                 {
                     _mainVisibilityInfo = value;
-                    if (OnVisibilityInfoUpdated != null)
-                    {
-                        OnVisibilityInfoUpdated(value);
-                    }
+                    _visibilityChangedDebouncer.TriggerHandler(new ActionWrapper<object, VisibilityInfo>(UpdateInfo, value));
                 }
             }
         }
@@ -66,10 +67,7 @@ namespace RTextNppPlugin.Scintilla.Annotations
                 if (value != _subVisibilityInfo)
                 {
                     _subVisibilityInfo = value;
-                    if (OnVisibilityInfoUpdated != null)
-                    {
-                        OnVisibilityInfoUpdated(value);
-                    }
+                    _visibilityChangedDebouncer.TriggerHandler(new ActionWrapper<object, VisibilityInfo>(UpdateInfo, value));
                 }
             }
         }
@@ -142,6 +140,15 @@ namespace RTextNppPlugin.Scintilla.Annotations
             {
                 SubVisibilityInfo = info;
             }
+        }
+
+        object UpdateInfo(VisibilityInfo info)
+        {
+            if (OnVisibilityInfoUpdated != null)
+            {
+                OnVisibilityInfoUpdated(info);
+            }
+            return null;
         }
         #endregion
     }

@@ -136,17 +136,18 @@ namespace RTextNppPlugin.Scintilla.Annotations
         /*
          * This event always occurs after SCN_UPDATEUI which is considered the best place to update the editor annotations.
          */
-        protected override void OnVisibilityInfoUpdated(VisibilityInfo info)
+        protected override object OnVisibilityInfoUpdated(VisibilityInfo info)
         {
+            //this even comes before buffer is activated - errors do not match with the file
             info.LastLine += 1;
             info.FirstLine = info.FirstLine > 0 ? --info.FirstLine : info.FirstLine;
             SetVisibilityInfo(info);
             if (IsWorkspaceFile(info.File) && _nppHelper.FindScintillaFromFilepath(info.File) == info.ScintillaHandle)
             {
-                //stop any running task
                 //update current annotations - if current file belongs in workspace and editor is focused
                 PlaceIndicatorsRanges(info.ScintillaHandle);
             }
+            return null;
         }
         #endregion
 
@@ -212,11 +213,24 @@ namespace RTextNppPlugin.Scintilla.Annotations
                     ConcurrentBag<Tuple<int, int, int>> indicatorRanges = GetIndicatorRanges(sciPtr);
                     if (errors != null)
                     {
-                        if (GetIndicatorRanges(sciPtr) == null)
+                        indicatorRanges = new ConcurrentBag<Tuple<int, int, int>>();
+                        var aErrorGroupByLines = errors.ErrorList.GroupBy(y => y.Line).AsParallel();
+                        Parallel.ForEach(aErrorGroupByLines, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount }, (aErrorGroup) =>
                         {
-                            indicatorRanges = new ConcurrentBag<Tuple<int, int, int>>();
-                            var aErrorGroupByLines = errors.ErrorList.GroupBy(y => y.Line).AsParallel();
-                            Parallel.ForEach(aErrorGroupByLines, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount }, (aErrorGroup) =>
+                            if (newCts.Token.IsCancellationRequested || !HasFocus(sciPtr))
+                            {
+                                indicatorRanges = null;
+                                ResetLastAnnotatedFile(sciPtr);
+                                return;
+                            }
+                            //do the heavy work here, tokenize line and try to find perfect matches in the errors - if no perfect match can be found highlight whole line
+                            var aLineNumber          = aErrorGroup.First().Line - 1;
+                            var aPositionAtLineStart = _nppHelper.GetLineStart(aLineNumber);
+                            var aLineText            = _nppHelper.GetLine(aLineNumber, sciPtr);
+
+                            Tokenizer tokenizer = new Tokenizer(aLineNumber, aPositionAtLineStart, aLineText);
+                            bool aIsAnyMatchFound = false;
+                            foreach (var t in tokenizer.Tokenize(ERROR_TOKEN_TYPES))
                             {
                                 if (newCts.Token.IsCancellationRequested || !HasFocus(sciPtr))
                                 {
@@ -224,38 +238,22 @@ namespace RTextNppPlugin.Scintilla.Annotations
                                     ResetLastAnnotatedFile(sciPtr);
                                     return;
                                 }
-                                //do the heavy work here, tokenize line and try to find perfect matches in the errors - if no perfect match can be found highlight whole line
-                                var aLineNumber          = aErrorGroup.First().Line - 1;
-                                var aPositionAtLineStart = _nppHelper.GetLineStart(aLineNumber);
-                                var aLineText            = _nppHelper.GetLine(aLineNumber, sciPtr);
-
-                                Tokenizer tokenizer = new Tokenizer(aLineNumber, aPositionAtLineStart, aLineText);
-                                bool aIsAnyMatchFound = false;
-                                foreach (var t in tokenizer.Tokenize(ERROR_TOKEN_TYPES))
+                                //if t is contained exactly in any of the errors, mark it as indicator
+                                var matches = from m in aErrorGroup
+                                              where m.Message.Contains(t.Context)
+                                              select m;
+                                if (matches.Count() > 0)
                                 {
-                                    if (newCts.Token.IsCancellationRequested || !HasFocus(sciPtr))
-                                    {
-                                        indicatorRanges = null;
-                                        ResetLastAnnotatedFile(sciPtr);
-                                        return;
-                                    }
-                                    //if t is contained exactly in any of the errors, mark it as indicator
-                                    var matches = from m in aErrorGroup
-                                                  where m.Message.Contains(t.Context)
-                                                  select m;
-                                    if (matches.Count() > 0)
-                                    {
-                                        indicatorRanges.Add(new Tuple<int, int, int>(t.BufferPosition, t.Context.Length, aLineNumber));
-                                        aIsAnyMatchFound = true;
-                                    }
+                                    indicatorRanges.Add(new Tuple<int, int, int>(t.BufferPosition, t.Context.Length, aLineNumber));
+                                    aIsAnyMatchFound = true;
                                 }
-                                if (!aIsAnyMatchFound)
-                                {
-                                    //highlight whole line
-                                    indicatorRanges.Add(new Tuple<int, int, int>(aPositionAtLineStart, aLineText.Length, aLineNumber));
-                                }
-                            });
-                        }
+                            }
+                            if (!aIsAnyMatchFound)
+                            {
+                                //highlight whole line
+                                indicatorRanges.Add(new Tuple<int, int, int>(aPositionAtLineStart, aLineText.Length, aLineNumber));
+                            }
+                        });
                     }
                     SetIndicatorsRanges(sciPtr, indicatorRanges);
                 }, newCts.Token).ContinueWith((x) =>

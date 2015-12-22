@@ -125,7 +125,7 @@ namespace RTextNppPlugin.Scintilla.Annotations
         #endregion
 
         #region [Event Handlers]
-        protected abstract void OnVisibilityInfoUpdated(VisibilityInfo info);
+        protected abstract object OnVisibilityInfoUpdated(VisibilityInfo info);
 
         protected abstract void OnBufferActivated(object source, string file);
 
