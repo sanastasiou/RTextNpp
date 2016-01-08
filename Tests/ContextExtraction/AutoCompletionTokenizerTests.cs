@@ -45,7 +45,7 @@ AUTOSAR {
             nppMock.Setup(m => m.GetLine(It.Is<int>(i => i == 4), It.IsAny<IntPtr>())).Returns(ContextLinesSample.Last() + "\n");
             nppMock.Setup(m => m.GetLine(It.Is<int>(i => i != 4), It.IsAny<IntPtr>())).Returns(ContextLinesSample[3] + "\n");
             //for the sake of simplicity we assume that offset is 0
-            nppMock.Setup(m => m.GetLineStart(It.Is<int>(i => i == 4))).Returns(0);
+            nppMock.Setup(m => m.GetLineStart(It.Is<int>(i => i == 4), It.IsAny<IntPtr>())).Returns(0);
             AutoCompletionTokenizer aTokenizer = new AutoCompletionTokenizer(4, caretPosition, 0, nppMock.Object, IntPtr.Zero);
             Assert.IsTrue(aTokenizer.LineTokens.Count() == 1);
             Assert.IsTrue(aTokenizer.LineTokens.SequenceEqual(expectedTokensSpace));
@@ -78,7 +78,7 @@ AUTOSAR {
             nppMock.Setup(m => m.GetLine(It.Is<int>(i => i == 4), IntPtr.Zero)).Returns(ContextLinesSample.Last() + "\n");
             nppMock.Setup(m => m.GetLine(It.Is<int>(i => i != 4), IntPtr.Zero)).Returns(ContextLinesSample[3] + "\n");
             //for the sake of simplicity we assume that offset is 0
-            nppMock.Setup(m => m.GetLineStart(It.Is<int>(i => i == 4))).Returns(0);
+            nppMock.Setup(m => m.GetLineStart(It.Is<int>(i => i == 4), It.IsAny<IntPtr>())).Returns(0);
             AutoCompletionTokenizer aTokenizer = new AutoCompletionTokenizer(4, caretPosition, 0, nppMock.Object, IntPtr.Zero);
             Assert.IsTrue(aTokenizer.LineTokens.Count() == 2);
             Assert.IsTrue(aTokenizer.LineTokens.SequenceEqual(expectedTokensTriggerCommand));
@@ -113,7 +113,7 @@ AUTOSAR {
             nppMock.Setup(m => m.GetLine(It.Is<int>(i => i == 4), IntPtr.Zero)).Returns(ContextLinesSample.Last() + "\n");
             nppMock.Setup(m => m.GetLine(It.Is<int>(i => i != 4), IntPtr.Zero)).Returns(ContextLinesSample[3] + "\n");
             //for the sake of simplicity we assume that offset is 0
-            nppMock.Setup(m => m.GetLineStart(It.Is<int>(i => i == 4))).Returns(0);
+            nppMock.Setup(m => m.GetLineStart(It.Is<int>(i => i == 4), It.IsAny<IntPtr>())).Returns(0);
             AutoCompletionTokenizer aTokenizer = new AutoCompletionTokenizer(4, caretPosition, 0, nppMock.Object, IntPtr.Zero);
             Assert.IsTrue(aTokenizer.LineTokens.Count() == 3);
             Assert.IsTrue(aTokenizer.LineTokens.SequenceEqual(expectedTokensTriggerSpaceAfterCommand));
@@ -149,7 +149,7 @@ AUTOSAR {
             nppMock.Setup(m => m.GetLine(It.Is<int>(i => i == 4), IntPtr.Zero)).Returns(ContextLinesSample.Last() + "\n");
             nppMock.Setup(m => m.GetLine(It.Is<int>(i => i != 4), IntPtr.Zero)).Returns(ContextLinesSample[3] + "\n");
             //for the sake of simplicity we assume that offset is 0
-            nppMock.Setup(m => m.GetLineStart(It.Is<int>(i => i == 4))).Returns(0);
+            nppMock.Setup(m => m.GetLineStart(It.Is<int>(i => i == 4), It.IsAny<IntPtr>())).Returns(0);
             AutoCompletionTokenizer aTokenizer = new AutoCompletionTokenizer(4, caretPosition, 0, nppMock.Object, IntPtr.Zero);
             Assert.IsTrue(aTokenizer.LineTokens.Count() == 4);
             Assert.IsTrue(aTokenizer.LineTokens.SequenceEqual(expectedTokensTriggerIdentifier));
@@ -186,7 +186,7 @@ AUTOSAR {
             nppMock.Setup(m => m.GetLine(It.Is<int>(i => i == 4), IntPtr.Zero)).Returns(ContextLinesSample.Last() + "\n");
             nppMock.Setup(m => m.GetLine(It.Is<int>(i => i != 4), IntPtr.Zero)).Returns(ContextLinesSample[3] + "\n");
             //for the sake of simplicity we assume that offset is 0
-            nppMock.Setup(m => m.GetLineStart(It.Is<int>(i => i == 4))).Returns(0);
+            nppMock.Setup(m => m.GetLineStart(It.Is<int>(i => i == 4), It.IsAny<IntPtr>())).Returns(0);
             AutoCompletionTokenizer aTokenizer = new AutoCompletionTokenizer(4, caretPosition, 0, nppMock.Object, IntPtr.Zero);
             Assert.IsTrue(aTokenizer.LineTokens.Count() == 5);
             Assert.IsTrue(aTokenizer.LineTokens.SequenceEqual(expectedTokensTriggerComma));
@@ -224,7 +224,7 @@ AUTOSAR {
             nppMock.Setup(m => m.GetLine(It.Is<int>(i => i == 4), IntPtr.Zero)).Returns(ContextLinesSample.Last() + "\n");
             nppMock.Setup(m => m.GetLine(It.Is<int>(i => i != 4), IntPtr.Zero)).Returns(ContextLinesSample[3] + "\n");
             //for the sake of simplicity we assume that offset is 0
-            nppMock.Setup(m => m.GetLineStart(It.Is<int>(i => i == 4))).Returns(0);
+            nppMock.Setup(m => m.GetLineStart(It.Is<int>(i => i == 4), It.IsAny<IntPtr>())).Returns(0);
             AutoCompletionTokenizer aTokenizer = new AutoCompletionTokenizer(4, caretPosition, 0, nppMock.Object, IntPtr.Zero);
             Assert.IsTrue(aTokenizer.LineTokens.Count() == 6);
             Assert.IsTrue(aTokenizer.LineTokens.SequenceEqual(expectedTokensTriggerSpaceAfterComma));
@@ -263,7 +263,7 @@ AUTOSAR {
             nppMock.Setup(m => m.GetLine(It.Is<int>(i => i == 4), IntPtr.Zero)).Returns(ContextLinesSample.Last() + "\n");
             nppMock.Setup(m => m.GetLine(It.Is<int>(i => i != 4), IntPtr.Zero)).Returns(ContextLinesSample[3] + "\n");
             //for the sake of simplicity we assume that offset is 0
-            nppMock.Setup(m => m.GetLineStart(It.Is<int>(i => i == 4))).Returns(0);
+            nppMock.Setup(m => m.GetLineStart(It.Is<int>(i => i == 4), It.IsAny<IntPtr>())).Returns(0);
             AutoCompletionTokenizer aTokenizer = new AutoCompletionTokenizer(4, caretPosition, 0, nppMock.Object, IntPtr.Zero);
             Assert.IsTrue(aTokenizer.LineTokens.Count() == 7);
             Assert.IsTrue(aTokenizer.LineTokens.SequenceEqual(expectedTokensTriggerLabel));
@@ -303,7 +303,7 @@ AUTOSAR {
             nppMock.Setup(m => m.GetLine(It.Is<int>(i => i == 4), IntPtr.Zero)).Returns(ContextLinesSample.Last() + "\n");
             nppMock.Setup(m => m.GetLine(It.Is<int>(i => i != 4), IntPtr.Zero)).Returns(ContextLinesSample[3] + "\n");
             //for the sake of simplicity we assume that offset is 0
-            nppMock.Setup(m => m.GetLineStart(It.Is<int>(i => i == 4))).Returns(0);
+            nppMock.Setup(m => m.GetLineStart(It.Is<int>(i => i == 4), It.IsAny<IntPtr>())).Returns(0);
             AutoCompletionTokenizer aTokenizer = new AutoCompletionTokenizer(4, caretPosition, 0, nppMock.Object, IntPtr.Zero);
             Assert.IsTrue(aTokenizer.LineTokens.Count() == 8);
             Assert.IsTrue(aTokenizer.LineTokens.SequenceEqual(expectedTokensTriggerSpaceAfterLabel));
@@ -344,7 +344,7 @@ AUTOSAR {
             nppMock.Setup(m => m.GetLine(It.Is<int>(i => i == 4), IntPtr.Zero)).Returns(ContextLinesSample.Last() + "\n");
             nppMock.Setup(m => m.GetLine(It.Is<int>(i => i != 4), IntPtr.Zero)).Returns(ContextLinesSample[3] + "\n");
             //for the sake of simplicity we assume that offset is 0
-            nppMock.Setup(m => m.GetLineStart(It.Is<int>(i => i == 4))).Returns(0);
+            nppMock.Setup(m => m.GetLineStart(It.Is<int>(i => i == 4), It.IsAny<IntPtr>())).Returns(0);
             AutoCompletionTokenizer aTokenizer = new AutoCompletionTokenizer(4, caretPosition, 0, nppMock.Object, IntPtr.Zero);
             Assert.IsTrue(aTokenizer.LineTokens.Count() == 9);
             Assert.IsTrue(aTokenizer.LineTokens.SequenceEqual(expectedTokensTriggerReference));
@@ -386,7 +386,7 @@ AUTOSAR {
             nppMock.Setup(m => m.GetLine(It.Is<int>(i => i == 4), IntPtr.Zero)).Returns(ContextLinesSample.Last() + "\n");
             nppMock.Setup(m => m.GetLine(It.Is<int>(i => i != 4), IntPtr.Zero)).Returns(ContextLinesSample[3] + "\n");
             //for the sake of simplicity we assume that offset is 0
-            nppMock.Setup(m => m.GetLineStart(It.Is<int>(i => i == 4))).Returns(0);
+            nppMock.Setup(m => m.GetLineStart(It.Is<int>(i => i == 4), It.IsAny<IntPtr>())).Returns(0);
             AutoCompletionTokenizer aTokenizer = new AutoCompletionTokenizer(4, caretPosition, 0, nppMock.Object, IntPtr.Zero);
             Assert.IsTrue(aTokenizer.LineTokens.Count() == 10);
             Assert.IsTrue(aTokenizer.LineTokens.SequenceEqual(expectedTokensTriggerSpaceAfterReference));
@@ -429,7 +429,7 @@ AUTOSAR {
             nppMock.Setup(m => m.GetLine(It.Is<int>(i => i == 4), IntPtr.Zero)).Returns(ContextLinesSample.Last() + "\n");
             nppMock.Setup(m => m.GetLine(It.Is<int>(i => i != 4), IntPtr.Zero)).Returns(ContextLinesSample[3] + "\n");
             //for the sake of simplicity we assume that offset is 0
-            nppMock.Setup(m => m.GetLineStart(It.Is<int>(i => i == 4))).Returns(0);
+            nppMock.Setup(m => m.GetLineStart(It.Is<int>(i => i == 4), It.IsAny<IntPtr>())).Returns(0);
             AutoCompletionTokenizer aTokenizer = new AutoCompletionTokenizer(4, caretPosition, 0, nppMock.Object, IntPtr.Zero);
             Assert.IsTrue(aTokenizer.LineTokens.Count() == 11);
             Assert.IsTrue(aTokenizer.LineTokens.SequenceEqual(expectedTokensTriggerLeftAngleBracket));
@@ -466,7 +466,7 @@ AUTOSAR {
             nppMock.Setup(m => m.GetLine(It.Is<int>(i => i == 4), IntPtr.Zero)).Returns(ContextLinesSample.Last() + "\n");
             nppMock.Setup(m => m.GetLine(It.Is<int>(i => i != 4), IntPtr.Zero)).Returns(ContextLinesSample[3] + "\n");
             //for the sake of simplicity we assume that offset is 0
-            nppMock.Setup(m => m.GetLineStart(It.Is<int>(i => i == 4))).Returns(0);
+            nppMock.Setup(m => m.GetLineStart(It.Is<int>(i => i == 4), It.IsAny<IntPtr>())).Returns(0);
             AutoCompletionTokenizer aTokenizer = new AutoCompletionTokenizer(4, caretPosition, 0, nppMock.Object, IntPtr.Zero);
             Assert.IsTrue(aTokenizer.LineTokens.Count() == 12);
             Assert.IsTrue(aTokenizer.LineTokens.SequenceEqual(expectedTokensTriggerNewLine));
@@ -488,7 +488,7 @@ AUTOSAR {
             nppMock.Setup(m => m.GetLine(It.Is<int>(i => i == 4), IntPtr.Zero)).Returns(ContextLinesSample.Last() + "\n");
             nppMock.Setup(m => m.GetLine(It.Is<int>(i => i != 4), IntPtr.Zero)).Returns(ContextLinesSample[3] + "\n");
             //for the sake of simplicity we assume that offset is 0
-            nppMock.Setup(m => m.GetLineStart(It.Is<int>(i => i == 4))).Returns(0);
+            nppMock.Setup(m => m.GetLineStart(It.Is<int>(i => i == 4), It.IsAny<IntPtr>())).Returns(0);
             AutoCompletionTokenizer aTokenizer = new AutoCompletionTokenizer(4, caretPosition, 0, nppMock.Object, IntPtr.Zero);
             Assert.IsTrue(aTokenizer.LineTokens.Count() == 12);
             Assert.IsTrue(aTokenizer.LineTokens.SequenceEqual(expectedTokensTriggerNewLine));

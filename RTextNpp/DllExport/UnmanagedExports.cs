@@ -121,6 +121,9 @@ namespace RTextNppPlugin
                 case (uint)SciMsg.SCN_MODIFIED:
                     //Plugin.Instance.OnScnModified(nc);
                     break;
+                case(uint)NppMsg.NPPN_BEFORESHUTDOWN:
+                    Plugin.Instance.BeforeShutdown();
+                    break;
             }
         }
 

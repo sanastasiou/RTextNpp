@@ -95,10 +95,10 @@ namespace RTextNppPlugin.WpfControls
             if (IsVisible)
             {
                 //in case the form is visible - move it to the new place...
-                var aCaretPoint = _nppHelper.GetCaretScreenLocationForForm();
+                var aCaretPoint = _nppHelper.GetCaretScreenLocationForForm(_nppHelper.CurrentScintilla);
                 if (GetModel().TriggerPoint.HasValue)
                 {
-                    aCaretPoint = _nppHelper.GetCaretScreenLocationRelativeToPosition(GetModel().TriggerPoint.Value.BufferPosition);
+                    aCaretPoint = _nppHelper.GetCaretScreenLocationRelativeToPosition(GetModel().TriggerPoint.Value.BufferPosition, _nppHelper.CurrentScintilla);
                 }
                 Left = aCaretPoint.X;
                 Top  = aCaretPoint.Y;
@@ -178,7 +178,7 @@ namespace RTextNppPlugin.WpfControls
                 CharProcessAction = GetModel().CharProcessAction;
                 if (CharProcessAction == AutoCompletionViewModel.CharProcessResult.MoveToRight)
                 {
-                    Left              = _nppHelper.GetCaretScreenLocationRelativeToPosition(_nppHelper.GetCaretPosition()).X;
+                    Left              = _nppHelper.GetCaretScreenLocationRelativeToPosition(_nppHelper.GetCaretPosition(_nppHelper.CurrentScintilla), _nppHelper.CurrentScintilla).X;
                     CharProcessAction = AutoCompletionViewModel.CharProcessResult.NoAction;
                 }
                 //only filter if auto completion form can still remain open
@@ -253,7 +253,7 @@ namespace RTextNppPlugin.WpfControls
          */
         private void OnContainerSizeChanged(object sender, SizeChangedEventArgs e)
         {
-            VisualUtilities.RepositionWindow(e, this, ref _isOnTop, _nppHelper, _nppHelper.GetCaretScreenLocation().Y);
+            VisualUtilities.RepositionWindow(e, this, ref _isOnTop, _nppHelper, _nppHelper.GetCaretScreenLocation(_nppHelper.CurrentScintilla).Y);
         }
         
         private void OnAutoCompletionFormVisibleChanged(object sender, System.Windows.DependencyPropertyChangedEventArgs e)
@@ -280,7 +280,7 @@ namespace RTextNppPlugin.WpfControls
             if (TriggerPoint != null && !String.IsNullOrEmpty(Completion.InsertionText))
             {
                 //use current selected item to replace token
-                _nppHelper.ReplaceWordFromToken(TriggerPoint, Completion.InsertionText);
+                _nppHelper.ReplaceWordFromToken(TriggerPoint, Completion.InsertionText, _nppHelper.CurrentScintilla);
             }
             Hide();
         }

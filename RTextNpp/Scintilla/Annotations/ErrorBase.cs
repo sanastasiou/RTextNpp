@@ -7,6 +7,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace RTextNppPlugin.Scintilla.Annotations
 {
@@ -27,6 +29,11 @@ namespace RTextNppPlugin.Scintilla.Annotations
         protected ILineVisibilityObserver _lineVisibilityObserver   = null;
         protected VisibilityInfo _mainVisibilityInfo                = null;
         protected VisibilityInfo _subVisibilityInfo                 = null;
+        private CancellationTokenSource _mainSciCts                 = null;
+        private CancellationTokenSource _subSciCts                  = null;
+        private Task _mainSciDrawingTask                            = null;
+        private Task _subSciDrawningTask                            = null;
+        private bool _isShutingDown                                 = false;
 
         protected enum UpdateAction
         {
@@ -53,6 +60,18 @@ namespace RTextNppPlugin.Scintilla.Annotations
             }
         }
 
+        protected bool IsNotepadShutingDown
+        {
+            get
+            {
+                return _isShutingDown;
+            }
+            private set
+            {
+                _isShutingDown = value;
+            }
+        }
+
         #endregion
 
         #region [Interface]
@@ -70,6 +89,12 @@ namespace RTextNppPlugin.Scintilla.Annotations
             _lineVisibilityObserver.OnVisibilityInfoUpdated += OnVisibilityInfoUpdated;
             _mainVisibilityInfo                             = plugin.MainVisibilityInfo;
             _subVisibilityInfo                              = plugin.SubVisibilityInfo;
+            plugin.OnNotepadShutdown                        += OnNotepadShutdown;
+        }
+
+        void OnNotepadShutdown()
+        {
+            IsNotepadShutingDown = true;
         }
 
         // Protected implementation of Dispose pattern.
@@ -85,6 +110,7 @@ namespace RTextNppPlugin.Scintilla.Annotations
                 Plugin.Instance.BufferActivated                 -= OnBufferActivated;
                 Plugin.Instance.ScintillaFocusChanged           -= OnScintillaFocusChanged;
                 _lineVisibilityObserver.OnVisibilityInfoUpdated -= OnVisibilityInfoUpdated;
+                Plugin.Instance.OnNotepadShutdown               -= OnNotepadShutdown;
             }
             _disposed = true;
         }
@@ -125,7 +151,12 @@ namespace RTextNppPlugin.Scintilla.Annotations
         #endregion
 
         #region [Event Handlers]
-        protected abstract object OnVisibilityInfoUpdated(VisibilityInfo info);
+        protected virtual object OnVisibilityInfoUpdated(VisibilityInfo info)
+        {
+            //this event comes before buffer is activated - errors do not match with the file
+            SetVisibilityInfo(new VisibilityInfo { LastLine = info.LastLine + 1, FirstLine = info.FirstLine > 0 ? info.FirstLine - 1 : info.FirstLine, ScintillaHandle = info.ScintillaHandle, File = info.File });
+            return null;
+        }
 
         protected abstract void OnBufferActivated(object source, string file);
 
@@ -291,6 +322,70 @@ namespace RTextNppPlugin.Scintilla.Annotations
                 return;
             }
             _subVisibilityInfo = info;
+        }
+
+        protected void ResetLastAnnotatedFile(IntPtr sciPtr)
+        {
+            if (sciPtr == _nppHelper.MainScintilla)
+            {
+                _lastMainViewAnnotatedFile = string.Empty;
+                return;
+            }
+            _lastSubViewAnnotatedFile = string.Empty;
+        }
+
+        protected string GetLastAnnotatedFile(IntPtr sciPtr)
+        {
+            if (sciPtr == _nppHelper.MainScintilla)
+            {
+                return _lastMainViewAnnotatedFile;
+            }
+            return _lastSubViewAnnotatedFile;
+        }
+
+        protected bool HasFocus(IntPtr sci)
+        {
+            if (_nppHelper.MainScintilla == sci)
+            {
+                return Plugin.Instance.HasMainSciFocus;
+            }
+            return Plugin.Instance.HasSecondSciFocus;
+        }
+
+        protected Task GetDrawingTask(IntPtr sciPtr)
+        {
+            if (sciPtr == _nppHelper.MainScintilla)
+            {
+                return _mainSciDrawingTask;
+            }
+            return _subSciDrawningTask;
+        }
+
+        protected CancellationTokenSource GetCts(IntPtr sciPtr)
+        {
+            if (sciPtr == _nppHelper.MainScintilla)
+            {
+                return _mainSciCts;
+            }
+            return _subSciCts;
+        }
+
+        protected void SetDrawingTask(IntPtr sciPtr, Task task)
+        {
+            if (sciPtr == _nppHelper.MainScintilla)
+            {
+                _mainSciDrawingTask = task;
+            }
+            _subSciDrawningTask = task;
+        }
+
+        protected void SetCts(IntPtr sciPtr, CancellationTokenSource cts)
+        {
+            if (sciPtr == _nppHelper.MainScintilla)
+            {
+                _mainSciCts = cts;
+            }
+            _subSciCts = cts;
         }
         #endregion
     }

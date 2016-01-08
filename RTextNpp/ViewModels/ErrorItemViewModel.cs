@@ -87,7 +87,7 @@ namespace RTextNppPlugin.ViewModels
                         {
                             //find first erroneous line of file
                             var aLine = ErrorList.OrderBy(x => x.Line).First().Line;
-                            Npp.Instance.JumpToLine(FilePath, aLine);
+                            Npp.Instance.JumpToLine(FilePath, aLine, _nppHelper.CurrentScintilla);
                         }
                         else
                         {

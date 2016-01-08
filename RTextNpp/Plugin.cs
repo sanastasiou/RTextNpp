@@ -77,6 +77,9 @@ namespace RTextNppPlugin
 
         public delegate void UiUpdated(SCNotification notification);
         public event UiUpdated ScintillaUiUpdated;
+
+        public delegate void ShutdownDelegate();
+        public event ShutdownDelegate OnNotepadShutdown;
         #endregion
 
         #region [Startup/CleanUp]
@@ -183,28 +186,28 @@ namespace RTextNppPlugin
                 {
                     if (!_autoCompletionForm.IsVisible)
                     {
-                        int aCurrentPosition = Npp.Instance.GetCaretPosition();
+                        int aCurrentPosition = Npp.Instance.GetCaretPosition(_nppHelper.CurrentScintilla);
                         if (aCurrentPosition >= 0)
                         {
-                            int aLineNumber                    = Npp.Instance.GetLineNumber();
-                            int aStartPos                      = _nppHelper.GetLineStart(aLineNumber);
+                            int aLineNumber                    = Npp.Instance.GetLineNumber(_nppHelper.CurrentScintilla);
+                            int aStartPos                      = _nppHelper.GetLineStart(aLineNumber, _nppHelper.CurrentScintilla);
                             //get text from start till current line end
-                            string aContextBlock               = Npp.Instance.GetTextBetween(0, _nppHelper.GetLineEnd(_nppHelper.GetCaretPosition(), aLineNumber));
-                            ContextExtractor aExtractor        = new ContextExtractor(aContextBlock, _nppHelper.GetLengthToEndOfLine(aLineNumber, _nppHelper.GetCaretPosition()));
+                            string aContextBlock = Npp.Instance.GetTextBetween(0, _nppHelper.GetLineEnd(_nppHelper.GetCaretPosition(_nppHelper.CurrentScintilla), aLineNumber, _nppHelper.CurrentScintilla));
+                            ContextExtractor aExtractor        = new ContextExtractor(aContextBlock, _nppHelper.GetLengthToEndOfLine(aLineNumber, _nppHelper.GetCaretPosition(_nppHelper.CurrentScintilla)));
 
 
 
                             //if auto completion is inside comment, notation, name, string just return
                             AutoCompletionTokenizer aTokenizer = new AutoCompletionTokenizer(aLineNumber, aCurrentPosition, aStartPos, Npp.Instance, _nppHelper.CurrentScintilla);
                             //if a token is found then the window should appear at the start of it, else it should appear at the caret
-                            Point aCaretPoint = Npp.Instance.GetCaretScreenLocationForForm();
+                            Point aCaretPoint = Npp.Instance.GetCaretScreenLocationForForm(_nppHelper.CurrentScintilla);
                             if (aTokenizer.TriggerToken.HasValue &&
                                 aTokenizer.TriggerToken.Value.Type  != RTextTokenTypes.Comma &&
                                 aTokenizer.TriggerToken.Value.Type  != RTextTokenTypes.Space &&
                                 (aTokenizer.TriggerToken.Value.Type != RTextTokenTypes.Label ||
                                  aCurrentPosition < (aTokenizer.TriggerToken.Value.BufferPosition + aTokenizer.TriggerToken.Value.Context.Length)))
                             {
-                                aCaretPoint = Npp.Instance.GetCaretScreenLocationRelativeToPosition(aTokenizer.TriggerToken.Value.BufferPosition);
+                                aCaretPoint = Npp.Instance.GetCaretScreenLocationRelativeToPosition(aTokenizer.TriggerToken.Value.BufferPosition, _nppHelper.CurrentScintilla);
                             }
                             _autoCompletionForm.Dispatcher.Invoke((MethodInvoker)(async() =>
                             {
@@ -441,7 +444,7 @@ namespace RTextNppPlugin
                 {
                     case Keys.Back:
                         handled = true;
-                        Npp.Instance.DeleteBack(1);
+                        Npp.Instance.DeleteBack(1, _nppHelper.CurrentScintilla);
                         //in case of empty trigger token form needs to close
                         _autoCompletionForm.OnKeyPressed(Constants.BACKSPACE);
                         if (_autoCompletionForm.CharProcessAction == ViewModels.AutoCompletionViewModel.CharProcessResult.ForceClose)
@@ -451,7 +454,7 @@ namespace RTextNppPlugin
                         break;
                     case Keys.Delete:
                         handled = true;
-                        Npp.Instance.DeleteFront();
+                        Npp.Instance.DeleteFront(_nppHelper.CurrentScintilla);
                         _autoCompletionForm.OnKeyPressed();
                         break;
                     case Keys.Space:
@@ -460,10 +463,10 @@ namespace RTextNppPlugin
                         if (_autoCompletionForm.Completion != null && _autoCompletionForm.Completion.IsSelected)
                         {
                             CommitAutoCompletion(true);
-                            Npp.Instance.AddText(Constants.SPACE.ToString());
+                            Npp.Instance.AddText(Constants.SPACE.ToString(), _nppHelper.CurrentScintilla);
                             return;
                         }
-                        Npp.Instance.AddText(Constants.SPACE.ToString());
+                        Npp.Instance.AddText(Constants.SPACE.ToString(), _nppHelper.CurrentScintilla);
                         _autoCompletionForm.OnKeyPressed(Constants.SPACE);
                         break;
                     case Keys.Return:
@@ -475,7 +478,7 @@ namespace RTextNppPlugin
                                 (_autoCompletionForm.Completion == null || (_autoCompletionForm.Completion != null && !_autoCompletionForm.Completion.IsSelected))
                                )
                             {
-                                Npp.Instance.AddText(Constants.TAB.ToString());
+                                Npp.Instance.AddText(Constants.TAB.ToString(), _nppHelper.CurrentScintilla);
                                 _autoCompletionForm.OnKeyPressed(Constants.TAB);
                             }
                             else
@@ -489,7 +492,7 @@ namespace RTextNppPlugin
                         if (_autoCompletionForm.IsVisible)
                         {
                             CommitAutoCompletion(true);
-                            Npp.Instance.AddText(Constants.COMMA.ToString());
+                            Npp.Instance.AddText(Constants.COMMA.ToString(), _nppHelper.CurrentScintilla);
                             handled = true;
                         }
                         //start auto completion fix window position - handle insertion when token is comma i.e. do not replace comma
@@ -512,7 +515,7 @@ namespace RTextNppPlugin
                         //only handle letters and whitespace chars
                         if (mappedChar != string.Empty)
                         {
-                            Npp.Instance.AddText(mappedChar);
+                            Npp.Instance.AddText(mappedChar, _nppHelper.CurrentScintilla);
                             handled = true;
                             OnCharTyped(mappedChar[0]);
                         }
@@ -528,7 +531,7 @@ namespace RTextNppPlugin
 
         public void OnHotspotClicked()
         {
-            _actionAfterUiUpdateHandler.TriggerHandler(new ActionWrapper<object, string, int>(_nppHelper.JumpToLine, _linkTargetsWindow.Targets.First().FilePath, Int32.Parse(_linkTargetsWindow.Targets.First().Line)));
+            _actionAfterUiUpdateHandler.TriggerHandler(new ActionWrapper<object, string, int, IntPtr>(_nppHelper.JumpToLine, _linkTargetsWindow.Targets.First().FilePath, Int32.Parse(_linkTargetsWindow.Targets.First().Line), _nppHelper.CurrentScintilla));
         }
 
         public void OnFileSaved()
@@ -690,6 +693,14 @@ namespace RTextNppPlugin
             }
         }
 
+        internal void BeforeShutdown()
+        {
+            if (OnNotepadShutdown != null)
+            {
+                OnNotepadShutdown();
+            }
+        }
+
         private void OnCharTyped(char c)
         {
             if (!char.IsControl(c) && !char.IsWhiteSpace(c))
@@ -724,7 +735,7 @@ namespace RTextNppPlugin
                 //use current selected item to replace token
                 if (_autoCompletionForm.Completion != null && _autoCompletionForm.Completion.IsSelected)
                 {
-                    Npp.Instance.ReplaceWordFromToken(_autoCompletionForm.TriggerPoint, _autoCompletionForm.Completion.InsertionText);
+                    Npp.Instance.ReplaceWordFromToken(_autoCompletionForm.TriggerPoint, _autoCompletionForm.Completion.InsertionText, _nppHelper.CurrentScintilla);
                 }
             }
             _autoCompletionForm.Hide();

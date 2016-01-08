@@ -283,19 +283,19 @@ namespace RTextNppPlugin.ViewModels
             {
                 if (_cachedContext.Count() == 1 && extractor.ContextList.Count() == 1)
                 {
-                    areContextEquals = (_equalityComparer.AreTokenStreamsEqual(tokenizer.LineTokens, Npp.Instance.GetCaretPosition(), Npp.Instance.GetCurrentFilePath()));
+                    areContextEquals = (_equalityComparer.AreTokenStreamsEqual(tokenizer.LineTokens, Npp.Instance.GetCaretPosition(Npp.Instance.CurrentScintilla), Npp.Instance.GetCurrentFilePath()));
                 }
                 else
                 {
                     //if context is identical and tokens are also identical do not trigger auto completion request
                     areContextEquals = (_cachedContext.Take(_cachedContext.Count() - 1).SequenceEqual(extractor.ContextList.Take(extractor.ContextList.Count() - 1)) &&
-                                        _equalityComparer.AreTokenStreamsEqual(tokenizer.LineTokens, Npp.Instance.GetCaretPosition(), Npp.Instance.GetCurrentFilePath()));
+                                        _equalityComparer.AreTokenStreamsEqual(tokenizer.LineTokens, Npp.Instance.GetCaretPosition(Npp.Instance.CurrentScintilla), Npp.Instance.GetCurrentFilePath()));
                 }
             }
             else
             {
                 //prime comparer
-                _equalityComparer.AreTokenStreamsEqual(tokenizer.LineTokens, Npp.Instance.GetCaretPosition(), Npp.Instance.GetCurrentFilePath());
+                _equalityComparer.AreTokenStreamsEqual(tokenizer.LineTokens, Npp.Instance.GetCaretPosition(Npp.Instance.CurrentScintilla), Npp.Instance.GetCurrentFilePath());
             }
             if (areContextEquals)
             {
@@ -523,9 +523,9 @@ namespace RTextNppPlugin.ViewModels
         
         private void AddCharToTriggerPoint(char c)
         {
-            int aCurrentPosition = Npp.Instance.GetCaretPosition();
-            int aLineNumber      = Npp.Instance.GetLineNumber();
-            int startPos         = Npp.Instance.GetLineStart(aLineNumber);
+            int aCurrentPosition = Npp.Instance.GetCaretPosition(Npp.Instance.CurrentScintilla);
+            int aLineNumber      = Npp.Instance.GetLineNumber(Npp.Instance.CurrentScintilla);
+            int startPos         = Npp.Instance.GetLineStart(aLineNumber, Npp.Instance.CurrentScintilla);
             if(!_triggerToken.HasValue)
             {
                 CharProcessAction = CharProcessResult.ForceClose;

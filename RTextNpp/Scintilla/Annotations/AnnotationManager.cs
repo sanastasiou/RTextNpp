@@ -4,6 +4,8 @@ using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace RTextNppPlugin.Scintilla.Annotations
 {
@@ -50,8 +52,15 @@ namespace RTextNppPlugin.Scintilla.Annotations
 
         protected override object OnVisibilityInfoUpdated(VisibilityInfo info)
         {
-            SetVisibilityInfo(info);
-            //update current annotations
+            base.OnVisibilityInfoUpdated(info);
+            if (IsWorkspaceFile(info.File) && _nppHelper.FindScintillaFromFilepath(info.File) == info.ScintillaHandle)
+            {
+                //update current annotations - if current file belongs in workspace and editor is focused
+                if(ErrorList != null && ErrorList.Count != 0)
+                {
+                    //DrawAnnotations(ErrorList.Where(x => x.FilePath == info.File.Replace("\\\\", "/")).FirstOrDefault(), info.ScintillaHandle);
+                }
+            }
             return null;
         }
 
@@ -95,6 +104,7 @@ namespace RTextNppPlugin.Scintilla.Annotations
             {
                 if (IsWorkspaceFile(openFiles[docIndex]))
                 {
+                    Trace.WriteLine(String.Format("Hiding squiggle lines : {0}", openFiles[docIndex]));
                     _nppHelper.SetAnnotationVisible(scintilla, Constants.Scintilla.HIDDEN_ANNOTATION_STYLE);
                     _nppHelper.ClearAllAnnotations(scintilla);
                 }
@@ -103,31 +113,52 @@ namespace RTextNppPlugin.Scintilla.Annotations
 
         protected override void DrawAnnotations(ErrorListViewModel errors, IntPtr sciPtr)
         {
-            HideAnnotations(sciPtr);
             try
             {
-                if (errors != null)
+                //cancel any pending task
+                var task = GetDrawingTask(sciPtr);
+                var cts  = GetCts(sciPtr);
+                if (task != null && !(task.IsCanceled || task.IsCompleted))
                 {
-                    //concatenate error that share the same line with \n so that they appear in the same annotation box underneath the same line
-                    var aErrorGroupByLines = errors.ErrorList.GroupBy(y => y.Line);
-                    foreach (var errorGroup in aErrorGroupByLines)
-                    {
-                        StringBuilder aErrorDescription = new StringBuilder(errorGroup.Count() * 50);
-                        int aErrorCounter = 0;
-                        foreach (var error in errorGroup)
-                        {
-                            aErrorDescription.AppendFormat("{0} : {2}", error.Severity, error.Line, error.Message);
-                            if (++aErrorCounter < errorGroup.Count())
-                            {
-                                aErrorDescription.Append("\n");
-                            }
-                        }
-                        //npp offset for line todo - add multiple styles
-                        _nppHelper.SetAnnotationStyle((errorGroup.First().LineForScintilla), (int)Constants.StyleId.ANNOTATION_ERROR);
-                        _nppHelper.AddAnnotation((errorGroup.First().LineForScintilla), aErrorDescription);
-                    }
-                    ShowAnnotations(sciPtr);
+                    cts.Cancel();
+                    ResetLastAnnotatedFile(sciPtr);
                 }
+                HideAnnotations(sciPtr);
+                //only grab focus - if this sciPtr has currently focus
+                if (_nppHelper.GetCurrentFilePath() == FindActiveFile(sciPtr))
+                {
+                    _nppHelper.GrabFocus(sciPtr);
+                }
+                //start new task
+                var newCts  = new CancellationTokenSource();
+                var newTask = Task.Factory.StartNew(() =>
+                {
+                    if (errors != null)
+                    {
+                        var aVisibilityInfo = GetVisibilityInfo(sciPtr);
+                        //concatenate error that share the same line with \n so that they appear in the same annotation box underneath the same line
+                        var aErrorGroupByLines = errors.ErrorList.GroupBy(y => y.Line);//Where( y => y.Line >= aVisibilityInfo.FirstLine && y.Line <= aVisibilityInfo.LastLine).GroupBy(y => y.Line);
+                        foreach (var errorGroup in aErrorGroupByLines)
+                        {
+                            StringBuilder aErrorDescription = new StringBuilder(errorGroup.Count() * 50);
+                            int aErrorCounter = 0;
+                            foreach (var error in errorGroup)
+                            {
+                                aErrorDescription.AppendFormat("{0} : {2}", error.Severity, error.Line, error.Message);
+                                if (++aErrorCounter < errorGroup.Count())
+                                {
+                                    aErrorDescription.Append("\n");
+                                }
+                            }
+                            //npp offset for line to do - add multiple styles
+                            _nppHelper.SetAnnotationStyle((errorGroup.First().LineForScintilla), (int)Constants.StyleId.ANNOTATION_ERROR);
+                            _nppHelper.AddAnnotation((errorGroup.First().LineForScintilla), aErrorDescription);
+                        }
+                        ShowAnnotations(sciPtr);
+                    }
+                });
+                SetCts(sciPtr, newCts);
+                SetDrawingTask(sciPtr, newTask);
             }
             catch (Exception)
             {

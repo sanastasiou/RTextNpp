@@ -27,8 +27,8 @@ namespace RTextNppPlugin.RText
         #region [Data Members]
         private System.Diagnostics.Process _process = null;
         private ProcessInfo _pInfo = null;
-        private Windows.Clr.FileWatcher _fileSystemWatcher = null;                                                                       //!< Observes all rtext files for _odifications.
-        private Windows.Clr.FileWatcher _workspaceSystemWatcher = null;                                                                  //!< Observes .rtext file for any _odifications.
+        private Windows.Clr.FileWatcher _fileSystemWatcher = null;                                                                       //!< Observes all RText files for modifications.
+        private Windows.Clr.FileWatcher _workspaceSystemWatcher = null;                                                                  //!< Observes .rtext file for any modifications.
         private ISettings _settings = null;                                                                                              //!< Allows access to persistent settings.
         private CancellationTokenSource _cancellationSource = null;
         private Task _stdOutReaderTask = null;
@@ -48,7 +48,7 @@ namespace RTextNppPlugin.RText
         /**
          * \class   ProcessInfo
          *
-         * \brief   Information needed to start a backend process.
+         * \brief   Information needed to start a back-end process.
          *
          */
         public class ProcessInfo
@@ -58,8 +58,8 @@ namespace RTextNppPlugin.RText
              * \brief   Constructor.
              *
              *
-             * \param   workingDir  The working dir.
-             * \param   rtextPath   Full pathname of the rtext file.
+             * \param   workingDir  The working directory.
+             * \param   rtextPath   Full pathname of the RText file.
              * \param   cmdLine     The command line.
              * \param   key         The process key.
              * \param   port        The port number associated with this process.
@@ -100,13 +100,13 @@ namespace RTextNppPlugin.RText
              * \return  The command line.
              */            
             public string CommandLine { get; private set; }
-            
+
             /**
              * \property    public string procKey
              *
-             * \brief   Gets or sets a unique proc key based on the location of the rtxet file and the associated extensions
+             * \brief   Gets or sets a unique process unique key based on the location of the RTxet file and the associated extensions
              *
-             * \return  The proc key.
+             * \return  The process unique key.
              */
             public string ProcKey { get; private set; }
             
@@ -131,7 +131,7 @@ namespace RTextNppPlugin.RText
             /**
              * \property    public string Extension
              *
-             * \brief   Gets or sets the extension for which a backend process was started.
+             * \brief   Gets or sets the extension for which a back-end process was started.
              *
              * \return  The extension.
              */
@@ -145,7 +145,7 @@ namespace RTextNppPlugin.RText
          * \brief   Delegate for the CommandCompleted event.
          *
          *
-         * \param   source  Source object of the event.
+         * \param   source object of the event.
          * \param   e       Command completed event information.
          */
         public delegate void ProcessExited(object source, ProcessExitedEventArgs e);
@@ -215,7 +215,7 @@ namespace RTextNppPlugin.RText
                 {
                     _stdOutReaderTask.Wait();
                 }
-                //todo send shutdown command to rtext service and wait for it to die
+                //todo send shutdown command to RText service and wait for it to die
             }
             catch (OperationCanceledException ex)
             {
@@ -265,8 +265,8 @@ namespace RTextNppPlugin.RText
          * \brief   Constructor.
          *
          * \param   rTextFilePath   Full pathname of the text file.
-         * \param   ext             The extension of the rtext file. \remark  For each extension, even of
-         *                          the same .rtext file, a different process should be started.
+         * \param   ext             The extension of the RText file. 
+         * \remark  For each extension, even of the same .rtext file, a different process should be started.
          * \param   settings        Allows access to persistent settings.
          */
         internal RTextBackendProcess(string rTextFilePath, string ext, ISettings settings)
@@ -276,11 +276,11 @@ namespace RTextNppPlugin.RText
             _connector = new Connector(this);
             _workspaceFileWatcherDebouncer = new VoidDelayedEventHandler(new Action(RestartProcess), 1000);
         }
-        
+
         /**
-         * Gets the proc key.
+         * Gets the process unique key.
          *
-         * \return  The proc key. The process key is the complete filepath of the .rtext file that started this process with the addition of the file extensions that are associated with this process e.g. .atm. This way
+         * \return  The process unique key. The process key is the complete filepath of the .rtext file that started this process with the addition of the file extensions that are associated with this process e.g. .atm. This way
          *          It is guaranteed that the key of a process is a unique identifier.
          */
         internal string ProcKey
@@ -299,7 +299,7 @@ namespace RTextNppPlugin.RText
         /**
          * Gets the port.
          *
-         * \return  The port. This port is being reported by the backend process upon startup, and it is used by the fronted to establich communication with the backend via sockets.
+         * \return  The port. This port is being reported by the back-end process upon startup, and it is used by the fronted to establish communication with the back-end via sockets.
          */
         internal int Port
         {
@@ -411,7 +411,7 @@ namespace RTextNppPlugin.RText
                 _fileSystemWatcher.Created += OnRTextFileCreatedOrDeletedOrModified;
                 _fileSystemWatcher.Renamed += OnRTextFileRenamed;
                 _fileSystemWatcher.Error += ProcessError;
-                //finally add .rtext wacther
+                //finally add .rtext watcher
                 _workspaceSystemWatcher = new Windows.Clr.FileWatcher(System.IO.Path.GetDirectoryName(_pInfo.RTextFilePath),
                                                                       (uint)(System.IO.NotifyFilters.FileName | System.IO.NotifyFilters.LastWrite | System.IO.NotifyFilters.CreationTime),
                                                                       false,
@@ -425,15 +425,15 @@ namespace RTextNppPlugin.RText
                 _workspaceSystemWatcher.Renamed += OnWorkspaceDefinitionFileRenamed;
                 _workspaceSystemWatcher.Error += ProcessError;
                 _process.Exited += OnProcessExited;
-                //disable doskey or whatever actions are associated with cmd.exe
+                //disable dos-key or whatever actions are associated with cmd.exe
                 _autoRunKey = DisableCmdExeCustomization();
                 _process.EnableRaisingEvents = true;
                 _process.Start();
-                //start reaading asynchronously with tasks
+                //start reading asynchronously with tasks
                 _cancellationSource = new CancellationTokenSource();
                 _stdOutReaderTask = new Task(() => ReadStream(_process.StandardOutput, _cancellationSource.Token), _cancellationSource.Token);
                 _stdErrReaderTask = Task.Factory.StartNew(() => ReadStream(_process.StandardError, _cancellationSource.Token), _cancellationSource.Token);
-                _pInfo.Port = -1; //reinit port every time this function is called
+                _pInfo.Port = -1; //initialize port every time this function is called
                 var aPortTask = new Task<bool>(() =>
                 {
                     var t = new CancelableTask<int>(new ActionWrapper<int, System.IO.StreamReader>(GetPortNumber, _process.StandardOutput), Constants.INITIAL_RESPONSE_TIMEOUT);
@@ -537,7 +537,7 @@ namespace RTextNppPlugin.RText
             if (_process != null)
             {
                 CleanupProcess();
-                //notify connectors that their backend in no longer available!
+                //notify connectors that their back-end in no longer available!
                 if (ProcessExitedEvent != null)
                 {
                     ProcessExitedEvent(this, new ProcessExitedEventArgs(_pInfo.ProcKey));
@@ -591,7 +591,7 @@ namespace RTextNppPlugin.RText
         /**
          * Disables the command executable customization because some broken programs throw exceptions when one tries to start a program from the command line.
          *
-         * \return  A string containing the cmd auto run customization command.
+         * \return  A string containing the cmd.exe auto run customization command.
          */
         private string DisableCmdExeCustomization()
         {
@@ -646,7 +646,7 @@ namespace RTextNppPlugin.RText
                                 }
                                 matchResults = matchResults.NextMatch();
                             }
-                            //ok found _atching extension in .rtext file, check for commandline - next line should be the command line
+                            //OK found matching extension in .rtext file, check for command line - next line should be the command line
                             if (aHasFoundMatch && i.MoveNext() && !String.IsNullOrEmpty(i.Current))
                             {
                                 return i.Current;
@@ -678,7 +678,7 @@ namespace RTextNppPlugin.RText
         
         /**
          *
-         * \brief   Process erros of FileSystemWatcher objetcs. Re-initialize watchers.
+         * \brief   Process errors of FileSystemWatcher objects. Re-initialize watchers.
          *
          * \param   sender  Source of the event.
          * \param   e       Error event information.
@@ -693,7 +693,7 @@ namespace RTextNppPlugin.RText
             else
             {
                 //.rtext watcher will restart automatically
-                Logging.Logger.Instance.Append(String.Format("File system watcher backend root file reported an error : {0}", e.GetException().Message));
+                Logging.Logger.Instance.Append(String.Format("File system watcher back-end root file reported an error : {0}", e.GetException().Message));
             }
         }
         
@@ -716,7 +716,7 @@ namespace RTextNppPlugin.RText
          *
          * \param   sender  Source of the event.
          * \param   e       File system event information.
-         * \todo    Automatically save workspace before reloading the backend.
+         * \todo    Automatically save workspace before reloading the back-end.
          */
         private void OnRTextFileCreatedOrDeletedOrModified(object sender, System.IO.FileSystemEventArgs e)
         {

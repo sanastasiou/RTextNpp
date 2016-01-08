@@ -41,35 +41,35 @@ namespace RTextNppPlugin.Scintilla
         
         void ChangeMenuItemCheck(int CmdId, bool isChecked);
 
-        unsafe void AddText(string text);
+        unsafe void AddText(string text, IntPtr sciPtr);
         
         void ClearIndicator(IntPtr sciPtr, int indicator, int startPos, int length);
         
-        void ClearSelection();
+        void ClearSelection(IntPtr sciPtr);
+
+        void DeleteBack(int length, IntPtr sciPtr);
         
-        void DeleteBack(int length);
-        
-        void DeleteFront();
+        void DeleteFront(IntPtr sciPtr);
         
         void DeleteRange(int position, int length);
 
         IList<Tuple<int, int>> FindIndicatorRanges(int indicator, IntPtr sciPtr);
        
-        int GetCaretLineNumber();
+        int GetCaretLineNumber(IntPtr sciPtr);
         
-        int GetCaretPosition();
+        int GetCaretPosition(IntPtr sciPtr);
         
-        System.Drawing.Point GetCaretScreenLocation();
+        System.Drawing.Point GetCaretScreenLocation(IntPtr sciPtr);
         
-        System.Drawing.Point GetCaretScreenLocationForForm();
-              
-        System.Drawing.Point GetCaretScreenLocationForFormAboveWord(int position);
-        
-        System.Drawing.Point GetCaretScreenLocationRelativeToPosition(int position);
+        System.Drawing.Point GetCaretScreenLocationForForm(IntPtr sciPtr);
+
+        System.Drawing.Point GetCaretScreenLocationForFormAboveWord(int position, IntPtr sciPtr);
+
+        System.Drawing.Point GetCaretScreenLocationRelativeToPosition(int position, IntPtr sciPtr);
                
         int GetColumn(int position);
         
-        int GetColumn();
+        int GetColumn(IntPtr sciPtr);
         
         string GetConfigDir();
         
@@ -78,16 +78,16 @@ namespace RTextNppPlugin.Scintilla
         string GetLine(int line, IntPtr sciPtr);
               
         int GetLineCount(IntPtr sciPtr);
+
+        int GetLineEnd(int position, int line, IntPtr sciPtr);
         
-        int GetLineEnd(int position, int line);
+        int GetLineNumber(IntPtr sciPtr);
+
+        int GetLineNumber(int position, IntPtr sciPtr);
         
-        int GetLineNumber();
+        int GetLineStart(int line, IntPtr SciPtr);
         
-        int GetLineNumber(int position);
-        
-        int GetLineStart(int line);
-        
-        int GetPositionFromMouseLocation();
+        int GetPositionFromMouseLocation(IntPtr sciPtr);
         
         int GetSelectionLength();
         
@@ -102,8 +102,8 @@ namespace RTextNppPlugin.Scintilla
         int GetTextHeight(int line);
         
         int GetZoomLevel(IntPtr sciPtr);
-        
-        void GoToLine(int line);
+
+        void GoToLine(int line, IntPtr sciPtr);
              
         int GrabFocus(IntPtr sciPtr);
         
@@ -112,14 +112,14 @@ namespace RTextNppPlugin.Scintilla
         void OpenFile(string file);
         
         void PlaceIndicator(IntPtr sciPtr, int startPos, int length);
-        
-        unsafe void ReplaceWordFromToken(Tokenizer.TokenTag? token, string insertionText);
+
+        unsafe void ReplaceWordFromToken(Tokenizer.TokenTag? token, string insertionText, IntPtr sciPtr);
         
         void SaveCurrentFile();
         
         void ScrollToCaret();
-        
-        void SetCaretPosition(int pos);
+
+        void SetCaretPosition(int pos, IntPtr sciPtr);
         
         void SetEditorFocus(int setFocus);
         
@@ -127,9 +127,9 @@ namespace RTextNppPlugin.Scintilla
         
         void SetIndicatorStyle(IntPtr sciPtr, int indicator, SciMsg style, System.Drawing.Color color);
         
-        void SetSelection(int start, int end);
+        void SetSelection(int start, int end, IntPtr sciPtr);
 
-        object JumpToLine(string file, int line);
+        object JumpToLine(string file, int line, IntPtr sciPtr);
 
         void SetAnnotationVisible(IntPtr handle, int annotationStyle);
 

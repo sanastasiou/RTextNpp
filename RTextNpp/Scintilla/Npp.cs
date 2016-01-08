@@ -103,10 +103,10 @@ namespace RTextNppPlugin.Scintilla
             }
         }
 
-        public object JumpToLine(string file, int line)
+        public object JumpToLine(string file, int line, IntPtr sciPtr)
         {
             OpenFile(file);
-            GoToLine(line);
+            GoToLine(line, sciPtr);
             return null;
         }
         
@@ -171,25 +171,25 @@ namespace RTextNppPlugin.Scintilla
         {
             return SendMessage(CurrentScintilla, SciMsg.SCI_GETSELECTIONS).ToInt32();
         }
-        
-        public void DeleteFront()
+
+        public void DeleteFront(IntPtr sciPtr)
         {
             if (GetSelectionLength() > 1)
             {
-                DeleteBack(1);
+                DeleteBack(1, sciPtr);
             }
             else
             {
-                SetCaretPosition(GetCaretPosition() + 1);
-                DeleteBack(1);
+                SetCaretPosition(GetCaretPosition(sciPtr) + 1, sciPtr);
+                DeleteBack(1, sciPtr);
             }
         }
-        
-        public void DeleteBack(int length)
+
+        public void DeleteBack(int length, IntPtr sciPtr)
         {
             for (int i = 0; i < length; ++i)
             {
-                SendMessage(CurrentScintilla, SciMsg.SCI_DELETEBACK);
+                SendMessage(sciPtr, SciMsg.SCI_DELETEBACK);
             }
         }
 
@@ -250,8 +250,8 @@ namespace RTextNppPlugin.Scintilla
                 SendMessage(Plugin.Instance.NppData._nppHandle, NppMsg.NPPM_SWITCHTOFILE, IntPtr.Zero, new IntPtr(bp));
             }
         }
-        
-        public unsafe void AddText(string text)
+
+        public unsafe void AddText(string text, IntPtr sciPtr)
         {
             if (GetSelectionLength() > 1)
             {
@@ -261,9 +261,9 @@ namespace RTextNppPlugin.Scintilla
             if (KeyInterceptor.GetModifiers().IsInsert)
             {
                 //delete only if not at end of line
-                if (GetCaretPosition() < GetLineEnd(GetCaretPosition(), GetLineNumber()))
+                if (GetCaretPosition(sciPtr) < GetLineEnd(GetCaretPosition(sciPtr), GetLineNumber(sciPtr), sciPtr))
                 {
-                    DeleteFront();
+                    DeleteFront(sciPtr);
                 }
             }
 
@@ -366,12 +366,12 @@ namespace RTextNppPlugin.Scintilla
          *
          * \return  The line number from the current caret position.
          */
-        public int GetLineNumber()
+        public int GetLineNumber(IntPtr sciPtr)
         {
-            return GetLineNumber(GetCaretPosition());
+            return GetLineNumber(GetCaretPosition(sciPtr), sciPtr);
         }
-        
-        public int GetLineNumber(int position)
+
+        public int GetLineNumber(int position, IntPtr sciPtr)
         {
             return SendMessage(CurrentScintilla, SciMsg.SCI_LINEFROMPOSITION, new IntPtr(position)).ToInt32();
         }
@@ -385,20 +385,20 @@ namespace RTextNppPlugin.Scintilla
         {
             return SendMessage(CurrentScintilla, SciMsg.SCI_GETCOLUMN, new IntPtr(position)).ToInt32();
         }
-        
-        public int GetColumn()
+
+        public int GetColumn(IntPtr sciPtr)
         {
-            return SendMessage(CurrentScintilla, SciMsg.SCI_GETCOLUMN, new IntPtr(GetCaretPosition())).ToInt32();
+            return SendMessage(CurrentScintilla, SciMsg.SCI_GETCOLUMN, new IntPtr(GetCaretPosition(sciPtr))).ToInt32();
         }
         
-        public int GetLineEnd(int position, int line)
+        public int GetLineEnd(int position, int line, IntPtr sciPtr)
         {
-            return GetLineStart(GetLineNumber(position)) + SendMessage(CurrentScintilla, SciMsg.SCI_LINELENGTH, new IntPtr(line)).ToInt32();
+            return GetLineStart(GetLineNumber(position, sciPtr), sciPtr) + SendMessage(sciPtr, SciMsg.SCI_LINELENGTH, new IntPtr(line)).ToInt32();
         }
-        
-        public int GetLineStart(int line)
+
+        public int GetLineStart(int line, IntPtr sciPtr)
         {
-            return SendMessage(CurrentScintilla, SciMsg.SCI_POSITIONFROMLINE, new IntPtr(line)).ToInt32();
+            return SendMessage(sciPtr, SciMsg.SCI_POSITIONFROMLINE, new IntPtr(line)).ToInt32();
         }
         
         public void SetFirstVisibleLine(int line)
@@ -417,19 +417,20 @@ namespace RTextNppPlugin.Scintilla
         }
 
         /**
-         * Gets caret screen location relative to buffer position.
+         * \brief   Gets caret screen location relative to position.
          *
          * \param   position    The buffer position.
+         * \param   sciPtr      The scintilla pointer.
          *
          * \return  A point from the relative buffer position.
          */
-        public Point GetCaretScreenLocationRelativeToPosition(int position)
+        public Point GetCaretScreenLocationRelativeToPosition(int position, IntPtr sciPtr)
         {
-            int x           = SendMessage(CurrentScintilla, SciMsg.SCI_POINTXFROMPOSITION, IntPtr.Zero, new IntPtr(position)).ToInt32();
-            int y           = SendMessage(CurrentScintilla, SciMsg.SCI_POINTYFROMPOSITION, IntPtr.Zero, new IntPtr(position)).ToInt32();
+            int x           = SendMessage(sciPtr, SciMsg.SCI_POINTXFROMPOSITION, IntPtr.Zero, new IntPtr(position)).ToInt32();
+            int y           = SendMessage(sciPtr, SciMsg.SCI_POINTYFROMPOSITION, IntPtr.Zero, new IntPtr(position)).ToInt32();
             Point aPoint    = new Point(x, y);
-            _nativeHelpers.IClientToScreen(CurrentScintilla, ref aPoint);
-            aPoint.Y        += GetTextHeight(GetCaretLineNumber());
+            _nativeHelpers.IClientToScreen(sciPtr, ref aPoint);
+            aPoint.Y        += GetTextHeight(GetCaretLineNumber(sciPtr));
             double dpiScale = VisualUtilities.GetDpiScalingFactor();
             aPoint.X        = (int)((double)(aPoint.X) / dpiScale);
             aPoint.Y        = (int)((double)(aPoint.Y) / dpiScale);
@@ -441,10 +442,10 @@ namespace RTextNppPlugin.Scintilla
          *
          * \return  The caret screen location for form.
          */
-        public Point GetCaretScreenLocationForForm()
+        public Point GetCaretScreenLocationForForm(IntPtr sciPtr)
         {
-            Point aPoint    = GetCaretScreenLocation();
-            int aTextHeight = GetTextHeight(GetCaretLineNumber());
+            Point aPoint    = GetCaretScreenLocation(sciPtr);
+            int aTextHeight = GetTextHeight(GetCaretLineNumber(sciPtr));
             aPoint.Y        += aTextHeight;
             double dpiScale = VisualUtilities.GetDpiScalingFactor();
             aPoint.X        = (int)((double)(aPoint.X) / dpiScale);
@@ -459,31 +460,31 @@ namespace RTextNppPlugin.Scintilla
          *
          * \return  The caret screen location for form above word from a word starting at position.
          */
-        
-        public Point GetCaretScreenLocationForFormAboveWord(int position)
+
+        public Point GetCaretScreenLocationForFormAboveWord(int position, IntPtr sciPtr)
         {
-            int x           = SendMessage(CurrentScintilla, SciMsg.SCI_POINTXFROMPOSITION, IntPtr.Zero, new IntPtr(position)).ToInt32();
-            int y           = SendMessage(CurrentScintilla, SciMsg.SCI_POINTYFROMPOSITION, IntPtr.Zero, new IntPtr(position)).ToInt32();
+            int x           = SendMessage(sciPtr, SciMsg.SCI_POINTXFROMPOSITION, IntPtr.Zero, new IntPtr(position)).ToInt32();
+            int y           = SendMessage(sciPtr, SciMsg.SCI_POINTYFROMPOSITION, IntPtr.Zero, new IntPtr(position)).ToInt32();
             Point aPoint    = new Point(x, y);
-            _nativeHelpers.IClientToScreen(CurrentScintilla, ref aPoint);
+            _nativeHelpers.IClientToScreen(sciPtr, ref aPoint);
             double dpiScale = VisualUtilities.GetDpiScalingFactor();
             aPoint.X        = (int)((double)(aPoint.X) / dpiScale);
             aPoint.Y        = (int)((double)(aPoint.Y) / dpiScale);
             return aPoint;
         }
-        
-        public Point GetCaretScreenLocation()
+
+        public Point GetCaretScreenLocation(IntPtr sciPtr)
         {
-            int pos = SendMessage(CurrentScintilla, SciMsg.SCI_GETCURRENTPOS).ToInt32();
-            return GetCaretScreenLocationForFormAboveWord(pos);
+            int pos = SendMessage(sciPtr, SciMsg.SCI_GETCURRENTPOS).ToInt32();
+            return GetCaretScreenLocationForFormAboveWord(pos, sciPtr);
         }
-        
-        public int GetPositionFromMouseLocation()
+
+        public int GetPositionFromMouseLocation(IntPtr sciPtr)
         {
             Point point = Cursor.Position;
-            _nativeHelpers.IScreenToClient(CurrentScintilla, ref point);
+            _nativeHelpers.IScreenToClient(sciPtr, ref point);
             //dpi conversion here?
-            return SendMessage(CurrentScintilla, SciMsg.SCI_CHARPOSITIONFROMPOINTCLOSE, new IntPtr(point.X), new IntPtr(point.Y)).ToInt32();
+            return SendMessage(sciPtr, SciMsg.SCI_CHARPOSITIONFROMPOINTCLOSE, new IntPtr(point.X), new IntPtr(point.Y)).ToInt32();
         }
                
         public string GetTextBetween(int start, int end = -1)
@@ -498,10 +499,10 @@ namespace RTextNppPlugin.Scintilla
                 return tr.lpstrText;
             }
         }
-        
-        public unsafe void ReplaceWordFromToken(Tokenizer.TokenTag ? token, string insertionText)
+
+        public unsafe void ReplaceWordFromToken(Tokenizer.TokenTag? token, string insertionText, IntPtr sciPtr)
         {
-            int aCaretPos           = GetCaretPosition();
+            int aCaretPos           = GetCaretPosition(sciPtr);
             bool isCaretInsideToken = (aCaretPos >= token.Value.BufferPosition && aCaretPos < (token.Value.BufferPosition + token.Value.Context.Length));
             if (token.HasValue && 
                 (token.Value.Type != RTextTokenTypes.Space && 
@@ -529,32 +530,32 @@ namespace RTextNppPlugin.Scintilla
         {
             get { return Plugin.Instance.NppData._nppHandle; }
         }
-        
-        public int GetCaretPosition()
+
+        public int GetCaretPosition(IntPtr sciPtr)
         {
-            return SendMessage(CurrentScintilla, SciMsg.SCI_GETCURRENTPOS).ToInt32();
+            return SendMessage(sciPtr, SciMsg.SCI_GETCURRENTPOS).ToInt32();
         }
-        
-        public int GetCaretLineNumber()
+
+        public int GetCaretLineNumber(IntPtr sciPtr)
         {
-            int currentPos = SendMessage(CurrentScintilla, SciMsg.SCI_GETCURRENTPOS).ToInt32();
-            return SendMessage(CurrentScintilla, SciMsg.SCI_LINEFROMPOSITION, new IntPtr(currentPos)).ToInt32();
+            int currentPos = SendMessage(sciPtr, SciMsg.SCI_GETCURRENTPOS).ToInt32();
+            return SendMessage(sciPtr, SciMsg.SCI_LINEFROMPOSITION, new IntPtr(currentPos)).ToInt32();
         }
-        
-        public void SetCaretPosition(int pos)
+
+        public void SetCaretPosition(int pos, IntPtr sciPtr)
         {
-            SendMessage(CurrentScintilla, SciMsg.SCI_SETCURRENTPOS, new IntPtr(pos));
+            SendMessage(sciPtr, SciMsg.SCI_SETCURRENTPOS, new IntPtr(pos));
         }
-        
-        public void ClearSelection()
+
+        public void ClearSelection(IntPtr sciPtr)
         {
-            SendMessage(CurrentScintilla, SciMsg.SCI_CLEARSELECTIONS);
+            SendMessage(sciPtr, SciMsg.SCI_CLEARSELECTIONS);
         }
-        
-        public void SetSelection(int start, int end)
+
+        public void SetSelection(int start, int end, IntPtr sciPtr)
         {
-            SendMessage(CurrentScintilla, SciMsg.SCI_SETSELECTIONSTART, new IntPtr(start));
-            SendMessage(CurrentScintilla, SciMsg.SCI_SETSELECTIONEND, new IntPtr(end));
+            SendMessage(sciPtr, SciMsg.SCI_SETSELECTIONSTART, new IntPtr(start));
+            SendMessage(sciPtr, SciMsg.SCI_SETSELECTIONEND, new IntPtr(end));
         }
         
         public int GrabFocus(IntPtr sciPtr)
@@ -597,14 +598,14 @@ namespace RTextNppPlugin.Scintilla
             return SendMessage(sciPtr, SciMsg.SCI_LINESONSCREEN).ToInt32();
         }
 
-        public void GoToLine(int line)
+        public void GoToLine(int line, IntPtr sciPtr)
         {
             int firstVisibleDocLine = GetFirstVisibleLine(CurrentScintilla);
             int lastVisibleDocLine  = GetLastVisibleLine(CurrentScintilla);
             if(IsLineVisible(firstVisibleDocLine, lastVisibleDocLine, line))
             {
                 //just move cursor, line is already visible
-                SendMessage(CurrentScintilla, SciMsg.SCI_GOTOPOS, new IntPtr(GetLineStart(line - 1)));
+                SendMessage(CurrentScintilla, SciMsg.SCI_GOTOPOS, new IntPtr(GetLineStart(line - 1, sciPtr)));
             }
             else
             {
@@ -613,7 +614,7 @@ namespace RTextNppPlugin.Scintilla
                 int linesOnScreen = SendMessage(CurrentScintilla, SciMsg.SCI_LINESONSCREEN).ToInt32();
                 int offset        = linesOnScreen >> 1;
                 //check if we are behind new line, or after new line
-                int currentLine = GetLineNumber();
+                int currentLine = GetLineNumber(sciPtr);
                 if(currentLine > line)
                 {
                     offset = -offset;

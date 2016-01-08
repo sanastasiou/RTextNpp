@@ -45,7 +45,7 @@ AUTOSAR {
             //mock last line
             nppMock.Setup(m => m.GetLine(It.IsAny<int>(), IntPtr.Zero)).Returns<int, IntPtr>( (x,y) => ContextLinesSample[x] + "\n");
             //for the sake of simplicity we assume that offset is 0
-            nppMock.Setup(m => m.GetLineStart(It.Is<int>(i => i == 3))).Returns(0);
+            nppMock.Setup(m => m.GetLineStart(It.Is<int>(i => i == 3), It.IsAny<IntPtr>())).Returns(0);
             Tokenizer aTokenizer = new Tokenizer(3, 0, nppMock.Object, IntPtr.Zero);
             var aTokenList = new List<Tokenizer.TokenTag>();
             foreach (var t in aTokenizer.Tokenize(new RTextTokenTypes[] { RTextTokenTypes.Label }))
@@ -77,7 +77,7 @@ AUTOSAR {
             //mock last line
             nppMock.Setup(m => m.GetLine(It.IsAny<int>(), IntPtr.Zero)).Returns<int, IntPtr>((x,y) => LinesSample[x]);
             //for the sake of simplicity we assume that offset is 0
-            nppMock.Setup(m => m.GetLineStart(It.IsAny<int>())).Returns(0);
+            nppMock.Setup(m => m.GetLineStart(It.IsAny<int>(), It.IsAny<IntPtr>())).Returns(0);
             Tokenizer aTokenizer = new Tokenizer(1, 0, nppMock.Object, IntPtr.Zero);
             var aTokenList = new List<Tokenizer.TokenTag>();
             foreach (var t in aTokenizer.Tokenize())
@@ -106,7 +106,7 @@ AUTOSAR {
             //mock last line
             nppMock.Setup(m => m.GetLine(It.IsAny<int>(), IntPtr.Zero)).Returns<int, IntPtr>((x,y) => LinesSample[x]);
             //for the sake of simplicity we assume that offset is 0
-            nppMock.Setup(m => m.GetLineStart(It.IsAny<int>())).Returns(0);
+            nppMock.Setup(m => m.GetLineStart(It.IsAny<int>(), It.IsAny<IntPtr>())).Returns(0);
             Tokenizer aTokenizer = new Tokenizer(1, 0, nppMock.Object, IntPtr.Zero, true);
             var aTokenList = new List<Tokenizer.TokenTag>();
             foreach (var t in aTokenizer.Tokenize())
@@ -145,15 +145,15 @@ AUTOSAR {
             //mock last line
             nppMock.Setup(m => m.GetLine(It.IsAny<int>(), IntPtr.Zero)).Returns<int, IntPtr>((x,y) => LinesSample[x]);
             //for the sake of simplicity we assume that offset is 0
-            nppMock.Setup(m => m.GetLineStart(It.IsAny<int>())).Returns(0);
-            nppMock.Setup(m => m.GetPositionFromMouseLocation()).Returns(-1);
+            nppMock.Setup(m => m.GetLineStart(It.IsAny<int>(), It.IsAny<IntPtr>())).Returns(0);
+            nppMock.Setup(m => m.GetPositionFromMouseLocation(It.IsAny<IntPtr>())).Returns(-1);
             var aToken = Tokenizer.FindTokenUnderCursor(nppMock.Object, IntPtr.Zero);
             Assert.IsNull(aToken.Context);
-            nppMock.Setup(m => m.GetPositionFromMouseLocation()).Returns(0);
-            nppMock.Setup(m => m.GetLineNumber(It.IsAny<int>())).Returns(1);
+            nppMock.Setup(m => m.GetPositionFromMouseLocation(It.IsAny<IntPtr>())).Returns(0);
+            nppMock.Setup(m => m.GetLineNumber(It.IsAny<int>(), It.IsAny<IntPtr>())).Returns(1);
             aToken = Tokenizer.FindTokenUnderCursor(nppMock.Object, IntPtr.Zero);
             Assert.AreEqual(aToken.Context, "ID");
-            nppMock.Setup(m => m.GetPositionFromMouseLocation()).Returns(10);
+            nppMock.Setup(m => m.GetPositionFromMouseLocation(It.IsAny<IntPtr>())).Returns(10);
             aToken = Tokenizer.FindTokenUnderCursor(nppMock.Object, IntPtr.Zero);
             Assert.IsNull(aToken.Context);
         }

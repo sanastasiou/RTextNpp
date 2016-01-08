@@ -90,7 +90,7 @@ namespace RTextNppPlugin.WpfControls
             var aCurrentItem = aErrorListDatagrid.Items[aErrorListDatagrid.SelectedIndex] as ErrorItemViewModel;
             if (aCurrentItem != null)
             {
-                _nppHelper.JumpToLine(aCurrentItem.FilePath, aCurrentItem.Line);
+                _nppHelper.JumpToLine(aCurrentItem.FilePath, aCurrentItem.Line, _nppHelper.CurrentScintilla);
             }
         }
     }

@@ -103,9 +103,6 @@ namespace RTextNppPlugin.Scintilla.Annotations
 
         void OnScintillaUiUpdated(SCNotification notification)
         {
-            //find activated buffer
-
-
             UpdateVisibilityInfo(new VisibilityInfo
             {
                 File            = _nppHelper.GetActiveFile(notification.nmhdr.hwndFrom),

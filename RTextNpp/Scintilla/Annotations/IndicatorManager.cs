@@ -19,10 +19,6 @@ namespace RTextNppPlugin.Scintilla.Annotations
         #region [Data Members]
         private const Settings.RTextNppSettings SETTING      = Settings.RTextNppSettings.EnableErrorSquiggleLines;
         private const int INDICATOR_INDEX                    = 8;
-        private CancellationTokenSource _mainSciCts          = null;
-        private CancellationTokenSource _subSciCts           = null;
-        private Task _mainSciDrawingTask                     = null;
-        private Task _subSciDrawningTask                     = null;
         private readonly RTextTokenTypes[] ERROR_TOKEN_TYPES =  
         { 
             RTextTokenTypes.Boolean,
@@ -38,6 +34,10 @@ namespace RTextNppPlugin.Scintilla.Annotations
         };
         private ConcurrentBag<Tuple<int, int, int>> _indicatorRangesMain = null; //!< Holds last drawn indicator ranges for main view - used to speed up deletion of ranges, rather than deleting the whole document ( time consuming ).
         private ConcurrentBag<Tuple<int, int, int>> _indicatorRangesSub  = null; //!< Holds last drawn indicator ranges for sub view - used to speed up deletion of ranges, rather than deleting the whole document ( time consuming ).
+        private string _activeFileMain                                   = string.Empty;
+        private string _activeFileSub                                    = string.Empty;
+        private string _drawingFileMain                                  = string.Empty;
+        private string _drawingFileSub                                   = string.Empty;
         #endregion
 
         #region [Interface]
@@ -53,6 +53,9 @@ namespace RTextNppPlugin.Scintilla.Annotations
             _nppHelper.SetIndicatorStyle(_nppHelper.SecondaryScintilla, INDICATOR_INDEX, SciMsg.INDIC_SQUIGGLE, Color.Red);
 
             plugin.ScintillaFocusChanged += OnScintillaFocusChanged;
+
+            _activeFileMain = _nppHelper.GetActiveFile(_nppHelper.MainScintilla);
+            _activeFileSub  = _nppHelper.GetActiveFile(_nppHelper.SecondaryScintilla);
         }
 
         void OnScintillaFocusChanged(IntPtr sciPtr, bool hasFocus)
@@ -138,41 +141,44 @@ namespace RTextNppPlugin.Scintilla.Annotations
          */
         protected override object OnVisibilityInfoUpdated(VisibilityInfo info)
         {
-            //this even comes before buffer is activated - errors do not match with the file
-            info.LastLine += 1;
-            info.FirstLine = info.FirstLine > 0 ? --info.FirstLine : info.FirstLine;
-            SetVisibilityInfo(info);
+            //this event comes before buffer is activated - errors do not match with the file
+            base.OnVisibilityInfoUpdated(info);
             if (IsWorkspaceFile(info.File) && _nppHelper.FindScintillaFromFilepath(info.File) == info.ScintillaHandle)
             {
                 //update current annotations - if current file belongs in workspace and editor is focused
-                PlaceIndicatorsRanges(info.ScintillaHandle);
+                PlaceIndicatorsRanges(info.ScintillaHandle, true);
             }
             return null;
+        }
+
+        protected override void OnBufferActivated(object source, string file)
+        {
+            if (!IsNotepadShutingDown)
+            {
+                _activeFileMain = _nppHelper.GetActiveFile(_nppHelper.MainScintilla);
+                _activeFileSub  = _nppHelper.GetActiveFile(_nppHelper.SecondaryScintilla);
+                PreProcessOnBufferActivatedEvent();
+                if (!Utilities.FileUtilities.IsRTextFile(file, _settings, _nppHelper) || (ErrorList == null && IsWorkspaceFile(file)))
+                {
+                    //remove annotations from the view which this file belongs to
+                    var scintilla = _nppHelper.FindScintillaFromFilepath(file);
+
+                    _nppHelper.ClearAllIndicators(scintilla, INDICATOR_INDEX);
+
+                    if (scintilla == _nppHelper.MainScintilla)
+                    {
+                        _lastMainViewAnnotatedFile = string.Empty;
+                    }
+                    else
+                    {
+                        _lastSubViewAnnotatedFile = string.Empty;
+                    }
+                }
+            }
         }
         #endregion
 
         #region [Helpers]
-
-        protected override void OnBufferActivated(object source, string file)
-        {
-            PreProcessOnBufferActivatedEvent();
-            if (!Utilities.FileUtilities.IsRTextFile(file, _settings, _nppHelper) || (ErrorList == null && IsWorkspaceFile(file)))
-            {
-                //remove annotations from the view which this file belongs to
-                var scintilla = _nppHelper.FindScintillaFromFilepath(file);
-
-                _nppHelper.ClearAllIndicators(scintilla, INDICATOR_INDEX);
-                
-                if (scintilla == _nppHelper.MainScintilla)
-                {
-                    _lastMainViewAnnotatedFile = string.Empty;
-                }
-                else
-                {
-                    _lastSubViewAnnotatedFile = string.Empty;
-                }
-            }
-        }
 
         protected override void HideAnnotations(IntPtr scintilla)
         {
@@ -189,121 +195,94 @@ namespace RTextNppPlugin.Scintilla.Annotations
 
         protected override void DrawAnnotations(ErrorListViewModel errors, IntPtr sciPtr)
         {
-            try
+            if (!IsNotepadShutingDown)
             {
-                //cancel any pending task
-                var task = GetDrawingTask(sciPtr);
-                var cts = GetCts(sciPtr);
-                if (task != null && !(task.IsCanceled || task.IsCompleted))
+                try
                 {
-                    cts.Cancel();
-                    SetIndicatorsRanges(sciPtr, null);
-                    ResetLastAnnotatedFile(sciPtr);
-                }
-                HideAnnotations(sciPtr);
-                //only grab focus - if this sciPtr has currently focus
-                if (_nppHelper.GetCurrentFilePath() == FindActiveFile(sciPtr))
-                {
-                    _nppHelper.GrabFocus(sciPtr);
-                }
-                //start new task
-                var newCts = new CancellationTokenSource();
-                var newTask = Task.Factory.StartNew(() =>
-                {
-                    ConcurrentBag<Tuple<int, int, int>> indicatorRanges = GetIndicatorRanges(sciPtr);
-                    if (errors != null)
+                    //cancel any pending task
+                    var task = GetDrawingTask(sciPtr);
+                    var cts  = GetCts(sciPtr);
+                    if (task != null && !(task.IsCanceled || task.IsCompleted))
                     {
-                        indicatorRanges = new ConcurrentBag<Tuple<int, int, int>>();
-                        var aErrorGroupByLines = errors.ErrorList.GroupBy(y => y.Line).AsParallel();
-                        Parallel.ForEach(aErrorGroupByLines, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount }, (aErrorGroup) =>
+                        cts.Cancel();
+                        try
                         {
-                            if (newCts.Token.IsCancellationRequested || !HasFocus(sciPtr))
-                            {
-                                indicatorRanges = null;
-                                ResetLastAnnotatedFile(sciPtr);
-                                return;
-                            }
-                            //do the heavy work here, tokenize line and try to find perfect matches in the errors - if no perfect match can be found highlight whole line
-                            var aLineNumber          = aErrorGroup.First().Line - 1;
-                            var aPositionAtLineStart = _nppHelper.GetLineStart(aLineNumber);
-                            var aLineText            = _nppHelper.GetLine(aLineNumber, sciPtr);
-
-                            Tokenizer tokenizer = new Tokenizer(aLineNumber, aPositionAtLineStart, aLineText);
-                            bool aIsAnyMatchFound = false;
-                            foreach (var t in tokenizer.Tokenize(ERROR_TOKEN_TYPES))
-                            {
-                                if (newCts.Token.IsCancellationRequested || !HasFocus(sciPtr))
-                                {
-                                    indicatorRanges = null;
-                                    ResetLastAnnotatedFile(sciPtr);
-                                    return;
-                                }
-                                //if t is contained exactly in any of the errors, mark it as indicator
-                                var matches = from m in aErrorGroup
-                                              where m.Message.Contains(t.Context)
-                                              select m;
-                                if (matches.Count() > 0)
-                                {
-                                    indicatorRanges.Add(new Tuple<int, int, int>(t.BufferPosition, t.Context.Length, aLineNumber));
-                                    aIsAnyMatchFound = true;
-                                }
-                            }
-                            if (!aIsAnyMatchFound)
-                            {
-                                //highlight whole line
-                                indicatorRanges.Add(new Tuple<int, int, int>(aPositionAtLineStart, aLineText.Length, aLineNumber));
-                            }
-                        });
+                            task.Wait();
+                        }
+                        catch (AggregateException ex)
+                        {
+                            ex.Handle(ae => true);
+                        }
+                        SetIndicatorsRanges(sciPtr, null);
+                        ResetLastAnnotatedFile(sciPtr);
                     }
-                    SetIndicatorsRanges(sciPtr, indicatorRanges);
-                }, newCts.Token).ContinueWith((x) =>
+                    HideAnnotations(sciPtr);
+                    //only grab focus - if this sciPtr has currently focus
+                    if (_nppHelper.GetCurrentFilePath() == FindActiveFile(sciPtr))
+                    {
+                        _nppHelper.GrabFocus(sciPtr);
+                    }
+                    //start new task
+                    var newCts = new CancellationTokenSource();
+                    SetCts(sciPtr, newCts);
+                    ConcurrentBag<Tuple<int, int, int>> indicatorRanges = new ConcurrentBag<Tuple<int, int, int>>();
+                    string activeFile = errors.FilePath.Replace("/", "\\");
+                    SetDrawingFile(sciPtr, activeFile);
+                    var newTask = Task.Factory.StartNew(() =>
+                    {
+                        if (errors != null)
+                        {
+                            var aErrorGroupByLines = errors.ErrorList.GroupBy(y => y.Line);
+                            Parallel.ForEach( aErrorGroupByLines,
+                                              new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount > 1 ? Environment.ProcessorCount - 1 : Environment.ProcessorCount },
+                                              (IGrouping<int, ErrorItemViewModel> aErrorGroup, ParallelLoopState state) =>
+                                {
+                                    //do the heavy work here, tokenize line and try to find perfect matches in the errors - if no perfect match can be found highlight whole line
+                                    var aLineNumber          = aErrorGroup.First().Line - 1;
+                                    var aPositionAtLineStart = _nppHelper.GetLineStart(aLineNumber, sciPtr);
+                                    var aLineText            = _nppHelper.GetLine(aLineNumber, sciPtr);
+                                    Tokenizer tokenizer      = new Tokenizer(aLineNumber, aPositionAtLineStart, aLineText);
+                                    bool aIsAnyMatchFound    = false;
+                                    foreach (var t in tokenizer.Tokenize(ERROR_TOKEN_TYPES))
+                                    {
+                                        bool hasActiveFileChanged = GetActiveFile(sciPtr) != activeFile;
+                                        //if file is no longer active in this scintilla we have to break!
+                                        if (newCts.Token.IsCancellationRequested || hasActiveFileChanged || IsNotepadShutingDown)
+                                        {
+                                            ResetLastAnnotatedFile(sciPtr);
+                                            state.Break();
+                                            break;
+                                        }
+                                        //if t is contained exactly in any of the errors, mark it as indicator
+                                        var matches = from m in aErrorGroup
+                                                      where m.Message.Contains(t.Context)
+                                                      select m;
+                                        if (matches.Count() > 0)
+                                        {
+                                            indicatorRanges.Add(new Tuple<int, int, int>(t.BufferPosition, t.Context.Length, aLineNumber));
+                                            aIsAnyMatchFound = true;
+                                        }
+                                    }
+                                    if (!aIsAnyMatchFound)
+                                    {
+                                        //highlight whole line
+                                        indicatorRanges.Add(new Tuple<int, int, int>(aPositionAtLineStart, aLineText.Length, aLineNumber));
+                                    }
+                                });
+                        }
+                    }, newCts.Token).ContinueWith((x) =>
+                    {
+                        SetIndicatorsRanges(sciPtr, indicatorRanges);
+                        PlaceIndicatorsRanges(sciPtr);
+                    }, newCts.Token, TaskContinuationOptions.OnlyOnRanToCompletion, TaskScheduler.Default);
+                    SetDrawingTask(sciPtr, newTask);
+
+                }
+                catch (Exception)
                 {
-                    PlaceIndicatorsRanges(sciPtr);
-                }, newCts.Token, TaskContinuationOptions.OnlyOnRanToCompletion, TaskScheduler.Default);
-                SetCts(sciPtr, newCts);
-                SetDrawingTask(sciPtr, newTask);
-
+                    Trace.WriteLine("Draw margins failed.");
+                }
             }
-            catch (Exception)
-            {
-                Trace.WriteLine("Draw margins failed.");
-            }
-        }
-
-        private Task GetDrawingTask(IntPtr sciPtr)
-        {
-            if(sciPtr == _nppHelper.MainScintilla)
-            {
-                return _mainSciDrawingTask;
-            }
-            return _subSciDrawningTask;
-        }
-
-        private CancellationTokenSource GetCts(IntPtr sciPtr)
-        {
-            if(sciPtr == _nppHelper.MainScintilla)
-            {
-                return _mainSciCts;
-            }
-            return _subSciCts;
-        }
-
-        private void SetDrawingTask(IntPtr sciPtr, Task task)
-        {
-            if (sciPtr == _nppHelper.MainScintilla)
-            {
-                _mainSciDrawingTask = task;
-            }
-            _subSciDrawningTask = task;
-        }
-
-        private void SetCts(IntPtr sciPtr, CancellationTokenSource cts)
-        {
-            if (sciPtr == _nppHelper.MainScintilla)
-            {
-                _mainSciCts = cts;
-            }
-            _subSciCts = cts;
         }
 
         private void SetIndicatorsRanges(IntPtr sciPtr, ConcurrentBag<Tuple<int, int, int>> bag)
@@ -325,61 +304,75 @@ namespace RTextNppPlugin.Scintilla.Annotations
             return _indicatorRangesSub;
         }
 
-        private void PlaceIndicatorsRanges(IntPtr sciPtr)
+        private void PlaceIndicatorsRanges(IntPtr sciPtr, bool waitForTask = false)
         {
-            var aIndicatorRanges = GetIndicatorRanges(sciPtr);
-            var aVisibilityInfo  = GetVisibilityInfo(sciPtr);
-            if (aIndicatorRanges != null)
+            if (!IsNotepadShutingDown)
             {
-                _nppHelper.SetIndicatorStyle(sciPtr, INDICATOR_INDEX, SciMsg.INDIC_SQUIGGLE, Color.Red);
-                _nppHelper.SetCurrentIndicator(sciPtr, INDICATOR_INDEX);
-                //get only ranges which belong to visible lines
-                var visibleRanges = from range in aIndicatorRanges
-                                    where range.Item3 >= aVisibilityInfo.FirstLine && range.Item3 <= aVisibilityInfo.LastLine
-                                    select range;
+                var aIndicatorRanges = GetIndicatorRanges(sciPtr);
+                var aVisibilityInfo  = GetVisibilityInfo(sciPtr);
+                var runningTask      = GetDrawingTask(sciPtr);
+                var activeFile       = GetDrawingFile(sciPtr);
 
-                var ranges = visibleRanges.OrderBy(x => x.Item3).ToArray();
-                
-                for (int i = 0; i < ranges.Count(); ++i)
+                if (aIndicatorRanges != null && (!waitForTask || (runningTask == null || runningTask.IsCompleted)))
                 {
-                    if(!HasFocus(sciPtr))
-                    {
-                        //critical point - avoid endless loop
-                        return;
-                    }
+                    _nppHelper.SetIndicatorStyle(sciPtr, INDICATOR_INDEX, SciMsg.INDIC_SQUIGGLE, Color.Red);
                     _nppHelper.SetCurrentIndicator(sciPtr, INDICATOR_INDEX);
-                    _nppHelper.PlaceIndicator(sciPtr, ranges[i].Item1, ranges[i].Item2);
-                    //ensure indicator is placed by reading it - if not stay on same indicator
-                    int indicatorRangeStart = _nppHelper.IndicatorStart(sciPtr, INDICATOR_INDEX, ranges[i].Item1);
-                    int indicatorRangeEnd   = _nppHelper.IndicatorEnd(sciPtr, INDICATOR_INDEX, ranges[i].Item1);
+                    //get only ranges which belong to visible lines
+                    var visibleRanges = from range in aIndicatorRanges
+                                        where range.Item3 >= aVisibilityInfo.FirstLine && range.Item3 <= aVisibilityInfo.LastLine
+                                        select range;
 
-                    if(ranges[i].Item1 != indicatorRangeStart || indicatorRangeEnd != (ranges[i].Item1 + ranges[i].Item2))
+                    var ranges = visibleRanges.OrderBy(x => x.Item3).ToArray();
+
+                    for (int i = 0; i < ranges.Count(); ++i)
                     {
-                        --i;
+                        if (IsNotepadShutingDown || (activeFile != GetActiveFile(sciPtr)))
+                        {
+                            //critical point - avoid endless loop
+                            return;
+                        }
+                        _nppHelper.SetCurrentIndicator(sciPtr, INDICATOR_INDEX);
+                        _nppHelper.PlaceIndicator(sciPtr, ranges[i].Item1, ranges[i].Item2);
+                        //ensure indicator is placed by reading it - if not stay on same indicator
+                        int indicatorRangeStart = _nppHelper.IndicatorStart(sciPtr, INDICATOR_INDEX, ranges[i].Item1);
+                        int indicatorRangeEnd = _nppHelper.IndicatorEnd(sciPtr, INDICATOR_INDEX, ranges[i].Item1);
+
+                        if (ranges[i].Item1 != indicatorRangeStart || indicatorRangeEnd != (ranges[i].Item1 + ranges[i].Item2))
+                        {
+                            --i;
+                        }
                     }
                 }
             }
         }
 
-        private bool HasFocus(IntPtr sci)
-        {
-            if(_nppHelper.MainScintilla == sci)
-            {
-                return Plugin.Instance.HasMainSciFocus;
-            }
-            return Plugin.Instance.HasSecondSciFocus;
-        }
-
-        private void ResetLastAnnotatedFile(IntPtr sciPtr)
+        private string GetActiveFile(IntPtr sciPtr)
         {
             if(sciPtr == _nppHelper.MainScintilla)
             {
-                _lastMainViewAnnotatedFile = string.Empty;
-                return;
+                return _activeFileMain;
             }
-            _lastSubViewAnnotatedFile = string.Empty;
+            return _activeFileSub;
         }
 
-        #endregion    
+        private void SetDrawingFile(IntPtr sciPtr, string file)
+        {
+            if(sciPtr == _nppHelper.MainScintilla)
+            {
+                _drawingFileMain = file;
+                return;
+            }
+            _drawingFileSub = file;
+        }
+
+        private string GetDrawingFile(IntPtr sciPtr)
+        {
+            if(sciPtr == _nppHelper.MainScintilla)
+            {
+                return _drawingFileMain;
+            }
+            return _drawingFileSub;
+        }
+        #endregion
     }
 }

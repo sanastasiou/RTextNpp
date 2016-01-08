@@ -140,10 +140,10 @@ namespace RTextNppPlugin.WpfControls
             if (IsVisible)
             {
                 //in case the form is visible - move it to the new place...
-                var aCaretPoint = Npp.Instance.GetCaretScreenLocationForForm();
+                var aCaretPoint = Npp.Instance.GetCaretScreenLocationForForm(_nppHelper.CurrentScintilla);
                 if (_referenceRequestObserver.UnderlinedToken.Context != null)
                 {
-                    aCaretPoint = Npp.Instance.GetCaretScreenLocationRelativeToPosition(_referenceRequestObserver.UnderlinedToken.BufferPosition);
+                    aCaretPoint = Npp.Instance.GetCaretScreenLocationRelativeToPosition(_referenceRequestObserver.UnderlinedToken.BufferPosition, _nppHelper.CurrentScintilla);
                 }
                 Left = aCaretPoint.X;
                 Top = aCaretPoint.Y - YPOSITION_OFFSET;
@@ -211,7 +211,7 @@ namespace RTextNppPlugin.WpfControls
         
         private void OnContainerSizeChanged(object sender, SizeChangedEventArgs e)
         {
-            VisualUtilities.RepositionWindow(e, this, ref _isOnTop, _nppHelper, _nppHelper.GetCaretScreenLocationForFormAboveWord(_referenceRequestObserver.UnderlinedToken.BufferPosition).Y, YPOSITION_OFFSET);
+            VisualUtilities.RepositionWindow(e, this, ref _isOnTop, _nppHelper, _nppHelper.GetCaretScreenLocationForFormAboveWord(_referenceRequestObserver.UnderlinedToken.BufferPosition, _nppHelper.CurrentScintilla).Y, YPOSITION_OFFSET);
         }
         
         private void OnKeyMonitorKeyDown(System.Windows.Forms.Keys key, int repeatCount, ref bool handled)
@@ -351,7 +351,7 @@ namespace RTextNppPlugin.WpfControls
                     }
                 }
                 //determine window position
-                var aCaretPoint = _nppHelper.GetCaretScreenLocationRelativeToPosition(_referenceRequestObserver.UnderlinedToken.BufferPosition);
+                var aCaretPoint = _nppHelper.GetCaretScreenLocationRelativeToPosition(_referenceRequestObserver.UnderlinedToken.BufferPosition, _nppHelper.CurrentScintilla);
                 Left = aCaretPoint.X;
                 Top = aCaretPoint.Y - YPOSITION_OFFSET;
                 base.Show();
@@ -373,7 +373,7 @@ namespace RTextNppPlugin.WpfControls
             {
                 Task<Tuple<bool, ContextExtractor>> contextEqualityTask = new Task<Tuple<bool, ContextExtractor>>(new Func<Tuple<bool, ContextExtractor>>(() =>
                 {
-                    string aContextBlock = _nppHelper.GetTextBetween(0, Npp.Instance.GetLineEnd(aTokenUnderCursor.BufferPosition, aTokenUnderCursor.Line));
+                    string aContextBlock = _nppHelper.GetTextBetween(0, Npp.Instance.GetLineEnd(aTokenUnderCursor.BufferPosition, aTokenUnderCursor.Line, _nppHelper.CurrentScintilla));
                     ContextExtractor aExtractor = new ContextExtractor(aContextBlock, Npp.Instance.GetLengthToEndOfLine(aTokenUnderCursor.Line, aTokenUnderCursor.BufferPosition));
                     bool aAreContextEquals = false;
                     //get all tokens before the trigger token - if all previous tokens and all context lines match do not request new auto completion options
@@ -517,7 +517,7 @@ namespace RTextNppPlugin.WpfControls
             Hide();
             if (File.Exists(target.FilePath))
             {
-                _nppHelper.JumpToLine(target.FilePath, Int32.Parse(target.Line));
+                _nppHelper.JumpToLine(target.FilePath, Int32.Parse(target.Line), _nppHelper.CurrentScintilla);
             }
             else
             {

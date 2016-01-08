@@ -42,7 +42,7 @@ namespace Tests.Utilities
             nppMock.Setup(m => m.GetLine(It.Is<int>(i => i == 4), It.IsAny<IntPtr>())).Returns(ContextLinesSample.Last() + "\n");
             nppMock.Setup(m => m.GetLine(It.Is<int>(i => i != 4), It.IsAny<IntPtr>())).Returns(ContextLinesSample[3] + "\n");
             //for the sake of simplicity we assume that offset is 0
-            nppMock.Setup(m => m.GetLineStart(It.Is<int>(i => i == 4))).Returns(0);
+            nppMock.Setup(m => m.GetLineStart(It.Is<int>(i => i == 4), It.IsAny<IntPtr>())).Returns(0);
             AutoCompletionTokenizer aTokenizer = new AutoCompletionTokenizer(4, caretPosition, 0, nppMock.Object, IntPtr.Zero);
             //prime the comparer
             Assert.IsFalse(aComparer.AreTokenStreamsEqual(expectedTokensSpace, 0, FILE_DUMMY));
@@ -58,7 +58,7 @@ namespace Tests.Utilities
             nppMock.Setup(m => m.GetLine(It.Is<int>(i => i == 4), IntPtr.Zero)).Returns(ContextLinesSample.Last() + "\n");
             nppMock.Setup(m => m.GetLine(It.Is<int>(i => i != 4), IntPtr.Zero)).Returns(ContextLinesSample[3] + "\n");
             //for the sake of simplicity we assume that offset is 0
-            nppMock.Setup(m => m.GetLineStart(It.Is<int>(i => i == 4))).Returns(0);
+            nppMock.Setup(m => m.GetLineStart(It.Is<int>(i => i == 4), It.IsAny<IntPtr>())).Returns(0);
             AutoCompletionTokenizer aTokenizer = new AutoCompletionTokenizer(4, caretPosition, 0, nppMock.Object, IntPtr.Zero);
             //prime the comparer
             Assert.IsFalse(aComparer.AreTokenStreamsEqual(expectedTokensSpace, 0, FILE_DUMMY));
@@ -74,7 +74,7 @@ namespace Tests.Utilities
             nppMock.Setup(m => m.GetLine(It.Is<int>(i => i == 4), IntPtr.Zero)).Returns(ContextLinesSample.Last() + "\n");
             nppMock.Setup(m => m.GetLine(It.Is<int>(i => i != 4), IntPtr.Zero)).Returns(ContextLinesSample[3] + "\n");
             //for the sake of simplicity we assume that offset is 0
-            nppMock.Setup(m => m.GetLineStart(It.Is<int>(i => i == 4))).Returns(0);
+            nppMock.Setup(m => m.GetLineStart(It.Is<int>(i => i == 4), It.IsAny<IntPtr>())).Returns(0);
             AutoCompletionTokenizer aTokenizer = new AutoCompletionTokenizer(4, caretPosition, 0, nppMock.Object, IntPtr.Zero);
             //prime the comparer
             Assert.IsFalse(aComparer.AreTokenStreamsEqual(expectedTokensSpace, 0, FILE_DUMMY));
@@ -95,7 +95,7 @@ namespace Tests.Utilities
             nppMock.Setup(m => m.GetLine(It.Is<int>(i => i == 4), IntPtr.Zero)).Returns(ContextLinesSample.Last() + "\n");
             nppMock.Setup(m => m.GetLine(It.Is<int>(i => i != 4), IntPtr.Zero)).Returns(ContextLinesSample[3] + "\n");
             //for the sake of simplicity we assume that offset is 0
-            nppMock.Setup(m => m.GetLineStart(It.Is<int>(i => i == 4))).Returns(0);
+            nppMock.Setup(m => m.GetLineStart(It.Is<int>(i => i == 4), It.IsAny<IntPtr>())).Returns(0);
             AutoCompletionTokenizer aTokenizer = new AutoCompletionTokenizer(4, caretPosition, 0, nppMock.Object, IntPtr.Zero);
             //prime the comparer
             Assert.IsFalse(aComparer.AreTokenStreamsEqual(expectedTokensTriggerCommand, 30, FILE_DUMMY));
@@ -111,7 +111,7 @@ namespace Tests.Utilities
             nppMock.Setup(m => m.GetLine(It.Is<int>(i => i == 4), IntPtr.Zero)).Returns(ContextLinesSample.Last() + "\n");
             nppMock.Setup(m => m.GetLine(It.Is<int>(i => i != 4), IntPtr.Zero)).Returns(ContextLinesSample[3] + "\n");
             //for the sake of simplicity we assume that offset is 0
-            nppMock.Setup(m => m.GetLineStart(It.Is<int>(i => i == 4))).Returns(0);
+            nppMock.Setup(m => m.GetLineStart(It.Is<int>(i => i == 4), It.IsAny<IntPtr>())).Returns(0);
             AutoCompletionTokenizer aTokenizer = new AutoCompletionTokenizer(4, caretPosition, 0, nppMock.Object, IntPtr.Zero);
             //prime the comparer
             Assert.IsFalse(aComparer.AreTokenStreamsEqual(expectedTokensTriggerCommand, 0, FILE_DUMMY));
@@ -134,7 +134,7 @@ namespace Tests.Utilities
             nppMock.Setup(m => m.GetLine(It.Is<int>(i => i == 4), IntPtr.Zero)).Returns(ContextLinesSample.Last() + "\n");
             nppMock.Setup(m => m.GetLine(It.Is<int>(i => i != 4), IntPtr.Zero)).Returns(ContextLinesSample[3] + "\n");
             //for the sake of simplicity we assume that offset is 0
-            nppMock.Setup(m => m.GetLineStart(It.Is<int>(i => i == 4))).Returns(0);
+            nppMock.Setup(m => m.GetLineStart(It.Is<int>(i => i == 4), It.IsAny<IntPtr>())).Returns(0);
             AutoCompletionTokenizer aTokenizer = new AutoCompletionTokenizer(4, caretPosition, 0, nppMock.Object, IntPtr.Zero);
             //prime the comparer
             Assert.IsFalse(aComparer.AreTokenStreamsEqual(expectedTokensTriggerIdentifier, 55, FILE_DUMMY));
@@ -158,7 +158,7 @@ namespace Tests.Utilities
             nppMock.Setup(m => m.GetLine(It.Is<int>(i => i == 4), IntPtr.Zero)).Returns(ContextLinesSample.Last() + "\n");
             nppMock.Setup(m => m.GetLine(It.Is<int>(i => i != 4), IntPtr.Zero)).Returns(ContextLinesSample[3] + "\n");
             //for the sake of simplicity we assume that offset is 0
-            nppMock.Setup(m => m.GetLineStart(It.Is<int>(i => i == 4))).Returns(0);
+            nppMock.Setup(m => m.GetLineStart(It.Is<int>(i => i == 4), It.IsAny<IntPtr>())).Returns(0);
             AutoCompletionTokenizer aTokenizer = new AutoCompletionTokenizer(4, caretPosition, 0, nppMock.Object, IntPtr.Zero);
             //prime the comparer
             Assert.IsFalse(aComparer.AreTokenStreamsEqual(aTokenizer.LineTokens, 57, FILE_DUMMY));
@@ -174,7 +174,7 @@ namespace Tests.Utilities
             nppMock.Setup(m => m.GetLine(It.Is<int>(i => i == 4), IntPtr.Zero)).Returns(ContextLinesSample.Last() + "\n");
             nppMock.Setup(m => m.GetLine(It.Is<int>(i => i != 4), IntPtr.Zero)).Returns(ContextLinesSample[3] + "\n");
             //for the sake of simplicity we assume that offset is 0
-            nppMock.Setup(m => m.GetLineStart(It.Is<int>(i => i == 4))).Returns(0);
+            nppMock.Setup(m => m.GetLineStart(It.Is<int>(i => i == 4), It.IsAny<IntPtr>())).Returns(0);
             AutoCompletionTokenizer aTokenizer = new AutoCompletionTokenizer(4, caretPosition, 0, nppMock.Object, IntPtr.Zero);
             //prime the comparer
             Assert.IsFalse(aComparer.AreTokenStreamsEqual(expectedTokensTriggerLabel, 62, FILE_DUMMY));
@@ -207,7 +207,7 @@ namespace Tests.Utilities
             nppMock.Setup(m => m.GetLine(It.Is<int>(i => i == 4), IntPtr.Zero)).Returns(ContextLinesSample.Last() + "\n");
             nppMock.Setup(m => m.GetLine(It.Is<int>(i => i != 4), IntPtr.Zero)).Returns(ContextLinesSample[3] + "\n");
             //for the sake of simplicity we assume that offset is 0
-            nppMock.Setup(m => m.GetLineStart(It.Is<int>(i => i == 4))).Returns(0);
+            nppMock.Setup(m => m.GetLineStart(It.Is<int>(i => i == 4), It.IsAny<IntPtr>())).Returns(0);
             AutoCompletionTokenizer aTokenizer = new AutoCompletionTokenizer(4, caretPosition, 0, nppMock.Object, IntPtr.Zero);
             //prime the comparer
             Assert.IsFalse(aComparer.AreTokenStreamsEqual(expectedTokensTriggerLabel, 62, FILE_DUMMY));
@@ -288,7 +288,7 @@ namespace Tests.Utilities
             nppMock.Setup(m => m.GetLine(It.Is<int>(i => i == 4), IntPtr.Zero)).Returns(ContextLinesSample.Last() + "\n");
             nppMock.Setup(m => m.GetLine(It.Is<int>(i => i != 4), IntPtr.Zero)).Returns(ContextLinesSample[3] + "\n");
             //for the sake of simplicity we assume that offset is 0
-            nppMock.Setup(m => m.GetLineStart(It.Is<int>(i => i == 4))).Returns(0);
+            nppMock.Setup(m => m.GetLineStart(It.Is<int>(i => i == 4), It.IsAny<IntPtr>())).Returns(0);
             AutoCompletionTokenizer aTokenizer = new AutoCompletionTokenizer(4, caretPosition, 0, nppMock.Object, IntPtr.Zero);
             //prime the comparer - token is the reference
             Assert.IsFalse(aComparer.AreTokenStreamsEqual(aTokenizer.LineTokens, caretPosition, FILE_DUMMY));
