@@ -158,7 +158,7 @@ namespace RTextNppPlugin.Scintilla.Annotations
                 _activeFileMain = _nppHelper.GetActiveFile(_nppHelper.MainScintilla);
                 _activeFileSub  = _nppHelper.GetActiveFile(_nppHelper.SecondaryScintilla);
                 PreProcessOnBufferActivatedEvent();
-                if (!Utilities.FileUtilities.IsRTextFile(file, _settings, _nppHelper) || (ErrorList == null && IsWorkspaceFile(file)))
+                if (!Utilities.FileUtilities.IsRTextFile(file, _settings, _nppHelper) || ((ErrorList == null || !_areAnnotationEnabled) && IsWorkspaceFile(file)))
                 {
                     //remove annotations from the view which this file belongs to
                     var scintilla = _nppHelper.FindScintillaFromFilepath(file);
@@ -217,11 +217,6 @@ namespace RTextNppPlugin.Scintilla.Annotations
                         ResetLastAnnotatedFile(sciPtr);
                     }
                     HideAnnotations(sciPtr);
-                    //only grab focus - if this sciPtr has currently focus
-                    if (_nppHelper.GetCurrentFilePath() == FindActiveFile(sciPtr))
-                    {
-                        _nppHelper.GrabFocus(sciPtr);
-                    }
                     //start new task
                     var newCts = new CancellationTokenSource();
                     SetCts(sciPtr, newCts);

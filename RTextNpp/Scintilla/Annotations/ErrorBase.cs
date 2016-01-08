@@ -211,14 +211,7 @@ namespace RTextNppPlugin.Scintilla.Annotations
 
         protected UpdateAction ValidateErrorList(out ErrorListViewModel errors, IntPtr sciPtr, ref string activeViewFile)
         {
-            errors = null;
-            activeViewFile = string.Empty;
-
-            //get opened files
-            var openedFiles = _nppHelper.GetOpenFiles(sciPtr);
-            //check current doc index
-            int viewIndex = _nppHelper.CurrentDocIndex(sciPtr);
-
+            errors            = null;
             string activeFile = FindActiveFile(sciPtr);
 
             if (string.IsNullOrEmpty(activeFile))
@@ -226,8 +219,7 @@ namespace RTextNppPlugin.Scintilla.Annotations
                 return UpdateAction.NoAction;
             }
 
-            activeViewFile = activeFile;
-
+            activeViewFile      = activeFile;
             var activeFileRText = activeFile.Replace('\\', '/');
 
             //if we are here, it means workspaces match - check if files has errors
