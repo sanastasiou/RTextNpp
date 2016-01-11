@@ -79,6 +79,8 @@ namespace RTextNppPlugin.Scintilla.Annotations
 
         VisibilityInfo SubVisibilityInfo { get; }
 
+        void OnBufferActivated(string file, View view);
+
         event VisibilityInfoUpdated OnVisibilityInfoUpdated;
     }
 }

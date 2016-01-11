@@ -184,7 +184,7 @@ namespace RTextNppPlugin.RText
 
         #region [Event Handlers]
         
-        void OnBufferActivated(object source, string file)
+        void OnBufferActivated(object source, string file, View view)
         {
             CreateConnector(file);
         }

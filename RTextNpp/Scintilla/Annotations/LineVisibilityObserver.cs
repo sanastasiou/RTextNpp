@@ -34,7 +34,6 @@ namespace RTextNppPlugin.Scintilla.Annotations
         internal LineVisibilityObserver(INpp nppHelper, Plugin plugin)
         {
             _nppHelper                  = nppHelper;
-            plugin.BufferActivated      += OnBufferActivated;
             plugin.ScintillaUiUpdated   += OnScintillaUiUpdated;
             _visibilityChangedDebouncer = new Utilities.DelayedEventHandler<object>(null, DEBOUNCE);
         }
@@ -83,7 +82,6 @@ namespace RTextNppPlugin.Scintilla.Annotations
             }
             if (disposing)
             {
-                Plugin.Instance.BufferActivated    -= OnBufferActivated;
                 Plugin.Instance.ScintillaUiUpdated -= OnScintillaUiUpdated;
             }
             _disposed = true;
@@ -112,9 +110,9 @@ namespace RTextNppPlugin.Scintilla.Annotations
             });
         }
 
-        void OnBufferActivated(object source, string file)
+        public void OnBufferActivated(string file, View view)
         {
-            var sciPtr = _nppHelper.FindScintillaFromFilepath(file);
+            var sciPtr = view == View.Main ? _nppHelper.MainScintilla : _nppHelper.SecondaryScintilla;
             UpdateVisibilityInfo( new VisibilityInfo
             {
                 File            = file,

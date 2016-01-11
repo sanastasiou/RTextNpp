@@ -21,8 +21,20 @@ namespace RTextNppPlugin.Scintilla
         Uni16LE_NoBOM = 7
     }
 
+    public enum View : int
+    {
+        Main,
+        Sub
+    }
+
     internal interface INpp
     {
+        View CurrentView { get; }
+
+        View GetViewFromScintilla(IntPtr sciPtr);
+
+        IntPtr ScintillaFromView(View view);
+
         IntPtr CurrentScintilla { get; }
 
         IntPtr MainScintilla { get; }
@@ -164,8 +176,6 @@ namespace RTextNppPlugin.Scintilla
         void FindActiveBufferViewAndIndex(out NppMsg view, out int index);
 
         string GetPathFromBufferId(int bufferid);
-
-        IntPtr FindScintillaFromFilepath(string filepath);
 
         void ClearAllTextMargins(IntPtr sciPtr);
 

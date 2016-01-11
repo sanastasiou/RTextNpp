@@ -74,6 +74,7 @@ namespace RTextNppPlugin.Scintilla
 
         public void SetAnnotationVisible(IntPtr handle, int annotationStyle)
         {
+            Trace.WriteLine(String.Format("Annotations for sci : {0} - visible : {1}", handle == MainScintilla ? "main" : "sub", annotationStyle == (int)SciMsg.ANNOTATION_BOXED));
             SendMessage(handle, SciMsg.SCI_ANNOTATIONSETVISIBLE, new IntPtr(annotationStyle));
         }
 
@@ -109,7 +110,9 @@ namespace RTextNppPlugin.Scintilla
             GoToLine(line, sciPtr);
             return null;
         }
-        
+
+        #region [Properties]
+
         public IntPtr CurrentScintilla
         {
             get
@@ -134,6 +137,35 @@ namespace RTextNppPlugin.Scintilla
             {
                 return Plugin.Instance.NppData._scintillaSecondHandle;
             }
+        }
+
+        public View CurrentView
+        {
+            get
+            {
+                int currentView = SendMessage(Plugin.Instance.NppData._nppHandle, NppMsg.NPPM_GETCURRENTVIEW).ToInt32();
+                return currentView == 0 ? View.Main : View.Sub;
+            }
+        }
+
+        #endregion  
+
+        public View GetViewFromScintilla(IntPtr sciPtr)
+        {
+            if(sciPtr == MainScintilla)
+            {
+                return View.Main;
+            }
+            return View.Sub;
+        }
+
+        public IntPtr ScintillaFromView(View view)
+        {
+            if (view == View.Main)
+            {
+                return MainScintilla;
+            }
+            return SecondaryScintilla;
         }
 
         public int CurrentDocIndex(IntPtr scintilla)
@@ -750,28 +782,6 @@ namespace RTextNppPlugin.Scintilla
             return aFilePath.ToString();
         }
 
-        public IntPtr FindScintillaFromFilepath(string filepath)
-        {
-            var mainViewFiles = GetOpenFiles(MainScintilla);
-            var subViewFiles  = GetOpenFiles(SecondaryScintilla);
-
-            for (int i = 0; i < mainViewFiles.Length; ++i)
-            {
-                if (mainViewFiles[i].Equals(filepath))
-                {
-                    return MainScintilla;
-                }
-            }
-            for (int i = 0; i < subViewFiles.Length; ++i)
-            {
-                if (subViewFiles[i].Equals(filepath))
-                {
-                    return SecondaryScintilla;
-                }
-            }
-            return IntPtr.Zero;
-        }
-
         public void ClearAllTextMargins(IntPtr sciPtr)
         {
             SendMessage(sciPtr, SciMsg.SCI_MARGINTEXTCLEARALL);
@@ -855,13 +865,13 @@ namespace RTextNppPlugin.Scintilla
 
         public string GetActiveFile(IntPtr sciPtr)
         {
-            return GetOpenFiles(sciPtr)[CurrentDocIndex(sciPtr)];
+            var openFiles = GetOpenFiles(sciPtr);
+            var docIndex  = CurrentDocIndex(sciPtr);
+            return docIndex <= openFiles.Length && docIndex >= 0? openFiles[docIndex] : string.Empty;
         }
 
         public IntPtr SendMessage(IntPtr hWnd, SciMsg msg, IntPtr wParam = default(IntPtr), IntPtr lParam = default(IntPtr))
         {
-            //get native pointer
-            //IntPtr nativePtr = (hWnd == MainScintilla) ? _scintillaMainNativePtr : _scintillaSubNativePtr;
             return _nativeHelpers.ISendMessage(hWnd, (int)msg, wParam, lParam);
         }
 
@@ -869,6 +879,7 @@ namespace RTextNppPlugin.Scintilla
         {
             return _nativeHelpers.ISendMessage(hWnd, (int)msg, wParam, lParam);
         }
+
         #region [Helpers]
 
         private bool IsLineVisible(int firstLine, int lastLine, int line)

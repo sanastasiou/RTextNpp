@@ -62,7 +62,7 @@ namespace RTextNppPlugin
         #endregion
 
         #region [Events]
-        public delegate void FileEventDelegate(object source, string file);
+        public delegate void FileEventDelegate(object source, string file, RTextNppPlugin.Scintilla.View View);
         public event FileEventDelegate PreviewFileClosed;
         public event FileEventDelegate BufferActivated;
 
@@ -543,9 +543,12 @@ namespace RTextNppPlugin
         public void OnBufferActivated(IntPtr hwndFrom, int bufferid)
         {
             string aFileOpened = _nppHelper.GetPathFromBufferId(bufferid);
+            var aCurrentView   = _nppHelper.CurrentView;
+            //update visibility info before everything else - clients of buffer activated event can then have access to most actual visibility information
+            _linesVisibilityObserver.OnBufferActivated(aFileOpened, aCurrentView);
             if (BufferActivated != null)
             {
-                BufferActivated(this, aFileOpened);
+                BufferActivated(this, aFileOpened, aCurrentView);
             }
             _fileObserver.OnFileOpened(aFileOpened);
 
@@ -652,7 +655,7 @@ namespace RTextNppPlugin
         {
             if (PreviewFileClosed != null)
             {
-                PreviewFileClosed( typeof(Plugin), _nppHelper.GetCurrentFilePath());
+                PreviewFileClosed( typeof(Plugin), _nppHelper.GetCurrentFilePath(), _nppHelper.CurrentView);
             }
         }
 

@@ -98,8 +98,16 @@ namespace RTextNppPlugin.Scintilla.Annotations
 
         protected override object OnVisibilityInfoUpdated(VisibilityInfo info)
         {
-            SetVisibilityInfo(info);
-            //update current annotations
+            if (info != GetVisibilityInfo(info.ScintillaHandle))
+            {
+                //this event comes before buffer is activated - errors do not match with the file
+                base.OnVisibilityInfoUpdated(info);
+                //if (IsWorkspaceFile(info.File))
+                //{
+                //    //update current annotations
+                //    PlaceAnnotations(info.ScintillaHandle, true);
+                //}
+            }
             return null;
         }
 
@@ -146,13 +154,13 @@ namespace RTextNppPlugin.Scintilla.Annotations
 
         #region [Helpers]
 
-        protected override void OnBufferActivated(object source, string file)
+        protected override void OnBufferActivated(object source, string file, View view)
         {
-            PreProcessOnBufferActivatedEvent();
+            PreProcessOnBufferActivatedEvent(file, view);
             if (!Utilities.FileUtilities.IsRTextFile(file, _settings, _nppHelper) || (ErrorList == null && IsWorkspaceFile(file)))
             {
                 //remove annotations from the view which this file belongs to
-                var scintilla = _nppHelper.FindScintillaFromFilepath(file);
+                var scintilla = _nppHelper.ScintillaFromView(view);
                 _nppHelper.ClearAllTextMargins(scintilla);
                 _nppHelper.SetMarginWidthN(scintilla, ERROR_DESCRIPTION_MARGIN, 0);
                 if (scintilla == _nppHelper.MainScintilla)
@@ -188,7 +196,7 @@ namespace RTextNppPlugin.Scintilla.Annotations
             }
         }
 
-        protected override void DrawAnnotations(ErrorListViewModel errors, IntPtr sciPtr)
+        protected override bool DrawAnnotations(ErrorListViewModel errors, IntPtr sciPtr)
         {
             HideAnnotations(sciPtr);
             try
@@ -199,6 +207,7 @@ namespace RTextNppPlugin.Scintilla.Annotations
             {
                 Trace.WriteLine("Draw margins failed.");
             }
+            return true;
         }
 
         private double CalculatedPixels(int zoomLevel)
@@ -289,6 +298,13 @@ namespace RTextNppPlugin.Scintilla.Annotations
                     SetMaxCharLength(sciPtr, maxCharLenghtForMargin);
                     ShowAnnotations(sciPtr, maxCharLenghtForMargin);
                 }
+            }
+        }
+
+        protected override void PlaceAnnotations(IntPtr sciPtr, bool waitForTask = false)
+        {
+            if (!IsNotepadShutingDown)
+            {
             }
         }
         #endregion
