@@ -537,7 +537,7 @@ namespace RTextNppPlugin.ViewModels
             if (char.IsWhiteSpace(c) && (wasEmpty || t.Type == RTextTokenTypes.Comma ))
             {
                 CharProcessAction = CharProcessResult.MoveToRight;
-                AutoCompletionTokenizer aTokenizer = new AutoCompletionTokenizer(aLineNumber, startPos, aCurrentPosition, Npp.Instance, Npp.Instance.CurrentScintilla);
+                AutoCompletionTokenizer aTokenizer = new AutoCompletionTokenizer(aLineNumber, aCurrentPosition, startPos, Npp.Instance, Npp.Instance.CurrentScintilla);
                 TriggerPoint = aTokenizer.TriggerToken;
                 return;
             }
@@ -548,7 +548,7 @@ namespace RTextNppPlugin.ViewModels
             }
             if (aCurrentPosition >= 0)
             {
-                AutoCompletionTokenizer aTokenizer = new AutoCompletionTokenizer(aLineNumber, startPos, aCurrentPosition, Npp.Instance, Npp.Instance.CurrentScintilla);
+                AutoCompletionTokenizer aTokenizer = new AutoCompletionTokenizer(aLineNumber, aCurrentPosition, startPos, Npp.Instance, Npp.Instance.CurrentScintilla);
                 TriggerPoint = aTokenizer.TriggerToken;
                 if (!TriggerPoint.HasValue)
                 {
