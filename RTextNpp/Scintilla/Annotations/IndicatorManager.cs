@@ -145,11 +145,11 @@ namespace RTextNppPlugin.Scintilla.Annotations
 
                     if (scintilla == _nppHelper.MainScintilla)
                     {
-                        _lastMainViewAnnotatedFile = string.Empty;
+                        _activeFileMain = string.Empty;
                     }
                     else
                     {
-                        _lastSubViewAnnotatedFile = string.Empty;
+                        _activeFileSub = string.Empty;
                     }
                 }
             }
@@ -160,11 +160,10 @@ namespace RTextNppPlugin.Scintilla.Annotations
 
         protected override void HideAnnotations(IntPtr scintilla)
         {
-            var openFiles = _nppHelper.GetOpenFiles(scintilla);
-            var docIndex  = _nppHelper.CurrentDocIndex(scintilla);
-            if (docIndex != Constants.Scintilla.VIEW_NOT_ACTIVE && Utilities.FileUtilities.IsRTextFile(openFiles[docIndex], _settings, _nppHelper))
+            var aActiveFile = _nppHelper.GetActiveFile(scintilla);
+            if (!string.IsNullOrEmpty(aActiveFile) && Utilities.FileUtilities.IsRTextFile(aActiveFile, _settings, _nppHelper))
             {
-                if (IsWorkspaceFile(openFiles[docIndex]))
+                if (IsWorkspaceFile(aActiveFile))
                 {
                     _nppHelper.ClearAllIndicators(scintilla, INDICATOR_INDEX);
                 }
@@ -173,6 +172,7 @@ namespace RTextNppPlugin.Scintilla.Annotations
 
         protected override bool DrawAnnotations(ErrorListViewModel errors, IntPtr sciPtr)
         {
+            bool aSuccess = true;
             if (!IsNotepadShutingDown)
             {
                 try
@@ -192,7 +192,6 @@ namespace RTextNppPlugin.Scintilla.Annotations
                             ex.Handle(ae => true);
                         }
                         SetAnnotations<IEnumerable>(sciPtr, null);
-                        ResetLastAnnotatedFile(sciPtr);
                     }
                     HideAnnotations(sciPtr);
                     //start new task
@@ -201,9 +200,9 @@ namespace RTextNppPlugin.Scintilla.Annotations
                     if (errors == null || errors.ErrorList == null || errors.ErrorList.Count == 0)
                     {
                         SetAnnotations(sciPtr, indicatorRanges);
-                        return true;
+                        aSuccess = false;
                     }
-                    string activeFile                                   = errors.FilePath.Replace("/", "\\");
+                    string activeFile = errors.FilePath.Replace("/", "\\");
                     SetDrawingFile(sciPtr, activeFile);
                     SetCts(sciPtr, newCts);
                     var newTask = Task.Factory.StartNew(() =>
@@ -225,8 +224,14 @@ namespace RTextNppPlugin.Scintilla.Annotations
                                 //if file is no longer active in this scintilla we have to break!
                                 if (newCts.Token.IsCancellationRequested || hasActiveFileChanged || IsNotepadShutingDown)
                                 {
-                                    ResetLastAnnotatedFile(sciPtr);
+                                    SetActiveFile(sciPtr, string.Empty);
                                     state.Break();
+                                    if (!newCts.Token.IsCancellationRequested)
+                                    {
+                                        //ensure that subsequent task won't run
+                                        newCts.Cancel();
+                                    }
+                                    aSuccess = false;
                                     break;
                                 }
                                 //if t is contained exactly in any of the errors, mark it as indicator
@@ -259,7 +264,7 @@ namespace RTextNppPlugin.Scintilla.Annotations
                     Trace.WriteLine("Draw indicators failed.");
                 }
             }
-            return false;
+            return aSuccess;
         }
 
         protected override void PlaceAnnotations(IntPtr sciPtr, bool waitForTask = false)

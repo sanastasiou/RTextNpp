@@ -82,22 +82,21 @@ namespace RTextNppPlugin.Scintilla.Annotations
                 _nppHelper.SetAnnotationVisible(scintilla, Constants.Scintilla.HIDDEN_ANNOTATION_STYLE);
                 if(scintilla == _nppHelper.MainScintilla)
                 {
-                    _lastMainViewAnnotatedFile = string.Empty;
+                    _activeFileMain = string.Empty;
                 }
                 else
                 {
-                    _lastSubViewAnnotatedFile = string.Empty;
+                    _activeFileSub = string.Empty;
                 }
             }
         }
 
         protected override void HideAnnotations(IntPtr scintilla)
         {
-            var openFiles = _nppHelper.GetOpenFiles(scintilla);
-            var docIndex  = _nppHelper.CurrentDocIndex(scintilla);
-            if(docIndex != Constants.Scintilla.VIEW_NOT_ACTIVE && Utilities.FileUtilities.IsRTextFile(openFiles[docIndex], _settings, _nppHelper))
+            var aActiveFile = _nppHelper.GetActiveFile(scintilla);
+            if (!string.IsNullOrEmpty(aActiveFile) && Utilities.FileUtilities.IsRTextFile(aActiveFile, _settings, _nppHelper))
             {
-                if (IsWorkspaceFile(openFiles[docIndex]))
+                if (IsWorkspaceFile(aActiveFile))
                 {
                     _nppHelper.SetAnnotationVisible(scintilla, Constants.Scintilla.HIDDEN_ANNOTATION_STYLE);
                     _nppHelper.ClearAllAnnotations(scintilla);
@@ -126,7 +125,6 @@ namespace RTextNppPlugin.Scintilla.Annotations
                             ex.Handle(ae => true);
                         }
                         SetAnnotations<IEnumerable>(sciPtr, null);
-                        ResetLastAnnotatedFile(sciPtr);
                     }
                     HideAnnotations(sciPtr);
                     //start new task
@@ -137,7 +135,7 @@ namespace RTextNppPlugin.Scintilla.Annotations
                         SetAnnotations(sciPtr, annotations);
                         return true;
                     }
-                    string activeFile                                         = errors.FilePath.Replace("/", "\\");
+                    string activeFile = errors.FilePath.Replace("/", "\\");
                     SetCts(sciPtr, newCts);
                     SetDrawingFile(sciPtr, activeFile);
                     var newTask = Task.Factory.StartNew(() =>
@@ -156,7 +154,7 @@ namespace RTextNppPlugin.Scintilla.Annotations
                                 //if file is no longer active in this scintilla we have to break!
                                 if (newCts.Token.IsCancellationRequested || hasActiveFileChanged || IsNotepadShutingDown)
                                 {
-                                    ResetLastAnnotatedFile(sciPtr);
+                                    //SetActiveFile(sciPtr, string.Empty);
                                     state.Break();
                                     break;
                                 }

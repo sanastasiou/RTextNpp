@@ -20,8 +20,6 @@ namespace RTextNppPlugin.Scintilla.Annotations
         protected readonly ISettings _settings                    = null;
         protected readonly INpp _nppHelper                        = null;
         protected bool _areAnnotationEnabled                      = false;
-        protected string _lastMainViewAnnotatedFile               = string.Empty;
-        protected string _lastSubViewAnnotatedFile                = string.Empty;
         protected bool _disposed                                  = false;
         protected IList<ErrorListViewModel> _currentErrors        = null;
         protected string _workspaceRoot                           = string.Empty;
@@ -131,8 +129,9 @@ namespace RTextNppPlugin.Scintilla.Annotations
 
         public void Refresh()
         {
-            Refresh(ref _lastMainViewAnnotatedFile, _nppHelper.MainScintilla);
-            Refresh(ref _lastSubViewAnnotatedFile, _nppHelper.SecondaryScintilla);
+            UpdateFileInfo();
+            Refresh(ref _activeFileMain, _nppHelper.MainScintilla);
+            Refresh(ref _activeFileSub, _nppHelper.SecondaryScintilla);
         }
 
         #region [Abstract]
@@ -162,26 +161,6 @@ namespace RTextNppPlugin.Scintilla.Annotations
 
         #region [Helpers]
         abstract protected Constants.StyleId ConvertSeverityToStyleId(ErrorItemViewModel.SeverityType severity);
-
-        protected string FindActiveFile(IntPtr sciPtr)
-        {
-            //get opened files
-            var openedFiles = _nppHelper.GetOpenFiles(sciPtr);
-            //check current doc index
-            int viewIndex   = _nppHelper.CurrentDocIndex(sciPtr);
-
-            string activeFile = string.Empty;
-
-            if (viewIndex != Constants.Scintilla.VIEW_NOT_ACTIVE)
-            {
-                var aTempFile = openedFiles[viewIndex];
-                if(IsWorkspaceFile(aTempFile))
-                {
-                    return aTempFile;
-                }
-            }
-            return string.Empty;
-        }
 
         protected UpdateAction ValidateErrorList(out ErrorListViewModel errors, string activeViewFile)
         {
@@ -223,6 +202,7 @@ namespace RTextNppPlugin.Scintilla.Annotations
             }
             else
             {
+                //force redraw if annotations are disabled or no errors exist
                 activeViewFile = string.Empty;
             }
         }
@@ -231,41 +211,37 @@ namespace RTextNppPlugin.Scintilla.Annotations
         {
             if (_areAnnotationEnabled)
             {
-                Refresh(ref _lastMainViewAnnotatedFile, _nppHelper.MainScintilla);
-                Refresh(ref _lastSubViewAnnotatedFile, _nppHelper.SecondaryScintilla);
+                Refresh(ref _activeFileMain, _nppHelper.MainScintilla);
+                Refresh(ref _activeFileSub, _nppHelper.SecondaryScintilla);
             }
             else
             {
                 HideAnnotations(_nppHelper.MainScintilla);
                 HideAnnotations(_nppHelper.SecondaryScintilla);
-                _lastMainViewAnnotatedFile = _lastSubViewAnnotatedFile = string.Empty;
+                _activeFileMain = _activeFileSub = string.Empty;
             }
         }
 
         protected void PreProcessOnBufferActivatedEvent(string file, View view)
         {
-            _activeFileMain = _nppHelper.GetActiveFile(_nppHelper.MainScintilla);
-            _activeFileSub  = _nppHelper.GetActiveFile(_nppHelper.SecondaryScintilla);
-            SetVisibilityInfo(_lineVisibilityObserver.MainVisibilityInfo);
-            SetVisibilityInfo(_lineVisibilityObserver.SubVisibilityInfo);
-
+            string previousAnnotatedFile = view == View.Main ? _activeFileMain : _activeFileSub;
+            UpdateFileInfo();
             if (ErrorList != null)
             {
                 if (view == View.Main)
                 {
-                    string previousAnnotatedFile = _lastMainViewAnnotatedFile;
-                    _lastMainViewAnnotatedFile   = file;
-                    RefreshErrorsOnBufferActivation(previousAnnotatedFile, ref _lastMainViewAnnotatedFile, _nppHelper.MainScintilla);
+                    RefreshErrorsOnBufferActivation(previousAnnotatedFile, ref _activeFileMain, _nppHelper.MainScintilla);
                 }
                 else
                 {
-                    string previousAnnotatedFile = _lastSubViewAnnotatedFile;
-                    _lastSubViewAnnotatedFile    = file;
-                    RefreshErrorsOnBufferActivation(previousAnnotatedFile, ref _lastSubViewAnnotatedFile, _nppHelper.SecondaryScintilla);
+                    RefreshErrorsOnBufferActivation(previousAnnotatedFile, ref _activeFileSub, _nppHelper.SecondaryScintilla);
                 }
             }
         }
 
+        #endregion
+
+        #region [Helpers]
         protected bool IsWorkspaceFile(string file)
         {
             return (Utilities.FileUtilities.FindWorkspaceRoot(file) + Path.GetExtension(file)).Equals(_workspaceRoot);
@@ -273,7 +249,7 @@ namespace RTextNppPlugin.Scintilla.Annotations
 
         protected VisibilityInfo GetVisibilityInfo(IntPtr sciPtr)
         {
-            if(sciPtr == _nppHelper.MainScintilla)
+            if (sciPtr == _nppHelper.MainScintilla)
             {
                 return _mainVisibilityInfo;
             }
@@ -282,31 +258,12 @@ namespace RTextNppPlugin.Scintilla.Annotations
 
         protected void SetVisibilityInfo(VisibilityInfo info)
         {
-            if(info.ScintillaHandle == _nppHelper.MainScintilla)
+            if (info.ScintillaHandle == _nppHelper.MainScintilla)
             {
                 _mainVisibilityInfo = info;
                 return;
             }
             _subVisibilityInfo = info;
-        }
-
-        protected void ResetLastAnnotatedFile(IntPtr sciPtr)
-        {
-            if (sciPtr == _nppHelper.MainScintilla)
-            {
-                _lastMainViewAnnotatedFile = string.Empty;
-                return;
-            }
-            _lastSubViewAnnotatedFile = string.Empty;
-        }
-
-        protected string GetLastAnnotatedFile(IntPtr sciPtr)
-        {
-            if (sciPtr == _nppHelper.MainScintilla)
-            {
-                return _lastMainViewAnnotatedFile;
-            }
-            return _lastSubViewAnnotatedFile;
         }
 
         protected bool HasFocus(IntPtr sci)
@@ -358,9 +315,18 @@ namespace RTextNppPlugin.Scintilla.Annotations
         {
             if (sciPtr == _nppHelper.MainScintilla)
             {
-                return _activeFileMain;
+                return new string(_activeFileMain.ToCharArray());
             }
-            return _activeFileSub;
+            return new string(_activeFileSub.ToCharArray());
+        }
+
+        protected void SetActiveFile(IntPtr sciPtr, string str)
+        {
+            if (sciPtr == _nppHelper.MainScintilla)
+            {
+                _activeFileMain = str;
+            }
+            _activeFileSub = str;
         }
 
         protected void SetDrawingFile(IntPtr sciPtr, string file)
@@ -410,6 +376,14 @@ namespace RTextNppPlugin.Scintilla.Annotations
                     Refresh(ref currentFile, sciPtr);
                 }
             }
+        }
+
+        private void UpdateFileInfo()
+        {
+            _activeFileMain = _nppHelper.GetActiveFile(_nppHelper.MainScintilla);
+            _activeFileSub = _nppHelper.GetActiveFile(_nppHelper.SecondaryScintilla);
+            SetVisibilityInfo(_lineVisibilityObserver.MainVisibilityInfo);
+            SetVisibilityInfo(_lineVisibilityObserver.SubVisibilityInfo);
         }
         #endregion
     }

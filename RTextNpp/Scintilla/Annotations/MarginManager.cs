@@ -127,7 +127,7 @@ namespace RTextNppPlugin.Scintilla.Annotations
                     if (sciPtr == _nppHelper.MainScintilla)
                     {
                         _currentPixelFactorMainScintilla = CalculatedPixels(newZoomLevel);
-                        if (_lastMainViewAnnotatedFile != string.Empty)
+                        if (_activeFileMain != string.Empty)
                         {
                             if (_areAnnotationEnabled)
                             {
@@ -138,7 +138,7 @@ namespace RTextNppPlugin.Scintilla.Annotations
                     else
                     {
                         _currentPixelFactorSecondScintilla = CalculatedPixels(newZoomLevel);
-                        if (_lastSubViewAnnotatedFile != string.Empty)
+                        if (_activeFileSub != string.Empty)
                         {
                             if (_areAnnotationEnabled)
                             {
@@ -165,11 +165,11 @@ namespace RTextNppPlugin.Scintilla.Annotations
                 _nppHelper.SetMarginWidthN(scintilla, ERROR_DESCRIPTION_MARGIN, 0);
                 if (scintilla == _nppHelper.MainScintilla)
                 {
-                    _lastMainViewAnnotatedFile = string.Empty;
+                    _activeFileMain = string.Empty;
                 }
                 else
                 {
-                    _lastSubViewAnnotatedFile = string.Empty;
+                    _activeFileSub = string.Empty;
                 }
             }
         }
