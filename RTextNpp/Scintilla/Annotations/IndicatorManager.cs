@@ -200,7 +200,7 @@ namespace RTextNppPlugin.Scintilla.Annotations
                     if (errors == null || errors.ErrorList == null || errors.ErrorList.Count == 0)
                     {
                         SetAnnotations(sciPtr, indicatorRanges);
-                        aSuccess = false;
+                        return false;
                     }
                     string activeFile = errors.FilePath.Replace("/", "\\");
                     SetDrawingFile(sciPtr, activeFile);

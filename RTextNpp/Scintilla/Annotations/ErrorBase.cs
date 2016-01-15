@@ -384,6 +384,9 @@ namespace RTextNppPlugin.Scintilla.Annotations
             _activeFileSub = _nppHelper.GetActiveFile(_nppHelper.SecondaryScintilla);
             SetVisibilityInfo(_lineVisibilityObserver.MainVisibilityInfo);
             SetVisibilityInfo(_lineVisibilityObserver.SubVisibilityInfo);
+
+            Trace.WriteLine(String.Format("Update file info\n\n_activeFileMain : {0}\n_activeFileSub : {1}\nVisibility info main : {2}\nVisibility info sub : {3}",
+                _activeFileMain, _activeFileSub, _lineVisibilityObserver.MainVisibilityInfo, _lineVisibilityObserver.SubVisibilityInfo));
         }
         #endregion
     }
