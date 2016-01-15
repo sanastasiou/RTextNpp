@@ -198,51 +198,54 @@ namespace RTextNppPlugin.Scintilla.Annotations
                     //start new task
                     var newCts                                          = new CancellationTokenSource();
                     ConcurrentBag<Tuple<int, int, int>> indicatorRanges = new ConcurrentBag<Tuple<int, int, int>>();
+                    if (errors == null || errors.ErrorList == null || errors.ErrorList.Count == 0)
+                    {
+                        SetAnnotations(sciPtr, indicatorRanges);
+                        return true;
+                    }
                     string activeFile                                   = errors.FilePath.Replace("/", "\\");
                     SetDrawingFile(sciPtr, activeFile);
                     SetCts(sciPtr, newCts);
                     var newTask = Task.Factory.StartNew(() =>
                     {
-                        if (errors != null)
+                        var aErrorGroupByLines = errors.ErrorList.GroupBy(y => y.Line);
+                        Parallel.ForEach( aErrorGroupByLines,
+                                          new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount > 1 ? Environment.ProcessorCount - 1 : Environment.ProcessorCount },
+                                          (IGrouping<int, ErrorItemViewModel> aErrorGroup, ParallelLoopState state) =>
                         {
-                            var aErrorGroupByLines = errors.ErrorList.GroupBy(y => y.Line);
-                            Parallel.ForEach( aErrorGroupByLines,
-                                              new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount > 1 ? Environment.ProcessorCount - 1 : Environment.ProcessorCount },
-                                              (IGrouping<int, ErrorItemViewModel> aErrorGroup, ParallelLoopState state) =>
+                            //do the heavy work here, tokenize line and try to find perfect matches in the errors - if no perfect match can be found highlight whole line
+                            var aLineNumber          = aErrorGroup.First().Line - 1;
+                            var aPositionAtLineStart = _nppHelper.GetLineStart(aLineNumber, sciPtr);
+                            var aLineText            = _nppHelper.GetLine(aLineNumber, sciPtr);
+                            Tokenizer tokenizer      = new Tokenizer(aLineNumber, aPositionAtLineStart, aLineText);
+                            bool aIsAnyMatchFound    = false;
+                            foreach (var t in tokenizer.Tokenize(ERROR_TOKEN_TYPES))
                             {
-                                //do the heavy work here, tokenize line and try to find perfect matches in the errors - if no perfect match can be found highlight whole line
-                                var aLineNumber          = aErrorGroup.First().Line - 1;
-                                var aPositionAtLineStart = _nppHelper.GetLineStart(aLineNumber, sciPtr);
-                                var aLineText            = _nppHelper.GetLine(aLineNumber, sciPtr);
-                                Tokenizer tokenizer      = new Tokenizer(aLineNumber, aPositionAtLineStart, aLineText);
-                                bool aIsAnyMatchFound    = false;
-                                foreach (var t in tokenizer.Tokenize(ERROR_TOKEN_TYPES))
+                                bool hasActiveFileChanged = GetActiveFile(sciPtr) != activeFile;
+                                //if file is no longer active in this scintilla we have to break!
+                                if (newCts.Token.IsCancellationRequested || hasActiveFileChanged || IsNotepadShutingDown)
                                 {
-                                    bool hasActiveFileChanged = GetActiveFile(sciPtr) != activeFile;
-                                    //if file is no longer active in this scintilla we have to break!
-                                    if (newCts.Token.IsCancellationRequested || hasActiveFileChanged || IsNotepadShutingDown)
-                                    {
-                                        ResetLastAnnotatedFile(sciPtr);
-                                        state.Break();
-                                        break;
-                                    }
-                                    //if t is contained exactly in any of the errors, mark it as indicator
-                                    var matches = from m in aErrorGroup
-                                                  where m.Message.Contains(t.Context)
-                                                  select m;
-                                    if (matches.Count() > 0)
-                                    {
-                                        indicatorRanges.Add(new Tuple<int, int, int>(t.BufferPosition, t.Context.Length, aLineNumber));
-                                        aIsAnyMatchFound = true;
-                                    }
+                                    ResetLastAnnotatedFile(sciPtr);
+                                    state.Break();
+                                    break;
                                 }
-                                if (!aIsAnyMatchFound)
+                                //if t is contained exactly in any of the errors, mark it as indicator
+                                var matches = from m in aErrorGroup
+                                              where m.Message.Contains(t.Context)
+                                              select m;
+                                if (matches.Count() > 0)
                                 {
-                                    //highlight whole line
-                                    indicatorRanges.Add(new Tuple<int, int, int>(aPositionAtLineStart, aLineText.Length, aLineNumber));
+                                    indicatorRanges.Add(new Tuple<int, int, int>(t.BufferPosition, t.Context.Length, aLineNumber));
+                                    aIsAnyMatchFound = true;
                                 }
-                            });
-                        }
+                            }
+                            if (!aIsAnyMatchFound)
+                            {
+                                //highlight whole line
+                                indicatorRanges.Add(new Tuple<int, int, int>(aPositionAtLineStart, aLineText.Length, aLineNumber));
+                            }
+                        });
+                        
                     }, newCts.Token).ContinueWith((x) =>
                     {
                         SetAnnotations(sciPtr, indicatorRanges);

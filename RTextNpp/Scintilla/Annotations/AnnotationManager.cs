@@ -132,42 +132,44 @@ namespace RTextNppPlugin.Scintilla.Annotations
                     //start new task
                     var newCts                                                = new CancellationTokenSource();
                     ConcurrentBag<Tuple<int, StringBuilder, int>> annotations = new ConcurrentBag<Tuple<int, StringBuilder, int>>();
+                    if(errors == null || errors.ErrorList == null || errors.ErrorList.Count == 0)
+                    {
+                        SetAnnotations(sciPtr, annotations);
+                        return true;
+                    }
                     string activeFile                                         = errors.FilePath.Replace("/", "\\");
                     SetCts(sciPtr, newCts);
                     SetDrawingFile(sciPtr, activeFile);
                     var newTask = Task.Factory.StartNew(() =>
                     {
-                        if (errors != null)
+                        var aErrorGroupByLines = errors.ErrorList.GroupBy(y => y.Line);
+                        //concatenate error that share the same line with \n so that they appear in the same annotation box underneath the same line
+                        Parallel.ForEach( aErrorGroupByLines,
+                                          new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount > 1 ? Environment.ProcessorCount - 1 : Environment.ProcessorCount },
+                                          (IGrouping<int, ErrorItemViewModel> aErrorGroup, ParallelLoopState state) =>
                         {
-                            var aErrorGroupByLines = errors.ErrorList.GroupBy(y => y.Line);
-                            //concatenate error that share the same line with \n so that they appear in the same annotation box underneath the same line
-                            Parallel.ForEach( aErrorGroupByLines,
-                                              new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount > 1 ? Environment.ProcessorCount - 1 : Environment.ProcessorCount },
-                                              (IGrouping<int, ErrorItemViewModel> aErrorGroup, ParallelLoopState state) =>
+                            StringBuilder aErrorDescription = new StringBuilder(aErrorGroup.Count() * 50);
+                            int aErrorCounter = 0;
+                            foreach (var error in aErrorGroup)
                             {
-                                StringBuilder aErrorDescription = new StringBuilder(aErrorGroup.Count() * 50);
-                                int aErrorCounter = 0;
-                                foreach (var error in aErrorGroup)
+                                bool hasActiveFileChanged = GetActiveFile(sciPtr) != activeFile;
+                                //if file is no longer active in this scintilla we have to break!
+                                if (newCts.Token.IsCancellationRequested || hasActiveFileChanged || IsNotepadShutingDown)
                                 {
-                                    bool hasActiveFileChanged = GetActiveFile(sciPtr) != activeFile;
-                                    //if file is no longer active in this scintilla we have to break!
-                                    if (newCts.Token.IsCancellationRequested || hasActiveFileChanged || IsNotepadShutingDown)
-                                    {
-                                        ResetLastAnnotatedFile(sciPtr);
-                                        state.Break();
-                                        break;
-                                    }
-                                    aErrorDescription.AppendFormat("{0} : {2}", error.Severity, error.Line, error.Message);
-                                    if (++aErrorCounter < aErrorGroup.Count())
-                                    {
-                                        aErrorDescription.Append("\n");
-                                    }
+                                    ResetLastAnnotatedFile(sciPtr);
+                                    state.Break();
+                                    break;
                                 }
-                                //npp offset for line to do - add multiple styles
+                                aErrorDescription.AppendFormat("{0} : {2}", error.Severity, error.Line, error.Message);
+                                if (++aErrorCounter < aErrorGroup.Count())
+                                {
+                                    aErrorDescription.Append("\n");
+                                }
+                            }
+                            //npp offset for line to do - add multiple styles
 
-                                annotations.Add(new Tuple<int, StringBuilder, int>(aErrorGroup.First().LineForScintilla, aErrorDescription, (int)Constants.StyleId.ANNOTATION_ERROR));
-                            });
-                        }
+                            annotations.Add(new Tuple<int, StringBuilder, int>(aErrorGroup.First().LineForScintilla, aErrorDescription, (int)Constants.StyleId.ANNOTATION_ERROR));
+                        });
                     }, newCts.Token).ContinueWith((x) =>
                     {
                         SetAnnotations(sciPtr, annotations.OrderBy(y => y.Item1));
