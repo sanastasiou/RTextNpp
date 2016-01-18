@@ -22,8 +22,8 @@ namespace RTextNppPlugin.Scintilla.Annotations
         private bool _disposed                                          = false;
         private VisibilityInfo _mainVisibilityInfo                      = null;
         private VisibilityInfo _subVisibilityInfo                       = null;
-        private DelayedEventHandler<object> _visibilityChangedDebouncer = null;
-        private const double DEBOUNCE                                   = 500.0;
+        //private DelayedEventHandler<object> _visibilityChangedDebouncer = null;
+        //private const double DEBOUNCE                                   = 500.0;
         #endregion
 
         #region [Events]
@@ -35,7 +35,7 @@ namespace RTextNppPlugin.Scintilla.Annotations
         {
             _nppHelper                  = nppHelper;
             plugin.ScintillaUiUpdated   += OnScintillaUiUpdated;
-            _visibilityChangedDebouncer = new Utilities.DelayedEventHandler<object>(null, DEBOUNCE);
+            //_visibilityChangedDebouncer = new Utilities.DelayedEventHandler<object>(null, DEBOUNCE);
         }
 
         #region [ILineVisibilityObserver Members]
@@ -50,7 +50,8 @@ namespace RTextNppPlugin.Scintilla.Annotations
                 if (value != _mainVisibilityInfo)
                 {
                     _mainVisibilityInfo = value;
-                    _visibilityChangedDebouncer.TriggerHandler(new ActionWrapper<object, VisibilityInfo>(UpdateInfo, value));
+                    //_visibilityChangedDebouncer.TriggerHandler(new ActionWrapper<object, VisibilityInfo>(UpdateInfo, value));
+                    UpdateInfo(value);
                 }
             }
         }
@@ -66,7 +67,8 @@ namespace RTextNppPlugin.Scintilla.Annotations
                 if (value != _subVisibilityInfo)
                 {
                     _subVisibilityInfo = value;
-                    _visibilityChangedDebouncer.TriggerHandler(new ActionWrapper<object, VisibilityInfo>(UpdateInfo, value));
+                    //_visibilityChangedDebouncer.TriggerHandler(new ActionWrapper<object, VisibilityInfo>(UpdateInfo, value));
+                    UpdateInfo(value);
                 }
             }
         }

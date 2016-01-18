@@ -292,6 +292,7 @@ namespace RTextNppPlugin.Scintilla.Annotations
                         }
                         _nppHelper.SetCurrentIndicator(sciPtr, INDICATOR_INDEX);
                         _nppHelper.PlaceIndicator(sciPtr, ranges[i].Item1, ranges[i].Item2);
+                        Trace.WriteLine(String.Format("Placing indicator : line {0} - length : {1}", ranges[i].Item3, ranges[i].Item2));
                         //ensure indicator is placed by reading it - if not stay on same indicator
                         int indicatorRangeStart = _nppHelper.IndicatorStart(sciPtr, INDICATOR_INDEX, ranges[i].Item1);
                         int indicatorRangeEnd   = _nppHelper.IndicatorEnd(sciPtr, INDICATOR_INDEX, ranges[i].Item1);
