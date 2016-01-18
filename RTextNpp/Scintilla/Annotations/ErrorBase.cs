@@ -261,9 +261,11 @@ namespace RTextNppPlugin.Scintilla.Annotations
             if (info.ScintillaHandle == _nppHelper.MainScintilla)
             {
                 _mainVisibilityInfo = info;
-                return;
             }
-            _subVisibilityInfo = info;
+            else
+            {
+                _subVisibilityInfo = info;
+            }
         }
 
         protected bool HasFocus(IntPtr sci)
@@ -299,7 +301,10 @@ namespace RTextNppPlugin.Scintilla.Annotations
             {
                 _mainSciDrawingTask = task;
             }
-            _subSciDrawningTask = task;
+            else
+            {
+                _subSciDrawningTask = task;
+            }
         }
 
         protected void SetCts(IntPtr sciPtr, CancellationTokenSource cts)
@@ -308,7 +313,10 @@ namespace RTextNppPlugin.Scintilla.Annotations
             {
                 _mainSciCts = cts;
             }
-            _subSciCts = cts;
+            else
+            {
+                _subSciCts = cts;
+            }
         }
 
         protected string GetActiveFile(IntPtr sciPtr)
@@ -326,7 +334,10 @@ namespace RTextNppPlugin.Scintilla.Annotations
             {
                 _activeFileMain = str;
             }
-            _activeFileSub = str;
+            else
+            {
+                _activeFileSub = str;
+            }
         }
 
         protected void SetDrawingFile(IntPtr sciPtr, string file)
@@ -334,9 +345,11 @@ namespace RTextNppPlugin.Scintilla.Annotations
             if (sciPtr == _nppHelper.MainScintilla)
             {
                 _drawingFileMain = file;
-                return;
             }
-            _drawingFileSub = file;
+            else
+            {
+                _drawingFileSub = file;
+            }
         }
 
         protected string GetDrawingFile(IntPtr sciPtr)
@@ -353,9 +366,11 @@ namespace RTextNppPlugin.Scintilla.Annotations
             if (sciPtr == _nppHelper.MainScintilla)
             {
                 _indicatorRangesMain = bag;
-                return;
             }
-            _indicatorRangesSub = bag;
+            else
+            {
+                _indicatorRangesSub = bag;
+            }
         }
 
         protected IEnumerable GetAnnotations(IntPtr sciPtr)
@@ -381,7 +396,7 @@ namespace RTextNppPlugin.Scintilla.Annotations
         private void UpdateFileInfo()
         {
             _activeFileMain = _nppHelper.GetActiveFile(_nppHelper.MainScintilla);
-            _activeFileSub = _nppHelper.GetActiveFile(_nppHelper.SecondaryScintilla);
+            _activeFileSub  = _nppHelper.GetActiveFile(_nppHelper.SecondaryScintilla);
             SetVisibilityInfo(_lineVisibilityObserver.MainVisibilityInfo);
             SetVisibilityInfo(_lineVisibilityObserver.SubVisibilityInfo);
 
