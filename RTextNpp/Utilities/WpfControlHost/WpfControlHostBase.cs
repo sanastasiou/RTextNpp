@@ -115,7 +115,6 @@ namespace RTextNppPlugin.Utilities.WpfControlHost
         {
             _refreshTimer.Elapsed -= OnRefreshTimerElapsed;
             //update check box - special case where update box has false value after plugin initialization...
-            _nppHelper.ChangeMenuItemCheck(_cmdId, _elementHost.Visible);
             if (_refreshNeeded)
             {
                 _elementHost.BeginInvoke((Action)(() => { _elementHost.Refresh(); }));
