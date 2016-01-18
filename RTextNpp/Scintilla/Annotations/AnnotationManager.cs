@@ -29,8 +29,11 @@ namespace RTextNppPlugin.Scintilla.Annotations
         {
             if (e.Setting == SETTING)
             {
-                _areAnnotationEnabled = _settings.Get<bool>(Settings.RTextNppSettings.EnableErrorAnnotations);
-                ProcessSettingChanged();
+                bool aNewSettingValue = _settings.Get<bool>(Settings.RTextNppSettings.EnableErrorAnnotations);
+                if (aNewSettingValue != _areAnnotationEnabled)
+                {
+                    ProcessSettingChanged(aNewSettingValue);
+                }
             }
         }
 

@@ -85,7 +85,6 @@ namespace RTextNppPlugin.Scintilla.Annotations
             _nppHelper                                      = nppHelper;
             _settings.OnSettingChanged                      += OnSettingChanged;
             _nppData                                        = plugin.NppData;
-            _areAnnotationEnabled                           = _settings.Get<bool>(Settings.RTextNppSettings.EnableErrorAnnotations);
             _workspaceRoot                                  = workspaceRoot;
             plugin.BufferActivated                          += OnBufferActivated;
             _lineVisibilityObserver                         = lineVisibilityObserver;
@@ -207,10 +206,12 @@ namespace RTextNppPlugin.Scintilla.Annotations
             }
         }
 
-        protected void ProcessSettingChanged()
+        protected void ProcessSettingChanged(bool areAnnotationsEnabled)
         {
+            _areAnnotationEnabled = areAnnotationsEnabled;
             if (_areAnnotationEnabled)
             {
+                UpdateFileInfo();
                 Refresh(ref _activeFileMain, _nppHelper.MainScintilla);
                 Refresh(ref _activeFileSub, _nppHelper.SecondaryScintilla);
             }
@@ -219,6 +220,8 @@ namespace RTextNppPlugin.Scintilla.Annotations
                 HideAnnotations(_nppHelper.MainScintilla);
                 HideAnnotations(_nppHelper.SecondaryScintilla);
                 _activeFileMain = _activeFileSub = string.Empty;
+                _indicatorRangesSub = _indicatorRangesMain = null;
+
             }
         }
 

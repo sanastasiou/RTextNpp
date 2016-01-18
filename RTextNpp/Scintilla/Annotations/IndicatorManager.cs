@@ -52,13 +52,10 @@ namespace RTextNppPlugin.Scintilla.Annotations
         {
             if (e.Setting == SETTING)
             {
-                _areAnnotationEnabled = _settings.Get<bool>(Settings.RTextNppSettings.EnableErrorSquiggleLines);
-                ProcessSettingChanged();
-                if(!_areAnnotationEnabled)
+                bool aNewSettingValue = _settings.Get<bool>(Settings.RTextNppSettings.EnableErrorSquiggleLines);
+                if(aNewSettingValue != _areAnnotationEnabled)
                 {
-                    //clear cache
-                    _indicatorRangesMain = null;
-                    _indicatorRangesSub  = null;
+                    ProcessSettingChanged(aNewSettingValue);
                 }
             }
         }
