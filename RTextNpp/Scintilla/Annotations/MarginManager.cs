@@ -99,19 +99,15 @@ namespace RTextNppPlugin.Scintilla.Annotations
             }
         }
 
-        protected override object OnVisibilityInfoUpdated(VisibilityInfo info)
+        protected override void OnVisibilityInfoUpdated(VisibilityInfo info, IntPtr sciPtr)
         {
-            if (info != GetVisibilityInfo(info.ScintillaHandle))
-            {
-                //this event comes before buffer is activated - errors do not match with the file
-                base.OnVisibilityInfoUpdated(info);
-                //if (IsWorkspaceFile(info.File))
-                //{
-                //    //update current annotations
-                //    PlaceAnnotations(info.ScintillaHandle, true);
-                //}
-            }
-            return null;
+            //this event comes before buffer is activated - errors do not match with the file
+            base.OnVisibilityInfoUpdated(info, sciPtr);
+            //if (IsWorkspaceFile(info.File))
+            //{
+            //    //update current annotations
+            //    PlaceAnnotations(info.ScintillaHandle, true);
+            //}
         }
 
         #endregion
@@ -166,14 +162,7 @@ namespace RTextNppPlugin.Scintilla.Annotations
                 var scintilla = _nppHelper.ScintillaFromView(view);
                 _nppHelper.ClearAllTextMargins(scintilla);
                 _nppHelper.SetMarginWidthN(scintilla, ERROR_DESCRIPTION_MARGIN, 0);
-                if (scintilla == _nppHelper.MainScintilla)
-                {
-                    _activeFileMain = string.Empty;
-                }
-                else
-                {
-                    _activeFileSub = string.Empty;
-                }
+                SetActiveFile(scintilla, string.Empty);
             }
         }
 

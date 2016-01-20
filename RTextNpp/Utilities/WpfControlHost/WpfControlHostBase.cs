@@ -28,7 +28,6 @@ namespace RTextNppPlugin.Utilities.WpfControlHost
          */
         internal WpfControlHostBase(T elementHost, INpp nppHelper)
         {
-            Trace.WriteLine("WpfControlHostBase()");
             _elementHost                = elementHost;
             _elementHost.VisibleChanged += OnVisibilityChanged;
             _elementHost.Move           += OnElementHostMove;

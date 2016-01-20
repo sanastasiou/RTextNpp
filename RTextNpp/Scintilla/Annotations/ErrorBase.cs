@@ -29,7 +29,7 @@ namespace RTextNppPlugin.Scintilla.Annotations
         protected string _activeFileMain                          = string.Empty;
         protected string _activeFileSub                           = string.Empty;
         protected IEnumerable _indicatorRangesMain                = null;
-        protected IEnumerable _indicatorRangesSub                 = null; 
+        protected IEnumerable _indicatorRangesSub                 = null;
         private string _drawingFileMain                           = string.Empty;
         private string _drawingFileSub                            = string.Empty;
         private readonly NppData _nppData                         = default(NppData);
@@ -129,8 +129,8 @@ namespace RTextNppPlugin.Scintilla.Annotations
         public void Refresh()
         {
             UpdateFileInfo();
-            Refresh(ref _activeFileMain, _nppHelper.MainScintilla);
-            Refresh(ref _activeFileSub, _nppHelper.SecondaryScintilla);
+            Refresh(_nppHelper.MainScintilla, _activeFileMain);
+            Refresh(_nppHelper.SecondaryScintilla, _activeFileSub);
         }
 
         #region [Abstract]
@@ -147,11 +147,9 @@ namespace RTextNppPlugin.Scintilla.Annotations
         #endregion
 
         #region [Event Handlers]
-        protected virtual object OnVisibilityInfoUpdated(VisibilityInfo info)
+        protected virtual void OnVisibilityInfoUpdated(VisibilityInfo info, IntPtr sciPtr)
         {
-            //this event comes before buffer is activated - errors do not match with the file
-            SetVisibilityInfo(info);
-            return null;
+            SetVisibilityInfo(sciPtr, info);
         }
 
         protected abstract void OnBufferActivated(object source, string file, View view);
@@ -175,7 +173,7 @@ namespace RTextNppPlugin.Scintilla.Annotations
             //if we are here, it means workspaces match - check if files has errors
             errors = _currentErrors.FirstOrDefault(x => x.FilePath.Equals(activeFileRText, StringComparison.InvariantCultureIgnoreCase));
 
-            if (errors == null || errors.ErrorList.Count == 0)
+            if (errors == null || errors.ErrorList.Count == 0 || !IsWorkspaceFile(activeViewFile))
             {
                 return UpdateAction.Delete;
             }
@@ -183,26 +181,35 @@ namespace RTextNppPlugin.Scintilla.Annotations
             return UpdateAction.Update;
         }
 
-        protected void Refresh(ref string activeViewFile, IntPtr sciPtr)
+        protected void Refresh(IntPtr sciPtr, string viewFile)
         {
             //ensure model is loaded
             if (_currentErrors != null && _areAnnotationEnabled)
             {
                 ErrorListViewModel aErrors = null;
-                var aAction = ValidateErrorList(out aErrors, activeViewFile);
-                if (aAction != UpdateAction.NoAction)
+                switch(ValidateErrorList(out aErrors, viewFile))
                 {
-                    if(!DrawAnnotations(aErrors, sciPtr))
-                    {
-                        //if draw annotations failed - reset last file
-                        activeViewFile = string.Empty;
-                    }
+                    case UpdateAction.Update:
+                        if (!DrawAnnotations(aErrors, sciPtr))
+                        {
+                            //if draw annotations failed - reset last file
+                            SetActiveFile(sciPtr, string.Empty);
+                            Trace.WriteLine("Refresh - ActiveViewFile empty line 199");
+                        }
+                        break;
+                    case UpdateAction.Delete:
+                    case UpdateAction.NoAction:
+                    default:
+                        //no need to delete stuff that weren't drawn in the first place...
+                        Trace.WriteLine(String.Format("Refresh for file : {0} ignored...", viewFile));
+                        break;
                 }
             }
             else
             {
                 //force redraw if annotations are disabled or no errors exist
-                activeViewFile = string.Empty;
+                SetActiveFile(sciPtr, string.Empty);
+                Trace.WriteLine("Refresh - ActiveViewFile empty line 207");
             }
         }
 
@@ -212,8 +219,8 @@ namespace RTextNppPlugin.Scintilla.Annotations
             if (_areAnnotationEnabled)
             {
                 UpdateFileInfo();
-                Refresh(ref _activeFileMain, _nppHelper.MainScintilla);
-                Refresh(ref _activeFileSub, _nppHelper.SecondaryScintilla);
+                Refresh(_nppHelper.MainScintilla, _activeFileMain);
+                Refresh(_nppHelper.SecondaryScintilla, _activeFileSub);
             }
             else
             {
@@ -221,6 +228,7 @@ namespace RTextNppPlugin.Scintilla.Annotations
                 HideAnnotations(_nppHelper.SecondaryScintilla);
                 _activeFileMain = _activeFileSub = string.Empty;
                 _indicatorRangesSub = _indicatorRangesMain = null;
+                Trace.WriteLine("ProcessSettingChanged - ActiveViewFile empty line 226");
 
             }
         }
@@ -228,16 +236,17 @@ namespace RTextNppPlugin.Scintilla.Annotations
         protected void PreProcessOnBufferActivatedEvent(string file, View view)
         {
             string previousAnnotatedFile = view == View.Main ? _activeFileMain : _activeFileSub;
-            UpdateFileInfo();
+            //only update file relevant to view
+            UpdateFileInfo(view, file);
             if (ErrorList != null)
             {
                 if (view == View.Main)
                 {
-                    RefreshErrorsOnBufferActivation(previousAnnotatedFile, ref _activeFileMain, _nppHelper.MainScintilla);
+                    RefreshErrorsOnBufferActivation(previousAnnotatedFile, _activeFileMain, _nppHelper.MainScintilla);
                 }
                 else
                 {
-                    RefreshErrorsOnBufferActivation(previousAnnotatedFile, ref _activeFileSub, _nppHelper.SecondaryScintilla);
+                    RefreshErrorsOnBufferActivation(previousAnnotatedFile, _activeFileSub, _nppHelper.SecondaryScintilla);
                 }
             }
         }
@@ -259,9 +268,9 @@ namespace RTextNppPlugin.Scintilla.Annotations
             return _subVisibilityInfo;
         }
 
-        protected void SetVisibilityInfo(VisibilityInfo info)
+        protected void SetVisibilityInfo(IntPtr sciPtr, VisibilityInfo info)
         {
-            if (info.ScintillaHandle == _nppHelper.MainScintilla)
+            if (sciPtr == _nppHelper.MainScintilla)
             {
                 _mainVisibilityInfo = info;
             }
@@ -385,14 +394,12 @@ namespace RTextNppPlugin.Scintilla.Annotations
             return (IEnumerable)_indicatorRangesSub;
         }
 
-        private void RefreshErrorsOnBufferActivation(string previousAnnotatedFile, ref string currentFile, IntPtr sciPtr)
+        private void RefreshErrorsOnBufferActivation(string previousAnnotatedFile, string currentFile, IntPtr sciPtr)
         {
             if (previousAnnotatedFile != currentFile && !string.IsNullOrEmpty(currentFile))
             {
-                if (IsWorkspaceFile(currentFile))
-                {
-                    Refresh(ref currentFile, sciPtr);
-                }
+                Trace.WriteLine("PreprocessOnBufferActivated");
+                Refresh(sciPtr, currentFile);
             }
         }
 
@@ -400,11 +407,16 @@ namespace RTextNppPlugin.Scintilla.Annotations
         {
             _activeFileMain = _nppHelper.GetActiveFile(_nppHelper.MainScintilla);
             _activeFileSub  = _nppHelper.GetActiveFile(_nppHelper.SecondaryScintilla);
-            SetVisibilityInfo(_lineVisibilityObserver.MainVisibilityInfo);
-            SetVisibilityInfo(_lineVisibilityObserver.SubVisibilityInfo);
+            SetVisibilityInfo(_nppHelper.MainScintilla, _lineVisibilityObserver.MainVisibilityInfo);
+            SetVisibilityInfo(_nppHelper.SecondaryScintilla, _lineVisibilityObserver.SubVisibilityInfo);
+        }
 
-            Trace.WriteLine(String.Format("Update file info\n\n_activeFileMain : {0}\n_activeFileSub : {1}\nVisibility info main : {2}\nVisibility info sub : {3}",
-                _activeFileMain, _activeFileSub, _lineVisibilityObserver.MainVisibilityInfo, _lineVisibilityObserver.SubVisibilityInfo));
+        private void UpdateFileInfo(View view, string file)
+        {
+            IntPtr aSciPtr = view == View.Main ? _nppHelper.MainScintilla : _nppHelper.SecondaryScintilla;
+            var aInfo = view == View.Main ? _lineVisibilityObserver.MainVisibilityInfo : _lineVisibilityObserver.SubVisibilityInfo;
+            SetActiveFile(aSciPtr, file);
+            SetVisibilityInfo(aSciPtr, aInfo);
         }
         #endregion
     }

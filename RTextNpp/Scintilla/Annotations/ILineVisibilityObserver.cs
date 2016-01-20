@@ -71,7 +71,7 @@ namespace RTextNppPlugin.Scintilla.Annotations
         }
     }
 
-    internal delegate object VisibilityInfoUpdated(VisibilityInfo info);
+    internal delegate void VisibilityInfoUpdated(VisibilityInfo info, IntPtr sciPtr);
 
     interface ILineVisibilityObserver
     {

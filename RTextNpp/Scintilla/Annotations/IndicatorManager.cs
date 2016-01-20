@@ -19,7 +19,7 @@ namespace RTextNppPlugin.Scintilla.Annotations
     {
         #region [Data Members]
         private const Settings.RTextNppSettings SETTING      = Settings.RTextNppSettings.EnableErrorSquiggleLines;
-        private const int INDICATOR_INDEX                    = 8;
+        protected const int INDICATOR_INDEX                  = 8;   //!< Indicator index for squiggle lines.
         private readonly RTextTokenTypes[] ERROR_TOKEN_TYPES =  
         { 
             RTextTokenTypes.Boolean,
@@ -43,9 +43,6 @@ namespace RTextNppPlugin.Scintilla.Annotations
 
             HideAnnotations(_nppHelper.MainScintilla);
             HideAnnotations(_nppHelper.SecondaryScintilla);
-
-            _nppHelper.SetIndicatorStyle(_nppHelper.MainScintilla, INDICATOR_INDEX, SciMsg.INDIC_SQUIGGLE, Color.Red);
-            _nppHelper.SetIndicatorStyle(_nppHelper.SecondaryScintilla, INDICATOR_INDEX, SciMsg.INDIC_SQUIGGLE, Color.Red);
         }
 
         public override void OnSettingChanged(object source, Utilities.Settings.Settings.SettingChangedEventArgs e)
@@ -113,19 +110,15 @@ namespace RTextNppPlugin.Scintilla.Annotations
         /*
          * This event always occurs after SCN_UPDATEUI which is considered the best place to update the editor annotations.
          */
-        protected override object OnVisibilityInfoUpdated(VisibilityInfo info)
+        protected override void OnVisibilityInfoUpdated(VisibilityInfo info, IntPtr sciPtr)
         {
-            if (info != GetVisibilityInfo(info.ScintillaHandle))
+            //this event comes before buffer is activated - errors do not match with the file
+            base.OnVisibilityInfoUpdated(info, sciPtr);
+            if (IsWorkspaceFile(info.File))
             {
-                //this event comes before buffer is activated - errors do not match with the file
-                base.OnVisibilityInfoUpdated(info);
-                if (IsWorkspaceFile(info.File))
-                {
-                    //update current annotations
-                    PlaceAnnotations(info.ScintillaHandle, true);
-                }
+                //update current annotations
+                PlaceAnnotations(info.ScintillaHandle, true);
             }
-            return null;
         }
 
         protected override void OnBufferActivated(object source, string file, View view)
@@ -137,17 +130,8 @@ namespace RTextNppPlugin.Scintilla.Annotations
                 {
                     //remove annotations from the view which this file belongs to
                     var scintilla = _nppHelper.ScintillaFromView(view);
-
                     _nppHelper.ClearAllIndicators(scintilla, INDICATOR_INDEX);
-
-                    if (scintilla == _nppHelper.MainScintilla)
-                    {
-                        _activeFileMain = string.Empty;
-                    }
-                    else
-                    {
-                        _activeFileSub = string.Empty;
-                    }
+                    SetActiveFile(scintilla, string.Empty);
                 }
             }
         }
@@ -157,18 +141,12 @@ namespace RTextNppPlugin.Scintilla.Annotations
 
         protected override void HideAnnotations(IntPtr scintilla)
         {
-            var aActiveFile = _nppHelper.GetActiveFile(scintilla);
-            if (!string.IsNullOrEmpty(aActiveFile) && Utilities.FileUtilities.IsRTextFile(aActiveFile, _settings, _nppHelper))
-            {
-                if (IsWorkspaceFile(aActiveFile))
-                {
-                    _nppHelper.ClearAllIndicators(scintilla, INDICATOR_INDEX);
-                }
-            }
+            _nppHelper.ClearAllIndicators(scintilla, INDICATOR_INDEX);
         }
 
         protected override bool DrawAnnotations(ErrorListViewModel errors, IntPtr sciPtr)
         {
+            Trace.WriteLine(String.Format("Draw annotations : {0} - file : {1}", sciPtr, GetActiveFile(sciPtr)));
             bool aSuccess = true;
             if (!IsNotepadShutingDown)
             {
@@ -272,6 +250,8 @@ namespace RTextNppPlugin.Scintilla.Annotations
                 var aVisibilityInfo  = GetVisibilityInfo(sciPtr);
                 var runningTask      = GetDrawingTask(sciPtr);
                 var activeFile       = GetDrawingFile(sciPtr);
+
+                _nppHelper.ClearAllIndicators(sciPtr, INDICATOR_INDEX);
 
                 if (aIndicatorRanges != null && (!waitForTask || (runningTask == null || runningTask.IsCompleted)))
                 {
