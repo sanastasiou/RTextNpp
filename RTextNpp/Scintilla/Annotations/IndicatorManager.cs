@@ -248,7 +248,7 @@ namespace RTextNppPlugin.Scintilla.Annotations
                 var runningTask      = GetDrawingTask(sciPtr);
                 var activeFile       = GetDrawingFile(sciPtr);
 
-                _nppHelper.ClearAllIndicators(sciPtr, INDICATOR_INDEX);
+                HideAnnotations(sciPtr);
 
                 if (aIndicatorRanges != null && (!waitForTask || (runningTask == null || runningTask.IsCompleted)))
                 {

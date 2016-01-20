@@ -147,11 +147,11 @@ namespace RTextNppPlugin.Scintilla
 
         void ClearAllAnnotations(IntPtr sciPtr);
 
-        void AddAnnotation(int line, System.Text.StringBuilder errorDescription);
+        void AddAnnotation(int line, System.Text.StringBuilder errorDescription, IntPtr sciPtr);
 
-        void SetAnnotationStyle(int line, int annotationStyle);
+        void SetAnnotationStyle(int line, int annotationStyle, IntPtr sciPtr);
 
-        void SetAnnotationStyles(int line, byte[] styleDescriptions);
+        void SetAnnotationStyles(int line, byte[] styleDescriptions, IntPtr sciPtr);
 
         int GetCodepage();
 

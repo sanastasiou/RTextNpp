@@ -77,32 +77,15 @@ namespace RTextNppPlugin.Scintilla.Annotations
             {
                 //remove annotations from the view which this file belongs to
                 var scintilla = _nppHelper.ScintillaFromView(view);
-                _nppHelper.ClearAllAnnotations(scintilla);
-                _nppHelper.SetAnnotationVisible(scintilla, Constants.Scintilla.HIDDEN_ANNOTATION_STYLE);
-                if(scintilla == _nppHelper.MainScintilla)
-                {
-                    Trace.WriteLine("OnBufferActivated - _activeFileMain empty line 88");
-                    _activeFileMain = string.Empty;
-                }
-                else
-                {
-                    Trace.WriteLine("OnBufferActivated - _activeFileSub empty line 93");
-                    _activeFileSub = string.Empty;
-                }
+                HideAnnotations(scintilla);
+                SetActiveFile(scintilla, string.Empty);
             }
         }
 
         protected override void HideAnnotations(IntPtr scintilla)
         {
-            var aActiveFile = _nppHelper.GetActiveFile(scintilla);
-            if (!string.IsNullOrEmpty(aActiveFile) && Utilities.FileUtilities.IsRTextFile(aActiveFile, _settings, _nppHelper))
-            {
-                if (IsWorkspaceFile(aActiveFile))
-                {
-                    _nppHelper.SetAnnotationVisible(scintilla, Constants.Scintilla.HIDDEN_ANNOTATION_STYLE);
-                    _nppHelper.ClearAllAnnotations(scintilla);
-                }
-            }
+            _nppHelper.SetAnnotationVisible(scintilla, Constants.Scintilla.HIDDEN_ANNOTATION_STYLE);
+            _nppHelper.ClearAllAnnotations(scintilla);
         }
 
         protected override bool DrawAnnotations(ErrorListViewModel errors, IntPtr sciPtr)
@@ -190,10 +173,9 @@ namespace RTextNppPlugin.Scintilla.Annotations
             {
                 var aIndicatorRanges = (IEnumerable<Tuple<int, StringBuilder, int>>)GetAnnotations(sciPtr);
                 var aVisibilityInfo  = GetVisibilityInfo(sciPtr);
-                Trace.WriteLine(aVisibilityInfo);
                 var runningTask      = GetDrawingTask(sciPtr);
                 var activeFile       = GetDrawingFile(sciPtr);
-
+                HideAnnotations(sciPtr);
                 if (aIndicatorRanges != null && (!waitForTask || (runningTask == null || runningTask.IsCompleted)))
                 {
                     var visibleAnnotations = from range in aIndicatorRanges
@@ -205,9 +187,8 @@ namespace RTextNppPlugin.Scintilla.Annotations
                         {
                             return;
                         }
-                        _nppHelper.SetAnnotationStyle(annotation.Item1, annotation.Item3);
-                        _nppHelper.AddAnnotation(annotation.Item1, annotation.Item2);
-                        Trace.WriteLine(String.Format("Scintilla : {2} - Annotation at line : {0} - description : {1}", annotation.Item1, annotation.Item2, sciPtr == _nppHelper.MainScintilla ? "main" : "sub"));
+                        _nppHelper.SetAnnotationStyle(annotation.Item1, annotation.Item3, sciPtr);
+                        _nppHelper.AddAnnotation(annotation.Item1, annotation.Item2, sciPtr);
                     }
                     _nppHelper.SetAnnotationVisible(sciPtr, Constants.Scintilla.BOXED_ANNOTATION_STYLE);
                 }

@@ -55,37 +55,38 @@ namespace RTextNppPlugin.Scintilla
             _directFunction              = (Scintilla_DirectFunction)Marshal.GetDelegateForFunctionPointer(directFunctionPointer,typeof(Scintilla_DirectFunction));
         }
 
-        public unsafe void AddAnnotation(int line, System.Text.StringBuilder errorDescription)
+        public unsafe void AddAnnotation(int line, System.Text.StringBuilder errorDescription, IntPtr sciPtr)
         {
             if (errorDescription.Length == 0)
             {
                 // Scintilla docs suggest that setting to NULL rather than an empty string will free memory
-                SendMessage( CurrentScintilla, SciMsg.SCI_ANNOTATIONGETTEXT, new IntPtr(line), IntPtr.Zero);
+                SendMessage(sciPtr, SciMsg.SCI_ANNOTATIONGETTEXT, new IntPtr(line), IntPtr.Zero);
             }
             else
             {
                 var bytes = GetBytes(errorDescription.ToString(), Encoding, zeroTerminated: true);
                 fixed (byte* bp = bytes)
                 {
-                    SendMessage(CurrentScintilla, SciMsg.SCI_ANNOTATIONSETTEXT, new IntPtr(line), new IntPtr(bp));
+                    SendMessage(sciPtr, SciMsg.SCI_ANNOTATIONSETTEXT, new IntPtr(line), new IntPtr(bp));
                 }
             }
         }
 
         public void SetAnnotationVisible(IntPtr handle, int annotationStyle)
         {
-            Trace.WriteLine(String.Format("Annotations for sci : {0} - visible : {1}", handle == MainScintilla ? "main" : "sub", annotationStyle == (int)SciMsg.ANNOTATION_BOXED));
-            SendMessage(handle, SciMsg.SCI_ANNOTATIONSETVISIBLE, new IntPtr(annotationStyle));
+            var aNativePtr = GetNativePtr(handle);
+            _directFunction(aNativePtr, (int)SciMsg.SCI_ANNOTATIONSETVISIBLE, new IntPtr(annotationStyle), IntPtr.Zero);
         }
 
-        public void SetAnnotationStyle(int line, int annotationStyle)
+        public void SetAnnotationStyle(int line, int annotationStyle, IntPtr sciPtr)
         {
-            SendMessage(CurrentScintilla, SciMsg.SCI_ANNOTATIONSETSTYLE, new IntPtr(line), new IntPtr(annotationStyle));
+            SendMessage(sciPtr, SciMsg.SCI_ANNOTATIONSETSTYLE, new IntPtr(line), new IntPtr(annotationStyle));
         }
 
-        public unsafe void SetAnnotationStyles(int line, byte [] styleDescriptions)
+        public unsafe void SetAnnotationStyles(int line, byte[] styleDescriptions, IntPtr sciPtr)
         {
-            var length = SendMessage(CurrentScintilla, SciMsg.SCI_ANNOTATIONGETTEXT, new IntPtr(line)).ToInt32();
+            var aNativePtr = GetNativePtr(sciPtr);
+            var length = _directFunction(aNativePtr, (int)SciMsg.SCI_ANNOTATIONGETTEXT, new IntPtr(line), IntPtr.Zero).ToInt32();
             if (length == 0)
             {
                 return;
@@ -94,12 +95,12 @@ namespace RTextNppPlugin.Scintilla
             var text = new byte[length + 1];
             fixed (byte* textPtr = text)
             {
-                SendMessage(CurrentScintilla, SciMsg.SCI_ANNOTATIONGETTEXT, new IntPtr(line), new IntPtr(textPtr));
+                _directFunction(aNativePtr, (int)SciMsg.SCI_ANNOTATIONGETTEXT, new IntPtr(line), new IntPtr(textPtr));
 
                 var styles = CharToByteStyles(styleDescriptions ?? new byte[0], textPtr, length, Encoding);
                 fixed (byte* stylePtr = styles)
                 {
-                    SendMessage(CurrentScintilla, SciMsg.SCI_ANNOTATIONSETSTYLES, new IntPtr(line), new IntPtr(stylePtr));
+                    _directFunction(aNativePtr, (int)SciMsg.SCI_ANNOTATIONSETSTYLES, new IntPtr(line), new IntPtr(stylePtr));
                 }
             }
         }
@@ -227,7 +228,7 @@ namespace RTextNppPlugin.Scintilla
 
         public void ClearAllAnnotations(IntPtr sciPtr)
         {
-            SendMessage(sciPtr, SciMsg.SCI_ANNOTATIONCLEARALL);
+            SendMessage(sciPtr, SciMsg.SCI_ANNOTATIONCLEARALL, IntPtr.Zero, IntPtr.Zero);
         }
         
         public void DeleteRange(int position, int length)
