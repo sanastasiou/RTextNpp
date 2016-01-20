@@ -40,9 +40,6 @@ namespace RTextNppPlugin.Scintilla.Annotations
             base(settings, nppHelper, plugin, workspaceRoot, lineVisibilityObserver)
         {
             _areAnnotationEnabled = _settings.Get<bool>(Settings.RTextNppSettings.EnableErrorSquiggleLines);
-
-            HideAnnotations(_nppHelper.MainScintilla);
-            HideAnnotations(_nppHelper.SecondaryScintilla);
         }
 
         public override void OnSettingChanged(object source, Utilities.Settings.Settings.SettingChangedEventArgs e)
@@ -262,8 +259,7 @@ namespace RTextNppPlugin.Scintilla.Annotations
                                         where range.Item3 >= aVisibilityInfo.FirstLine && range.Item3 <= aVisibilityInfo.LastLine
                                         select range;
 
-                    var ranges = visibleRanges.OrderBy(x => x.Item3).ToArray();
-                    for (int i = 0; i < ranges.Count(); ++i)
+                    foreach (var range in visibleRanges)
                     {
                         if (IsNotepadShutingDown || (activeFile != GetActiveFile(sciPtr)))
                         {
@@ -271,16 +267,7 @@ namespace RTextNppPlugin.Scintilla.Annotations
                             return;
                         }
                         _nppHelper.SetCurrentIndicator(sciPtr, INDICATOR_INDEX);
-                        _nppHelper.PlaceIndicator(sciPtr, ranges[i].Item1, ranges[i].Item2);
-                        Trace.WriteLine(String.Format("Placing indicator : line {0} - length : {1}", ranges[i].Item3, ranges[i].Item2));
-                        //ensure indicator is placed by reading it - if not stay on same indicator
-                        int indicatorRangeStart = _nppHelper.IndicatorStart(sciPtr, INDICATOR_INDEX, ranges[i].Item1);
-                        int indicatorRangeEnd   = _nppHelper.IndicatorEnd(sciPtr, INDICATOR_INDEX, ranges[i].Item1);
-
-                        if (ranges[i].Item1 != indicatorRangeStart || indicatorRangeEnd != (ranges[i].Item1 + ranges[i].Item2))
-                        {
-                            --i;
-                        }
+                        _nppHelper.PlaceIndicator(sciPtr, range.Item1, range.Item2);
                     }
                 }
             }

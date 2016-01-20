@@ -194,14 +194,12 @@ namespace RTextNppPlugin.Scintilla.Annotations
                         {
                             //if draw annotations failed - reset last file
                             SetActiveFile(sciPtr, string.Empty);
-                            Trace.WriteLine("Refresh - ActiveViewFile empty line 199");
                         }
                         break;
                     case UpdateAction.Delete:
                     case UpdateAction.NoAction:
                     default:
                         //no need to delete stuff that weren't drawn in the first place...
-                        Trace.WriteLine(String.Format("Refresh for file : {0} ignored...", viewFile));
                         break;
                 }
             }
@@ -209,7 +207,6 @@ namespace RTextNppPlugin.Scintilla.Annotations
             {
                 //force redraw if annotations are disabled or no errors exist
                 SetActiveFile(sciPtr, string.Empty);
-                Trace.WriteLine("Refresh - ActiveViewFile empty line 207");
             }
         }
 
@@ -228,8 +225,6 @@ namespace RTextNppPlugin.Scintilla.Annotations
                 HideAnnotations(_nppHelper.SecondaryScintilla);
                 _activeFileMain = _activeFileSub = string.Empty;
                 _indicatorRangesSub = _indicatorRangesMain = null;
-                Trace.WriteLine("ProcessSettingChanged - ActiveViewFile empty line 226");
-
             }
         }
 
@@ -398,7 +393,6 @@ namespace RTextNppPlugin.Scintilla.Annotations
         {
             if (previousAnnotatedFile != currentFile && !string.IsNullOrEmpty(currentFile))
             {
-                Trace.WriteLine("PreprocessOnBufferActivated");
                 Refresh(sciPtr, currentFile);
             }
         }
