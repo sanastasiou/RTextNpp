@@ -269,6 +269,9 @@
     <None Include="Resources\ConsoleIconPng.png" />
   </ItemGroup>
   <ItemGroup>
+    <Resource Include="Resources\marker_error.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
     <EmbeddedResource Include="costura32\WindowsUtilities.dll" />
     <EmbeddedResource Include="costura32\NativeFileSystemWatcher.dll" />
     <Content Include="FodyWeavers.xml">

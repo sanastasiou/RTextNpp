@@ -27,7 +27,7 @@ namespace RTextNppPlugin.ViewModels
             _dispatcher                  = dispatcher;
             _annotationsManagers         = new List<IError>(3);
             _annotationsManagers.Add(new AnnotationManager(settings, nppHelper, Plugin.Instance, _connector.Workspace, lineVisibilityObserver));
-            //_annotationsManagers.Add(new MarginManager(settings, nppHelper, Plugin.Instance, _connector.Workspace, lineVisibilityObserver));
+            _annotationsManagers.Add(new MarginManager(settings, nppHelper, Plugin.Instance, _connector.Workspace, lineVisibilityObserver));
             _annotationsManagers.Add(new IndicatorManager(settings, nppHelper, Plugin.Instance, _connector.Workspace, lineVisibilityObserver));
         }
         /**

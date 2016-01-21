@@ -218,5 +218,17 @@ namespace RTextNppPlugin.Scintilla
         int IndicatorStart(IntPtr sciPtr, int indicator, int testPosition);
 
         int IndicatorEnd(IntPtr sciPtr, int indicator, int testPosition);
+
+        void DeleteMarkers(IntPtr sciPtr, int markerNumber);
+
+        void DefineXpmSymbol(IntPtr sciPtr, int type, string xmp);
+
+        void DefineSymbol(IntPtr sciPtr, int type, int symbol);
+
+        void AddMarker(IntPtr sciPtr, int line, int type);
+
+        void SetMarkerBackground(IntPtr sciPtr, int markerNumber, int color);
+
+        void SetMarkerForeground(IntPtr sciPtr, int markerNumber, int color);
     }
 }

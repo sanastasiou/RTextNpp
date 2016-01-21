@@ -58,6 +58,9 @@ namespace RTextNppPlugin.Utilities
 
         [DllImport("user32.dll", CharSet = CharSet.Auto, CallingConvention = CallingConvention.StdCall, SetLastError = true)]
         protected static extern IntPtr GetFocus();
+
+        [DllImport("user32.dll", CharSet = CharSet.Ansi)]
+        protected static extern IntPtr SendMessage(IntPtr hWnd, int msg, IntPtr wParam, [MarshalAs(UnmanagedType.LPStr)] string lParam);
         #endregion        
 
         public Rectangle GetClientRectFromControl(IntPtr hwnd)
@@ -116,6 +119,10 @@ namespace RTextNppPlugin.Utilities
             return NativeHelpers.SendMessage(hWnd, msg, wParam, lParam);
         }
 
+        public IntPtr ISendMessage(IntPtr hWnd, int msg, IntPtr wParam, string str)
+        {
+            return SendMessage(hWnd, msg, wParam, str);
+        }
         
         public IntPtr ISendMessage(IntPtr hWnd, int msg, IntPtr wParam, IntPtr lParam)
         {

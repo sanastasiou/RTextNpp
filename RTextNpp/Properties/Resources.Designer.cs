@@ -315,6 +315,16 @@ namespace RTextNppPlugin.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap marker_error {
+            get {
+                object obj = ResourceManager.GetObject("marker_error", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap method {
             get {
                 object obj = ResourceManager.GetObject("method", resourceCulture);

@@ -889,6 +889,38 @@ namespace RTextNppPlugin.Scintilla
             return _nativeHelpers.ISendMessage(hWnd, (int)msg, wParam, lParam);
         }
 
+        #region [Markers]
+        public void DeleteMarkers(IntPtr sciPtr, int markerNumber)
+        {
+            SendMessage(sciPtr, SciMsg.SCI_MARKERDELETEALL, new IntPtr(markerNumber), IntPtr.Zero);
+        }
+
+        public unsafe void DefineXpmSymbol(IntPtr sciPtr, int type, string xmp)
+        {
+            _nativeHelpers.ISendMessage(sciPtr, (int)SciMsg.SCI_MARKERDEFINEPIXMAP, new IntPtr(type), xmp);
+        }
+
+        public void DefineSymbol(IntPtr sciPtr, int type, int symbol)
+        {
+            SendMessage(sciPtr, SciMsg.SCI_MARKERDEFINE, new IntPtr(type), new IntPtr(symbol));
+        }
+
+        public void AddMarker(IntPtr sciPtr, int line, int type)
+        {
+            SendMessage(sciPtr, SciMsg.SCI_MARKERADD, new IntPtr(line), new IntPtr(type));
+        }
+
+        public void SetMarkerBackground(IntPtr sciPtr, int markerNumber, int color)
+        {
+            SendMessage(sciPtr, SciMsg.SCI_MARKERSETBACK, new IntPtr(markerNumber), new IntPtr(color));
+        }
+
+        public void SetMarkerForeground(IntPtr sciPtr, int markerNumber, int color)
+        {
+            SendMessage(sciPtr, SciMsg.SCI_MARKERSETFORE, new IntPtr(markerNumber), new IntPtr(color));
+        }
+        #endregion
+
         #region [Helpers]
 
         private bool IsLineVisible(int firstLine, int lastLine, int line)

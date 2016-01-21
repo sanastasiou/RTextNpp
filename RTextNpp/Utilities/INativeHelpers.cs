@@ -15,6 +15,7 @@ namespace RTextNppPlugin.Utilities
         IntPtr ISendMessage(IntPtr hWnd, int msg, int wParam, out int lParam);
         IntPtr ISendMessage(IntPtr hWnd, int msg, int wParam, System.Text.StringBuilder lParam);
         IntPtr ISendMessage(IntPtr hWnd, int msg, IntPtr wParam, IntPtr lParam);
+        IntPtr ISendMessage(IntPtr hWnd, int msg, IntPtr wParam, string str);
         int ISendMessage(IntPtr hWnd, int msg, IntPtr[] wParam, int lParam);
         IntPtr ISetWindowsHookEx(VisualUtilities.HookType code, NativeHelpers.HookProc func, IntPtr hInstance, int threadID);
         int IToUnicode(uint virtualKeyCode, uint scanCode, byte[] keyboardState, System.Text.StringBuilder receivingBuffer, int bufferSize, uint flags);

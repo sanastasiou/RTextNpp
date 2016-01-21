@@ -544,7 +544,6 @@ namespace RTextNppPlugin
         {
             string aFileOpened = _nppHelper.GetPathFromBufferId(bufferid);
             var aCurrentView   = _nppHelper.CurrentView;
-            Trace.WriteLine(String.Format("Buffer activated : file {0} - view {1}", aFileOpened, aCurrentView));
             //update visibility info before everything else - clients of buffer activated event can then have access to most actual visibility information
             _linesVisibilityObserver.OnBufferActivated(aFileOpened, aCurrentView);
             if (BufferActivated != null)

@@ -90,6 +90,7 @@ namespace RTextNppPlugin.Scintilla.Annotations
 
         protected override bool DrawAnnotations(ErrorListViewModel errors, IntPtr sciPtr)
         {
+            bool aSuccess = true;
             if (!IsNotepadShutingDown && _areAnnotationEnabled)
             {
                 try
@@ -146,6 +147,7 @@ namespace RTextNppPlugin.Scintilla.Annotations
                                         //ensure that subsequent task won't run
                                         newCts.Cancel();
                                     }
+                                    aSuccess = false;
                                     break;
                                 }
                                 aErrorDescription.AppendFormat("{0} : {2}", error.Severity, error.Line, error.Message);
@@ -173,9 +175,14 @@ namespace RTextNppPlugin.Scintilla.Annotations
                 catch (Exception)
                 {
                     Trace.WriteLine("DrawAnnotations failed.");
+                    return false;
                 }
             }
-            return true;
+            else
+            {
+                return false;
+            }
+            return aSuccess;
         }
 
         protected override void PlaceAnnotations(IntPtr sciPtr, bool waitForTask = false)
