@@ -53,6 +53,7 @@ namespace RTextNppPlugin
         private NppData _nppData                                                               = default(NppData);
         private FuncItems _funcItems                                                           = new FuncItems();
         private INativeHelpers _nativeHelpers                                                  = new NativeHelpers();
+        private int _previousDwellTime                                                         = (int)SciMsg.SC_TIME_FOREVER;
 
         private enum ShortcutType
         {
@@ -80,6 +81,10 @@ namespace RTextNppPlugin
 
         public delegate void ShutdownDelegate();
         public event ShutdownDelegate OnNotepadShutdown;
+
+        public delegate void DwellDelegate(IntPtr sciPtr, int position, Point point);
+        public event DwellDelegate OnDwellStarting;
+        public event DwellDelegate OnDwellEnding;
         #endregion
 
         #region [Startup/CleanUp]
@@ -551,8 +556,18 @@ namespace RTextNppPlugin
                 BufferActivated(this, aFileOpened, aCurrentView);
             }
             _fileObserver.OnFileOpened(aFileOpened);
-
             _linkTargetsWindow.CancelPendingRequest();
+            var aSciPtr = aCurrentView == Scintilla.View.Main ? _nppHelper.MainScintilla : _nppHelper.SecondaryScintilla;
+            if(Utilities.FileUtilities.IsRTextFile(aFileOpened, _settings, _nppHelper))
+            {
+                _previousDwellTime = _nppHelper.GetMouseDwellTime(aSciPtr);
+                //todo dwell time must be an option
+                _nppHelper.SetMouseDwellTime(aSciPtr, 500);
+            }
+            else
+            {
+                _nppHelper.SetMouseDwellTime(aSciPtr, _previousDwellTime);
+            }
         }
 
         private void OnLinkTargetsWindowIsVisibleChanged(object sender, System.Windows.DependencyPropertyChangedEventArgs e)
@@ -704,6 +719,20 @@ namespace RTextNppPlugin
             }
         }
 
+        internal void OnDwellEnd(IntPtr sciPtr, int p, Point point)
+        {
+            Trace.WriteLine(String.Format("Dwell end : view {0} - position : {1} - point : {2}", sciPtr == _nppHelper.MainScintilla ? Scintilla.View.Main : Scintilla.View.Sub, p, point));
+        }
+
+        internal void OnDwellStart(IntPtr sciPtr, int p, Point point)
+        {
+            Trace.WriteLine(String.Format("Dwell start : view {0} - position : {1} - point : {2}", sciPtr == _nppHelper.MainScintilla ? Scintilla.View.Main : Scintilla.View.Sub, p, point));
+        }
+
+        #endregion
+
+        #region [Helpers]
+
         private void OnCharTyped(char c)
         {
             if (!char.IsControl(c) && !char.IsWhiteSpace(c))
@@ -726,10 +755,6 @@ namespace RTextNppPlugin
                 }
             }
         }
-
-        #endregion
-
-        #region [Helpers]
 
         private void CommitAutoCompletion(bool replace)
         {

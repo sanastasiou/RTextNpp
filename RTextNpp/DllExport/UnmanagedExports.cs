@@ -5,6 +5,7 @@ using RGiesecke.DllExport;
 using RTextNppPlugin.DllExport;
 using RTextNppPlugin.Utilities;
 using System.Diagnostics;
+using System.Drawing;
 namespace RTextNppPlugin
 {
     class UnmanagedExports
@@ -123,6 +124,12 @@ namespace RTextNppPlugin
                     break;
                 case(uint)NppMsg.NPPN_BEFORESHUTDOWN:
                     Plugin.Instance.BeforeShutdown();
+                    break;
+                case(uint)SciMsg.SCN_DWELLEND:
+                    Plugin.Instance.OnDwellEnd(nc.nmhdr.hwndFrom, nc.position, new Point(nc.x, nc.y));
+                    break;
+                case(uint)SciMsg.SCN_DWELLSTART:
+                    Plugin.Instance.OnDwellStart(nc.nmhdr.hwndFrom, nc.position, new Point(nc.x, nc.y));
                     break;
             }
         }

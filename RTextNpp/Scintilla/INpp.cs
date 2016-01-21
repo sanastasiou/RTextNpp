@@ -219,6 +219,8 @@ namespace RTextNppPlugin.Scintilla
 
         int IndicatorEnd(IntPtr sciPtr, int indicator, int testPosition);
 
+        #region [Markers]
+
         void DeleteMarkers(IntPtr sciPtr, int markerNumber);
 
         void DefineXpmSymbol(IntPtr sciPtr, int type, string xmp);
@@ -230,5 +232,13 @@ namespace RTextNppPlugin.Scintilla
         void SetMarkerBackground(IntPtr sciPtr, int markerNumber, int color);
 
         void SetMarkerForeground(IntPtr sciPtr, int markerNumber, int color);
+
+        #endregion
+
+        #region [Dwell]
+        void SetMouseDwellTime(IntPtr sciPtr, int milliseconds);
+
+        int GetMouseDwellTime(IntPtr sciPtr);
+        #endregion
     }
 }

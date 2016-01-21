@@ -921,6 +921,20 @@ namespace RTextNppPlugin.Scintilla
         }
         #endregion
 
+        #region [Dwell]
+
+        public void SetMouseDwellTime(IntPtr sciPtr, int milliseconds)
+        {
+            SendMessage(sciPtr, SciMsg.SCI_SETMOUSEDWELLTIME, new IntPtr(milliseconds), IntPtr.Zero);
+        }
+
+        public int GetMouseDwellTime(IntPtr sciPtr)
+        {
+            return SendMessage(sciPtr, SciMsg.SCI_GETMOUSEDWELLTIME, IntPtr.Zero, IntPtr.Zero).ToInt32();
+        }
+
+        #endregion
+
         #region [Helpers]
 
         private bool IsLineVisible(int firstLine, int lastLine, int line)
