@@ -230,18 +230,21 @@ namespace RTextNppPlugin.Scintilla.Annotations
 
         protected void PreProcessOnBufferActivatedEvent(string file, View view)
         {
-            string previousAnnotatedFile = view == View.Main ? _activeFileMain : _activeFileSub;
-            //only update file relevant to view
-            UpdateFileInfo(view, file);
-            if (ErrorList != null)
+            if (_areAnnotationEnabled)
             {
-                if (view == View.Main)
+                string previousAnnotatedFile = view == View.Main ? _activeFileMain : _activeFileSub;
+                //only update file relevant to view
+                UpdateFileInfo(view, file);
+                if (ErrorList != null)
                 {
-                    RefreshErrorsOnBufferActivation(previousAnnotatedFile, _activeFileMain, _nppHelper.MainScintilla);
-                }
-                else
-                {
-                    RefreshErrorsOnBufferActivation(previousAnnotatedFile, _activeFileSub, _nppHelper.SecondaryScintilla);
+                    if (view == View.Main)
+                    {
+                        RefreshErrorsOnBufferActivation(previousAnnotatedFile, _activeFileMain, _nppHelper.MainScintilla);
+                    }
+                    else
+                    {
+                        RefreshErrorsOnBufferActivation(previousAnnotatedFile, _activeFileSub, _nppHelper.SecondaryScintilla);
+                    }
                 }
             }
         }

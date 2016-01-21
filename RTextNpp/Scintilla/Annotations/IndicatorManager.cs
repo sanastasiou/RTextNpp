@@ -111,7 +111,7 @@ namespace RTextNppPlugin.Scintilla.Annotations
         {
             //this event comes before buffer is activated - errors do not match with the file
             base.OnVisibilityInfoUpdated(info, sciPtr);
-            if (IsWorkspaceFile(info.File))
+            if (IsWorkspaceFile(info.File) && _areAnnotationEnabled)
             {
                 //update current annotations
                 PlaceAnnotations(info.ScintillaHandle, true);

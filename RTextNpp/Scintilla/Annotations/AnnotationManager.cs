@@ -15,7 +15,7 @@ namespace RTextNppPlugin.Scintilla.Annotations
     internal class AnnotationManager : ErrorBase, IError
     {
         #region [Data Members]
-        private const Settings.RTextNppSettings SETTING     = Settings.RTextNppSettings.EnableErrorAnnotations;
+        private const Settings.RTextNppSettings SETTING = Settings.RTextNppSettings.EnableErrorAnnotations;
         #endregion
 
         #region [Interface]
@@ -59,7 +59,7 @@ namespace RTextNppPlugin.Scintilla.Annotations
         protected override void OnVisibilityInfoUpdated(VisibilityInfo info, IntPtr sciPtr)
         {
             base.OnVisibilityInfoUpdated(info, sciPtr);
-            if (IsWorkspaceFile(info.File))
+            if (IsWorkspaceFile(info.File) && _areAnnotationEnabled)
             {
                 //update current annotations
                 PlaceAnnotations(info.ScintillaHandle, true);
@@ -112,8 +112,8 @@ namespace RTextNppPlugin.Scintilla.Annotations
                     }
                     HideAnnotations(sciPtr);
                     //start new task
-                    var newCts                                                = new CancellationTokenSource();
-                    ConcurrentBag<Tuple<int, StringBuilder, int>> annotations = new ConcurrentBag<Tuple<int, StringBuilder, int>>();
+                    var newCts                                                   = new CancellationTokenSource();
+                    ConcurrentBag<Tuple<int, StringBuilder, byte[]>> annotations = new ConcurrentBag<Tuple<int, StringBuilder, byte[]>>();
                     if(errors == null || errors.ErrorList == null || errors.ErrorList.Count == 0)
                     {
                         SetAnnotations(sciPtr, annotations);
@@ -130,27 +130,38 @@ namespace RTextNppPlugin.Scintilla.Annotations
                                           new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount > 1 ? Environment.ProcessorCount - 1 : Environment.ProcessorCount },
                                           (IGrouping<int, ErrorItemViewModel> aErrorGroup, ParallelLoopState state) =>
                         {
-                            StringBuilder aErrorDescription = new StringBuilder(aErrorGroup.Count() * 50);
-                            int aErrorCounter = 0;
+                            StringBuilder aErrorDescription = new StringBuilder(aErrorGroup.Count() * 50); // Allocate some initial capacity to avoid multiple reallocations
+                            int aErrorCounter               = 0;
+                            int aStyleOffset                = 0;
+                            List<byte> aStyles              = new List<byte>(aErrorGroup.Count() * 50); // Allocate some initial capacity to avoid multiple reallocations
                             foreach (var error in aErrorGroup)
                             {
                                 bool hasActiveFileChanged = GetActiveFile(sciPtr) != activeFile;
                                 //if file is no longer active in this scintilla we have to break!
                                 if (newCts.Token.IsCancellationRequested || hasActiveFileChanged || IsNotepadShutingDown)
                                 {
-                                    //SetActiveFile(sciPtr, string.Empty);
                                     state.Break();
+                                    if (!newCts.Token.IsCancellationRequested)
+                                    {
+                                        //ensure that subsequent task won't run
+                                        newCts.Cancel();
+                                    }
                                     break;
                                 }
                                 aErrorDescription.AppendFormat("{0} : {2}", error.Severity, error.Line, error.Message);
+                                while(aStyleOffset < aErrorDescription.Length)
+                                {
+                                    aStyles.Add((byte)ConvertSeverityToStyleId(error.Severity));
+                                    ++aStyleOffset;
+                                }
                                 if (++aErrorCounter < aErrorGroup.Count())
                                 {
                                     aErrorDescription.Append("\n");
+                                    aStyles.Add((byte)ConvertSeverityToStyleId(error.Severity));
+                                    ++aStyleOffset;
                                 }
                             }
-                            //npp offset for line to do - add multiple styles
-
-                            annotations.Add(new Tuple<int, StringBuilder, int>(aErrorGroup.First().LineForScintilla, aErrorDescription, (int)Constants.StyleId.ANNOTATION_ERROR));
+                            annotations.Add(new Tuple<int, StringBuilder, byte[]>(aErrorGroup.First().LineForScintilla, aErrorDescription, aStyles.ToArray()));
                         });
                     }, newCts.Token).ContinueWith((x) =>
                     {
@@ -171,7 +182,7 @@ namespace RTextNppPlugin.Scintilla.Annotations
         {
             if (!IsNotepadShutingDown)
             {
-                var aIndicatorRanges = (IEnumerable<Tuple<int, StringBuilder, int>>)GetAnnotations(sciPtr);
+                var aIndicatorRanges = (IEnumerable<Tuple<int, StringBuilder, byte[]>>)GetAnnotations(sciPtr);
                 var aVisibilityInfo  = GetVisibilityInfo(sciPtr);
                 var runningTask      = GetDrawingTask(sciPtr);
                 var activeFile       = GetDrawingFile(sciPtr);
@@ -187,8 +198,8 @@ namespace RTextNppPlugin.Scintilla.Annotations
                         {
                             return;
                         }
-                        _nppHelper.SetAnnotationStyle(annotation.Item1, annotation.Item3, sciPtr);
                         _nppHelper.AddAnnotation(annotation.Item1, annotation.Item2, sciPtr);
+                        _nppHelper.SetAnnotationStyles(annotation.Item1, annotation.Item3, sciPtr);
                     }
                     _nppHelper.SetAnnotationVisible(sciPtr, Constants.Scintilla.BOXED_ANNOTATION_STYLE);
                 }
