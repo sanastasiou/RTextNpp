@@ -53,7 +53,9 @@ namespace RTextNppPlugin
         private NppData _nppData                                                               = default(NppData);
         private FuncItems _funcItems                                                           = new FuncItems();
         private INativeHelpers _nativeHelpers                                                  = new NativeHelpers();
-        private int _previousDwellTime                                                         = (int)SciMsg.SC_TIME_FOREVER;
+        private int _previousDwellTimeMain                                                     = (int)SciMsg.SC_TIME_FOREVER;
+        private int _previousDwellTimeSub                                                      = (int)SciMsg.SC_TIME_FOREVER;
+        private MouseDwellObserver _mouseDwellObserver                                         = null;  //!< Informs clients about mouse dwell events
 
         private enum ShortcutType
         {
@@ -100,6 +102,7 @@ namespace RTextNppPlugin
             _fileObserver            = new FileModificationObserver(_settings, _nppHelper);
             _autoCompletionForm      = new AutoCompletionWindow(_connectorManager, _nppHelper, _nativeHelpers);
             _linkTargetsWindow       = new LinkTargetsWindow(_nppHelper, _settings, _connectorManager);
+            _mouseDwellObserver      = new MouseDwellObserver(this, _nppHelper);
         }
 
         public void PluginCleanUp()
@@ -560,13 +563,13 @@ namespace RTextNppPlugin
             var aSciPtr = aCurrentView == Scintilla.View.Main ? _nppHelper.MainScintilla : _nppHelper.SecondaryScintilla;
             if(Utilities.FileUtilities.IsRTextFile(aFileOpened, _settings, _nppHelper))
             {
-                _previousDwellTime = _nppHelper.GetMouseDwellTime(aSciPtr);
+                SetDwellTime(aSciPtr, _nppHelper.GetMouseDwellTime(aSciPtr));
                 //todo dwell time must be an option
                 _nppHelper.SetMouseDwellTime(aSciPtr, 500);
             }
             else
             {
-                _nppHelper.SetMouseDwellTime(aSciPtr, _previousDwellTime);
+                _nppHelper.SetMouseDwellTime(aSciPtr, GetDwellTime(aSciPtr));
             }
         }
 
@@ -721,12 +724,18 @@ namespace RTextNppPlugin
 
         internal void OnDwellEnd(IntPtr sciPtr, int p, Point point)
         {
-            Trace.WriteLine(String.Format("Dwell end : view {0} - position : {1} - point : {2}", sciPtr == _nppHelper.MainScintilla ? Scintilla.View.Main : Scintilla.View.Sub, p, point));
+            if(OnDwellEnding != null)
+            {
+                OnDwellEnding(sciPtr, p, point);
+            }
         }
 
         internal void OnDwellStart(IntPtr sciPtr, int p, Point point)
         {
-            Trace.WriteLine(String.Format("Dwell start : view {0} - position : {1} - point : {2}", sciPtr == _nppHelper.MainScintilla ? Scintilla.View.Main : Scintilla.View.Sub, p, point));
+            if(OnDwellStarting != null)
+            {
+                OnDwellStarting(sciPtr, p, point);
+            }
         }
 
         #endregion
@@ -892,6 +901,30 @@ namespace RTextNppPlugin
             catch (Exception e)
             {
                 Logging.Logger.Instance.Append("HandleErrors exception : {0}", e.Message);
+            }
+        }
+
+        private void SetDwellTime(IntPtr sciPtr, int time)
+        {
+            if(sciPtr == _nppHelper.MainScintilla)
+            {
+                _previousDwellTimeMain = time;
+            }
+            else
+            {
+                _previousDwellTimeSub = time;
+            }
+        }
+
+        private int GetDwellTime(IntPtr sciPtr)
+        {
+            if (sciPtr == _nppHelper.MainScintilla)
+            {
+                return _previousDwellTimeMain;
+            }
+            else
+            {
+                return _previousDwellTimeSub;
             }
         }
 

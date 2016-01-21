@@ -77,6 +77,24 @@ namespace RTextNppPlugin.RText.Parsing
             return default(Tokenizer.TokenTag);
         }
 
+        internal static Tokenizer.TokenTag FindTokenUnderCursor(int position, INpp nppHelper, IntPtr sciPtr)
+        {
+            if (position != -1)
+            {
+                int aCurrentLine = nppHelper.GetLineNumber(position, nppHelper.CurrentScintilla);
+                bool aIsExtended = IsLineExtended(aCurrentLine, nppHelper, sciPtr);
+                Tokenizer aTokenizer = new Tokenizer(aCurrentLine, nppHelper.GetLineStart(aCurrentLine, sciPtr), nppHelper, sciPtr, aIsExtended);
+                foreach (var t in aTokenizer.Tokenize())
+                {
+                    if (t.BufferPosition <= position && t.EndPosition >= position)
+                    {
+                        return t;
+                    }
+                }
+            }
+            return default(Tokenizer.TokenTag);
+        }
+
         internal static bool IsLineExtended(int currentLine, INpp nppHelper, IntPtr sciPtr)
         {
             if (currentLine <= 0)
