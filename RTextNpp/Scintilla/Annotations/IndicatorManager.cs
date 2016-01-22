@@ -9,17 +9,19 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Documents;
+using RTextNppPlugin.Utilities;
 
 namespace RTextNppPlugin.Scintilla.Annotations
 {
-    class IndicatorManager : ErrorBase, IError
+    internal sealed class IndicatorManager : ErrorBase, IError
     {
         #region [Data Members]
-        private const Settings.RTextNppSettings SETTING      = Settings.RTextNppSettings.EnableErrorSquiggleLines;
-        protected const int INDICATOR_INDEX                  = 8;   //!< Indicator index for squiggle lines.
+        private const Settings.RTextNppSettings SETTING    = Settings.RTextNppSettings.EnableErrorSquiggleLines;
+        private const int INDICATOR_INDEX                  = 8;   //!< Indicator index for squiggle lines.
         private readonly RTextTokenTypes[] ERROR_TOKEN_TYPES =  
         { 
             RTextTokenTypes.Boolean,
@@ -33,13 +35,18 @@ namespace RTextNppPlugin.Scintilla.Annotations
             RTextTokenTypes.Reference,
             RTextTokenTypes.Template
         };
+
+        private IMouseDwellObserver _mouseDwellObserver = null; //!< Notifies about mouse dwell events.
         #endregion
 
         #region [Interface]
-        internal IndicatorManager(ISettings settings, INpp nppHelper, Plugin plugin, string workspaceRoot, ILineVisibilityObserver lineVisibilityObserver, double updateDelay = Constants.Scintilla.ANNOTATIONS_UPDATE_DELAY) :
+        internal IndicatorManager(ISettings settings, INpp nppHelper, Plugin plugin, string workspaceRoot, ILineVisibilityObserver lineVisibilityObserver, IMouseDwellObserver mouseDwellObserver) :
             base(settings, nppHelper, plugin, workspaceRoot, lineVisibilityObserver)
         {
-            _areAnnotationEnabled = _settings.Get<bool>(Settings.RTextNppSettings.EnableErrorSquiggleLines);
+            _areAnnotationEnabled                    = _settings.Get<bool>(Settings.RTextNppSettings.EnableErrorSquiggleLines);
+            _mouseDwellObserver                      = mouseDwellObserver;
+            _mouseDwellObserver.OnDwellStartingEvent +=OnDwellStartingEvent;
+            _mouseDwellObserver.OnDwellEndingEvent   +=OnDwellEndingEvent;
         }
 
         public override void OnSettingChanged(object source, Utilities.Settings.Settings.SettingChangedEventArgs e)
@@ -62,6 +69,8 @@ namespace RTextNppPlugin.Scintilla.Annotations
             }
             if(disposing)
             {
+                _mouseDwellObserver.OnDwellStartingEvent -=OnDwellStartingEvent;
+                _mouseDwellObserver.OnDwellEndingEvent   -=OnDwellEndingEvent;
             }
             base.Dispose(disposing);
 
@@ -104,6 +113,67 @@ namespace RTextNppPlugin.Scintilla.Annotations
         #endregion
 
         #region [Event Handlers]
+        void OnDwellEndingEvent()
+        {
+            _nppHelper.CallTipCancel(_nppHelper.CurrentScintilla);
+        }
+
+        void OnDwellStartingEvent(Tokenizer.TokenTag token, string file, View View)
+        {
+            if(_areAnnotationEnabled && IsWorkspaceFile(file))
+            {
+                var aSciPtr          = _nppHelper.ScintillaFromView(View);
+                var aActiveFile      = GetActiveFile(aSciPtr);
+                var aIndicatorRanges = (IEnumerable<Tuple<int, int, int>>)GetAnnotations(aSciPtr);
+                if (aIndicatorRanges != null && aIndicatorRanges.Count() != 0 && aActiveFile == file)
+                {
+                    var aRange = (from range in aIndicatorRanges
+                                 where range.Item1 == token.BufferPosition
+                                 select range).FirstOrDefault();
+                    if (aRange != null)
+                    {
+                        //build up error message
+                        if(ErrorList != null && ErrorList.Count != 0)
+                        {
+                            string aUnixPath = file.Replace("\\", "/");
+                            var aOriginalErrors = (from errors in ErrorList
+                                                   where errors.FilePath.Equals(aUnixPath)
+                                                   select errors.ErrorList.Where(x => x.Line == token.Line + 1)).First(); //adjust scintilla offset
+                            if( aOriginalErrors != null)
+                            {
+                                StringBuilder aStrBuilder = new StringBuilder(aOriginalErrors.Count() * 50);
+                                bool aIsSingleLineError = true;
+                                foreach(var e in aOriginalErrors)
+                                {
+                                    if(e.Message.Contains(token.Context, StringComparison.InvariantCultureIgnoreCase))
+                                    {
+                                        if(aStrBuilder.Length > 0)
+                                        {
+                                            aIsSingleLineError = false;
+                                            aStrBuilder.Append('\n');
+                                        }
+                                        aStrBuilder.AppendFormat("{0} : {1}", e.Severity, e.Message);
+                                    }                                   
+                                }
+                                _nppHelper.CallTipShow(aSciPtr, token.BufferPosition, aStrBuilder.ToString());
+                                if (aIsSingleLineError)
+                                {
+                                    var aHighlightStart = aStrBuilder.ToString().IndexOf(token.Context);
+                                    //highlight token inside tooltip
+                                    _nppHelper.CallTipHighlight(aSciPtr, aHighlightStart, aHighlightStart + token.Context.Length);
+                                }
+                                else
+                                {
+                                    _nppHelper.CallTipHighlight(aSciPtr, 0, 0);
+                                }
+
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         /*
          * This event always occurs after SCN_UPDATEUI which is considered the best place to update the editor annotations.
          */
@@ -143,7 +213,6 @@ namespace RTextNppPlugin.Scintilla.Annotations
 
         protected override bool DrawAnnotations(ErrorListViewModel errors, IntPtr sciPtr)
         {
-            Trace.WriteLine(String.Format("Draw annotations : {0} - file : {1}", sciPtr, GetActiveFile(sciPtr)));
             bool aSuccess = true;
             if (!IsNotepadShutingDown)
             {

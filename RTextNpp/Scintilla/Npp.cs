@@ -935,6 +935,52 @@ namespace RTextNppPlugin.Scintilla
 
         #endregion
 
+        #region [Call Tips]
+        unsafe public void CallTipShow(IntPtr sciPtr, int position, string definition)
+        {
+            var bytes = GetBytes(definition ?? string.Empty, Encoding, zeroTerminated: false);
+            fixed (byte* bp = bytes)
+            {
+                SendMessage(sciPtr, SciMsg.SCI_CALLTIPSHOW, new IntPtr(position), new IntPtr(bp));
+            }
+        }
+
+        public void CallTipCancel(IntPtr sciPtr)
+        {
+            SendMessage(sciPtr, SciMsg.SCI_CANCEL);
+        }
+
+        public void CallTipHighlight(IntPtr sciPtr, int highlightStart, int highlightEnd)
+        {
+            SendMessage(sciPtr, SciMsg.SCI_CALLTIPSETHLT, new IntPtr(highlightStart), new IntPtr(highlightEnd));
+        }
+
+        public void SetCallTipForeground(IntPtr sciPtr, int color)
+        {
+            SendMessage(sciPtr, SciMsg.SCI_CALLTIPSETFORE, new IntPtr(color));
+        }
+
+        public void SetCallTipBackground(IntPtr sciPtr, int color)
+        {
+            SendMessage(sciPtr, SciMsg.SCI_CALLTIPSETBACK, new IntPtr(color));
+        }
+
+        public void SetCallTipHighlightColor(IntPtr sciPtr, int color)
+        {
+            SendMessage(sciPtr, SciMsg.SCI_CALLTIPSETFOREHLT, new IntPtr(color));
+        }
+
+        public void SetCallTipStyle(IntPtr sciPtr, int tabSize)
+        {
+            SendMessage(sciPtr, SciMsg.SCI_CALLTIPUSESTYLE, new IntPtr(tabSize));
+        }
+
+        public void SetCallTipPosition(IntPtr sciPtr, bool above)
+        {
+            SendMessage(sciPtr, SciMsg.SCI_CALLTIPSETPOSITION, new IntPtr(above ? 1 : 0));
+        }
+        #endregion
+
         #region [Helpers]
 
         private bool IsLineVisible(int firstLine, int lastLine, int line)

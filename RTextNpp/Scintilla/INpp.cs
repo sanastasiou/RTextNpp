@@ -240,5 +240,23 @@ namespace RTextNppPlugin.Scintilla
 
         int GetMouseDwellTime(IntPtr sciPtr);
         #endregion
+
+        #region [Call Tips]
+        void CallTipShow(IntPtr sciPtr, int position, string definition);
+
+        void CallTipCancel(IntPtr sciPtr);
+
+        void CallTipHighlight(IntPtr sciPtr, int highlightStart, int highlightEnd);
+
+        void SetCallTipForeground(IntPtr sciPtr, int color);
+
+        void SetCallTipBackground(IntPtr sciPtr, int color);
+
+        void SetCallTipHighlightColor(IntPtr sciPtr, int color);
+
+        void SetCallTipStyle(IntPtr sciPtr, int tabSize);
+
+        void SetCallTipPosition(IntPtr sciPtr, bool above);
+        #endregion
     }
 }

@@ -43,6 +43,7 @@ namespace RTextNppPlugin.ViewModels
         private readonly Dispatcher _dispatcher                                   = null;
         private readonly ISettings _settings                                      = null;
         private readonly ILineVisibilityObserver _lineVisibilityObserver          = null;
+        private readonly IMouseDwellObserver _mouseDwellObserver                  = null;
         #endregion
 
         #region [Event Handlers]
@@ -61,7 +62,13 @@ namespace RTextNppPlugin.ViewModels
          *
          * \param   workspace   The workspace.
          */
-        public ConsoleViewModel(ConnectorManager cmanager, INpp npphelper, IStyleConfigurationObserver styleObserver, Dispatcher dispatcher, ISettings settings, ILineVisibilityObserver lineVisibilityObserver)
+        public ConsoleViewModel(ConnectorManager cmanager, 
+                                INpp npphelper, 
+                                IStyleConfigurationObserver styleObserver, 
+                                Dispatcher dispatcher, 
+                                ISettings settings, 
+                                ILineVisibilityObserver lineVisibilityObserver, 
+                                IMouseDwellObserver mouseDwellObserver)
         {
             if(cmanager == null)
             {
@@ -90,6 +97,7 @@ namespace RTextNppPlugin.ViewModels
             _underlyingErrorList             = new BulkObservableCollection<ErrorListViewModel>();
             _dispatcher                      = dispatcher;
             _settings                        = settings;
+            _mouseDwellObserver              = mouseDwellObserver;
         }
             
         internal Dispatcher Dispatcher { get; set; }
@@ -114,7 +122,7 @@ namespace RTextNppPlugin.ViewModels
                     }
                     else
                     {
-                        _workspaceCollection.Add(new WorkspaceViewModel(workspace, ref connector, this, _nppHelper, _dispatcher, settings, _lineVisibilityObserver));
+                        _workspaceCollection.Add(new WorkspaceViewModel(workspace, ref connector, this, _nppHelper, _dispatcher, settings, _lineVisibilityObserver, _mouseDwellObserver));
                     }
                     Index = _workspaceCollection.IndexOf(_workspaceCollection.Last());
                 }

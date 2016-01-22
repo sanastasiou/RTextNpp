@@ -30,6 +30,7 @@ namespace RTextNppPlugin
         private ISettings _settings                                                            = null;
         private StyleConfigurationObserver _styleObserver                                      = null;
         private ConnectorManager _connectorManager                                             = null;
+        private MouseDwellObserver _mouseDwellObserver                                         = null;  //!< Informs clients about mouse dwell events
         private PersistentWpfControlHost<ConsoleOutputForm> _consoleOutput                     = null;
         private Options _options                                                               = null;
         private FileModificationObserver _fileObserver                                         = null;
@@ -55,7 +56,6 @@ namespace RTextNppPlugin
         private INativeHelpers _nativeHelpers                                                  = new NativeHelpers();
         private int _previousDwellTimeMain                                                     = (int)SciMsg.SC_TIME_FOREVER;
         private int _previousDwellTimeSub                                                      = (int)SciMsg.SC_TIME_FOREVER;
-        private MouseDwellObserver _mouseDwellObserver                                         = null;  //!< Informs clients about mouse dwell events
 
         private enum ShortcutType
         {
@@ -97,12 +97,12 @@ namespace RTextNppPlugin
             _settings                = new Settings(_nppHelper);
             _styleObserver           = new StyleConfigurationObserver(_nppHelper);
             _connectorManager        = new ConnectorManager(_settings, _nppHelper, this);
-            _consoleOutput = new PersistentWpfControlHost<ConsoleOutputForm>(Settings.RTextNppSettings.ConsoleWindowActive, new ConsoleOutputForm(_connectorManager, _nppHelper, _styleObserver, _settings, _linesVisibilityObserver), _settings, _nppHelper);
+            _mouseDwellObserver      = new MouseDwellObserver(this, _nppHelper);
+            _consoleOutput           = new PersistentWpfControlHost<ConsoleOutputForm>(Settings.RTextNppSettings.ConsoleWindowActive, new ConsoleOutputForm(_connectorManager, _nppHelper, _styleObserver, _settings, _linesVisibilityObserver, _mouseDwellObserver), _settings, _nppHelper);
             _options                 = new Options(_settings);
             _fileObserver            = new FileModificationObserver(_settings, _nppHelper);
             _autoCompletionForm      = new AutoCompletionWindow(_connectorManager, _nppHelper, _nativeHelpers);
             _linkTargetsWindow       = new LinkTargetsWindow(_nppHelper, _settings, _connectorManager);
-            _mouseDwellObserver      = new MouseDwellObserver(this, _nppHelper);
         }
 
         public void PluginCleanUp()

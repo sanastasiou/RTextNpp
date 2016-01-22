@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using RTextNppPlugin.RText.Parsing;
-using System.Diagnostics;
+﻿using RTextNppPlugin.RText.Parsing;
+using System;
 
 namespace RTextNppPlugin.Scintilla.Annotations
 {
@@ -13,7 +8,7 @@ namespace RTextNppPlugin.Scintilla.Annotations
      *          The purpose of this class is none other, as to notify clients that mouse is dwelling over a certain token of text.
      *          Client can then decide if e.g. tooltips should appear.
      */
-    internal class MouseDwellObserver : IDisposable
+    internal class MouseDwellObserver : IDisposable, RTextNppPlugin.Scintilla.Annotations.IMouseDwellObserver
     {
         #region [Data Members]
         private Tokenizer.TokenTag _dwelledToken = default(Tokenizer.TokenTag);
@@ -26,11 +21,11 @@ namespace RTextNppPlugin.Scintilla.Annotations
         #region [Interface]
 
         #region [Events]
-        internal delegate void DwellStartingCallback(Tokenizer.TokenTag token, string file, RTextNppPlugin.Scintilla.View View);
-        internal delegate void DwellEndingCallback();
+        public delegate void DwellStartingCallback(Tokenizer.TokenTag token, string file, RTextNppPlugin.Scintilla.View View);
+        public delegate void DwellEndingCallback();
 
-        internal event DwellStartingCallback OnDwellStartingEvent;
-        internal event DwellEndingCallback OnDwellEndingEvent;
+        public event DwellStartingCallback OnDwellStartingEvent;
+        public event DwellEndingCallback OnDwellEndingEvent;
         #endregion
 
         internal MouseDwellObserver(Plugin plugin, INpp nppHelper)
@@ -46,6 +41,7 @@ namespace RTextNppPlugin.Scintilla.Annotations
             {
                 OnDwellEndingEvent();
             }
+            _dwelledToken = default(Tokenizer.TokenTag);
         }
 
         void OnDwellStarting(IntPtr sciPtr, int position, System.Drawing.Point point)
@@ -63,12 +59,11 @@ namespace RTextNppPlugin.Scintilla.Annotations
             }
             private set
             {
-                if(!_dwelledToken.Equals(value) && !_dwelledToken.Equals(default(Tokenizer.TokenTag)))
+                if(!_dwelledToken.Equals(value) && !value.Equals(default(Tokenizer.TokenTag)))
                 {
                     _dwelledToken = value;
                     if (OnDwellStartingEvent != null)
                     {
-                        Trace.WriteLine(String.Format("Dwelling on : {0}", value));
                         OnDwellStartingEvent(value, _activeFile, _activeView);
                     }
                 }

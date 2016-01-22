@@ -139,7 +139,7 @@ static char* image[] = {{
 
         #region [Interface]
 
-        internal MarginManager(ISettings settings, INpp nppHelper, Plugin plugin, string workspaceRoot, ILineVisibilityObserver lineVisibilityObserver, double updateDelay = Constants.Scintilla.ANNOTATIONS_UPDATE_DELAY) :
+        internal MarginManager(ISettings settings, INpp nppHelper, Plugin plugin, string workspaceRoot, ILineVisibilityObserver lineVisibilityObserver) :
             base(settings, nppHelper, plugin, workspaceRoot, lineVisibilityObserver)
         {
             _areAnnotationEnabled      = _settings.Get<bool>(Settings.RTextNppSettings.EnableErrorMarkers);
