@@ -28,11 +28,11 @@ namespace RTextNppPlugin.RText
         private readonly Regex _messageLengthRegex                         = new Regex(@"^(\d+)\{", RegexOptions.Compiled)   ;            //!< The message length regular expression
         private IConnectorState _currentState                                                                                ;            //!< Indicates the current connector state.
         private string _activeCommand                                                                                        ;            //!< Indicates the currently executing command
-        private RTextBackendProcess _backendProcess                                                                          ;            //!< Indicates the backend process
+        private RTextBackendProcess _backendProcess                                                                          ;            //!< Indicates the back-end process
         private CancellationTokenSource _receivingThreadCancellationSource = null                                            ;            //!< Used to cancel a synchronous receiving thread without waiting for the timeout to complete.
-        private IResponseBase _lastResponse                                = null                                            ;            //!< Holds the last response from the backend.
+        private IResponseBase _lastResponse                                = null                                            ;            //!< Holds the last response from the back-end.
         public readonly RequestBase LOAD_COMMAND                           = new RequestBase { command = Constants.Commands.LOAD_MODEL }; //!< Load command.
-        private bool _cancelled                                            = false;                                                       //!< Indicates that a pending command was cancelled via user request.
+        private bool _cancelled                                            = false;                                                       //!< Indicates that a pending command was canceled via user request.
         private LoadResponse _currentLoadResponse                          = default(LoadResponse);                                       //!< Indicates last load response.
         #endregion
         
@@ -161,7 +161,7 @@ namespace RTextNppPlugin.RText
         /**
          * \brief   Constructor.
          *
-         * \param   proc    Backend process instance for this connector.
+         * \param   proc    Back-end process instance for this connector.
          *
          */
         public Connector( RTextBackendProcess proc) : base()
@@ -179,7 +179,7 @@ namespace RTextNppPlugin.RText
                 _receivingThreadCancellationSource.Cancel();
             }
             _currentState.ExecuteCommand(StateEngine.Command.Disconnected);
-            //reset invocation id counter since the backend process died or exited after an idle timeout
+            //reset invocation id counter since the back-end process died or exited after an idle timeout
             _InvocationId = 0;
         }
         
@@ -209,7 +209,7 @@ namespace RTextNppPlugin.RText
          * \param   [in,out]  invocationId    Identifier for the invocation.
          * \param   timeout                 (Optional) the timeout.
          *
-         * \return  A Response type instance if the command could be executed succesfully and within the
+         * \return  A Response type instance if the command could be executed successfully and within the
          *          provided timeout, else null.
          *
          * \note    Users of this function must be prepared to receive null, as indication that
@@ -265,7 +265,7 @@ namespace RTextNppPlugin.RText
         #region Helpers
         
         /**
-         * Begins an async send. Just send a command without caring about the response of the backend.
+         * Begins an async send. Just send a command without caring about the response of the back-end.
          * Callers of this function should subscribe to CommandExecuted event to be able to receive a
          * response. Usually used for long running commands like load_model.
          *
@@ -309,13 +309,13 @@ namespace RTextNppPlugin.RText
         }
         
         /**
-         * Sends a command while waiting asynchronously for a respone.
+         * Sends a command while waiting asynchronously for a response.
          *
          * \tparam  Command Type of the command.
          * \param   command The command.
-         * \param   timeout The timeout to wait after which the command will be responed with null.
+         * \param   timeout The timeout to wait after which the command will be responded with null.
          *
-         * \return  The response from the backend.
+         * \return  The response from the back-end.
          */
         private async Task<IResponseBase> SendAsync<Command>(Command command, int timeout) where Command : RequestBase
         {
@@ -412,7 +412,11 @@ namespace RTextNppPlugin.RText
                     _connection.Append();
                     // converts string into json objects
                     TryDeserialize();
-                    _connection.BeginReceive(new AsyncCallback(ReceiveCallback));
+                    //fall through is connection is terminated
+                    if (_connection.Connected)
+                    {
+                        _connection.BeginReceive(new AsyncCallback(ReceiveCallback));
+                    }
                 }
             }
             catch (Exception ex)
@@ -444,7 +448,7 @@ namespace RTextNppPlugin.RText
         {
             if (_connection.LengthMatched)
             {
-                //we know the length but the reveived stream is not enough
+                //we know the length but the received stream is not enough
                 if (_connection.RequiredLength <= _connection.ReceivedMessage.Length)
                 {
                     OnSufficientResponseLengthAcquired();
@@ -509,6 +513,11 @@ namespace RTextNppPlugin.RText
                     _lastResponse = JsonConvert.DeserializeObject<ContextInfoResponse>(response) as IResponseBase;
                     aIsResponceReceived = IsNotResponseOrErrorMessage();
                     break;
+                case Constants.Commands.STOP:
+                    _lastResponse = JsonConvert.DeserializeObject<ResponseBase>(response) as IResponseBase;
+                    aIsResponceReceived = true;
+                    _connection.CleanUpSocket();
+                    break;
             }
             if (aIsResponceReceived)
             {
@@ -520,7 +529,7 @@ namespace RTextNppPlugin.RText
                 {
                     Logging.Logger.Instance.Append(Logging.Logger.MessageType.Error,
                                                     _backendProcess.Workspace,
-                                                    "void AnalyzeResponse(ref string response, ref StateObject state) - Invocation id mismacth : Expected {0} - Received {1}",
+                                                    "void AnalyzeResponse(ref string response, ref StateObject state) - Invocation id mismatch : Expected {0} - Received {1}",
                                                     _InvocationId - 1,
                                                     _lastResponse.invocation_id);
                     _lastResponse = null;
@@ -529,7 +538,10 @@ namespace RTextNppPlugin.RText
                 else
                 {
                     _receivedResponseEvent.Set();
-                    _currentState.ExecuteCommand(StateEngine.Command.ExecuteFinished);
+                    if (ActiveCommand != Constants.Commands.STOP)
+                    {
+                        _currentState.ExecuteCommand(StateEngine.Command.ExecuteFinished);
+                    }
                 }
             }
         }
@@ -557,7 +569,7 @@ namespace RTextNppPlugin.RText
                     _receivedResponseEvent.Reset();
                     return false;
                 case Constants.Commands.ERROR:
-                    Logging.Logger.Instance.Append(Logging.Logger.MessageType.Error, _backendProcess.Workspace, "bool UpdateProgress( IResponseBase response ) - Backend reports unknown command error.");
+                    Logging.Logger.Instance.Append(Logging.Logger.MessageType.Error, _backendProcess.Workspace, "bool UpdateProgress( IResponseBase response ) - Back-end reports unknown command error.");
                     return false;
                 default:
                     return true;
@@ -609,7 +621,11 @@ namespace RTextNppPlugin.RText
         
         public void OnDisconnectedEntry()
         {
-            _connection.CleanUpSocket();
+            //will be "cleaned" by process exit event, also need to keep connection alive till back-end acknowledges stop command
+            if (ActiveCommand != Constants.Commands.STOP)
+            {
+                _connection.CleanUpSocket();
+            }
         }
         
         public void OnConnectingEntry()

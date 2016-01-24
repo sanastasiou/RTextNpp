@@ -11,7 +11,7 @@ namespace RTextNppPlugin.RText
 {
     /**
      * \brief   Manager for connectors.
-     *          Creates and destroyes Connector instances based on actual rtext workspaces.
+     *          Creates and destroys Connector instances based on actual RText workspaces.
      */
     internal sealed class ConnectorManager : IDisposable
     {
@@ -28,7 +28,7 @@ namespace RTextNppPlugin.RText
         /**
          * Connector added event.
          *
-         * \param   source  Source for the evemt.
+         * \param   source  Source for the event.
          * \param   e       Connector added event information.
          */
         internal delegate void ConnectorAddedEvent(object source, ConnectorAddedEventArgs e);
@@ -82,7 +82,7 @@ namespace RTextNppPlugin.RText
             var keys = _processList.Keys;
             foreach(var key in keys)
             {
-                _processList[key].CleanupProcess();
+                _processList[key].Disconnect();
             }
         }
 
@@ -133,7 +133,7 @@ namespace RTextNppPlugin.RText
          * Initializes this ConnectorManager.
          *
          * \param   nppData Information describing the Npp.Instance.
-         * \remarks Must be called upon plugin initialization.
+         * \remarks Must be called upon plug-in initialization.
          */
         internal void Initialize(NppData nppData)
         {

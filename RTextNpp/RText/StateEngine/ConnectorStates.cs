@@ -19,6 +19,7 @@ namespace RTextNppPlugin.RText.StateEngine
 	    private readonly IConnector _connector = null;
         private const ConnectorStates _state = ConnectorStates.Disconnected;
 	    #endregion
+        
         #region IConnectorState Members
         public ConnectorStates State { get { return _state; } }
         public Disconnected(IConnector connector)
@@ -56,6 +57,7 @@ namespace RTextNppPlugin.RText.StateEngine
         private readonly IConnector _connector = null;
         private const ConnectorStates _state = ConnectorStates.Connecting;
         #endregion
+        
         #region IConnectorState Members
         public ConnectorStates State { get { return _state; } }
         public Connecting(IConnector connector)
@@ -96,6 +98,7 @@ namespace RTextNppPlugin.RText.StateEngine
         private readonly IConnector _connector = null;
         private const ConnectorStates _state = ConnectorStates.Loading;
         #endregion
+        
         #region IConnectorState Members
         public ConnectorStates State { get { return _state; } }
         public Loading(IConnector connector)
@@ -136,6 +139,7 @@ namespace RTextNppPlugin.RText.StateEngine
         private readonly IConnector _connector = null;
         private const ConnectorStates _state = ConnectorStates.Idle;
         #endregion
+        
         #region IConnectorState Members
         public ConnectorStates State { get { return _state; } }
         public Idle(IConnector connector)
@@ -180,6 +184,7 @@ namespace RTextNppPlugin.RText.StateEngine
         private readonly IConnector _connector = null;
         private const ConnectorStates _state = ConnectorStates.Busy;
         #endregion
+        
         #region IConnectorState Members
         public ConnectorStates State { get { return _state; } }
         public Busy(IConnector connector)

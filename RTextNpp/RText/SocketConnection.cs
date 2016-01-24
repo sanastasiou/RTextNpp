@@ -10,6 +10,7 @@ namespace RTextNppPlugin.RText
         private StringBuilder mReceivedMessage = new StringBuilder(Constants.BUFFER_SIZE);
         private Socket mSocket                 = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
         #endregion
+        
         #region [Interface]
         public StringBuilder ReceivedMessage { get { return mReceivedMessage; } set { mReceivedMessage = value; } }
         public bool LengthMatched { get; set; }
@@ -41,8 +42,8 @@ namespace RTextNppPlugin.RText
         {
             if (mSocket != null && mSocket.Connected)
             {
-                mSocket.Disconnect(false);
                 mSocket.Shutdown(SocketShutdown.Both);
+                mSocket.Disconnect(false);
                 mSocket.Close();
                 mSocket.Dispose();
             }

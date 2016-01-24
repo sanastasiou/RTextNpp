@@ -720,6 +720,7 @@ namespace RTextNppPlugin
             {
                 OnNotepadShutdown();
             }
+            _connectorManager.ReleaseConnectors();
         }
 
         internal void OnDwellEnd(IntPtr sciPtr, int p, Point point)

@@ -15,6 +15,7 @@ namespace RTextNppPlugin.RText
     using RTextNppPlugin.Utilities;
     using RTextNppPlugin.Utilities.Settings;
     using RTextNppPlugin.Utilities.Threading;
+    using RTextNppPlugin.RText.Protocol;
 
     /**
      * \class   RTextBackendProcess
@@ -40,6 +41,7 @@ namespace RTextNppPlugin.RText
         private string _extension = String.Empty;                                                                                        //!< The associated extension string.
         private string _autoRunKey = String.Empty;                                                                                       //!< The autorun registry value.
         private readonly VoidDelayedEventHandler _workspaceFileWatcherDebouncer = null;                                                  //!< Debounces workspace file (.rtext) changes events.
+        private bool _isShutingDown = false;
         #endregion
         
         #region [Interface]
@@ -192,76 +194,6 @@ namespace RTextNppPlugin.RText
         }
 
         /**
-         *
-         * \brief   Cleanup process.
-         * \todo    Send shutdown command instead of killing the process.
-         */
-        internal void CleanupProcess()
-        {
-            try
-            {
-                if (_process != null)
-                {
-                    //clean up process here
-                    _process.EnableRaisingEvents = false;
-                    Utilities.ProcessUtilities.KillAllProcessesSpawnedBy(_process.Id);
-                }
-                _cancellationSource.Cancel();
-                if (!(_stdErrReaderTask.IsCanceled || _stdErrReaderTask.IsCompleted || _stdErrReaderTask.IsFaulted))
-                {
-                    _stdErrReaderTask.Wait();
-                }
-                if (!(_stdOutReaderTask.IsCanceled || _stdOutReaderTask.IsCompleted || _stdOutReaderTask.IsFaulted))
-                {
-                    _stdOutReaderTask.Wait();
-                }
-                //todo send shutdown command to RText service and wait for it to die
-            }
-            catch (OperationCanceledException ex)
-            {
-                System.Diagnostics.Trace.WriteLine(String.Format("CleanupProcess : Read stream task aborted : {0}", ex.Message));
-            }
-            catch (Exception ex)
-            {
-                Trace.WriteLine(ex.Message);
-            }
-            finally
-            {
-                try
-                {
-                    if (_fileSystemWatcher != null)
-                    {
-                        _fileSystemWatcher.Changed -= OnRTextFileCreatedOrDeletedOrModified;
-                        _fileSystemWatcher.Deleted -= OnRTextFileCreatedOrDeletedOrModified;
-                        _fileSystemWatcher.Created -= OnRTextFileCreatedOrDeletedOrModified;
-                        _fileSystemWatcher.Renamed -= OnRTextFileRenamed;
-                        _fileSystemWatcher.Error -= ProcessError;
-                        _fileSystemWatcher = null;
-                    }
-                    if (_workspaceSystemWatcher != null)
-                    {
-                        _workspaceSystemWatcher.Changed -= OnWorkspaceDefinitionFileCreatedOrDeletedOrModified;
-                        _workspaceSystemWatcher.Created -= OnWorkspaceDefinitionFileCreatedOrDeletedOrModified;
-                        _workspaceSystemWatcher.Deleted -= OnWorkspaceDefinitionFileCreatedOrDeletedOrModified;
-                        _workspaceSystemWatcher.Error -= ProcessError;
-                        _workspaceSystemWatcher.Renamed -= OnWorkspaceDefinitionFileRenamed;
-                        _workspaceSystemWatcher = null;
-                    }
-                }
-                catch (Exception ex)
-                {
-                    System.Diagnostics.Trace.WriteLine(String.Format("SEH Exception : {0}", ex.Message));
-                }
-                if (_process != null)
-                {
-                    _process.Exited -= OnProcessExited;
-                    _process.Dispose();
-                    _process = null;
-                }
-            }
-        }
-
-        /**
          * \brief   Constructor.
          *
          * \param   rTextFilePath   Full pathname of the text file.
@@ -272,9 +204,16 @@ namespace RTextNppPlugin.RText
         internal RTextBackendProcess(string rTextFilePath, string ext, ISettings settings)
             : this(rTextFilePath, Path.GetDirectoryName(rTextFilePath), GetCommandLine(rTextFilePath, ext), rTextFilePath + ext, ext)
         {
-            _settings = settings;
-            _connector = new Connector(this);
+            _settings                      = settings;
+            _connector                     = new Connector(this);
             _workspaceFileWatcherDebouncer = new VoidDelayedEventHandler(new Action(RestartProcess), 1000);
+        }
+
+        internal async void Disconnect()
+        {
+            //send shutdown command
+            _isShutingDown = true;
+            await _connector.ExecuteAsync(new ShutdownRequest { command = Constants.Commands.STOP, invocation_id = -1 }, Constants.SYNCHRONOUS_COMMANDS_TIMEOUT, StateEngine.Command.Disconnected);
         }
 
         /**
@@ -536,8 +475,11 @@ namespace RTextNppPlugin.RText
         {
             if (_process != null)
             {
+                if (_isShutingDown)
+                {
+                    _timer.Stop();
+                }
                 CleanupProcess();
-                //notify connectors that their back-end in no longer available!
                 if (ProcessExitedEvent != null)
                 {
                     ProcessExitedEvent(this, new ProcessExitedEventArgs(_pInfo.ProcKey));
@@ -751,7 +693,7 @@ namespace RTextNppPlugin.RText
          */
         private async void OnTimerElapsed(object sender, EventArgs e)
         {
-            //check needed so that the interval timer don't stop if a command could not be loaded - this way we can ensure that the complete _odel will always be loaded!
+            //check needed so that the interval timer don't stop if a command could not be loaded - this way we can ensure that the complete model will always be loaded!
             if (_connector.CurrentState.State == RText.StateEngine.ConnectorStates.Loading)
             {
                 if (!_isMessageDisplayed)
@@ -766,6 +708,75 @@ namespace RTextNppPlugin.RText
                 await _connector.BeginExecute(Connector.LOAD_COMMAND, RText.StateEngine.Command.LoadModel);
                 _timer.Stop();
                 _isMessageDisplayed = false;
+            }
+        }
+
+        /**
+         *
+         * \brief   Cleanup process.
+         * \todo    Send shutdown command instead of killing the process.
+         */
+        private void CleanupProcess()
+        {
+            try
+            {
+                if (_process != null && !_process.HasExited)
+                {
+                    //clean up process here
+                    _process.EnableRaisingEvents = false;
+                    Utilities.ProcessUtilities.KillAllProcessesSpawnedBy(_process.Id);
+                }
+                _cancellationSource.Cancel();
+                if (!(_stdErrReaderTask.IsCanceled || _stdErrReaderTask.IsCompleted || _stdErrReaderTask.IsFaulted))
+                {
+                    _stdErrReaderTask.Wait();
+                }
+                if (!(_stdOutReaderTask.IsCanceled || _stdOutReaderTask.IsCompleted || _stdOutReaderTask.IsFaulted))
+                {
+                    _stdOutReaderTask.Wait();
+                }
+            }
+            catch (OperationCanceledException ex)
+            {
+                System.Diagnostics.Trace.WriteLine(String.Format("CleanupProcess : Read stream task aborted : {0}", ex.Message));
+            }
+            catch (Exception ex)
+            {
+                Trace.WriteLine(ex.Message);
+            }
+            finally
+            {
+                try
+                {
+                    if (_fileSystemWatcher != null)
+                    {
+                        _fileSystemWatcher.Changed -= OnRTextFileCreatedOrDeletedOrModified;
+                        _fileSystemWatcher.Deleted -= OnRTextFileCreatedOrDeletedOrModified;
+                        _fileSystemWatcher.Created -= OnRTextFileCreatedOrDeletedOrModified;
+                        _fileSystemWatcher.Renamed -= OnRTextFileRenamed;
+                        _fileSystemWatcher.Error -= ProcessError;
+                        _fileSystemWatcher = null;
+                    }
+                    if (_workspaceSystemWatcher != null)
+                    {
+                        _workspaceSystemWatcher.Changed -= OnWorkspaceDefinitionFileCreatedOrDeletedOrModified;
+                        _workspaceSystemWatcher.Created -= OnWorkspaceDefinitionFileCreatedOrDeletedOrModified;
+                        _workspaceSystemWatcher.Deleted -= OnWorkspaceDefinitionFileCreatedOrDeletedOrModified;
+                        _workspaceSystemWatcher.Error -= ProcessError;
+                        _workspaceSystemWatcher.Renamed -= OnWorkspaceDefinitionFileRenamed;
+                        _workspaceSystemWatcher = null;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Trace.WriteLine(String.Format("Exception : {0}", ex.Message));
+                }
+                if (_process != null)
+                {
+                    _process.Exited -= OnProcessExited;
+                    _process.Dispose();
+                    _process = null;
+                }
             }
         }
         #endregion
