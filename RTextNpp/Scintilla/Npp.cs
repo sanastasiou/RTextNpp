@@ -171,7 +171,7 @@ namespace RTextNppPlugin.Scintilla
 
         public int CurrentDocIndex(IntPtr scintilla)
         {
-            return SendMessage(Plugin.Instance.NppData._nppHandle, NppMsg.NPPM_GETCURRENTDOCINDEX, new IntPtr(0), new IntPtr((int)(scintilla == MainScintilla ? NppMsg.MAIN_VIEW : NppMsg.SUB_VIEW))).ToInt32();
+            return SendMessage(Plugin.Instance.NppData._nppHandle, NppMsg.NPPM_GETCURRENTDOCINDEX, IntPtr.Zero, new IntPtr((int)(scintilla == MainScintilla ? NppMsg.MAIN_VIEW : NppMsg.SUB_VIEW))).ToInt32();
         }
         
         public void SetEditorFocus(int setFocus = 1)
@@ -628,8 +628,7 @@ namespace RTextNppPlugin.Scintilla
         public int GetLastVisibleLine(IntPtr sciPtr)
         { 
             int firstVisibleLine = SendMessage(sciPtr, SciMsg.SCI_GETFIRSTVISIBLELINE).ToInt32();
-            int firstLine        = SendMessage(sciPtr, SciMsg.SCI_DOCLINEFROMVISIBLE, new IntPtr(firstVisibleLine)).ToInt32();
-            return firstLine + GetLinesOnScreen(sciPtr);
+            return SendMessage(sciPtr, SciMsg.SCI_DOCLINEFROMVISIBLE, new IntPtr(firstVisibleLine + GetLinesOnScreen(sciPtr))).ToInt32();
         }
 
         public int GetLinesOnScreen(IntPtr sciPtr)

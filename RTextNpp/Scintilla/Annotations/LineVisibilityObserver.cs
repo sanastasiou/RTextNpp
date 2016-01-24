@@ -98,25 +98,41 @@ namespace RTextNppPlugin.Scintilla.Annotations
 
         void OnScintillaUiUpdated(SCNotification notification)
         {
-            UpdateVisibilityInfo(new VisibilityInfo
+            string aActiveFileMain = _nppHelper.GetActiveFile(_nppHelper.MainScintilla);
+            string aAciveFileSub   = _nppHelper.GetActiveFile(_nppHelper.SecondaryScintilla);
+            if (AreClonedViewsActive(aActiveFileMain, aAciveFileSub))
             {
-                File            = _nppHelper.GetActiveFile(notification.nmhdr.hwndFrom),
-                ScintillaHandle = notification.nmhdr.hwndFrom,
-                FirstLine       = _nppHelper.GetFirstVisibleLine(notification.nmhdr.hwndFrom),
-                LastLine        = _nppHelper.GetLastVisibleLine(notification.nmhdr.hwndFrom)
-            });
+                UpdateClonedViewsVisibilityInfo(aActiveFileMain);
+            }
+            else
+            { 
+                UpdateVisibilityInfo(new VisibilityInfo
+                {
+                    File            = _nppHelper.GetActiveFile(notification.nmhdr.hwndFrom),
+                    ScintillaHandle = notification.nmhdr.hwndFrom,
+                    FirstLine       = _nppHelper.GetFirstVisibleLine(notification.nmhdr.hwndFrom),
+                    LastLine        = _nppHelper.GetLastVisibleLine(notification.nmhdr.hwndFrom)
+                });
+            }
         }
 
         public void OnBufferActivated(string file, View view)
         {
-            var sciPtr = view == View.Main ? _nppHelper.MainScintilla : _nppHelper.SecondaryScintilla;
-            UpdateVisibilityInfo( new VisibilityInfo
+            if (AreClonedViewsActive(_nppHelper.GetActiveFile(_nppHelper.MainScintilla), _nppHelper.GetActiveFile(_nppHelper.SecondaryScintilla)))
             {
-                File            = file,
-                ScintillaHandle = sciPtr,
-                FirstLine       = _nppHelper.GetFirstVisibleLine(sciPtr),
-                LastLine        = _nppHelper.GetLastVisibleLine(sciPtr)
-            });
+                UpdateClonedViewsVisibilityInfo(file);
+            }
+            else
+            {
+                var sciPtr = view == View.Main ? _nppHelper.MainScintilla : _nppHelper.SecondaryScintilla;
+                UpdateVisibilityInfo(new VisibilityInfo
+                {
+                    File            = file,
+                    ScintillaHandle = sciPtr,
+                    FirstLine       = _nppHelper.GetFirstVisibleLine(sciPtr),
+                    LastLine        = _nppHelper.GetLastVisibleLine(sciPtr)
+                });
+            }
         }
 
         #endregion
@@ -140,6 +156,33 @@ namespace RTextNppPlugin.Scintilla.Annotations
             {
                 OnVisibilityInfoUpdated(info, sciPtr);
             }
+        }
+
+        bool AreClonedViewsActive(string mainViewFile, string subViewFile)
+        {
+            if(AreBothViewsActive())
+            {
+                return (mainViewFile.Equals(subViewFile, StringComparison.InvariantCultureIgnoreCase));
+            }
+            return false;
+        }
+
+        bool AreBothViewsActive()
+        {
+            return (_nppHelper.CurrentDocIndex(_nppHelper.MainScintilla) != -1 && _nppHelper.CurrentDocIndex(_nppHelper.SecondaryScintilla) != -1);
+        }
+
+        VisibilityInfo CreatedClonedVisibilityInfo(IntPtr sciPtr, string file, int minLine, int maxLine)
+        {
+            return new VisibilityInfo { File = file, FirstLine = minLine, LastLine = maxLine, ScintillaHandle = sciPtr };
+        }
+
+        void UpdateClonedViewsVisibilityInfo(string activeFile)
+        {
+            int minFirstVisibleLine = Math.Min(_nppHelper.GetFirstVisibleLine(_nppHelper.MainScintilla), _nppHelper.GetFirstVisibleLine(_nppHelper.SecondaryScintilla));
+            int maxLastVisibleLine  = Math.Max(_nppHelper.GetLastVisibleLine(_nppHelper.MainScintilla), _nppHelper.GetLastVisibleLine(_nppHelper.SecondaryScintilla));
+            UpdateVisibilityInfo(CreatedClonedVisibilityInfo(_nppHelper.MainScintilla, activeFile, minFirstVisibleLine, maxLastVisibleLine));
+            UpdateVisibilityInfo(CreatedClonedVisibilityInfo(_nppHelper.SecondaryScintilla, activeFile, minFirstVisibleLine, maxLastVisibleLine));
         }
         #endregion
     }
