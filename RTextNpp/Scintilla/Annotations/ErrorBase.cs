@@ -197,6 +197,8 @@ namespace RTextNppPlugin.Scintilla.Annotations
                         }
                         break;
                     case UpdateAction.Delete:
+                        HideAnnotations(sciPtr);
+                        break;
                     case UpdateAction.NoAction:
                     default:
                         //no need to delete stuff that weren't drawn in the first place...
