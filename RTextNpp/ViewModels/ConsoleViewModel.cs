@@ -44,6 +44,8 @@ namespace RTextNppPlugin.ViewModels
         private readonly ISettings _settings                                      = null;
         private readonly ILineVisibilityObserver _lineVisibilityObserver          = null;
         private readonly IMouseDwellObserver _mouseDwellObserver                  = null;
+        private int _zoomSliderPosition                                           = 100;
+        private bool _isSliderLoaded                                              = false;
         #endregion
 
         #region [Event Handlers]
@@ -98,8 +100,9 @@ namespace RTextNppPlugin.ViewModels
             _dispatcher                      = dispatcher;
             _settings                        = settings;
             _mouseDwellObserver              = mouseDwellObserver;
+            _settings.OnSettingChanged       += OnSettingChanged;
         }
-            
+
         internal Dispatcher Dispatcher { get; set; }
         
         void ConnectorManagerOnConnectorAdded(object source, ConnectorManager.ConnectorAddedEventArgs e)
@@ -313,6 +316,27 @@ namespace RTextNppPlugin.ViewModels
                 }
             }
         }
+
+        public int ZoomSliderPosition
+        {
+            get
+            {
+                return _zoomSliderPosition;
+            }
+            set
+            {
+                if(value != _zoomSliderPosition)
+                {
+                    _zoomSliderPosition = value;
+                    base.RaisePropertyChanged("ZoomSliderPosition");
+                    if (_isSliderLoaded)
+                    {
+                        _settings.Set(value, Settings.RTextNppSettings.ZoomSliderPosition);
+                    }
+                }
+            }
+        }
+
         
         public bool IsAutomateWorkspace
         {
@@ -379,7 +403,25 @@ namespace RTextNppPlugin.ViewModels
         {
             Dispose(true);
             _styleObserver.OnSettingsChanged -= OnStyleObserverSettingsChanged;
+            _settings.OnSettingChanged       -= OnSettingChanged;
         }
+
+        #region [Event Handlers]
+        private void OnSettingChanged(object source, Settings.SettingChangedEventArgs e)
+        {
+            if (e.Setting == Settings.RTextNppSettings.ZoomSliderPosition)
+            {
+                ZoomSliderPosition = _settings.Get<int>(Settings.RTextNppSettings.ZoomSliderPosition);
+            }
+        }
+
+        internal void OnSliderLoaded()
+        {
+            ZoomSliderPosition = _settings.Get<int>(Settings.RTextNppSettings.ZoomSliderPosition);
+            _isSliderLoaded    = true;
+        }
+        #endregion
+
 
         #endregion
         

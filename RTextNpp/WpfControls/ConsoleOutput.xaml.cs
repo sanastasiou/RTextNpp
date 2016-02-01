@@ -93,5 +93,10 @@ namespace RTextNppPlugin.WpfControls
                 _nppHelper.JumpToLine(aCurrentItem.FilePath, aCurrentItem.Line, _nppHelper.CurrentScintilla);
             }
         }
+
+        private void OnErrorListScaleSliderLoaded(object sender, RoutedEventArgs e)
+        {
+            ((ConsoleViewModel)DataContext).OnSliderLoaded();
+        }
     }
 }

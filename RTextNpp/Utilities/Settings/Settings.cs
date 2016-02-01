@@ -33,7 +33,8 @@ namespace RTextNppPlugin.Utilities.Settings
             ExcludeExtensions,
             EnableErrorAnnotations,
             EnableErrorMarkers,
-            EnableErrorSquiggleLines
+            EnableErrorSquiggleLines,
+            ZoomSliderPosition
         }
         
         #region [Interface]

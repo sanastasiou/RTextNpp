@@ -44,6 +44,9 @@ namespace RTextNppPlugin
         public const double ZOOM_FACTOR = 0.12;                                 //!< Relation between actual zoom and scintilla zoom factor for various plug-in windows.
         public const double INITIAL_WIDTH_LINK_REFERENCE_LABELS = 70.0;         //!< Initial width of link reference labels in row details template. This is used to align all labels.
         public const double MAX_WIDTH_LINK_REFERENCE_LABELS = 600.0;            //!< Initial width of link reference labels in row details template. This is used to align all labels.
+        public const double MIN_ERROR_LIST_ZOOM_LIMIT = 100.0;
+        public const double MAX_ERROR_LIST_ZOOM_LIMIT = 200.0;
+        public const double ZOOM_SCALE_UNIT = 1.0;
 
         #region [Scintilla-Npp]
         public class Scintilla

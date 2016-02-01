@@ -10,6 +10,7 @@
              xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
              xmlns:utilities="clr-namespace:RTextNppPlugin.Utilities"
              xmlns:behaviors="clr-namespace:RTextNppPlugin.WpfControls.Behaviors"
+             xmlns:plugin_ns="clr-namespace:RTextNppPlugin"
              mc:Ignorable="d"
              d:DesignHeight="300" d:DesignWidth="300">
     <UserControl.Resources>
@@ -18,6 +19,7 @@
             <converters:PercentageConverter x:Key="PercentageConverter"/>
             <converters:CommandConverter x:Key="RTextCommandConverter"/>
             <converters:ProgressLabelSizeConverter x:Key="ProgressLabelConverter"/>
+            <converters:ErrorListZoomingFactorConverter x:Key="ErrorListZoomScalingConverter"/>
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="Styles.xaml"/>
             </ResourceDictionary.MergedDictionaries>
@@ -115,16 +117,31 @@
                             <DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
                                        IsHitTestVisible="True"
                                        Background="Transparent">
-                            <Border BorderThickness="0 0 0 0" Style="{StaticResource ResourceKey=BorderErrorCollapseAtPositiveCountStyle}" Background="Black">
-                                <Viewbox VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
-                                    <StackPanel Orientation="Vertical">
-                                        <Label Foreground="White">Model contains no errors...</Label>
-                                    </StackPanel>
-                                </Viewbox>
-                            </Border>
-                            <Border BorderThickness="0 0 0 0" Style="{StaticResource ResourceKey=BorderErrorCollapseAtZeroCountStyle}" DockPanel.Dock="Bottom" Background="Black">
-                                <DataGrid ItemsSource                                ="{Binding Errors}"
+                                <Border BorderThickness="0 0 0 0" Style="{StaticResource ResourceKey=BorderErrorCollapseAtPositiveCountStyle}" Background="Black">
+                                    <Viewbox VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
+                                        <StackPanel Orientation="Vertical">
+                                            <Label Foreground="White">Model contains no errors...</Label>
+                                        </StackPanel>
+                                    </Viewbox>
+                                </Border>
+                                <Border BorderThickness="0 0 0 0" 
+                                        Style="{StaticResource ResourceKey=BorderErrorCollapseAtZeroCountStyle}" 
+                                        Background="Black"
+                                        DockPanel.Dock="Bottom">
+                                <DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="Transparent">
+                                    <Slider x:Name="ErrorListScaleSlider"
+                                            Maximum="{x:Static plugin_ns:Constants.MAX_ERROR_LIST_ZOOM_LIMIT}"
+                                            Minimum="{x:Static plugin_ns:Constants.MIN_ERROR_LIST_ZOOM_LIMIT}" 
+                                            TickFrequency="{x:Static plugin_ns:Constants.ZOOM_SCALE_UNIT}" 
+                                            IsSnapToTickEnabled="True" 
+                                            TickPlacement="TopLeft" 
+                                            Value="{Binding ZoomSliderPosition, Mode=TwoWay}"
+                                            Background="Transparent"
+                                            Loaded="OnErrorListScaleSliderLoaded"
+                                            DockPanel.Dock="Bottom"/>
+                                    <DataGrid ItemsSource                            ="{Binding Errors}"
                                           Name                                       ="ErrorListDataGrid"
+                                          DockPanel.Dock                             ="Top"
                                           ScrollViewer.CanContentScroll              ="True"
                                           ScrollViewer.HorizontalScrollBarVisibility ="Auto"
                                           ScrollViewer.VerticalScrollBarVisibility   ="Auto"
@@ -139,79 +156,85 @@
                                           IsTextSearchEnabled                        ="True"
                                           TextSearch.TextPath                        ="FilePath"
                                           IsReadOnly                                 ="True">
-                                    <i:Interaction.Behaviors>
-                                        <behaviors:UpdateWidthOnColumnResizedBehavior/>
-                                    </i:Interaction.Behaviors>
-                                    <DataGrid.Resources>
-                                        <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="Transparent"/>
-                                        <SolidColorBrush x:Key="{x:Static SystemColors.HighlightTextBrushKey}" Color="Blue"/>
-                                    </DataGrid.Resources>
-                                    <DataGrid.CellStyle>
-                                        <Style TargetType="DataGridCell">
-                                            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
-                                            <Setter Property="BorderThickness" Value="0"/>
-                                            <Setter Property="Background" Value="Transparent"/>
-                                        </Style>
-                                    </DataGrid.CellStyle>
-                                    <DataGrid.Columns>
-                                        <DataGridTemplateColumn Header="Files Containing Errors"
-                                            IsReadOnly     ="True"
-                                            CanUserSort    ="True"
-                                            SortMemberPath ="FilePath"
-                                            CanUserResize  ="True">
-                                            <DataGridTemplateColumn.CellTemplate>
-                                                <DataTemplate>
-                                                    <Border BorderThickness="1"
+                                        <i:Interaction.Behaviors>
+                                            <behaviors:UpdateWidthOnColumnResizedBehavior/>
+                                        </i:Interaction.Behaviors>
+                                        <DataGrid.LayoutTransform>
+                                            <ScaleTransform CenterX="0"
+                                                            CenterY="0"
+                                                            ScaleX="{Binding ElementName=ErrorListScaleSlider, Path=Value, Converter={StaticResource ErrorListZoomScalingConverter}}"
+                                                            ScaleY="{Binding ElementName=ErrorListScaleSlider, Path=Value, Converter={StaticResource ErrorListZoomScalingConverter}}"/>
+                                        </DataGrid.LayoutTransform>
+                                        <DataGrid.Resources>
+                                            <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="Transparent"/>
+                                            <SolidColorBrush x:Key="{x:Static SystemColors.HighlightTextBrushKey}" Color="Blue"/>
+                                        </DataGrid.Resources>
+                                        <DataGrid.CellStyle>
+                                            <Style TargetType="DataGridCell">
+                                                <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+                                                <Setter Property="BorderThickness" Value="0"/>
+                                                <Setter Property="Background" Value="Transparent"/>
+                                            </Style>
+                                        </DataGrid.CellStyle>
+                                        <DataGrid.Columns>
+                                            <DataGridTemplateColumn Header="Files Containing Errors"
+                                                                    IsReadOnly     ="True"
+                                                                    CanUserSort    ="True"
+                                                                    SortMemberPath ="FilePath"
+                                                                    CanUserResize  ="True">
+                                                <DataGridTemplateColumn.CellTemplate>
+                                                    <DataTemplate>
+                                                        <Border BorderThickness="1"
                                                             CornerRadius="15"
                                                             BorderBrush="Red"
                                                             Padding="0"
                                                             Name="ErrorItemBorder"
                                                             Margin="0">
-                                                        <Border.Resources>
-                                                            <!--ErrorItem fade in fade out-->
-                                                            <Storyboard x:Key="MouseEnterErrorExpander">
-                                                                <ColorAnimationUsingKeyFrames Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)" Storyboard.TargetName="ErrorItemBorder" FillBehavior="HoldEnd">
-                                                                    <EasingColorKeyFrame KeyTime="0:0:1" Value="{Binding DataContext.ExpanderHeaderTextForeground, RelativeSource={ RelativeSource Mode=FindAncestor, AncestorType={x:Type DataGrid}}}"/>
-                                                                </ColorAnimationUsingKeyFrames>
-                                                                <ColorAnimationUsingKeyFrames Storyboard.TargetProperty="(Label.Foreground).(SolidColorBrush.Color)" Storyboard.TargetName="ErrorItemExpanderHeader" FillBehavior="HoldEnd">
-                                                                    <EasingColorKeyFrame KeyTime="0:0:1" Value="{Binding DataContext.ExpanderHeaderBackground, RelativeSource={ RelativeSource Mode=FindAncestor, AncestorType={x:Type DataGrid}}}"/>
-                                                                </ColorAnimationUsingKeyFrames>
-                                                            </Storyboard>
-                                                            <Storyboard x:Key="MouseLeaveErrorExpander"/>
-                                                            <Storyboard x:Key="MouseEnterErrorExpanderReverse">
-                                                                <ColorAnimationUsingKeyFrames Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)" Storyboard.TargetName="ErrorItemBorder" FillBehavior="Stop">
-                                                                    <SplineColorKeyFrame KeyTime="0:0:1" Value="{Binding DataContext.ExpanderHeaderBackground, RelativeSource={ RelativeSource Mode=FindAncestor, AncestorType={x:Type DataGrid}}}"/>
-                                                                </ColorAnimationUsingKeyFrames>
-                                                                <ColorAnimationUsingKeyFrames Storyboard.TargetProperty="(Label.Foreground).(SolidColorBrush.Color)" Storyboard.TargetName="ErrorItemExpanderHeader" FillBehavior="Stop">
-                                                                    <SplineColorKeyFrame KeyTime="0:0:1" Value="{Binding DataContext.ExpanderHeaderTextForeground, RelativeSource={ RelativeSource Mode=FindAncestor, AncestorType={x:Type DataGrid}}}"/>
-                                                                </ColorAnimationUsingKeyFrames>
-                                                            </Storyboard>
-                                                            <!--ErrorItem fade in fade out-->
-                                                        </Border.Resources>
-                                                        <Border.Background>
-                                                            <SolidColorBrush Color="{Binding DataContext.ExpanderHeaderBackground, Mode=OneWay, RelativeSource={ RelativeSource Mode=FindAncestor, AncestorType={x:Type DataGrid}}}"/>
-                                                        </Border.Background>
-                                                        <Border.Triggers>
-                                                            <EventTrigger RoutedEvent="MouseEnter">
-                                                                <BeginStoryboard x:Name="MouseEnterErrorExpander_BeginStoryboard" Storyboard="{StaticResource MouseEnterErrorExpander}"/>
-                                                            </EventTrigger>
-                                                            <EventTrigger RoutedEvent="MouseLeave">
-                                                                <BeginStoryboard x:Name="MouseLeaveErrorExpander_BeginStoryboard" Storyboard="{StaticResource MouseEnterErrorExpanderReverse}"/>
-                                                            </EventTrigger>
-                                                        </Border.Triggers>
-                                                        <Expander Style="{DynamicResource CustomExpanderStyle}"
+                                                            <Border.Resources>
+                                                                <!--ErrorItem fade in fade out-->
+                                                                <Storyboard x:Key="MouseEnterErrorExpander">
+                                                                    <ColorAnimationUsingKeyFrames Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)" Storyboard.TargetName="ErrorItemBorder" FillBehavior="HoldEnd">
+                                                                        <EasingColorKeyFrame KeyTime="0:0:1" Value="{Binding DataContext.ExpanderHeaderTextForeground, RelativeSource={ RelativeSource Mode=FindAncestor, AncestorType={x:Type DataGrid}}}"/>
+                                                                    </ColorAnimationUsingKeyFrames>
+                                                                    <ColorAnimationUsingKeyFrames Storyboard.TargetProperty="(Label.Foreground).(SolidColorBrush.Color)" Storyboard.TargetName="ErrorItemExpanderHeader" FillBehavior="HoldEnd">
+                                                                        <EasingColorKeyFrame KeyTime="0:0:1" Value="{Binding DataContext.ExpanderHeaderBackground, RelativeSource={ RelativeSource Mode=FindAncestor, AncestorType={x:Type DataGrid}}}"/>
+                                                                    </ColorAnimationUsingKeyFrames>
+                                                                </Storyboard>
+                                                                <Storyboard x:Key="MouseLeaveErrorExpander"/>
+                                                                <Storyboard x:Key="MouseEnterErrorExpanderReverse">
+                                                                    <ColorAnimationUsingKeyFrames Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)" Storyboard.TargetName="ErrorItemBorder" FillBehavior="Stop">
+                                                                        <SplineColorKeyFrame KeyTime="0:0:1" Value="{Binding DataContext.ExpanderHeaderBackground, RelativeSource={ RelativeSource Mode=FindAncestor, AncestorType={x:Type DataGrid}}}"/>
+                                                                    </ColorAnimationUsingKeyFrames>
+                                                                    <ColorAnimationUsingKeyFrames Storyboard.TargetProperty="(Label.Foreground).(SolidColorBrush.Color)" Storyboard.TargetName="ErrorItemExpanderHeader" FillBehavior="Stop">
+                                                                        <SplineColorKeyFrame KeyTime="0:0:1" Value="{Binding DataContext.ExpanderHeaderTextForeground, RelativeSource={ RelativeSource Mode=FindAncestor, AncestorType={x:Type DataGrid}}}"/>
+                                                                    </ColorAnimationUsingKeyFrames>
+                                                                </Storyboard>
+                                                                <!--ErrorItem fade in fade out-->
+                                                            </Border.Resources>
+                                                            <Border.Background>
+                                                                <SolidColorBrush Color="{Binding DataContext.ExpanderHeaderBackground, Mode=OneWay, RelativeSource={ RelativeSource Mode=FindAncestor, AncestorType={x:Type DataGrid}}}"/>
+                                                            </Border.Background>
+                                                            <Border.Triggers>
+                                                                <EventTrigger RoutedEvent="MouseEnter">
+                                                                    <BeginStoryboard x:Name="MouseEnterErrorExpander_BeginStoryboard" Storyboard="{StaticResource MouseEnterErrorExpander}"/>
+                                                                </EventTrigger>
+                                                                <EventTrigger RoutedEvent="MouseLeave">
+                                                                    <BeginStoryboard x:Name="MouseLeaveErrorExpander_BeginStoryboard" Storyboard="{StaticResource MouseEnterErrorExpanderReverse}"/>
+                                                                </EventTrigger>
+                                                            </Border.Triggers>
+                                                            <Expander Style="{DynamicResource CustomExpanderStyle}"
                                                                   BorderThickness="0"
                                                                   DataContext="{Binding}"                                                                  
                                                                   Expanded="OnErrorNodeExpanded"
                                                                   IsExpanded="{Binding IsFileOpened, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
-                                                            <Expander.Header>
-                                                                <Label Name="ErrorItemExpanderHeader" Content="{Binding FilePath}">
-                                                                    <Label.Foreground>
-                                                                        <SolidColorBrush Color="{Binding DataContext.ExpanderHeaderTextForeground, Mode=OneWay, RelativeSource={ RelativeSource Mode=FindAncestor, AncestorType={x:Type DataGrid}}}"/>
-                                                                    </Label.Foreground>
-                                                                </Label>
-                                                            </Expander.Header>
-                                                            <DataGrid Name                                       ="ErrorListView"
+                                                                <Expander.Header>
+                                                                    <Label Name="ErrorItemExpanderHeader" Content="{Binding FilePath}">
+                                                                        <Label.Foreground>
+                                                                            <SolidColorBrush Color="{Binding DataContext.ExpanderHeaderTextForeground, Mode=OneWay, RelativeSource={ RelativeSource Mode=FindAncestor, AncestorType={x:Type DataGrid}}}"/>
+                                                                        </Label.Foreground>
+                                                                    </Label>
+                                                                </Expander.Header>
+                                                                <DataGrid Name                                       ="ErrorListView"
                                                                       AutoGenerateColumns                        ="False"
                                                                       VirtualizingStackPanel.IsVirtualizing      ="True"
                                                                       IsSynchronizedWithCurrentItem              ="True"
@@ -245,74 +268,75 @@
                                                                       Width                                      ="{Binding Width, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type TabItem}}}"
                                                                       GridLinesVisibility                        ="Vertical"
                                                                       IsReadOnly                                 ="True">
-                                                                <i:Interaction.Behaviors>
-                                                                    <behaviors:ErrorListMixedHeaderBehavior/>
-                                                                </i:Interaction.Behaviors>
-                                                                <DataGrid.RowStyle>
-                                                                    <Style TargetType="DataGridRow">
-                                                                        <Setter Property="Foreground" Value="{Binding ElementName=ErrorItemExpanderHeader, Path=Foreground}"/>
-                                                                        <Style.Triggers>
-                                                                            <Trigger Property="IsMouseOver" Value="True">
-                                                                                <Setter Property="Foreground" Value="Red"/>
-                                                                            </Trigger>
-                                                                            <Trigger Property="IsSelected" Value="True">
-                                                                                <Setter Property="Foreground" Value="Red"/>
-                                                                            </Trigger>
-                                                                        </Style.Triggers>
-                                                                    </Style>
-                                                                </DataGrid.RowStyle>
-                                                                <DataGrid.CellStyle>
-                                                                    <Style TargetType="{x:Type DataGridCell}">
-                                                                        <Setter Property="Block.TextAlignment" Value="Right"/>
-                                                                        <Setter Property="BorderThickness" Value="0"/>
-                                                                        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
-                                                                        <Style.Triggers>
-                                                                            <Trigger Property="DataGridCell.IsSelected" Value="True">
-                                                                                <Setter Property="Foreground" Value="Red"/>
-                                                                                <Setter Property="Background" Value="{Binding RelativeSource={RelativeSource Self}, Path=Background}"/>
-                                                                            </Trigger>
-                                                                        </Style.Triggers>
-                                                                    </Style>
-                                                                </DataGrid.CellStyle>
-                                                                <DataGrid.Columns>
-                                                                    <DataGridTextColumn IsReadOnly="True" Binding="{Binding Line}">
-                                                                        <DataGridTextColumn.HeaderStyle>
-                                                                            <Style TargetType="{x:Type DataGridColumnHeader}">
-                                                                                <Setter Property="HorizontalAlignment" Value="Stretch"/>
-                                                                                <Setter Property="HorizontalContentAlignment" Value="Center"/>
-                                                                                <Setter Property="Padding" Value="1 0 0 0"/>
-                                                                            </Style>
-                                                                        </DataGridTextColumn.HeaderStyle>
-                                                                    </DataGridTextColumn>
-                                                                    <DataGridTextColumn IsReadOnly="True" Binding="{Binding Message}">
-                                                                        <DataGridTextColumn.HeaderStyle>
-                                                                            <Style TargetType="{x:Type DataGridColumnHeader}">
-                                                                                <Setter Property="HorizontalAlignment" Value="Stretch"/>
-                                                                                <Setter Property="HorizontalContentAlignment" Value="Center"/>
-                                                                                <Setter Property="Padding" Value="1 0 0 0"/>
-                                                                            </Style>
-                                                                        </DataGridTextColumn.HeaderStyle>
-                                                                    </DataGridTextColumn>
-                                                                    <DataGridTextColumn IsReadOnly="True" Binding="{Binding Severity}">
-                                                                        <DataGridTextColumn.HeaderStyle>
-                                                                            <Style TargetType="{x:Type DataGridColumnHeader}">
-                                                                                <Setter Property="HorizontalAlignment" Value="Stretch"/>
-                                                                                <Setter Property="HorizontalContentAlignment" Value="Center"/>
-                                                                                <Setter Property="Padding" Value="1 0 0 0"/>
-                                                                            </Style>
-                                                                        </DataGridTextColumn.HeaderStyle>
-                                                                    </DataGridTextColumn>
-                                                                </DataGrid.Columns>
-                                                            </DataGrid>
-                                                        </Expander>
-                                                    </Border>
-                                                </DataTemplate>
-                                            </DataGridTemplateColumn.CellTemplate>
-                                        </DataGridTemplateColumn>
-                                    </DataGrid.Columns>
-                                </DataGrid>
+                                                                    <i:Interaction.Behaviors>
+                                                                        <behaviors:ErrorListMixedHeaderBehavior/>
+                                                                    </i:Interaction.Behaviors>
+                                                                    <DataGrid.RowStyle>
+                                                                        <Style TargetType="DataGridRow">
+                                                                            <Setter Property="Foreground" Value="{Binding ElementName=ErrorItemExpanderHeader, Path=Foreground}"/>
+                                                                            <Style.Triggers>
+                                                                                <Trigger Property="IsMouseOver" Value="True">
+                                                                                    <Setter Property="Foreground" Value="Red"/>
+                                                                                </Trigger>
+                                                                                <Trigger Property="IsSelected" Value="True">
+                                                                                    <Setter Property="Foreground" Value="Red"/>
+                                                                                </Trigger>
+                                                                            </Style.Triggers>
+                                                                        </Style>
+                                                                    </DataGrid.RowStyle>
+                                                                    <DataGrid.CellStyle>
+                                                                        <Style TargetType="{x:Type DataGridCell}">
+                                                                            <Setter Property="Block.TextAlignment" Value="Right"/>
+                                                                            <Setter Property="BorderThickness" Value="0"/>
+                                                                            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+                                                                            <Style.Triggers>
+                                                                                <Trigger Property="DataGridCell.IsSelected" Value="True">
+                                                                                    <Setter Property="Foreground" Value="Red"/>
+                                                                                    <Setter Property="Background" Value="{Binding RelativeSource={RelativeSource Self}, Path=Background}"/>
+                                                                                </Trigger>
+                                                                            </Style.Triggers>
+                                                                        </Style>
+                                                                    </DataGrid.CellStyle>
+                                                                    <DataGrid.Columns>
+                                                                        <DataGridTextColumn IsReadOnly="True" Binding="{Binding Line}">
+                                                                            <DataGridTextColumn.HeaderStyle>
+                                                                                <Style TargetType="{x:Type DataGridColumnHeader}">
+                                                                                    <Setter Property="HorizontalAlignment" Value="Stretch"/>
+                                                                                    <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                                                                                    <Setter Property="Padding" Value="1 0 0 0"/>
+                                                                                </Style>
+                                                                            </DataGridTextColumn.HeaderStyle>
+                                                                        </DataGridTextColumn>
+                                                                        <DataGridTextColumn IsReadOnly="True" Binding="{Binding Message}">
+                                                                            <DataGridTextColumn.HeaderStyle>
+                                                                                <Style TargetType="{x:Type DataGridColumnHeader}">
+                                                                                    <Setter Property="HorizontalAlignment" Value="Stretch"/>
+                                                                                    <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                                                                                    <Setter Property="Padding" Value="1 0 0 0"/>
+                                                                                </Style>
+                                                                            </DataGridTextColumn.HeaderStyle>
+                                                                        </DataGridTextColumn>
+                                                                        <DataGridTextColumn IsReadOnly="True" Binding="{Binding Severity}">
+                                                                            <DataGridTextColumn.HeaderStyle>
+                                                                                <Style TargetType="{x:Type DataGridColumnHeader}">
+                                                                                    <Setter Property="HorizontalAlignment" Value="Stretch"/>
+                                                                                    <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                                                                                    <Setter Property="Padding" Value="1 0 0 0"/>
+                                                                                </Style>
+                                                                            </DataGridTextColumn.HeaderStyle>
+                                                                        </DataGridTextColumn>
+                                                                    </DataGrid.Columns>
+                                                                </DataGrid>
+                                                            </Expander>
+                                                        </Border>
+                                                    </DataTemplate>
+                                                </DataGridTemplateColumn.CellTemplate>
+                                            </DataGridTemplateColumn>
+                                        </DataGrid.Columns>
+                                    </DataGrid>
+                                </DockPanel>
                             </Border>
-                        </DockPanel>
+                            </DockPanel>
                     </TabItem>
                 </TabControl>
                 <Grid HorizontalAlignment="Stretch"

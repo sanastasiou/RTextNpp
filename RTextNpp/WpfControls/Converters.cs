@@ -38,6 +38,18 @@ namespace RTextNppPlugin.WpfControls.Converters
         }
     }
 
+    internal class ErrorListZoomingFactorConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+        {
+            return ((double)value / Constants.MIN_ERROR_LIST_ZOOM_LIMIT);
+        }
+        public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+        {
+            throw new NotSupportedException();
+        }
+    }
+
     internal class ProgressLabelSizeConverter : IValueConverter
     {
         #region IValueConverter Members
