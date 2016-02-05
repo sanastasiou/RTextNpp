@@ -198,6 +198,7 @@ namespace RTextNppPlugin.Scintilla.Annotations
                         break;
                     case UpdateAction.Delete:
                         HideAnnotations(sciPtr);
+                        SetAnnotations<IEnumerable>(sciPtr, null);
                         break;
                     case UpdateAction.NoAction:
                     default:
