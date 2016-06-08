@@ -341,7 +341,7 @@ namespace RTextNppPlugin.Scintilla
         public void PlaceIndicator(IntPtr sciPtr, int startPos, int length)
         {
             var aNativePtr = GetNativePtr(sciPtr);
-            _directFunction(aNativePtr, (int)SciMsg.SCI_INDICATORFILLRANGE, new IntPtr(startPos), new IntPtr(length));
+            //_directFunction(aNativePtr, (int)SciMsg.SCI_INDICATORFILLRANGE, new IntPtr(startPos), new IntPtr(length));
             SendMessage(sciPtr, SciMsg.SCI_INDICATORFILLRANGE, new IntPtr(startPos), new IntPtr(length));
         }
         
