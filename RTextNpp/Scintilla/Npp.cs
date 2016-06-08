@@ -12,7 +12,6 @@ namespace RTextNppPlugin.Scintilla
     using RTextNppPlugin.DllExport;
     using RTextNppPlugin.RText.Parsing;
     using RTextNppPlugin.Utilities;
-    using System.Diagnostics;
     public class Npp : INpp
     {
         #region [Singleton Data Members]
@@ -52,7 +51,7 @@ namespace RTextNppPlugin.Scintilla
             _scintillaMainNativePtr      = _nativeHelpers.ISendMessage(MainScintilla, (int)SciMsg.SCI_GETDIRECTPOINTER, IntPtr.Zero, IntPtr.Zero);
             _scintillaSubNativePtr       = _nativeHelpers.ISendMessage(SecondaryScintilla, (int)SciMsg.SCI_GETDIRECTPOINTER, IntPtr.Zero, IntPtr.Zero);
             IntPtr directFunctionPointer = _nativeHelpers.ISendMessage(MainScintilla, (int)SciMsg.SCI_GETDIRECTFUNCTION, IntPtr.Zero, IntPtr.Zero);
-            _directFunction              = (Scintilla_DirectFunction)Marshal.GetDelegateForFunctionPointer(directFunctionPointer,typeof(Scintilla_DirectFunction));
+            //_directFunction              = (Scintilla_DirectFunction)Marshal.GetDelegateForFunctionPointer(directFunctionPointer,typeof(Scintilla_DirectFunction));
         }
 
         public unsafe void AddAnnotation(int line, System.Text.StringBuilder errorDescription, IntPtr sciPtr)
@@ -75,7 +74,8 @@ namespace RTextNppPlugin.Scintilla
         public void SetAnnotationVisible(IntPtr handle, int annotationStyle)
         {
             var aNativePtr = GetNativePtr(handle);
-            _directFunction(aNativePtr, (int)SciMsg.SCI_ANNOTATIONSETVISIBLE, new IntPtr(annotationStyle), IntPtr.Zero);
+            //_directFunction(aNativePtr, (int)SciMsg.SCI_ANNOTATIONSETVISIBLE, new IntPtr(annotationStyle), IntPtr.Zero);
+            SendMessage(handle, SciMsg.SCI_ANNOTATIONSETVISIBLE, new IntPtr(annotationStyle), IntPtr.Zero);
         }
 
         public void SetAnnotationStyle(int line, int annotationStyle, IntPtr sciPtr)
@@ -86,7 +86,8 @@ namespace RTextNppPlugin.Scintilla
         public unsafe void SetAnnotationStyles(int line, byte[] styleDescriptions, IntPtr sciPtr)
         {
             var aNativePtr = GetNativePtr(sciPtr);
-            var length = _directFunction(aNativePtr, (int)SciMsg.SCI_ANNOTATIONGETTEXT, new IntPtr(line), IntPtr.Zero).ToInt32();
+            //var length = _directFunction(aNativePtr, (int)SciMsg.SCI_ANNOTATIONGETTEXT, new IntPtr(line), IntPtr.Zero).ToInt32();
+            var length = SendMessage(sciPtr, SciMsg.SCI_ANNOTATIONGETTEXT, new IntPtr(line), IntPtr.Zero).ToInt32();
             if (length == 0)
             {
                 return;
@@ -95,12 +96,14 @@ namespace RTextNppPlugin.Scintilla
             var text = new byte[length + 1];
             fixed (byte* textPtr = text)
             {
-                _directFunction(aNativePtr, (int)SciMsg.SCI_ANNOTATIONGETTEXT, new IntPtr(line), new IntPtr(textPtr));
+                //_directFunction(aNativePtr, (int)SciMsg.SCI_ANNOTATIONGETTEXT, new IntPtr(line), new IntPtr(textPtr));
+                SendMessage(sciPtr, SciMsg.SCI_ANNOTATIONGETTEXT, new IntPtr(line), new IntPtr(textPtr));
 
                 var styles = CharToByteStyles(styleDescriptions ?? new byte[0], textPtr, length, Encoding);
                 fixed (byte* stylePtr = styles)
                 {
-                    _directFunction(aNativePtr, (int)SciMsg.SCI_ANNOTATIONSETSTYLES, new IntPtr(line), new IntPtr(stylePtr));
+                    //_directFunction(aNativePtr, (int)SciMsg.SCI_ANNOTATIONSETSTYLES, new IntPtr(line), new IntPtr(stylePtr));
+                    SendMessage(sciPtr, SciMsg.SCI_ANNOTATIONSETSTYLES, new IntPtr(line), new IntPtr(stylePtr));
                 }
             }
         }
@@ -320,21 +323,26 @@ namespace RTextNppPlugin.Scintilla
         public void SetIndicatorStyle(IntPtr sciPtr, int indicator, SciMsg style, Color color)
         {
             var aNativePtr = GetNativePtr(sciPtr);
-            _directFunction(aNativePtr, (int)SciMsg.SCI_INDICSETSTYLE, new IntPtr(indicator), new IntPtr((int)style));
-            _directFunction(aNativePtr, (int)SciMsg.SCI_INDICSETFORE, new IntPtr(indicator), new IntPtr(ColorTranslator.ToWin32(color)));
+            //_directFunction(aNativePtr, (int)SciMsg.SCI_INDICSETSTYLE, new IntPtr(indicator), new IntPtr((int)style));
+            //_directFunction(aNativePtr, (int)SciMsg.SCI_INDICSETFORE, new IntPtr(indicator), new IntPtr(ColorTranslator.ToWin32(color)));
+            SendMessage(sciPtr, SciMsg.SCI_INDICSETSTYLE, new IntPtr(indicator), new IntPtr((int)style));
+            SendMessage(sciPtr, SciMsg.SCI_INDICSETFORE, new IntPtr(indicator), new IntPtr(ColorTranslator.ToWin32(color)));
         }
 
         public void ClearIndicator(IntPtr sciPtr, int indicator, int startPos, int length)
         {
             var aNativePtr = GetNativePtr(sciPtr);
-            _directFunction(aNativePtr, (int)SciMsg.SCI_SETINDICATORCURRENT, new IntPtr(indicator), IntPtr.Zero);
-            _directFunction(aNativePtr, (int)SciMsg.SCI_INDICATORCLEARRANGE, new IntPtr(startPos), new IntPtr(length));
+            //_directFunction(aNativePtr, (int)SciMsg.SCI_SETINDICATORCURRENT, new IntPtr(indicator), IntPtr.Zero);
+            //_directFunction(aNativePtr, (int)SciMsg.SCI_INDICATORCLEARRANGE, new IntPtr(startPos), new IntPtr(length));
+            SendMessage(sciPtr, SciMsg.SCI_SETINDICATORCURRENT, new IntPtr(indicator), IntPtr.Zero);
+            SendMessage(sciPtr, SciMsg.SCI_INDICATORCLEARRANGE, new IntPtr(startPos), new IntPtr(length));
         }
         
         public void PlaceIndicator(IntPtr sciPtr, int startPos, int length)
         {
             var aNativePtr = GetNativePtr(sciPtr);
             _directFunction(aNativePtr, (int)SciMsg.SCI_INDICATORFILLRANGE, new IntPtr(startPos), new IntPtr(length));
+            SendMessage(sciPtr, SciMsg.SCI_INDICATORFILLRANGE, new IntPtr(startPos), new IntPtr(length));
         }
         
         public string GetConfigDir()
@@ -376,14 +384,16 @@ namespace RTextNppPlugin.Scintilla
         public int IndicatorStart(IntPtr sciPtr, int indicator, int testPosition)
         {
             var aNativePtr = GetNativePtr(sciPtr);
-            return _directFunction(aNativePtr, (int)SciMsg.SCI_INDICATORSTART, new IntPtr(indicator), new IntPtr(testPosition)).ToInt32();
+            //return _directFunction(aNativePtr, (int)SciMsg.SCI_INDICATORSTART, new IntPtr(indicator), new IntPtr(testPosition)).ToInt32();
+            return SendMessage(sciPtr, SciMsg.SCI_INDICATORSTART, new IntPtr(indicator), new IntPtr(testPosition)).ToInt32();
             
         }
 
         public int IndicatorEnd(IntPtr sciPtr, int indicator, int testPosition)
         {
             var aNativePtr = GetNativePtr(sciPtr);
-            return _directFunction(aNativePtr, (int)SciMsg.SCI_INDICATOREND, new IntPtr(indicator), new IntPtr(testPosition)).ToInt32();
+            //return _directFunction(aNativePtr, (int)SciMsg.SCI_INDICATOREND, new IntPtr(indicator), new IntPtr(testPosition)).ToInt32();
+            return SendMessage(sciPtr, SciMsg.SCI_INDICATOREND, new IntPtr(indicator), new IntPtr(testPosition)).ToInt32();
         }
         
         public unsafe string GetLine(int line, IntPtr sciPtr)
@@ -447,7 +457,8 @@ namespace RTextNppPlugin.Scintilla
         public int GetLineCount(IntPtr sciPtr)
         {
             var aNativePtr = GetNativePtr(sciPtr);
-            return _directFunction(aNativePtr, (int)SciMsg.SCI_GETLINECOUNT, IntPtr.Zero, IntPtr.Zero).ToInt32();
+            //return _directFunction(aNativePtr, (int)SciMsg.SCI_GETLINECOUNT, IntPtr.Zero, IntPtr.Zero).ToInt32();
+            return SendMessage(sciPtr, SciMsg.SCI_GETLINECOUNT, IntPtr.Zero, IntPtr.Zero).ToInt32();
         }
         
         public string GetShortcutsFile()
@@ -854,7 +865,8 @@ namespace RTextNppPlugin.Scintilla
         public void SetCurrentIndicator(IntPtr sciPtr, int index)
         {
             var aNativePtr = GetNativePtr(sciPtr);
-            _directFunction(aNativePtr, (int)SciMsg.SCI_SETINDICATORCURRENT, new IntPtr(index), IntPtr.Zero);
+            //_directFunction(aNativePtr, (int)SciMsg.SCI_SETINDICATORCURRENT, new IntPtr(index), IntPtr.Zero);
+            SendMessage(sciPtr, SciMsg.SCI_SETINDICATORCURRENT, new IntPtr(index), IntPtr.Zero);
         }
 
         public void SetModEventMask(int eventMask)
@@ -866,9 +878,12 @@ namespace RTextNppPlugin.Scintilla
         public void ClearAllIndicators(IntPtr sciPtr, int currentIndicator)
         {
             var aNativePtr = GetNativePtr(sciPtr);
-            _directFunction(aNativePtr, (int)SciMsg.SCI_SETINDICATORCURRENT, new IntPtr(currentIndicator), IntPtr.Zero);
-            int endPos = _directFunction(aNativePtr, (int)SciMsg.SCI_GETLINEENDPOSITION, new IntPtr(GetLineCount(sciPtr)), IntPtr.Zero).ToInt32();
-            _directFunction(aNativePtr, (int)SciMsg.SCI_INDICATORCLEARRANGE, IntPtr.Zero, new IntPtr(endPos));
+            //_directFunction(aNativePtr, (int)SciMsg.SCI_SETINDICATORCURRENT, new IntPtr(currentIndicator), IntPtr.Zero);
+            SendMessage(sciPtr, SciMsg.SCI_SETINDICATORCURRENT, new IntPtr(currentIndicator), IntPtr.Zero);
+            //int endPos = _directFunction(aNativePtr, (int)SciMsg.SCI_GETLINEENDPOSITION, new IntPtr(GetLineCount(sciPtr)), IntPtr.Zero).ToInt32();
+            int endPos = SendMessage(sciPtr, SciMsg.SCI_GETLINEENDPOSITION, new IntPtr(GetLineCount(sciPtr)), IntPtr.Zero).ToInt32();
+            //_directFunction(aNativePtr, (int)SciMsg.SCI_INDICATORCLEARRANGE, IntPtr.Zero, new IntPtr(endPos));
+            SendMessage(sciPtr, SciMsg.SCI_INDICATORCLEARRANGE, IntPtr.Zero, new IntPtr(endPos));
         }
 
         public string GetActiveFile(IntPtr sciPtr)

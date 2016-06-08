@@ -794,6 +794,8 @@ namespace RTextNppPlugin.DllExport
         public uint code;       //! The SCN_* notification code
     }
 
+    //IntPtr __stdcall Scintilla_DirectFunction(IntPtr * ptr, uint iMessage, uptr_t wParam, IntPtr lParam);
+
     public delegate IntPtr Scintilla_DirectFunction(IntPtr ptr, int iMessage, IntPtr wParam, IntPtr lParam);
 
     [StructLayout(LayoutKind.Sequential)]

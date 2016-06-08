@@ -9,8 +9,6 @@
             ClrFileSystemWatcher
             WindowsSubclassCliWrapper
             RTextLexer
-            WindowsUtilities
-            NativeFileSystemWatcher
         </Unmanaged32Assemblies>
     </Costura>
 </Weavers>
