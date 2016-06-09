@@ -379,11 +379,14 @@ namespace RText
                 context.SetState(TokenType_Default);
                 break;
             case TokenType_Template:
-                while (context.ch != '>')
+                while (context.ch != '>' && context.More())
                 {
                     context.Forward();
                 }
-                context.Forward();
+                if (context.More())
+                {
+                    context.Forward();
+                }
                 context.SetState(TokenType_Default);
                 break;
             case TokenType_Notation:
