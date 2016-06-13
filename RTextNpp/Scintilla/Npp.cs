@@ -497,9 +497,6 @@ namespace RTextNppPlugin.Scintilla
             Point aPoint    = GetCaretScreenLocation(sciPtr);
             int aTextHeight = GetTextHeight(GetCaretLineNumber(sciPtr));
             aPoint.Y        += aTextHeight;
-            double dpiScale = VisualUtilities.GetDpiScalingFactor();
-            aPoint.X        = (int)((double)(aPoint.X) / dpiScale);
-            aPoint.Y        = (int)((double)(aPoint.Y) / dpiScale);
             return aPoint;
         }
         
