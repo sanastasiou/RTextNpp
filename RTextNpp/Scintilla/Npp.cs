@@ -332,7 +332,7 @@ namespace RTextNppPlugin.Scintilla
         public void ClearIndicator(IntPtr sciPtr, int indicator, int startPos, int length)
         {
             var aNativePtr = GetNativePtr(sciPtr);
-            //_directFunction(aNativePtr, (int)SciMsg.SCI_SETINDICATORCURRENT, new IntPtr(indicator), IntPtr.Zero);
+            //_directFunction(aNativePtr, (int)SciMsg.SCI_SETINDICATORCURRENT, new IntPtr(indicator), IntPtr.Zero); 
             //_directFunction(aNativePtr, (int)SciMsg.SCI_INDICATORCLEARRANGE, new IntPtr(startPos), new IntPtr(length));
             SendMessage(sciPtr, SciMsg.SCI_SETINDICATORCURRENT, new IntPtr(indicator), IntPtr.Zero);
             SendMessage(sciPtr, SciMsg.SCI_INDICATORCLEARRANGE, new IntPtr(startPos), new IntPtr(length));
