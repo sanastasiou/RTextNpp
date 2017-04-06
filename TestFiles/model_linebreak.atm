@@ -83,7 +83,8 @@ AUTOSAR {
       RunnableEntity run3, runsInsideExclusiveArea: [
           ea1,
           ea2
-        ]
+        ], canBeInvokedConcurrently: false
+      RunnableEntity run13, runsInsideExclusiveArea: [ ea1, ea2 ], canBeInvokedConcurrently: false
       RunnableEntity run4,
         sharedCalprmAccess: sharedCal1
       RunnableEntity run5, perInstanceCalprmAccess: perInstCal1

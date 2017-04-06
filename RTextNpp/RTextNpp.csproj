@@ -352,8 +352,8 @@
   <ItemGroup />
   <PropertyGroup>
     <PostBuildEvent>if $(ConfigurationName) == Debug copy /Y "$(ProjectDir)$(OutDir)$(TargetName).dll" "C:\Program Files (x86)\Notepad++\plugins"
-if $(ConfigurationName) == Debug copy /Y "$(ProjectDir)$(OutDir)$(TargetName).dll" "C:\Work\Notepad++\trunk\PowerEditor\visual.net\Unicode Debug\plugins"
-if $(ConfigurationName) == Debug copy /Y "$(ProjectDir)$(OutDir)$(TargetName).pdb" "C:\Work\Notepad++\trunk\PowerEditor\visual.net\Unicode Debug\plugins"
+rem if $(ConfigurationName) == Debug copy /Y "$(ProjectDir)$(OutDir)$(TargetName).dll" "C:\Work\Notepad++\trunk\PowerEditor\visual.net\Unicode Debug\plugins"
+rem if $(ConfigurationName) == Debug copy /Y "$(ProjectDir)$(OutDir)$(TargetName).pdb" "C:\Work\Notepad++\trunk\PowerEditor\visual.net\Unicode Debug\plugins"
 echo "if $(ConfigurationName) == Debug copy /Y "$(SolutionDir)RTextNpp.xml" "C:\Users\Stefanos\AppData\Roaming\Notepad++\plugins\config""</PostBuildEvent>
   </PropertyGroup>
   <UsingTask TaskName="CosturaCleanup" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v4.0.dll" TaskFactory="CodeTaskFactory">

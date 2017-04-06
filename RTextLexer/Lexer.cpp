@@ -1,7 +1,7 @@
 #include "Lexer.h"
 #include <string>
 #include <tchar.h>
-#include "atltrace.h"
+#include <chrono>
 
 namespace RText
 {
@@ -404,7 +404,7 @@ namespace RText
         }
         context.Complete();
     }
-    
+
     void SCI_METHOD RTextLexer::Fold(unsigned int startPos, int length, int initStyle, IDocument* pAccess)
     {
         LexAccessor styler(pAccess);
@@ -416,70 +416,45 @@ namespace RText
         {
             levelCurrent = styler.LevelAt(lineCurrent - 1) >> 16;
         }
+
         unsigned int lineStartNext  = styler.LineStart(lineCurrent + 1);
-        int levelMinCurrent         = levelCurrent;
         int levelNext               = levelCurrent;
-        char chNext                 = styler[startPos];
-        int styleNext               = MaskActive(styler.StyleAt(startPos));
         int style                   = MaskActive(initStyle);
-        //bool isInComment            = (styler.StyleAt(startPos - 1) == TokenType_Comment);
 
         for (auto i = startPos; i < endPos; i++) {
-            char ch             = chNext;
-            chNext              = styler.SafeGetCharAt(i + 1);
-            //int stylePrev       = style;
-            style               = styleNext;
-            styleNext           = MaskActive(styler.StyleAt(i + 1));
-            bool const atEOL    = (i == (lineStartNext - 1));
 
-            //if ((style == TokenType_Comment) && !isInComment)
-            //{
-            //    auto j = i;
-            //    while (::iswspace(styler.SafeGetCharAt(j)))
-            //    {
-            //        ++j;
-            //    }
-            //    //there's a comment somewhere after this one
-            //    if (styler.SafeGetCharAt(j) == '#')
-            //    {
-            //        levelNext++;
-            //    }
-            //}                
-            //else if (style != TokenType_Comment && isInComment)
-            //{
-            //    auto j = i;
-            //    while (::iswspace(styler.SafeGetCharAt(j)))
-            //    {
-            //        ++j;
-            //    }
-            //    if (styler.SafeGetCharAt(j) != '#')
-            //    {
-            //        --levelNext;
-            //        isInComment = false;
-            //    }
-            //}
-            //if (!isInComment)
-            //{
-            //    isInComment = (style == TokenType_Comment);
-            //}
-            
-
-            if (style == TokenType_Other)
+            auto const lineEndPosition = (lineStartNext - 1) > endPos - 1 ? endPos - 1: (lineStartNext - 1);
+            auto currentEndOfLine = lineEndPosition + 1;
+            while (currentEndOfLine-- >= i)
             {
-                if (ch == '{' || ch == '[') {
-                    // Measure the minimum before a '{' to allow
-                    // folding on "} else {"
-                    if (levelMinCurrent > levelNext)
-                    {
-                        levelMinCurrent = levelNext;
-                    }
-                    levelNext++;
-                }
-                else if (ch == '}' || ch == ']')
+                style = MaskActive(styler.StyleAt(currentEndOfLine));
+                char ch = styler.SafeGetCharAt(currentEndOfLine);
+
+                if (style == TokenType_Other)
                 {
-                    levelNext--;
+                    if (ch == '[')
+                    {
+                        ++levelNext;
+                    }
+                    else if (ch == ']')
+                    {
+                        --levelNext;
+                    }
+                    else if (ch == '{')
+                    {
+                        levelNext++;
+                        break;
+                    }
+                    else if (ch == '}')
+                    {
+                        levelNext--;
+                        break;
+                    }
                 }
+                if (currentEndOfLine == 0U) break; //avoid underflow
             }
+            i += (lineEndPosition - i);
+            bool atEOL = (i == (lineStartNext - 1));
 
             if (atEOL || (i == endPos - 1))
             {
@@ -498,7 +473,6 @@ namespace RText
                 lineCurrent++;
                 lineStartNext   = styler.LineStart(lineCurrent + 1);
                 levelCurrent    = levelNext;
-                levelMinCurrent = levelCurrent;
                 if (atEOL && (i == static_cast<decltype(endPos)>(styler.Length() - 1)))
                 {
                     // There is an empty line at end of file so give it same level and empty
@@ -508,4 +482,4 @@ namespace RText
         }
     }
 
-}    // namespace RText
+} // namespace RText

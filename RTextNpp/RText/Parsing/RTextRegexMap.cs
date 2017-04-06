@@ -14,7 +14,7 @@ namespace RTextNppPlugin.RText.Parsing
             { RTextTokenTypes.QuotedString,      new Regex(@"\A(""|')(?:\\\1|.)*?\1"            , RegexOptions.Compiled)},
             { RTextTokenTypes.Boolean,           new Regex(@"\A(?:true|false)\b"                , RegexOptions.Compiled)},
             { RTextTokenTypes.Label,             new Regex(@"\A\w+:"                            , RegexOptions.Compiled)},
-            { RTextTokenTypes.Identifier ,        new Regex(@"\A[a-z_]\w*(?=\s*[^:]|)"          , RegexOptions.Compiled | RegexOptions.IgnoreCase)},
+            { RTextTokenTypes.Identifier ,       new Regex(@"\A[a-z_]\w*(?=\s*[^:]|)"          , RegexOptions.Compiled | RegexOptions.IgnoreCase)},
             { RTextTokenTypes.RightBrakcet,      new Regex(@"\A]"                               , RegexOptions.Compiled)},
             { RTextTokenTypes.LeftBracket,       new Regex(@"\A\["                              , RegexOptions.Compiled)},
             { RTextTokenTypes.RightAngleBracket, new Regex(@"\A}"                               , RegexOptions.Compiled)},
