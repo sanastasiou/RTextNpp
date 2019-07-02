@@ -539,7 +539,11 @@ namespace RTextNppPlugin.RText
         {
             RegistryKey aCmdKey = Registry.CurrentUser;
             var aCmdProcessorKey = aCmdKey.OpenSubKey(@"Software\Microsoft\Command Processor", true);
-            string aAutorunValue = aCmdProcessorKey.GetValue("autorun") as string;
+            string aAutorunValue = String.Empty;
+            if(aCmdProcessorKey != null && aCmdProcessorKey.GetValue("autorun") != null)
+            {
+                aAutorunValue = aCmdProcessorKey.GetValue("autorun") as string;
+            }
             WriteAutoRunValue(String.Empty);
             return aAutorunValue;
         }
@@ -553,7 +557,10 @@ namespace RTextNppPlugin.RText
         {
             RegistryKey aCmdKey = Registry.CurrentUser;
             var aCmdProcessorKey = aCmdKey.OpenSubKey(@"Software\Microsoft\Command Processor", true);
-            aCmdProcessorKey.SetValue("autorun", value != null ? value : String.Empty, RegistryValueKind.String);
+            if(aCmdProcessorKey != null)
+            {
+                aCmdProcessorKey.SetValue("autorun", value != null ? value : String.Empty, RegistryValueKind.String);
+            }
         }
         
         /**
